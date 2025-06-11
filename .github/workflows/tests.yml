@@ -1,0 +1,45 @@
+name: Run tests
+on:
+  pull_request:
+    branches:
+    - develop
+  release:
+    types: [published]
+
+jobs:
+  run-tests:
+    name: Run Javascript tests
+    runs-on: ubuntu-latest
+    container:
+      image: node:24-alpine3.21
+      volumes:
+        - ${{ github.workspace  }}:/app
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+      
+      - name: Installing dependencies
+        run: npm ci
+
+      - name: Running tests
+        id: tests
+        run: |
+          chmod +x ./ejecutar-tests.sh
+          ./ejecutar-tests.sh
+        continue-on-error: true
+
+      - name: Save tests results
+        uses: actions/upload-artifact@v4
+        with:
+          name: Resultado de la pruebas
+          path: |
+            ./tests/unitarias/cobertura
+            ./tests/unitarias/resultados
+
+      - name: Output artifact ID
+        run:  echo 'Artifact ID is ${{ steps.artifact-upload-step.outputs.artifact-id }}'
+
+      - name: Checking test
+        if: steps.tests.outcome != 'success'
+        run: exit 1
+        
