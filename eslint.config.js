@@ -28,7 +28,7 @@ export default [
         'warn',
         { allowConstantExport: true },
       ],
-      'semi': ['always']
+      'semi': ['error']
     },
   },
 ]

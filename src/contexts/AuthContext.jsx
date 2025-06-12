@@ -1,21 +1,28 @@
 import { signOut } from "firebase/auth";
 import { createContext, useState, useContext, useEffect } from "react";
-import { auth } from "../../firebase.config";
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { getUser, setUser, isAnAccountRegistered } from "../firebase/user-collection";
+import { verUsuario } from "../firebase/usuarios-collection";
+import { cambiarUsuario, verSiEstaRegistrado } from "../firestore/usuarios-collection";
 
 
 export const authContext = createContext();
 
-export const useAuth = () => {
+export const useAuth = (auth, db) => {
     const context = useContext(authContext);
+
     if (!context) {
         console.log("Error creando el contexto.");
     }
+
+    context.setDb(db);
+    context.setAuth(auth);
+
     return context;
-}
+};
 
 export function AuthProvider({ children }) {
+    const [auth, setAuth] = useState(null);
+    const [db, setDb] = useState(null);
     const [authInfo, setAuthInfo] = useState({
         user: null, correo: null, rol: null
     });
@@ -30,14 +37,14 @@ export function AuthProvider({ children }) {
                 setAuthInfo({ user: currentUser, correo: currentUser.email, rol: null });
         });
         return () => suscribed();
-    }, []);
+    }, [auth]);
 
     /**
      * Si el usuario ya está autenticado, obtiene sus datos.
      */
     useEffect(() => {
         if (authInfo.user != null) {
-            getUserData(authInfo.user.email);
+            verDatosUsuario(authInfo.user.email);
         }
     }, [authInfo.user]);
 
@@ -45,58 +52,27 @@ export function AuthProvider({ children }) {
      * Retorna la información de autenticación (instancia de Firebase, correo, rol, nivel).
      * @returns JSON
      */
-    const getAuthInfo = () => {
+    const verAuthInfo = () => {
         return authInfo;
-    };
-
-    /**
-     * Registra un usuario dentro de la aplicación.
-     * @param {JSON} user
-     * @returns JSON
-     */
-    const signUp = async (email, plan, cedula, nombre, fechaNacimiento, sexo, altura = 0, peso = 0, administrador = false, user = null) => {
-        const exists = await isAnAccountRegistered(email);
-
-        switch (exists) {
-            case undefined:
-                return { success: false, data: "1" };
-            case true:
-                logOut();
-                return { success: false, data: "-1" };
-            case false:
-                const res = await setUser({
-                    email: email,
-                    administrador: administrador,
-                    plan: plan,
-                    cedula: cedula,
-                    nombre: nombre,
-                    altura: altura,
-                    peso: peso,
-                    fechaNacimiento: fechaNacimiento,
-                    sexo: sexo
-                });
-
-                if (res.success) {
-                    setAuthInfo({
-                        user: user, email: email, administrador: administrador, plan: plan, cedula: cedula,
-                        altura: altura, peso: peso, nacimiento: fechaNacimiento, nombre: nombre, sexo: sexo
-                    });
-                }
-
-                return res
-        }
     };
 
     /**
      * Inicia sesión con Google dentro de Firebase.
      * @returns JSON
      */
-    const loginGoogle = async () => {
+    const iniciarSesionGoogle = async () => {
         try {
             const provider = new GoogleAuthProvider();
-            const res = await signInWithPopup(auth, provider)
+            const res = await signInWithPopup(auth, provider);
+            const reg = await verRegistrado(res.user.email);
 
-            setAuthInfo({ ...authInfo, user: res.user });
+            if (!reg.success) {
+                cerrarSesion();
+
+                return { success: false, error: "No se pudo verificar si el usuario está registrado." };
+            } else {
+                setAuthInfo({ ...authInfo, user: res.user });
+            }
 
             return { success: true, user: res.user };
         } catch (error) {
@@ -105,14 +81,43 @@ export function AuthProvider({ children }) {
     };
 
     /**
+     * Registra un nuevo usuario en la base de datos.
+     * @param {String} correo - Correo del usuario a registrar.
+     * @returns JSON
+     */
+    const registrarUsuario = async (correo) => {
+        // Rol = 0 - Usuario normal
+        const res = await cambiarUsuario({ correo: correo, rol: 0 }, db);
+
+        return { success: res.success };
+    };
+
+    /**
+     * Verifica si un usuario está registrado en la base de datos.
+     * @param {String} correo - Correo del usuario a verificar.
+     * @returns JSON
+     */
+    const verRegistrado = async (correo) => {
+        const res = await verSiEstaRegistrado(correo, db);
+
+        if (res.success && !res.data) {
+            return await registrarUsuario(correo);
+        } else if (res.success && res.data) {
+            return { success: true, data: 1 };
+        } else if (!res.success) {
+            return { success: false, data: 0 };
+        }
+    };
+
+    /**
      * Cierra la sesión del usuario.
      * @returns JSON
      */
-    const logOut = async () => {
+    const cerrarSesion = async () => {
         try {
             await signOut(auth);
-            setAuthInfo({ user: null, email: null, administrador: null, plan: null, cedula: null,
-                altura: null, peso: null, nacimiento: null, nombre: null, sexo: null });
+            setAuthInfo({ user: null, email: null, rol: null });
+
             return { success: true };
         } catch (error) {
             return { success: false, error };
@@ -120,32 +125,15 @@ export function AuthProvider({ children }) {
     };
 
     /**
-     * Determina si ya existe una cuenta registrada con el correo.
-     * @param {String} email 
-     * @returns boolean | undefined
-     */
-    const isRegistered = async (email) => {
-        const exists = await isAnAccountRegistered(email);
-
-        if ((exists != undefined) && !exists) {
-            logOut();
-        }
-
-        return exists;
-    };
-
-    /**
      * Actualiza la información del usuario dentro del contexto.
-     * @param {String} email 
+     * @param {String} correo 
      */
-    const getUserData = async (email) => {
-        const data = await getUser(email);
+    const verDatosUsuario = async (correo) => {
+        const data = await verUsuario(correo, db);
 
         if ((data.success == 1) && (data.data != undefined)) {
             setAuthInfo({
-                user: authInfo.user, email: data.data.email, administrador: data.data.administrador, plan: data.data.plan, cedula: data.data.cedula,
-                altura: data.data.altura, peso: data.data.peso, nacimiento: data.data.fechaNacimiento, nombre: data.data.nombre,
-                sexo: data.data.sexo
+                user: authInfo.user, email: data.data.email, rol: data.data.rol
             });
         }
 
@@ -153,7 +141,7 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <authContext.Provider value={{ useAuth, getAuthInfo, logOut, loginGoogle, signUp, isRegistered, getUserData }}>
+        <authContext.Provider value={{ useAuth, verAuthInfo, cerrarSesion, iniciarSesionGoogle, verDatosUsuario, setAuth, setDb }}>
             {children}
         </authContext.Provider>
     );
