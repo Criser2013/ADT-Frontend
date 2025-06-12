@@ -1,11 +1,10 @@
-import Router from "../router"
-import { useCredentials } from "./contexts/CredentialsContext";
+import Router from "../router";
+import { AuthProvider } from "./contexts/AuthContext";
 
 export default function App() {
-
-	const credentials = useCredentials();
-
 	return (
-		<Router />
-	)
-}
+		<AuthProvider>
+			<Router />
+		</AuthProvider>
+	);
+};

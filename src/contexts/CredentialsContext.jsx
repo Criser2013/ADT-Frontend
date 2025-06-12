@@ -13,7 +13,7 @@ export const useCredentials = () => {
         console.log("Error creando el contexto.");
     }
     return context;
-}
+};
 
 export function CredentialsProvider({ children }) {
 
@@ -37,7 +37,7 @@ export function CredentialsProvider({ children }) {
                 messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
                 appId: import.meta.env.VITE_APP_ID,
                 measurementId: import.meta.env.VITE_MEASUREMENT_ID
-            })
+            });
         }
         else {
             obtenerCredenciales();
@@ -68,7 +68,7 @@ export function CredentialsProvider({ children }) {
                 } else {
                     intentos++;
                 }
-            } catch (error) {
+            } catch {
                 intentos++;
             };
         }
@@ -84,7 +84,7 @@ export function CredentialsProvider({ children }) {
             const db = getFirestore(app);
             const auth = getAuth(app);
 
-            setCredsInfo((x) => ({ ...x, app, db, auth }));
+            setCredsInfo((x) => ({ ...x, app: app, db: db, auth: auth }));
         }
     };
 

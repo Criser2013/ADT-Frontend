@@ -1,26 +1,25 @@
 import { signOut } from "firebase/auth";
 import { createContext, useState, useContext, useEffect } from "react";
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { verUsuario } from "../firebase/usuarios-collection";
+import { verUsuario } from "../firestore/usuarios-collection";
 import { cambiarUsuario, verSiEstaRegistrado } from "../firestore/usuarios-collection";
+import { useCredentials } from "./CredentialsContext";
 
 
 export const authContext = createContext();
 
-export const useAuth = (auth, db) => {
+export const useAuth = () => {
     const context = useContext(authContext);
 
     if (!context) {
         console.log("Error creando el contexto.");
     }
 
-    context.setDb(db);
-    context.setAuth(auth);
-
     return context;
 };
 
 export function AuthProvider({ children }) {
+
     const [auth, setAuth] = useState(null);
     const [db, setDb] = useState(null);
     const [authInfo, setAuthInfo] = useState({
@@ -31,19 +30,21 @@ export function AuthProvider({ children }) {
      * Recupera la sesión si el usuario no la cerrado.
      */
     useEffect(() => {
-        const suscribed = onAuthStateChanged(auth, (currentUser) => {
-            !currentUser ?
-                setAuthInfo({ user: null, correo: null, rol: null }) :
-                setAuthInfo({ user: currentUser, correo: currentUser.email, rol: null });
-        });
-        return () => suscribed();
+        if (auth != null) {
+            const suscribed = onAuthStateChanged(auth, (currentUser) => {
+                !currentUser ?
+                    setAuthInfo({ user: null, correo: null, rol: null }) :
+                    setAuthInfo({ user: currentUser, correo: currentUser.email, rol: null });
+            });
+            return () => suscribed();
+        }
     }, [auth]);
 
     /**
      * Si el usuario ya está autenticado, obtiene sus datos.
      */
     useEffect(() => {
-        if (authInfo.user != null) {
+        if (auth != null && authInfo.user != null) {
             verDatosUsuario(authInfo.user.email);
         }
     }, [authInfo.user]);
