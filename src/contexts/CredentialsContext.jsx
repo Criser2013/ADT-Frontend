@@ -24,6 +24,12 @@ export function CredentialsProvider({ children }) {
         db: null, auth: null
     });
 
+    const [driveCreds, setDriveCreds] = useState({
+        clientId: null, authUrl: null, tokenUrl: null,
+        authProviderX509CertUrl: null, authClientSecret: null,
+        redirectUrl: null, javascriptOrigins: null
+    });
+
     /**
      * Inicializa Firebase dependiendo del entorno de ejecución.
      */
@@ -37,6 +43,16 @@ export function CredentialsProvider({ children }) {
                 messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
                 appId: import.meta.env.VITE_APP_ID,
                 measurementId: import.meta.env.VITE_MEASUREMENT_ID
+            });
+
+            inicializarDrive({
+                clientId: import.meta.env.VITE_DRIVE_CLIENT_ID,
+                authUrl: import.meta.env.VITE_DRIVE_AUTH_URL,
+                tokenUrl: import.meta.env.VITE_DRIVE_TOKEN_URL,
+                authProviderX509CertUrl: import.meta.env.VITE_DRIVE_AUTH_PROVIDER_X509_CERT_URL,
+                authClientSecret: import.meta.env.VITE_DRIVE_AUTH_CLIENT_SECRET,
+                redirectUrl: import.meta.env.VITE_DRIVE_REDIRECT_URL.split(","),
+                javascriptOrigins: import.meta.env.VITE_DRIVE_JAVASCRIPT_ORIGINS.split(",")
             });
         }
         else {
@@ -63,7 +79,25 @@ export function CredentialsProvider({ children }) {
                 const json = await res.json();
 
                 if (json.success) {
-                    inicializarFirebase(json);
+                    inicializarFirebase({
+                        apiKey: json.data.firebase_apiKey,
+                        authDomain: json.data.firebase_authDomain,
+                        projectId: json.data.firebase_projectId,
+                        storeBucket: json.data.firebase_storeBucket,
+                        messagingSenderId: json.data.firebase_messagingSenderId,
+                        appId: json.data.firebase_appId,
+                        measurementId: json.data.firebase_measurementId
+                    });
+
+                    inicializarDrive({
+                        clientId: json.data.drive_clientId,
+                        authUrl: json.data.drive_authUrl,
+                        tokenUrl: json.data.drive_tokenUrl,
+                        authProviderX509CertUrl: json.data.drive_authProviderX509CertUrl,
+                        authClientSecret: json.data.drive_authClientSecret,
+                        redirectUrl: json.data.drive_redirectUrl,
+                        javascriptOrigins: json.data.drive_javascriptOrigins
+                    });
                     break;
                 } else {
                     intentos++;
@@ -87,6 +121,18 @@ export function CredentialsProvider({ children }) {
             setCredsInfo((x) => ({ ...x, app: app, db: db, auth: auth }));
         }
     };
+    
+    const inicializarDrive = (driveCreds) => {
+        setDriveCreds({
+            clientId: driveCreds.clientId,
+            authUrl: driveCreds.authUrl,
+            tokenUrl: driveCreds.tokenUrl,
+            authProviderX509CertUrl: driveCreds.authProviderX509CertUrl,
+            authClientSecret: driveCreds.authClientSecret,
+            redirectUrl: driveCreds.redirectUrl,
+            javascriptOrigins: driveCreds.javascriptOrigins
+        });
+    };
 
     /**
      * Obtiene la instancia de Firestore.
@@ -104,17 +150,21 @@ export function CredentialsProvider({ children }) {
         return credsInfo.auth;
     };
 
+    const obtenerCredencialesDrive = () => {
+        return driveCreds;
+    };
+
     /**
      * Verificar si las credenciales de Firebase están cargadas.
      * @returns Boolean
      */
-    const verSiCredsEstancargadas = () => {
+    const verSiCredsFirebaseEstancargadas = () => {
         return credsInfo.app != null && credsInfo.db != null && credsInfo.auth != null;
     };
 
 
     return (
-        <credentialsContext.Provider value={{ useCredentials, obtenerInstanciaAuth, obtenerInstanciaDB, verSiCredsEstancargadas }}>
+        <credentialsContext.Provider value={{ useCredentials, obtenerInstanciaAuth, obtenerInstanciaDB, verSiCredsFirebaseEstancargadas, obtenerCredencialesDrive }}>
             {children}
         </credentialsContext.Provider>
     );

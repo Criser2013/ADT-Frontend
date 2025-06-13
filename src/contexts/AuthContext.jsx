@@ -102,6 +102,7 @@ export function AuthProvider({ children }) {
         const res = await verSiEstaRegistrado(correo, db);
 
         if (res.success && !res.data) {
+            console.log("asd")
             return await registrarUsuario(correo);
         } else if (res.success && res.data) {
             return { success: true, data: 1 };

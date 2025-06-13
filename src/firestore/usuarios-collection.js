@@ -8,7 +8,7 @@ import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
  */
 export const cambiarUsuario = async (datos, db) => {
     try {
-        const docRef = doc(db, "usuarios", datos.email);
+        const docRef = doc(db, "usuarios", datos.correo);
         const datosUsuario = await setDoc(docRef, datos);
 
         return { success: true, data: datosUsuario };
