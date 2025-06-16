@@ -3,7 +3,10 @@ import { createContext, useState, useContext, useEffect } from "react";
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { verUsuario } from "../firestore/usuarios-collection";
 import { cambiarUsuario, verSiEstaRegistrado } from "../firestore/usuarios-collection";
-import { useCredentials } from "./CredentialsContext";
+import { ConstructionOutlined } from "@mui/icons-material";
+//import { OAuth2Client } from "@google-auth-library";
+//import { authenticate } from '@google-cloud/local-auth';
+//import { google } from "@googleapis";
 
 
 export const authContext = createContext();
@@ -22,6 +25,7 @@ export function AuthProvider({ children }) {
 
     const [auth, setAuth] = useState(null);
     const [db, setDb] = useState(null);
+    const [drive, setDrive] = useState(null);
     const [authInfo, setAuthInfo] = useState({
         user: null, correo: null, rol: null
     });
@@ -32,6 +36,11 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         if (auth != null) {
             const suscribed = onAuthStateChanged(auth, (currentUser) => {
+                console.log(currentUser)
+                currentUser.getIdToken().then((x) => {
+                    console.log(GoogleAuthProvider.credential(x, currentUser.accessToken))
+                })
+                
                 !currentUser ?
                     setAuthInfo({ user: null, correo: null, rol: null }) :
                     setAuthInfo({ user: currentUser, correo: currentUser.email, rol: null });
@@ -61,11 +70,23 @@ export function AuthProvider({ children }) {
      * Inicia sesión con Google dentro de Firebase.
      * @returns JSON
      */
-    const iniciarSesionGoogle = async () => {
+    const iniciarSesionGoogle = async (scopes) => {
         try {
             const provider = new GoogleAuthProvider();
+
+            for (const i of scopes) {
+                provider.addScope(i);
+            }
+
             const res = await signInWithPopup(auth, provider);
             const reg = await verRegistrado(res.user.email);
+
+            setDrive(GoogleAuthProvider.credentialFromResult(res).accessToken); // .accessToken para usarlo en Drive
+
+            console.log(res.user)
+            console.log(GoogleAuthProvider.credentialFromResult(res).accessToken)
+            
+            console.log(res)
 
             if (!reg.success) {
                 cerrarSesion();
@@ -77,6 +98,7 @@ export function AuthProvider({ children }) {
 
             return { success: true, user: res.user };
         } catch (error) {
+            console.log(error)
             return { success: false, error: error };
         }
     };
@@ -142,8 +164,12 @@ export function AuthProvider({ children }) {
         return data;
     };
 
+    const verTokenDrive = async () => {
+        return drive;
+    };
+
     return (
-        <authContext.Provider value={{ useAuth, verAuthInfo, cerrarSesion, iniciarSesionGoogle, verDatosUsuario, setAuth, setDb }}>
+        <authContext.Provider value={{ useAuth, verAuthInfo, cerrarSesion, iniciarSesionGoogle, verDatosUsuario, setAuth, setDb, verTokenDrive, setDrive }}>
             {children}
         </authContext.Provider>
     );

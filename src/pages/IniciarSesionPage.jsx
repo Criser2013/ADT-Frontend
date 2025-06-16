@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useCredentials } from "../contexts/CredentialsContext";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet";
+import logo from "../assets/logo.png";
 
 export default function IniciarSesionPage() {
     const auth = useAuth();
@@ -16,7 +18,7 @@ export default function IniciarSesionPage() {
     useEffect(() => {
 
         document.title = "Iniciar sesión - HADT";
-        auth.cerrarSesion();
+        //auth.cerrarSesion()
 
         if (auth.verAuthInfo().user != null) {
             navigation("/menu", { replace: true });
@@ -29,14 +31,13 @@ export default function IniciarSesionPage() {
         setCargando(false);
     }, [credentials.obtenerInstanciaAuth()]);
 
+
     const manejadorBtnIniciarSesion = async () => {
         setCargando(true);
 
-        const res = await auth.iniciarSesionGoogle();
+        const res = await auth.iniciarSesionGoogle(credentials.verScopesDrive());
 
-        if (res.success) {
-            navigation("/menu", {replace: true });
-        } else {
+        if (!res.success) {
             setCargando(false);
             setModal(true);
         };
@@ -47,7 +48,6 @@ export default function IniciarSesionPage() {
     };
 
     const manejadorBtnCambiarTema = () => {
-        console.log(credentials.obtenerCredencialesDrive());
         console.log("presionado");
     };
 
@@ -68,8 +68,7 @@ export default function IniciarSesionPage() {
                         </Grid>
                         <Grid container size={12} alignItems="center">
                             <Grid size={3}>
-                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpm7h3wcfXJQvtxNkG6r5N--9DbneABGXkbQ&s"
-                                    height="50px" width="50px" alt="derp" />
+                                <img src={logo} height="50px" width="50px" alt="derp" />
                             </Grid>
                             <Grid size={9}>
                                 <Typography align="left" variant="h4" color="primary">
@@ -109,7 +108,7 @@ export default function IniciarSesionPage() {
                         </Grid>
                     </Grid>
                 </Box>)}
-                <Dialog open={modal}>
+            <Dialog open={modal}>
                 <DialogTitle>Error</DialogTitle>
                 <DialogContent>
                     <Typography>No se ha podido ingresar a la aplicación. Reintente nuevamente.</Typography>

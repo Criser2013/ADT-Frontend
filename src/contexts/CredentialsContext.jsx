@@ -4,7 +4,6 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { API_URL, ENTORNO } from "../../constants";
 
-
 export const credentialsContext = createContext();
 
 export const useCredentials = () => {
@@ -20,14 +19,14 @@ export function CredentialsProvider({ children }) {
     const [credsInfo, setCredsInfo] = useState({
         apiKey: null, authDomain: null, projectId: null,
         storeBucket: null, messagingSenderId: null,
-        appId: null, measurementId: null, app: null, 
+        appId: null, measurementId: null, app: null,
         db: null, auth: null
     });
 
     const [driveCreds, setDriveCreds] = useState({
         clientId: null, authUrl: null, tokenUrl: null,
         authProviderX509CertUrl: null, authClientSecret: null,
-        redirectUrl: null, javascriptOrigins: null
+        redirectUrl: null, javascriptOrigins: null, drive: null
     });
 
     /**
@@ -52,7 +51,8 @@ export function CredentialsProvider({ children }) {
                 authProviderX509CertUrl: import.meta.env.VITE_DRIVE_AUTH_PROVIDER_X509_CERT_URL,
                 authClientSecret: import.meta.env.VITE_DRIVE_AUTH_CLIENT_SECRET,
                 redirectUrl: import.meta.env.VITE_DRIVE_REDIRECT_URL.split(","),
-                javascriptOrigins: import.meta.env.VITE_DRIVE_JAVASCRIPT_ORIGINS.split(",")
+                javascriptOrigins: import.meta.env.VITE_DRIVE_JAVASCRIPT_ORIGINS.split(","),
+                scopes: import.meta.env.VITE_DRIVE_SCOPES.split(",")
             });
         }
         else {
@@ -96,7 +96,8 @@ export function CredentialsProvider({ children }) {
                         authProviderX509CertUrl: json.data.drive_authProviderX509CertUrl,
                         authClientSecret: json.data.drive_authClientSecret,
                         redirectUrl: json.data.drive_redirectUrl,
-                        javascriptOrigins: json.data.drive_javascriptOrigins
+                        javascriptOrigins: json.data.drive_javascriptOrigins,
+                        scopes: json.data.scopes
                     });
                     break;
                 } else {
@@ -121,16 +122,17 @@ export function CredentialsProvider({ children }) {
             setCredsInfo((x) => ({ ...x, app: app, db: db, auth: auth }));
         }
     };
-    
-    const inicializarDrive = (driveCreds) => {
+
+    const inicializarDrive = (cliente) => {
         setDriveCreds({
-            clientId: driveCreds.clientId,
-            authUrl: driveCreds.authUrl,
-            tokenUrl: driveCreds.tokenUrl,
-            authProviderX509CertUrl: driveCreds.authProviderX509CertUrl,
-            authClientSecret: driveCreds.authClientSecret,
-            redirectUrl: driveCreds.redirectUrl,
-            javascriptOrigins: driveCreds.javascriptOrigins
+            clientId: cliente.clientId,
+            authUrl: cliente.authUrl,
+            tokenUrl: cliente.tokenUrl,
+            authProviderX509CertUrl: cliente.authProviderX509CertUrl,
+            authClientSecret: cliente.authClientSecret,
+            redirectUrl: cliente.redirectUrl,
+            javascriptOrigins: cliente.javascriptOrigins,
+            scopes: cliente.scopes
         });
     };
 
@@ -150,10 +152,6 @@ export function CredentialsProvider({ children }) {
         return credsInfo.auth;
     };
 
-    const obtenerCredencialesDrive = () => {
-        return driveCreds;
-    };
-
     /**
      * Verificar si las credenciales de Firebase están cargadas.
      * @returns Boolean
@@ -162,9 +160,13 @@ export function CredentialsProvider({ children }) {
         return credsInfo.app != null && credsInfo.db != null && credsInfo.auth != null;
     };
 
+    const verScopesDrive = () => {
+        return driveCreds.scopes;
+    };
+
 
     return (
-        <credentialsContext.Provider value={{ useCredentials, obtenerInstanciaAuth, obtenerInstanciaDB, verSiCredsFirebaseEstancargadas, obtenerCredencialesDrive }}>
+        <credentialsContext.Provider value={{ useCredentials, obtenerInstanciaAuth, obtenerInstanciaDB, verSiCredsFirebaseEstancargadas, verScopesDrive }}>
             {children}
         </credentialsContext.Provider>
     );
