@@ -1,5 +1,5 @@
 import { reauthenticateWithPopup, signOut } from "firebase/auth";
-import { createContext, useState, useContext, useEffect, useCallback } from "react";
+import { createContext, useState, useContext, useEffect } from "react";
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { verUsuario } from "../firestore/usuarios-collection";
 import { cambiarUsuario, verSiEstaRegistrado } from "../firestore/usuarios-collection";
@@ -20,6 +20,11 @@ export const useAuth = () => {
     return context;
 };
 
+/**
+ * Proveedor del contexto que permite gestionar el estado de la autenticación.
+ * @param {JSX.Element} children
+ * @returns JSX.Element
+ */
 export function AuthProvider({ children }) {
     // Instancia de autenticación de Firebase
     const [auth, setAuth] = useState(null);
@@ -46,8 +51,8 @@ export function AuthProvider({ children }) {
      * Reautentica al usuario para actualizar las credenciales de acceso a Google.
      * @param {User} usuario - Instancia del usuario de Firebase.
      */
-    const reautenticarUsuario = useCallback(async (usuario) => {
-        if (usuario != null) {
+    const reautenticarUsuario = async (usuario) => {
+        if (usuario != null && tokenDrive == null) {
             let resultado = { res: false, operacion: 2, error: "" };
             setCargando(true);
 
@@ -64,66 +69,77 @@ export function AuthProvider({ children }) {
 
                 setTokenDrive(GoogleAuthProvider.credentialFromResult(res).accessToken);
             } catch (error) {
-                console.error(error);
-                resultado = { res: true, operacion: 2, error: "Se ha producido un error durante el inicio de sesión, reintente nuevamente" };
+                if (error.code != "auth/popup-closed-by-user") {
+                    console.error(error);
+                    resultado = { res: true, operacion: 2, error: "Se ha producido un error durante el inicio de sesión, reintente nuevamente" };
+                }
             }
 
             setCargando(false);
             setAuthError(resultado);
         }
-    }, [scopes, setTokenDrive]);
+    };
 
     /**
      * Maneja los cambios en la autenticación del usuario.
      * @param {User} currentUser - Usuario actual de Firebase.
      */
-    const manejadorCambiosAuth = useCallback(async (currentUser) => {
+    const manejadorCambiosAuth = async (currentUser) => {
         // Si ya estaba autenticado, se actualiza su información y refrescan los tokens de OAuth
         if (currentUser != null) {
-            await reautenticarUsuario(currentUser);
-            setAuthInfo({ user: currentUser, correo: currentUser.email, rol: null });
+            /* Evitando que se muestre el cuadro de seleccion de cuenta cuando se cierra sesión
+               o el usuario se encuentre en la pestaña principal */
+            if (window.location.pathname != "/cerrar-sesion" && window.location.pathname != "/") {
+                await reautenticarUsuario(currentUser);
+            }
+            setAuthInfo((x) => ({ ...x, user: currentUser, correo: currentUser.email }));
         } else {
             setAuthInfo({ user: null, correo: null, rol: null });
         }
-    }, [reautenticarUsuario, setAuthInfo]);
+    };
 
     /**
-     * Recupera la sesión si el usuario no la cerrado.
+     * Recupera la sesión si el usuario no la ha cerrado.
      */
     useEffect(() => {
         if (auth != null) {
             const suscribed = onAuthStateChanged(auth, manejadorCambiosAuth);
             return () => suscribed();
         }
-    }, [auth, manejadorCambiosAuth]);
+    }, [auth]);
 
     /**
      * Actualiza la información del usuario dentro del contexto.
      * @param {String} correo 
      */
-    const verDatosUsuario = useCallback(async (correo) => {
+    const verDatosUsuario = async (correo) => {
         if (correo != null) {
             const data = await verUsuario(correo, db);
 
             if ((data.success == 1) && (data.data != undefined)) {
-                setAuthInfo({
-                    user: authInfo.user, email: data.data.email, rol: data.data.rol
-                });
+                setAuthInfo((x) => ({
+                    user: x.user, correo: data.data.correo, rol: data.data.rol
+                }));
             }
-
-            return data;
         }
-    }, [db, authInfo.user, setAuthInfo]);
+    };
 
     /**
      * Si el usuario ya está autenticado, obtiene sus datos.
      */
     useEffect(() => {
-        if (auth != null && authInfo.user != null) {
-            verDatosUsuario(authInfo.user.email);
+        if (authInfo.user != null && authInfo.correo != null && authInfo.rol == null) {
+            setCargando(true);
+            verDatosUsuario(authInfo.user.email).then(() => {
+                setCargando(false);
+            });
         }
-    }, [authInfo.user, verDatosUsuario, auth]);
+    }, [authInfo]);
 
+    /**
+     * Retira el indicador de carga cuando se tienen las instancias de la base de datos,
+     * autenticación y permisos de Drive requeridos.
+     */
     useEffect(() => {
         if (auth != null && scopes != null && db != null) {
             setCargando(false);
@@ -132,31 +148,29 @@ export function AuthProvider({ children }) {
 
     /**
      * Cierra la sesión del usuario.
-     * @returns JSON
+     * @param {boolean} ejecutar - Indica si se debe ejecutar el inicio de sesión. Por defecto es false.
      */
-    const cerrarSesion = useCallback(async (ejecutar = false) => {
-        if (ejecutar) {
-            setCargando(true);
+    const cerrarSesion = async () => {
+        setCargando(true);
 
-            try {
-                await signOut(auth);
-                setAuthInfo({ user: null, email: null, rol: null });
-                setAuthError({ res: false, operacion: 1, error: "" });
-            } catch (error) {
-                console.error(error);
-                setAuthError({ res: true, operacion: 1, error: "No se ha podido cerrar sesión. Reintente nuevamente." });
-            }
-
-            setCargando(false);
+        try {
+            await signOut(auth);
+            setAuthInfo({ user: null, email: null, rol: null });
+            setAuthError({ res: false, operacion: 1, error: "" });
+        } catch (error) {
+            console.error(error);
+            setAuthError({ res: true, operacion: 1, error: "No se ha podido cerrar sesión. Reintente nuevamente." });
         }
-    }, [auth, setAuthInfo, setAuthError]);
+
+        setCargando(false);
+    };
 
     /**
      * Registra un nuevo usuario en la base de datos.
      * @param {String} correo - Correo del usuario a registrar.
      * @returns JSON
      */
-    const registrarUsuario = useCallback(async (correo) => {
+    const registrarUsuario = async (correo) => {
         /* rol = 0 - Usuario normal
            rol = 1001 - Administrador */
         if (correo != null) {
@@ -164,14 +178,13 @@ export function AuthProvider({ children }) {
 
             return { success: res.success };
         }
-    }, [db]);
+    };
 
     /**
      * Verifica si un usuario está registrado en la base de datos.
      * @param {String} correo - Correo del usuario a verificar.
-     * @returns JSON
      */
-    const verRegistrado = useCallback(async (correo) => {
+    const verRegistrado = async (correo) => {
         if (correo != null) {
             const res = await verSiEstaRegistrado(correo, db);
 
@@ -186,55 +199,54 @@ export function AuthProvider({ children }) {
                 return { success: false, data: 0 };
             }
         }
-    }, [db, registrarUsuario]);
+    };
 
     /**
-     * Inicia sesión con Google dentro de Firebase.
-     * Si la autenticación es exitosa almacena las credenciales del usuario.
-     * @returns JSON
+     * Inicia sesión con Google dentro de Firebase. Si la autenticación es exitosa 
+     * almacena las credenciales del usuario.
+     * @param {boolean} ejecutar - Indica si se debe ejecutar el inicio de sesión. Por defecto es false.
      */
-    const iniciarSesionGoogle = useCallback(async (ejecutar = false) => {
-        if (ejecutar) {
-            let resultado = { success: false, operacion: 0, error: "" };
-            setCargando(true);
+    const iniciarSesionGoogle = async () => {
+        let resultado = { res: false, operacion: 0, error: "" };
+        setCargando(true);
 
-            try {
-                const provider = new GoogleAuthProvider();
+        try {
+            const provider = new GoogleAuthProvider();
 
-                // Se añaden los permisos necesarios para usar Drive
-                for (const i of scopes) {
-                    provider.addScope(i);
-                }
+            // Se añaden los permisos necesarios para usar Drive
+            for (const i of scopes) {
+                provider.addScope(i);
+            }
 
-                // Se abre el popup de Google para iniciar sesión
-                const res = await signInWithPopup(auth, provider);
-                // Se verifica si el usuario ya está registrado en la base de datos y esté activado
-                const reg = await verRegistrado(res.user.email);
+            // Se abre el popup de Google para iniciar sesión
+            const res = await signInWithPopup(auth, provider);
+            // Se verifica si el usuario ya está registrado en la base de datos y esté activado
+            const reg = await verRegistrado(res.user.email);
+            // Guardando el token de acceso a Google Drive
+            setTokenDrive(GoogleAuthProvider.credentialFromResult(res).accessToken);
 
-                // Guardando el token de acceso a Google Drive
-                setTokenDrive(GoogleAuthProvider.credentialFromResult(res).accessToken);
-
-                if (!reg.success) {
-                    // Si no se pudo registrar al usuario, se cierra la sesión
-                    cerrarSesion(true);
-                    resultado = { res: true, operacion: 0, error: "No se pudo verificar si el usuario está registrado." };
-                } else {
-                    // Al iniciar sesión correctamente, se actualiza la información del usuario
-                    setAuthInfo({ ...authInfo, user: res.user });
-                }
-            } catch (error) {
+            if (!reg.success) {
+                // Si no se pudo registrar al usuario, se cierra la sesión
+                cerrarSesion();
+                resultado = { res: true, operacion: 0, error: "No se pudo verificar si el usuario está registrado." };
+            } else {
+                // Al iniciar sesión correctamente, se actualiza la información del usuario
+                setAuthInfo((x) => ({ ...x, user: res.user }));
+            }
+        } catch (error) {
+            if (error.code != "auth/popup-closed-by-user") {
                 console.error(error);
                 resultado = { res: true, operacion: 0, error: "No se ha podido iniciar sesión. Reintente nuevamente." };
             }
-
-            setCargando(false);
-            setAuthError(resultado);
         }
-    }, [auth, scopes, authInfo, setAuthInfo, setTokenDrive, cerrarSesion, verRegistrado]);
+
+        setCargando(false);
+        setAuthError(resultado);
+    };
 
     return (
-        <authContext.Provider value={{ useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive, setScopes, cerrarSesion, iniciarSesionGoogle, verDatosUsuario }}>
+        <authContext.Provider value={{ useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive, setScopes, cerrarSesion, iniciarSesionGoogle, verDatosUsuario, reautenticarUsuario }}>
             {children}
         </authContext.Provider>
     );
-}
+};

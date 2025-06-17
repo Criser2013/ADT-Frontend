@@ -4,17 +4,27 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { API_URL, ENTORNO } from "../../constants";
 
-export const credentialsContext = createContext();
+export const credencialesContext = createContext();
 
-export const useCredentials = () => {
-    const context = useContext(credentialsContext);
+/**
+ * Otorga acceso al contexto de credenciales de la aplicación.
+ * @returns React.Context<CredentialsContextType>
+ */
+export const useCredenciales = () => {
+    const context = useContext(credencialesContext);
     if (!context) {
         console.log("Error creando el contexto.");
     }
     return context;
 };
 
-export function CredentialsProvider({ children }) {
+/**
+ * Proveedor del contexto que permite gestionar las credenciales de Firebase
+ * de la aplicación.
+ * @param {JSX.Element} children
+ * @returns JSX.Element
+ */
+export function CredencialesProvider({ children }) {
 
     const [credsInfo, setCredsInfo] = useState({
         apiKey: null, authDomain: null, projectId: null,
@@ -23,16 +33,13 @@ export function CredentialsProvider({ children }) {
         db: null, auth: null
     });
 
-    const [driveCreds, setDriveCreds] = useState({
-        clientId: null, authUrl: null, tokenUrl: null,
-        authProviderX509CertUrl: null, authClientSecret: null,
-        redirectUrl: null, javascriptOrigins: null, scopes: null
-    });
+    const [scopesDrive, setScopesDrive] = useState(null);
 
     /**
      * Inicializa Firebase dependiendo del entorno de ejecución.
      */
     useEffect(() => {
+        // Entorno de desarrollo solo frontend
         if (ENTORNO == "0") {
             inicializarFirebase({
                 apiKey: import.meta.env.VITE_API_KEY,
@@ -44,18 +51,10 @@ export function CredentialsProvider({ children }) {
                 measurementId: import.meta.env.VITE_MEASUREMENT_ID
             });
 
-            inicializarDrive({
-                clientId: import.meta.env.VITE_DRIVE_CLIENT_ID,
-                authUrl: import.meta.env.VITE_DRIVE_AUTH_URL,
-                tokenUrl: import.meta.env.VITE_DRIVE_TOKEN_URL,
-                authProviderX509CertUrl: import.meta.env.VITE_DRIVE_AUTH_PROVIDER_X509_CERT_URL,
-                authClientSecret: import.meta.env.VITE_DRIVE_AUTH_CLIENT_SECRET,
-                redirectUrl: import.meta.env.VITE_DRIVE_REDIRECT_URL.split(","),
-                javascriptOrigins: import.meta.env.VITE_DRIVE_JAVASCRIPT_ORIGINS.split(","),
-                scopes: import.meta.env.VITE_DRIVE_SCOPES.split(",")
-            });
+            setScopesDrive(import.meta.env.VITE_DRIVE_SCOPES.split(","));
         }
         else {
+            // Producción o entorno de pruebas con backend funcionando
             obtenerCredenciales();
         }
     }, []);
@@ -89,16 +88,7 @@ export function CredentialsProvider({ children }) {
                         measurementId: json.data.firebase_measurementId
                     });
 
-                    inicializarDrive({
-                        clientId: json.data.drive_clientId,
-                        authUrl: json.data.drive_authUrl,
-                        tokenUrl: json.data.drive_tokenUrl,
-                        authProviderX509CertUrl: json.data.drive_authProviderX509CertUrl,
-                        authClientSecret: json.data.drive_authClientSecret,
-                        redirectUrl: json.data.drive_redirectUrl,
-                        javascriptOrigins: json.data.drive_javascriptOrigins,
-                        scopes: json.data.scopes
-                    });
+                    setScopesDrive(json.data.scopes);
                     break;
                 } else {
                     intentos++;
@@ -121,19 +111,6 @@ export function CredentialsProvider({ children }) {
 
             setCredsInfo((x) => ({ ...x, app: app, db: db, auth: auth }));
         }
-    };
-
-    const inicializarDrive = (cliente) => {
-        setDriveCreds({
-            clientId: cliente.clientId,
-            authUrl: cliente.authUrl,
-            tokenUrl: cliente.tokenUrl,
-            authProviderX509CertUrl: cliente.authProviderX509CertUrl,
-            authClientSecret: cliente.authClientSecret,
-            redirectUrl: cliente.redirectUrl,
-            javascriptOrigins: cliente.javascriptOrigins,
-            scopes: cliente.scopes
-        });
     };
 
     /**
@@ -160,14 +137,9 @@ export function CredentialsProvider({ children }) {
         return credsInfo.app != null && credsInfo.db != null && credsInfo.auth != null;
     };
 
-    const verScopesDrive = () => {
-        return driveCreds.scopes;
-    };
-
-
     return (
-        <credentialsContext.Provider value={{ useCredentials, obtenerInstanciaAuth, obtenerInstanciaDB, verSiCredsFirebaseEstancargadas, verScopesDrive }}>
+        <credencialesContext.Provider value={{ useCredentials: useCredenciales, obtenerInstanciaAuth, obtenerInstanciaDB, verSiCredsFirebaseEstancargadas, scopesDrive }}>
             {children}
-        </credentialsContext.Provider>
+        </credencialesContext.Provider>
     );
 }

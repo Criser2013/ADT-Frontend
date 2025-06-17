@@ -1,15 +1,18 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
-import { CredentialsProvider } from './contexts/CredentialsContext.jsx';
+import { CredencialesProvider } from './contexts/CredencialesContext.jsx';
 import { AuthProvider } from './contexts/AuthContext.jsx';
+import { NavegacionProvider } from './contexts/NavegacionContext.jsx';
 
 createRoot(document.getElementById('root')).render(
 	<StrictMode>
-		<CredentialsProvider>
+		<CredencialesProvider>
 			<AuthProvider>
-				<App />
+				<NavegacionProvider>
+					<App />
+				</NavegacionProvider>
 			</AuthProvider>
-		</CredentialsProvider>
+		</CredencialesProvider>
 	</StrictMode>,
 );

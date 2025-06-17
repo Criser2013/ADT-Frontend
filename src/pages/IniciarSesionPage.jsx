@@ -1,62 +1,53 @@
-import { Box, Button, Grid, IconButton, Typography, CircularProgress, Dialog, DialogContent, DialogActions, DialogTitle } from "@mui/material";
+import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link } from "@mui/material";
 import GoogleIcon from '@mui/icons-material/Google';
 import ContrastIcon from '@mui/icons-material/Contrast';
-import { useEffect, useState, useCallback } from "react";
+import { useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
+import { useNavegacion } from "../contexts/NavegacionContext";
 
+/**
+ * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.
+ * Si el usuario ya está autenticado, se redirige automáticamente al menú principal.
+ * @returns JSX.Element
+ */
 export default function IniciarSesionPage() {
     const auth = useAuth();
     const navigation = useNavigate();
-    const [modal, setModal] = useState({
-        mostrar: false, mensaje: ""
-    });
-
+    const navegacion = useNavegacion();
+    
     /**
      * Verifica la autenticación del usuario y redirige si ya está autenticado.
      */
     useEffect(() => {
         document.title = "Iniciar sesión - HADT";
-        //auth.cerrarSesion(true);
+        navegacion.setPaginaAnterior("");
 
         if (auth.tokenDrive != null) {
             navigation("/menu", { replace: true });
         }
-    }, [auth, auth.tokenDrive, navigation]);
-
-    /** 
-     * Escucha y muestra los errores de autenticación que se presenten.
-     */
-    useEffect(() => {
-        if (!auth.cargando && auth.authError.res) {
-            setModal({ mostrar: true, mensaje: auth.authError.error });
-        } else {
-            setModal({ mostrar: false, mensaje: "" });
-        }
-    }, [auth, auth.cargando]);
-
+    }, [auth.tokenDrive, navegacion, navigation]);
 
     /**
      * Manejador de eventos del botón para iniciar sesión.
      */
-    const manejadorBtnIniciarSesion = useCallback(async () => {
-        await auth.iniciarSesionGoogle(true);
-    }, [auth]);
+    const manejadorBtnIniciarSesion = async () => {
+        const { user } = auth.authInfo;
 
-    /**
-     * Manejador de eventos del botón de cerrar el modal de error.
-     */
-    const manejadorBtnModal = useCallback(() => {
-        setModal({ mostrar: false, mensaje: "" });
-    }, [setModal]);
+        if (user == null) {
+            await auth.iniciarSesionGoogle();
+        } else {
+            await auth.reautenticarUsuario(user);
+        }
+    };
 
     /**
      * Manejador de eventos del botón para cambiar tema.
      */
-    const manejadorBtnCambiarTema = useCallback(() => {
+    const manejadorBtnCambiarTema = () => {
         console.log("presionado");
-    }, []);
+    };
 
     return (
         <>
@@ -100,7 +91,7 @@ export default function IniciarSesionPage() {
                                 onClick={manejadorBtnIniciarSesion}
                                 variant="contained"
                                 sx={{ textTransform: "none" }}>
-                                Iniciar sesión
+                                { auth.authInfo.user == null ? "Iniciar sesión" : "Ir a la aplicación" }
                             </Button>
                         </Grid>
                         <Grid size={12}>
@@ -109,25 +100,10 @@ export default function IniciarSesionPage() {
                             </Typography>
                             <br />
                             <Typography align="left" variant="body1" marginLeft="auto" marginRight="auto">
-                                ¡Necesitas ayuda? ¡consulta nuestro <a href="/manual">manual de instrucciones</a>!
+                                ¿Necesitas ayuda? ¡consulta nuestro <Link href="/manual">manual de instrucciones</Link>!
                             </Typography>
                         </Grid>
                     </Grid>
-                    <Dialog open={modal.mostrar}>
-                        <DialogTitle>Error</DialogTitle>
-                        <DialogContent>
-                            <Typography>{modal.mensaje}</Typography>
-                        </DialogContent>
-                        <DialogActions>
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                onClick={manejadorBtnModal}
-                                sx={{ textTransform: "none" }}>
-                                <b>Cerrar</b>
-                            </Button>
-                        </DialogActions>
-                    </Dialog>
                 </Box>)}
 
         </>
