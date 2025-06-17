@@ -26,7 +26,7 @@ export function CredentialsProvider({ children }) {
     const [driveCreds, setDriveCreds] = useState({
         clientId: null, authUrl: null, tokenUrl: null,
         authProviderX509CertUrl: null, authClientSecret: null,
-        redirectUrl: null, javascriptOrigins: null, drive: null
+        redirectUrl: null, javascriptOrigins: null, scopes: null
     });
 
     /**

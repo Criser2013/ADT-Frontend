@@ -1,60 +1,66 @@
 import { Box, Button, Grid, IconButton, Typography, CircularProgress, Dialog, DialogContent, DialogActions, DialogTitle } from "@mui/material";
 import GoogleIcon from '@mui/icons-material/Google';
 import ContrastIcon from '@mui/icons-material/Contrast';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { useCredentials } from "../contexts/CredentialsContext";
 import { useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet";
 import logo from "../assets/logo.png";
 
 export default function IniciarSesionPage() {
     const auth = useAuth();
     const navigation = useNavigate();
-    const credentials = useCredentials();
-    const [cargando, setCargando] = useState(true);
-    const [modal, setModal] = useState(false);
+    const [modal, setModal] = useState({
+        mostrar: false, mensaje: ""
+    });
 
+    /**
+     * Verifica la autenticación del usuario y redirige si ya está autenticado.
+     */
     useEffect(() => {
-
         document.title = "Iniciar sesión - HADT";
-        //auth.cerrarSesion()
+        //auth.cerrarSesion(true);
 
-        if (auth.verAuthInfo().user != null) {
+        if (auth.tokenDrive != null) {
             navigation("/menu", { replace: true });
         }
-    }, [auth.verAuthInfo().user]);
+    }, [auth, auth.tokenDrive, navigation]);
 
+    /** 
+     * Escucha y muestra los errores de autenticación que se presenten.
+     */
     useEffect(() => {
-        auth.setAuth(credentials.obtenerInstanciaAuth());
-        auth.setDb(credentials.obtenerInstanciaDB());
-        setCargando(false);
-    }, [credentials.obtenerInstanciaAuth()]);
+        if (!auth.cargando && auth.authError.res) {
+            setModal({ mostrar: true, mensaje: auth.authError.error });
+        } else {
+            setModal({ mostrar: false, mensaje: "" });
+        }
+    }, [auth, auth.cargando]);
 
 
-    const manejadorBtnIniciarSesion = async () => {
-        setCargando(true);
+    /**
+     * Manejador de eventos del botón para iniciar sesión.
+     */
+    const manejadorBtnIniciarSesion = useCallback(async () => {
+        await auth.iniciarSesionGoogle(true);
+    }, [auth]);
 
-        const res = await auth.iniciarSesionGoogle(credentials.verScopesDrive());
+    /**
+     * Manejador de eventos del botón de cerrar el modal de error.
+     */
+    const manejadorBtnModal = useCallback(() => {
+        setModal({ mostrar: false, mensaje: "" });
+    }, [setModal]);
 
-        if (!res.success) {
-            setCargando(false);
-            setModal(true);
-        };
-    };
-
-    const manejadorBtnModal = () => {
-        setModal(false);
-    };
-
-    const manejadorBtnCambiarTema = () => {
+    /**
+     * Manejador de eventos del botón para cambiar tema.
+     */
+    const manejadorBtnCambiarTema = useCallback(() => {
         console.log("presionado");
-    };
-
+    }, []);
 
     return (
         <>
-            {cargando ? (
+            {auth.cargando ? (
                 <Box alignItems="center" display="flex" justifyContent="center" height="100vh">
                     <CircularProgress />
                 </Box>
@@ -107,22 +113,23 @@ export default function IniciarSesionPage() {
                             </Typography>
                         </Grid>
                     </Grid>
+                    <Dialog open={modal.mostrar}>
+                        <DialogTitle>Error</DialogTitle>
+                        <DialogContent>
+                            <Typography>{modal.mensaje}</Typography>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                onClick={manejadorBtnModal}
+                                sx={{ textTransform: "none" }}>
+                                <b>Cerrar</b>
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                 </Box>)}
-            <Dialog open={modal}>
-                <DialogTitle>Error</DialogTitle>
-                <DialogContent>
-                    <Typography>No se ha podido ingresar a la aplicación. Reintente nuevamente.</Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        onClick={manejadorBtnModal}
-                        sx={{ textTransform: "none" }}>
-                        <b>Cerrar</b>
-                    </Button>
-                </DialogActions>
-            </Dialog>
+
         </>
     );
 };
