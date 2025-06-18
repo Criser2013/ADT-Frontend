@@ -1,12 +1,84 @@
-# React + Vite
+# Frontend - HADT
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interfaz de usuario para la aplicación "Herramienta para apoyar el diagnóstico de TEP". Se requiere un proyecto de Firebase con los servicios de autenticación y base de datos habilitados (firestore). El proyecto hace uso de las siguientes bibliotecas:
 
-Currently, two official plugins are available:
+- React + Vite - SWC plugin.
+- Material UI.
+- React router DOM.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ¿Cómo ejecutar el proyecto?
 
-## Expanding the ESLint configuration
+Para ejecutar el proyecto debe instalar las dependencias con el siguiente comando:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+npm ci
+```
+
+Para ejecutar la aplicación utilice el siguiente comando:
+
+```
+npm run dev
+```
+
+Tenga en cuenta que de esta forma se requiere que el servidor backend esté en ejecución. En la siguiente sección se indica cómo incluir la URL del backend.
+
+## Ejecución del frontend con variables de entorno
+
+Es posible ejecutar la aplicación sin necesidad de tener activo el servidor backend, para esto se debe proveer las credenciales de Firebase y los permisos de drive en un archivo `.env`. Se provee el archivo `.env.example` como plantilla.  
+
+Para iniciar el servidor de esta forma, establezca la siguiente variables de entorno: `VITE_ENTORNO=0`. Esto puede ser realizado a través del comando `export VITE_ENTORNO=0` en Linux y `setx VITE_ENTORNO 0` en Windows.
+
+### Descripción de las variables de entorno
+
+```
+VITE_API_KEY=<string>           # API key del proyecto de Firebase
+VITE_AUTH_DOMAIN=<string>       # Dominio de autenticación de Firebase
+VITE_PROJECT_ID=<string>        # ID del proyecto en Firebase
+VITE_STORE_BUCKET=<string>      # ID del bucket de Firestore
+VITE_MESSAGING_SENDER_ID=<int>  # ID para envío de mensajes
+VITE_APP_ID=<string>            # ID de la aplicación de Firebase
+VITE_MEASUREMENT_ID=<string>    # ID de Google Analytics (métricas)
+VITE_DRIVE_SCOPES=<string>      # URLs de permisos de Drive requeridos
+VITE_ENTORNO=<int>              # Número de entorno de ejecución
+VITE_API_URL=<string>           # URL del API (servidor backend)
+```
+
+## Dockerfile
+
+La imagen generada `Dockerfile` corresponde a una imagen de despliegue, para construirla use el comando:
+
+```
+docker image build --build-arg API_URL=<URL-BACKEND>
+```
+
+La aplicación será visible en el puerto `80` del contenedor.
+
+## Pruebas unitarias
+
+Para ejecutar las pruebas unitarias utilice el siguiente comando:
+
+```
+npm test -- --json --outputFile=./tests/unitarias/resultados/testRun-output-$(date +%Y-%m-%d_%H-%M-%S).json --passWithNoTests
+```
+
+O en su lugar ejecute el archivo: `ejecutar-tests-sh` desde una terminal.  
+En la carpeta `tests/unitarias` se encuentran los scripts de prueba. En la carpeta `cobertura` se guardan los informes de cobertura de código de las pruebas. De igual forma, la carpeta `resultados` almacena los informes de ejecución en formato **JSON**.  
+
+Sino desea ejecutar las pruebas sin almacenar el informe de resultados, ejecute el comando:
+
+```
+npm test
+```
+
+Para cambiar la configuración de este apartado, modifique el archivo `jest.config.js`. Para más informaciónc consulte la [documentación](https://jestjs.io/docs/configuration).
+
+## ESLint
+
+Se emplea la configuración por defecto de **ESLint**, excluyendo la revisión de archivos de producción y pruebas.
+Se exige utilizar punto y coma `;` al final de las sentencias. Para ejecutar las comprobaciones, basta con utilizar la extensión [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) de VSCode o utilice el comando en una terminal:
+
+```
+npm run lint
+```
+
+Puede cambiar las configuraciones en el archivo `vite.config.js`. Para más informacióm, consulte la [documentación](https://eslint.org/docs/latest/use/configure/).

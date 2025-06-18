@@ -140,7 +140,7 @@ export function CredencialesProvider({ children }) {
      */
     const cargarCredsCookies = () => {
         const firebaseCreds = Cookies.get("session-credentials");
-        const driveScopes = Cookies.get("session-session-drive-scopes");
+        const driveScopes = Cookies.get("session-drive-scopes");
         let res = (firebaseCreds != undefined && firebaseCreds != null);
 
         if (res && (driveScopes != undefined && driveScopes != null)) {
