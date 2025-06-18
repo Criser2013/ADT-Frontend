@@ -192,7 +192,7 @@ export function CredencialesProvider({ children }) {
     };
 
     return (
-        <credencialesContext.Provider value={{ useCredentials: useCredenciales, obtenerInstanciaAuth, obtenerInstanciaDB, verSiCredsFirebaseEstancargadas, scopesDrive, borrarCookies: borrarCredsCookies }}>
+        <credencialesContext.Provider value={{ useCredentials: useCredenciales, obtenerInstanciaAuth, obtenerInstanciaDB, verSiCredsFirebaseEstancargadas, scopesDrive, borrarCredsCookies }}>
             {children}
         </credencialesContext.Provider>
     );
