@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNavegacion } from '../contexts/NavegacionContext';
+import { useCredenciales } from '../contexts/CredencialesContext';
 
 /**
  * Página dónde el usuario cierra sesión. Al acceder se cierra la sesión si el usuario
@@ -14,6 +15,7 @@ export default function CerrarSesionPage() {
     const navigate = useNavigate();
     const navegacion = useNavegacion();
     const auth = useAuth();
+    const credenciales = useCredenciales();
 
     /**
      * Cierra la sesión del usuario y redirige a la página de inicio.
@@ -23,6 +25,7 @@ export default function CerrarSesionPage() {
 
         if (user != null) {
             auth.cerrarSesion().then(() => {
+                credenciales.borrarCredsCookies();
                 navigate("/", { replace: true });
             });
         }

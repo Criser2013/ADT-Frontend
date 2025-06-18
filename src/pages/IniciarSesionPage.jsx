@@ -27,7 +27,7 @@ export default function IniciarSesionPage() {
         if (auth.tokenDrive != null) {
             navigation("/menu", { replace: true });
         }
-    }, [auth.tokenDrive, navegacion, navigation]);
+    }, [auth.tokenDrive]);
 
     /**
      * Manejador de eventos del botón para iniciar sesión.

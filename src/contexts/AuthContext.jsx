@@ -3,6 +3,7 @@ import { createContext, useState, useContext, useEffect } from "react";
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { verUsuario } from "../firestore/usuarios-collection";
 import { cambiarUsuario, verSiEstaRegistrado } from "../firestore/usuarios-collection";
+import Cookies from "js-cookie";
 
 export const authContext = createContext();
 
@@ -48,83 +49,6 @@ export function AuthProvider({ children }) {
     const [cargando, setCargando] = useState(true);
 
     /**
-     * Reautentica al usuario para actualizar las credenciales de acceso a Google.
-     * @param {User} usuario - Instancia del usuario de Firebase.
-     */
-    const reautenticarUsuario = async (usuario) => {
-        if (usuario != null && tokenDrive == null) {
-            let resultado = { res: false, operacion: 2, error: "" };
-            setCargando(true);
-
-            try {
-                const provider = new GoogleAuthProvider();
-
-                // Se añaden los permisos necesarios para usar Drive
-                for (const i of scopes) {
-                    provider.addScope(i);
-                }
-
-                // Se vuelve a abrir el popup de Google para obtener el token de acceso a Drive
-                const res = await reauthenticateWithPopup(usuario, provider);
-
-                setTokenDrive(GoogleAuthProvider.credentialFromResult(res).accessToken);
-            } catch (error) {
-                if (error.code != "auth/popup-closed-by-user") {
-                    console.error(error);
-                    resultado = { res: true, operacion: 2, error: "Se ha producido un error durante el inicio de sesión, reintente nuevamente" };
-                }
-            }
-
-            setCargando(false);
-            setAuthError(resultado);
-        }
-    };
-
-    /**
-     * Maneja los cambios en la autenticación del usuario.
-     * @param {User} currentUser - Usuario actual de Firebase.
-     */
-    const manejadorCambiosAuth = async (currentUser) => {
-        // Si ya estaba autenticado, se actualiza su información y refrescan los tokens de OAuth
-        if (currentUser != null) {
-            /* Evitando que se muestre el cuadro de seleccion de cuenta cuando se cierra sesión
-               o el usuario se encuentre en la pestaña principal */
-            if (window.location.pathname != "/cerrar-sesion" && window.location.pathname != "/") {
-                await reautenticarUsuario(currentUser);
-            }
-            setAuthInfo((x) => ({ ...x, user: currentUser, correo: currentUser.email }));
-        } else {
-            setAuthInfo({ user: null, correo: null, rol: null });
-        }
-    };
-
-    /**
-     * Recupera la sesión si el usuario no la ha cerrado.
-     */
-    useEffect(() => {
-        if (auth != null) {
-            const suscribed = onAuthStateChanged(auth, manejadorCambiosAuth);
-            return () => suscribed();
-        }
-    }, [auth]);
-
-    /**
-     * Actualiza la información del usuario dentro del contexto.
-     * @param {String} correo 
-     */
-    const verDatosUsuario = async (correo) => {
-        if (correo != null) {
-            const data = await verUsuario(correo, db);
-
-            if ((data.success == 1) && (data.data != undefined)) {
-                setAuthInfo((x) => ({
-                    user: x.user, correo: data.data.correo, rol: data.data.rol
-                }));
-            }
-        }
-    };
-
-    /**
      * Si el usuario ya está autenticado, obtiene sus datos.
      */
     useEffect(() => {
@@ -147,6 +71,118 @@ export function AuthProvider({ children }) {
     }, [auth, db, scopes]);
 
     /**
+     * Recupera la sesión si el usuario no la ha cerrado.
+     */
+    useEffect(() => {
+        if (auth != null) {
+            const suscribed = onAuthStateChanged(auth, manejadorCambiosAuth);
+            return () => suscribed();
+        }
+    }, [auth]);
+
+    /**
+     * Maneja los cambios en la autenticación del usuario.
+     * @param {User} currentUser - Usuario actual de Firebase.
+     */
+    const manejadorCambiosAuth = async (currentUser) => {
+        // Si ya estaba autenticado, se actualiza su información y refrescan los tokens de OAuth
+        if (currentUser != null) {
+            /* Evitando que se muestre el cuadro de seleccion de cuenta cuando se cierra sesión
+               , el usuario se encuentre en la pestaña principal o cuando recargue la página */
+            const resCookies = cargarAuthCookies();
+
+            if (!resCookies && window.location.pathname != "/cerrar-sesion" && window.location.pathname != "/") {
+                await reautenticarUsuario(currentUser);
+            }
+            setAuthInfo((x) => ({ ...x, user: currentUser, correo: currentUser.email }));
+        } else {
+            setAuthInfo({ user: null, correo: null, rol: null });
+        }
+    };
+
+    /**
+     * Inicia sesión con Google dentro de Firebase. Si la autenticación es exitosa 
+     * almacena las credenciales del usuario.
+     * @param {boolean} ejecutar - Indica si se debe ejecutar el inicio de sesión. Por defecto es false.
+     */
+    const iniciarSesionGoogle = async () => {
+        let resultado = { res: false, operacion: 0, error: "" };
+        setCargando(true);
+
+        try {
+            const provider = new GoogleAuthProvider();
+
+            // Se añaden los permisos necesarios para usar Drive
+            for (const i of scopes) {
+                provider.addScope(i);
+            }
+
+            // Se abre el popup de Google para iniciar sesión
+            const res = await signInWithPopup(auth, provider);
+            // Se verifica si el usuario ya está registrado en la base de datos y esté activado
+            const reg = await verRegistrado(res.user.email);
+            // Guardando el token de acceso a Google Drive
+            const tokens = GoogleAuthProvider.credentialFromResult(res);
+            setTokenDrive(tokens.accessToken);
+
+            guardarAuthCookies(tokens);
+
+            if (!reg.success) {
+                // Si no se pudo registrar al usuario, se cierra la sesión
+                cerrarSesion();
+                resultado = { res: true, operacion: 0, error: "No se pudo verificar si el usuario está registrado." };
+            } else {
+                // Al iniciar sesión correctamente, se actualiza la información del usuario
+                setAuthInfo((x) => ({ ...x, user: res.user }));
+            }
+        } catch (error) {
+            if (error.code != "auth/popup-closed-by-user") {
+                console.error(error);
+                resultado = { res: true, operacion: 0, error: "No se ha podido iniciar sesión. Reintente nuevamente." };
+            }
+        }
+
+        setCargando(false);
+        setAuthError(resultado);
+    };
+
+    /**
+     * Reautentica al usuario para actualizar las credenciales de acceso a Google.
+     * @param {User} usuario - Instancia del usuario de Firebase.
+     */
+    const reautenticarUsuario = async (usuario) => {
+        if (usuario != null && tokenDrive == null) {
+            let resultado = { res: false, operacion: 2, error: "" };
+            setCargando(true);
+
+            try {
+                const provider = new GoogleAuthProvider();
+
+                // Se añaden los permisos necesarios para usar Drive
+                for (const i of scopes) {
+                    provider.addScope(i);
+                }
+
+                // Se vuelve a abrir el popup de Google para obtener el token de acceso a Drive
+                const res = await reauthenticateWithPopup(usuario, provider);
+                const tokens = GoogleAuthProvider.credentialFromResult(res);
+
+                setTokenDrive(tokens.accessToken);
+
+                guardarAuthCookies(tokens);
+            } catch (error) {
+                if (error.code != "auth/popup-closed-by-user") {
+                    console.error(error);
+                    resultado = { res: true, operacion: 2, error: "Se ha producido un error durante el inicio de sesión, reintente nuevamente" };
+                }
+            }
+
+            setCargando(false);
+            setAuthError(resultado);
+        }
+    };
+
+    /**
      * Cierra la sesión del usuario.
      * @param {boolean} ejecutar - Indica si se debe ejecutar el inicio de sesión. Por defecto es false.
      */
@@ -155,6 +191,7 @@ export function AuthProvider({ children }) {
 
         try {
             await signOut(auth);
+            borrarAuthCookies();
             setAuthInfo({ user: null, email: null, rol: null });
             setAuthError({ res: false, operacion: 1, error: "" });
         } catch (error) {
@@ -163,6 +200,22 @@ export function AuthProvider({ children }) {
         }
 
         setCargando(false);
+    };
+
+    /**
+     * Actualiza la información del usuario dentro del contexto.
+     * @param {String} correo 
+     */
+    const verDatosUsuario = async (correo) => {
+        if (correo != null) {
+            const data = await verUsuario(correo, db);
+
+            if ((data.success == 1) && (data.data != undefined)) {
+                setAuthInfo((x) => ({
+                    user: x.user, correo: data.data.correo, rol: data.data.rol
+                }));
+            }
+        }
     };
 
     /**
@@ -202,46 +255,34 @@ export function AuthProvider({ children }) {
     };
 
     /**
-     * Inicia sesión con Google dentro de Firebase. Si la autenticación es exitosa 
-     * almacena las credenciales del usuario.
-     * @param {boolean} ejecutar - Indica si se debe ejecutar el inicio de sesión. Por defecto es false.
+     * Carga las credenciales de sesión de las cookies si existen.
+     * @returns Boolean
      */
-    const iniciarSesionGoogle = async () => {
-        let resultado = { res: false, operacion: 0, error: "" };
-        setCargando(true);
+    const cargarAuthCookies = () => {
+        const valores = Cookies.get("session-tokens");
+        const res = (valores != undefined) && (valores != null);
 
-        try {
-            const provider = new GoogleAuthProvider();
-
-            // Se añaden los permisos necesarios para usar Drive
-            for (const i of scopes) {
-                provider.addScope(i);
-            }
-
-            // Se abre el popup de Google para iniciar sesión
-            const res = await signInWithPopup(auth, provider);
-            // Se verifica si el usuario ya está registrado en la base de datos y esté activado
-            const reg = await verRegistrado(res.user.email);
-            // Guardando el token de acceso a Google Drive
-            setTokenDrive(GoogleAuthProvider.credentialFromResult(res).accessToken);
-
-            if (!reg.success) {
-                // Si no se pudo registrar al usuario, se cierra la sesión
-                cerrarSesion();
-                resultado = { res: true, operacion: 0, error: "No se pudo verificar si el usuario está registrado." };
-            } else {
-                // Al iniciar sesión correctamente, se actualiza la información del usuario
-                setAuthInfo((x) => ({ ...x, user: res.user }));
-            }
-        } catch (error) {
-            if (error.code != "auth/popup-closed-by-user") {
-                console.error(error);
-                resultado = { res: true, operacion: 0, error: "No se ha podido iniciar sesión. Reintente nuevamente." };
-            }
+        if (res) {
+            const tokens = JSON.parse(valores);
+            setTokenDrive(tokens.accessToken);
         }
 
-        setCargando(false);
-        setAuthError(resultado);
+        return res;
+    };
+
+    /**
+     * Borra las credenciales de sesión almacenadas en las cookies.
+     */
+    const borrarAuthCookies = () => {
+        Cookies.remove("session-tokens");
+    };
+
+    /**
+     * Guarda las credenciales de sesión en las cookies del navegador.
+     * @param {JSON} tokens - Credenciales OAuth de Google.
+     */
+    const guardarAuthCookies = (tokens) => {
+        Cookies.set("session-tokens", JSON.stringify(tokens));
     };
 
     return (
