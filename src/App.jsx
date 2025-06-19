@@ -1,35 +1,74 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import Router from "../router";
+import { useAuth } from "./contexts/AuthContext";
+import { useCredenciales } from "./contexts/CredencialesContext";
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogActions, DialogTitle, Button, Typography } from "@mui/material";
+import { useNavegacion } from "./contexts/NavegacionContext";
 
-function App() {
-	const [count, setCount] = useState(0)
+/**
+ * Componente principal que provee las credenciales de autenticación y muestra los 
+ * errores relacionados con el servicio de autenticación.
+ * @returns JSX.Element
+ */
+export default function App() {
+    const auth = useAuth();
+    const navegacion = useNavegacion();
+    const credenciales = useCredenciales();
+    const [modal, setModal] = useState({
+        mostrar: false, mensaje: ""
+    });
 
-	return (
-		<>
-			<div>
-				<a href="https://vite.dev" target="_blank">
-					<img src={viteLogo} className="logo" alt="Vite logo" />
-				</a>
-				<a href="https://react.dev" target="_blank">
-					<img src={reactLogo} className="logo react" alt="React logo" />
-				</a>
-			</div>
-			<h1>Vite + React</h1>
-			<div className="card">
-				<button onClick={() => setCount((count) => count + 1)}>
-					count is {count}
-				</button>
-				<p>
-					Edit <code>src/App.jsx</code> and save to test HMR
-				</p>
-			</div>
-			<p className="read-the-docs">
-				Click on the Vite and React logos to learn more
-			</p>
-		</>
-	)
-}
+    /**
+     * Actualiza las instancia de Firebase y permisos de Drive
+     * cuando se cargan las credenciales.
+    */
+    useEffect(() => {
+        auth.setAuth(credenciales.obtenerInstanciaAuth());
+        auth.setDb(credenciales.obtenerInstanciaDB());
+        auth.setScopes(credenciales.scopesDrive);
+    }, [auth, credenciales]);
 
-export default App
+    /** 
+     * Escucha y muestra los errores de autenticación que se presenten.
+    */
+    useEffect(() => {
+        if (!auth.cargando && auth.authError.res) {
+            setModal({ mostrar: true, mensaje: auth.authError.error });
+        } else {
+            setModal({ mostrar: false, mensaje: "" });
+        }
+    }, [auth.cargando, auth.authError.res, auth.authError.error]);
+
+    /**
+     * Manejador de eventos del botón de cerrar el modal de error.
+     */
+    const manejadorBtnModal = () => {
+        if ((navegacion.callbackError.fn != null) && (typeof(navegacion.callbackError.fn) == "function")) {
+            navegacion.callbackError.fn();
+        }
+
+        setModal({ mostrar: false, mensaje: "" });
+        navegacion.setCallbackError({ fn: null });
+    };
+
+    return (
+        <>
+            <Router />
+            <Dialog open={modal.mostrar}>
+                <DialogTitle>Error</DialogTitle>
+                <DialogContent>
+                    <Typography>{modal.mensaje}</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        onClick={manejadorBtnModal}
+                        sx={{ textTransform: "none" }}>
+                        <b>Cerrar</b>
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </>
+    );
+};

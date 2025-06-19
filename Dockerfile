@@ -1,7 +1,11 @@
+ARG API_URL="http://localhost:5000"
+
 FROM node:24-alpine3.21 AS build
 WORKDIR /app
 COPY package*.json .
 RUN npm ci
+ENV VITE_ENTORNO=1
+ENV VITE_API_URL=${API_URL}
 COPY . .
 RUN npm run build
 
