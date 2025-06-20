@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import IniciarSesionPage from "./src/pages/IniciarSesionPage";
 import CerrarSesionPage from "./src/pages/CerrarSesionPage";
+import PruebaPage from "./src/pages/PruebaPage";
 
 /**
  * Enrutador principal de la aplicación que define las rutas y páginas.
@@ -12,6 +13,7 @@ export default function Router() {
             <Routes>
                 <Route path="/" element={<IniciarSesionPage />} />
                 <Route path="/cerrar-sesion" element={<CerrarSesionPage />} />
+                <Route path="/prueba" element={<PruebaPage />} />
             </Routes>
         </BrowserRouter>
     );

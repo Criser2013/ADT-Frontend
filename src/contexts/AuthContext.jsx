@@ -192,6 +192,7 @@ export function AuthProvider({ children }) {
         try {
             await signOut(auth);
             borrarAuthCookies();
+            setTokenDrive(null);
             setAuthInfo({ user: null, email: null, rol: null });
             setAuthError({ res: false, operacion: 1, error: "" });
         } catch (error) {
