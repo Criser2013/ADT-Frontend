@@ -30,6 +30,10 @@ export function NavegacionProvider({ children }) {
     const [dispositivoMovil, setDispositivoMovil] = useState(null);
     const [variantSidebar, setVariantSidebar] = useState("permanent");
 
+    /**
+     * Detecta si el usuario está en un dispositivo móvil. Ajusta el menú lateral
+     * dependiendo de ello.
+     */
     useEffect(() => {
         const userAgent = typeof navigator === 'undefined' ? 'SSR' : navigator.userAgent;
         const dispositivoMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);

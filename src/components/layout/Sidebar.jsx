@@ -1,25 +1,39 @@
 import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar } from "@mui/material";
-import { useNavegacion } from "../contexts/NavegacionContext";
+import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useNavigate } from "react-router-dom";
 import HomeIcon from "@mui/icons-material/Home";
-import DiagnosticoIcono from "./icons/DiagnosticoIcono";
-import ListaPacientesIcono from "./icons/ListaPacientesIcono";
-import DiagAnonIcono from "./icons/DiagnAnonIcono";
-import HistorialDiagIcono from "./icons/HistorialDiagIcono";
+import { DiagnosticoIcono, DiagAnonimoIcono, HistDiagnosticoIcono, ListPacienteIcono } from "../icons/IconosSidebar";
 
+/**
+ * Menú de navegación lateral de la aplicación.
+ * @returns JSX.Element
+ */
 export default function Sidebar() {
     const navegacion = useNavegacion();
     const navigate = useNavigate();
 
+    /**
+     * Manejador de cierre del menú lateral. Se utiliza en
+     * dispositivos móviles.
+     */
     const manejadorCerrarMenu = () => {
         navegacion.setCerrandoMenu(true);
         navegacion.setMostrarMenu(false);
     };
 
+    /**
+     * Manejador de transición de cierre del menú lateral. Se utiliza
+     * en dispositivos móviles.
+     */
     const manejadorTranscionCerrar = () => {
         navegacion.setCerrandoMenu(false);
     };
 
+    /**
+     * Manejador de clic en los elementos del menú lateral.
+     * Redirecciona al usuario a la ruta correspondiente.
+     * @param {int} id - ID de la ruta
+     */
     const manejadorClicMenu = (id) => {
         switch (id) {
             case 0:
@@ -52,6 +66,7 @@ export default function Sidebar() {
             onClose={manejadorCerrarMenu}
             onTransitionEnd={manejadorTranscionCerrar}
             sx={{
+                // Se encarga de cerrar el menú en tablets o computadores. No se usa en móviles.
                 display: (!navegacion.mostrarMenu && !navegacion.dispositivoMovil) ? "none" : "block",
                 width: 240,
                 flexShrink: 0,
@@ -72,7 +87,7 @@ export default function Sidebar() {
                     <ListItem disablePadding>
                         <ListItemButton onClick={() => manejadorClicMenu(1)}>
                             <ListItemIcon>
-                                <ListaPacientesIcono />
+                                <ListPacienteIcono />
                             </ListItemIcon>
                             <ListItemText primary="Pacientes" />
                         </ListItemButton>
@@ -88,7 +103,7 @@ export default function Sidebar() {
                     <ListItem disablePadding>
                         <ListItemButton onClick={() => manejadorClicMenu(3)}>
                             <ListItemIcon>
-                                <DiagAnonIcono />
+                                <DiagAnonimoIcono />
                             </ListItemIcon>
                             <ListItemText primary="Diagnóstico anónimo" />
                         </ListItemButton>
@@ -96,7 +111,7 @@ export default function Sidebar() {
                     <ListItem disablePadding>
                         <ListItemButton onClick={() => manejadorClicMenu(4)}>
                             <ListItemIcon>
-                                <HistorialDiagIcono color="primary" />
+                                <HistDiagnosticoIcono />
                             </ListItemIcon>
                             <ListItemText primary="Historial de diagnósticos" />
                         </ListItemButton>
