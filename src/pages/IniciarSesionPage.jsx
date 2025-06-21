@@ -1,4 +1,4 @@
-import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link } from "@mui/material";
+import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip } from "@mui/material";
 import GoogleIcon from '@mui/icons-material/Google';
 import ContrastIcon from '@mui/icons-material/Contrast';
 import { useEffect } from "react";
@@ -16,7 +16,7 @@ export default function IniciarSesionPage() {
     const auth = useAuth();
     const navigation = useNavigate();
     const navegacion = useNavegacion();
-    
+
     /**
      * Verifica la autenticación del usuario y redirige si ya está autenticado.
      */
@@ -59,9 +59,11 @@ export default function IniciarSesionPage() {
                 <Box display="flex" justifyContent="end" height="98vh" bgcolor="black">
                     <Grid columns={12} spacing={1} container display="flex" alignItems="center" maxHeight="100%" maxWidth="60vh" bgcolor="white" paddingLeft="2vh" paddingRight="2vh" overflow="auto">
                         <Grid size={12} display="flex" justifyContent="end">
-                            <IconButton aria-label="delete" onClick={manejadorBtnCambiarTema}>
-                                <ContrastIcon />
-                            </IconButton>
+                            <Tooltip title="Cambiar tema">
+                                <IconButton aria-label="delete" onClick={manejadorBtnCambiarTema}>
+                                    <ContrastIcon />
+                                </IconButton>
+                            </Tooltip>
                         </Grid>
                         <Grid container size={12} alignItems="center">
                             <Grid size={3}>
@@ -85,14 +87,16 @@ export default function IniciarSesionPage() {
                             </Typography>
                         </Grid>
                         <Grid size={12} justifyContent="center" display="flex">
-                            <Button
-                                startIcon={<GoogleIcon />}
-                                fullWidth
-                                onClick={manejadorBtnIniciarSesion}
-                                variant="contained"
-                                sx={{ textTransform: "none" }}>
-                                { auth.authInfo.user == null ? "Iniciar sesión" : "Ir a la aplicación" }
-                            </Button>
+                            <Tooltip title="Ingresa a la aplicación con tu cuenta de Google">
+                                <Button
+                                    startIcon={<GoogleIcon />}
+                                    fullWidth
+                                    onClick={manejadorBtnIniciarSesion}
+                                    variant="contained"
+                                    sx={{ textTransform: "none" }}>
+                                    {auth.authInfo.user == null ? "Iniciar sesión" : "Ir a la aplicación"}
+                                </Button>
+                            </Tooltip>
                         </Grid>
                         <Grid size={12}>
                             <Typography align="center" variant="body1" marginLeft="auto" marginRight="auto">

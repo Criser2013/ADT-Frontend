@@ -124,7 +124,6 @@ export function AuthProvider({ children }) {
             // Guardando el token de acceso a Google Drive
             const tokens = GoogleAuthProvider.credentialFromResult(res);
             setTokenDrive(tokens.accessToken);
-
             guardarAuthCookies(tokens);
 
             if (!reg.success) {
@@ -192,6 +191,7 @@ export function AuthProvider({ children }) {
         try {
             await signOut(auth);
             borrarAuthCookies();
+            setTokenDrive(null);
             setAuthInfo({ user: null, email: null, rol: null });
             setAuthError({ res: false, operacion: 1, error: "" });
         } catch (error) {
