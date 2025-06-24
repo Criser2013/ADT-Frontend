@@ -47,6 +47,7 @@ export function AuthProvider({ children }) {
         error: "" // Mensaje de error a mostrar. Es vacío sino hay error
     });
     const [cargando, setCargando] = useState(true);
+    const [permisos, setPermisos] = useState(true);
 
     /**
      * Si el usuario ya está autenticado, obtiene sus datos.
@@ -79,6 +80,16 @@ export function AuthProvider({ children }) {
             return () => suscribed();
         }
     }, [auth]);
+
+    const verificarPermisos = (permisos, scopes) => {
+        let res = true;
+
+        for (const i of scopes) {
+            res &= permisos.includes(i);
+        }
+
+        setPermisos(res);
+    };
 
     /**
      * Maneja los cambios en la autenticación del usuario.
@@ -121,10 +132,13 @@ export function AuthProvider({ children }) {
             const res = await signInWithPopup(auth, provider);
             // Se verifica si el usuario ya está registrado en la base de datos y esté activado
             const reg = await verRegistrado(res.user.email);
+            const oauth = GoogleAuthProvider.credentialFromResult(res);
+
+            verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
+
             // Guardando el token de acceso a Google Drive
-            const tokens = GoogleAuthProvider.credentialFromResult(res);
-            setTokenDrive(tokens.accessToken);
-            guardarAuthCookies(tokens);
+            setTokenDrive(oauth);
+            guardarAuthCookies(oauth);
 
             if (!reg.success) {
                 // Si no se pudo registrar al usuario, se cierra la sesión
@@ -135,9 +149,8 @@ export function AuthProvider({ children }) {
                 setAuthInfo((x) => ({ ...x, user: res.user }));
             }
         } catch (error) {
-            if (error.code != "auth/popup-closed-by-user") {
-                console.error(error);
-                resultado = { res: true, operacion: 0, error: "No se ha podido iniciar sesión. Reintente nuevamente." };
+            if (!["auth/popup-closed-by-user", "auth/user-cancelled"].includes(error.code)) {
+                resultado = { res: true, operacion: 0, error: "Otorga los permisos requeridos para usar la aplicación." };
             }
         }
 
@@ -164,15 +177,16 @@ export function AuthProvider({ children }) {
 
                 // Se vuelve a abrir el popup de Google para obtener el token de acceso a Drive
                 const res = await reauthenticateWithPopup(usuario, provider);
-                const tokens = GoogleAuthProvider.credentialFromResult(res);
+                const oauth = GoogleAuthProvider.credentialFromResult(res);
 
-                setTokenDrive(tokens.accessToken);
-
-                guardarAuthCookies(tokens);
+                verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
+                setTokenDrive(oauth);
+                guardarAuthCookies(oauth);
             } catch (error) {
-                if (error.code != "auth/popup-closed-by-user") {
+                if (!["auth/popup-closed-by-user", "auth/user-cancelled"].includes(error.code)) {
                     console.error(error);
-                    resultado = { res: true, operacion: 2, error: "Se ha producido un error durante el inicio de sesión, reintente nuevamente" };
+                    resultado = { res: true, operacion: 2, 
+                        error: "Se ha producido un error durante el inicio de sesión, reintente nuevamente" };
                 }
             }
 
@@ -183,7 +197,6 @@ export function AuthProvider({ children }) {
 
     /**
      * Cierra la sesión del usuario.
-     * @param {boolean} ejecutar - Indica si se debe ejecutar el inicio de sesión. Por defecto es false.
      */
     const cerrarSesion = async () => {
         setCargando(true);
@@ -286,7 +299,7 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <authContext.Provider value={{ useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive, setScopes, cerrarSesion, iniciarSesionGoogle, verDatosUsuario, reautenticarUsuario }}>
+        <authContext.Provider value={{ useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive, setScopes, cerrarSesion, iniciarSesionGoogle, verDatosUsuario, reautenticarUsuario, permisos }}>
             {children}
         </authContext.Provider>
     );

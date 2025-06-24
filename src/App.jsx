@@ -17,6 +17,7 @@ export default function App() {
     const [modal, setModal] = useState({
         mostrar: false, mensaje: ""
     });
+    const [modalPermisos, setModalPermisos] = useState(false);
 
     /**
      * Actualiza las instancia de Firebase y permisos de Drive
@@ -27,6 +28,10 @@ export default function App() {
         auth.setDb(credenciales.obtenerInstanciaDB());
         auth.setScopes(credenciales.scopesDrive);
     }, [auth, credenciales]);
+
+    useEffect(() => {
+        setModalPermisos(!auth.permisos);
+    }, [auth.permisos]);
 
     /** 
      * Escucha y muestra los errores de autenticación que se presenten.
@@ -43,7 +48,7 @@ export default function App() {
      * Manejador de eventos del botón de cerrar el modal de error.
      */
     const manejadorBtnModal = () => {
-        if ((navegacion.callbackError.fn != null) && (typeof(navegacion.callbackError.fn) == "function")) {
+        if ((navegacion.callbackError.fn != null) && (typeof (navegacion.callbackError.fn) == "function")) {
             navegacion.callbackError.fn();
         }
 
@@ -51,9 +56,52 @@ export default function App() {
         navegacion.setCallbackError({ fn: null });
     };
 
+    /**
+     * Manejador de eventos del botón de reintentar.
+     */
+    const manejadorBtnPermisos = async () => {
+        setModalPermisos(false);
+
+        const { user } = auth.authInfo;
+        await auth.reautenticarUsuario(user);
+    };
+
+    /**
+     * Manejador de eventos del botón de cerrar sesión.
+     * Solo está presente cuando el usuario no ha otorgado los permisos.
+     */
+    const manejadorBtnCerrarSesion = () => {
+        setModalPermisos(false);
+        navegacion.setPaginaAnterior(window.location.pathname);
+
+        location.replace("/cerrar-sesion");
+    };
+
     return (
         <>
             <Router />
+            <Dialog open={modalPermisos}>
+                <DialogTitle>Aviso</DialogTitle>
+                <DialogContent>
+                    <Typography>Debes otorgar los permisos requeridos en tu cuenta de Google.</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        onClick={manejadorBtnPermisos}
+                        sx={{ textTransform: "none" }}>
+                        <b>Conceder permisos</b>
+                    </Button>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        onClick={manejadorBtnCerrarSesion}
+                        sx={{ textTransform: "none" }}>
+                        <b>Cerrar sesión</b>
+                    </Button>
+                </DialogActions>
+            </Dialog>
             <Dialog open={modal.mostrar}>
                 <DialogTitle>Error</DialogTitle>
                 <DialogContent>
