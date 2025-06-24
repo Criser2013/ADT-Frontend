@@ -1,9 +1,9 @@
-import { reauthenticateWithPopup, signOut } from "firebase/auth";
+import { onIdTokenChanged, reauthenticateWithCredential, reauthenticateWithPopup, signOut } from "firebase/auth";
 import { createContext, useState, useContext, useEffect } from "react";
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { verUsuario } from "../firestore/usuarios-collection";
 import { cambiarUsuario, verSiEstaRegistrado } from "../firestore/usuarios-collection";
-import Cookies from "js-cookie";
+import { FirebaseError } from "firebase/app";
 
 export const authContext = createContext();
 
@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
     // Información sobre errores
     const [authError, setAuthError] = useState({
         res: false, // true - Se produjo un error, false - Operación exitosa
-        operacion: null, // 0 - Inicio de sesión, 1 - Cierre de sesión, 2 - Reautenticación del usuario
+        operacion: null, // 0 - Inicio de sesión, 1 - Cierre de sesión, 2 - Reautenticación del usuario, 3 - Refrescando los tokens
         error: "" // Mensaje de error a mostrar. Es vacío sino hay error
     });
     const [cargando, setCargando] = useState(true);
@@ -72,15 +72,48 @@ export function AuthProvider({ children }) {
     }, [auth, db, scopes]);
 
     /**
-     * Recupera la sesión si el usuario no la ha cerrado.
+     * Recupera la sesión si el usuario no la ha cerrado. También refresca los tokens
+     * cuando caducan.
      */
     useEffect(() => {
         if (auth != null) {
             const suscribed = onAuthStateChanged(auth, manejadorCambiosAuth);
-            return () => suscribed();
+            const updated = onIdTokenChanged(auth, refrescartokens);
+            return () => {
+                suscribed();
+                updated();
+            };
         }
     }, [auth]);
 
+    /**
+     * Refresca los tokens OAuth del usuario si este se encuentra autenticado.
+     * @param {User} currentUser - Ususario actual de Firebase.
+     */
+    const refrescartokens = async (currentUser) => {
+        const creds = tokenDrive == null ? JSON.parse(sessionStorage.getItem("session-tokens")): tokenDrive;
+        if (currentUser != null && creds != null) {
+            try {
+                const cred = GoogleAuthProvider.credential(currentUser.idToken, creds.accessToken);
+                const res = await reauthenticateWithCredential(currentUser, cred);
+
+                verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
+
+                const prov = GoogleAuthProvider.credentialFromResult(res);
+                guardarAuthCredsSesion(prov);
+                setTokenDrive(prov);
+            } catch (error) {
+                console.error("Error al refrescar los tokens:", error);
+                setAuthError({ res: true, operacion: 3, error: "Error al verificar la sesión. Reintenta nuevamente." });
+            }
+        }
+    };
+
+    /**
+     * Verifica que el usuario tenga los permisos necesarios para usar la aplicación.
+     * @param {String} permisos - Permisos del usuario.
+     * @param {Array} scopes  - Lista de permisos requeridos.
+     */
     const verificarPermisos = (permisos, scopes) => {
         let res = true;
 
@@ -100,9 +133,9 @@ export function AuthProvider({ children }) {
         if (currentUser != null) {
             /* Evitando que se muestre el cuadro de seleccion de cuenta cuando se cierra sesión
                , el usuario se encuentre en la pestaña principal o cuando recargue la página */
-            const resCookies = cargarAuthCookies();
+            const resCredsSesion = cargarAuthCredsSesion();
 
-            if (!resCookies && window.location.pathname != "/cerrar-sesion" && window.location.pathname != "/") {
+            if (!resCredsSesion && window.location.pathname != "/cerrar-sesion" && window.location.pathname != "/") {
                 await reautenticarUsuario(currentUser);
             }
             setAuthInfo((x) => ({ ...x, user: currentUser, correo: currentUser.email }));
@@ -138,7 +171,7 @@ export function AuthProvider({ children }) {
 
             // Guardando el token de acceso a Google Drive
             setTokenDrive(oauth);
-            guardarAuthCookies(oauth);
+            guardarAuthCredsSesion(oauth);
 
             if (!reg.success) {
                 // Si no se pudo registrar al usuario, se cierra la sesión
@@ -148,14 +181,12 @@ export function AuthProvider({ children }) {
                 // Al iniciar sesión correctamente, se actualiza la información del usuario
                 setAuthInfo((x) => ({ ...x, user: res.user }));
             }
+            setAuthError(resultado);
         } catch (error) {
-            if (!["auth/popup-closed-by-user", "auth/user-cancelled"].includes(error.code)) {
-                resultado = { res: true, operacion: 0, error: "Otorga los permisos requeridos para usar la aplicación." };
-            }
+            manejadorErroresAuth(error, 0);
         }
 
         setCargando(false);
-        setAuthError(resultado);
     };
 
     /**
@@ -164,7 +195,6 @@ export function AuthProvider({ children }) {
      */
     const reautenticarUsuario = async (usuario) => {
         if (usuario != null && tokenDrive == null) {
-            let resultado = { res: false, operacion: 2, error: "" };
             setCargando(true);
 
             try {
@@ -181,17 +211,14 @@ export function AuthProvider({ children }) {
 
                 verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
                 setTokenDrive(oauth);
-                guardarAuthCookies(oauth);
+                guardarAuthCredsSesion(oauth);
+
+                setAuthError({ res: false, operacion: 2, error: "" });
             } catch (error) {
-                if (!["auth/popup-closed-by-user", "auth/user-cancelled"].includes(error.code)) {
-                    console.error(error);
-                    resultado = { res: true, operacion: 2, 
-                        error: "Se ha producido un error durante el inicio de sesión, reintente nuevamente" };
-                }
+                manejadorErroresAuth(error, 2);
             }
 
             setCargando(false);
-            setAuthError(resultado);
         }
     };
 
@@ -203,7 +230,7 @@ export function AuthProvider({ children }) {
 
         try {
             await signOut(auth);
-            borrarAuthCookies();
+            borrarAuthCredsSesion();
             setTokenDrive(null);
             setAuthInfo({ user: null, email: null, rol: null });
             setAuthError({ res: false, operacion: 1, error: "" });
@@ -268,34 +295,60 @@ export function AuthProvider({ children }) {
     };
 
     /**
-     * Carga las credenciales de sesión de las cookies si existen.
+     * Carga las credenciales de sesión en el sessionStorage.
      * @returns Boolean
      */
-    const cargarAuthCookies = () => {
-        const valores = Cookies.get("session-tokens");
-        const res = (valores != undefined) && (valores != null);
+    const cargarAuthCredsSesion = () => {
+        const valores = sessionStorage.getItem("session-tokens");
 
-        if (res) {
+        if (valores != null) {
             const tokens = JSON.parse(valores);
             setTokenDrive(tokens.accessToken);
+
+            return true;
         }
 
-        return res;
+        return false;
     };
 
     /**
-     * Borra las credenciales de sesión almacenadas en las cookies.
+     * Borra las credenciales de sesión almacenadas en el sessionStorage.
      */
-    const borrarAuthCookies = () => {
-        Cookies.remove("session-tokens");
+    const borrarAuthCredsSesion = () => {
+        sessionStorage.removeItem("session-tokens");
     };
 
     /**
      * Guarda las credenciales de sesión en las cookies del navegador.
      * @param {JSON} tokens - Credenciales OAuth de Google.
      */
-    const guardarAuthCookies = (tokens) => {
-        Cookies.set("session-tokens", JSON.stringify(tokens));
+    const guardarAuthCredsSesion = (tokens) => {
+        sessionStorage.setItem("session-tokens", JSON.stringify(tokens));
+    };
+
+    /**
+     * Maneja los errores de autenticación que se presenten.
+     * @param {FirebaseError} error - Error de Firebase Auth.
+     * @param {Int} codigo - Código de la operación que produjo el error.
+     */
+    const manejadorErroresAuth = (error, codigo) => {
+        switch (error.code) {
+            case "auth/popup-closed-by-user":
+                // Esto es cuando el usuario cierra el popup de Google antes de iniciar sesión
+                break;
+            case "auth/user-cancelled":
+                // Esto es cuando el usuario cancela la autenticación y no otorga los permisos
+                setAuthError({ res: true, operacion: codigo, error: "Debes otorgar los permisos requeridos para usar la aplicación." });
+                break;
+            case "auth/user-mismatch":
+                // Esto es cuando el usuario que intenta iniciar sesión no coincide con el usuario actual
+                setAuthError({ res: true, operacion: codigo, error: `Ya tienes una sesión iniciada con el usuario: "${authInfo.user.displayName}" (${authInfo.user.email}).` });
+                break;
+            default:
+                console.error("Error de autenticación:", error);
+                setAuthError({ res: true, operacion: codigo, error: "Error al iniciar sesión. Reintenta nuevamente." });
+                break;
+        }
     };
 
     return (

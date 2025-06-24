@@ -48,11 +48,12 @@ export default function App() {
      * Manejador de eventos del botón de cerrar el modal de error.
      */
     const manejadorBtnModal = () => {
+        setModal({ mostrar: false, mensaje: "" });
+
         if ((navegacion.callbackError.fn != null) && (typeof (navegacion.callbackError.fn) == "function")) {
             navegacion.callbackError.fn();
         }
 
-        setModal({ mostrar: false, mensaje: "" });
         navegacion.setCallbackError({ fn: null });
     };
 
