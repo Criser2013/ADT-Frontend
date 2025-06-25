@@ -1,35 +1,182 @@
-import { Typography } from "@mui/material";
+import {
+    Grid, Typography, TextField, Button, MenuItem, FormControl, FormGroup, FormControlLabel, InputLabel,
+    Select, OutlinedInput, Box, Checkbox, Chip, Fab
+} from "@mui/material";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import MenuLayout from "../components/layout/MenuLayout";
+import TabHeader from "../components/tabs/TabHeader";
+import SaveIcon from '@mui/icons-material/Save';
+import dayjs from "dayjs";
+import { COMORBILIDADES } from "../../constants";
+import { useState } from "react";
+import ClearIcon from '@mui/icons-material/Clear';
+import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
+
 export default function PruebaPage() {
+    const [comorbilidades, setComorbilidades] = useState([]);
+    const fechaActual = dayjs();
+
+    const sexos = [{ texto: "Seleccione el sexo", val: 0 },
+    { texto: "Masculino", val: 1 },
+    { texto: "Femenino", val: 2 }];
+    const listadoPestanas = [
+        { texto: "Lista de pacientes", url: "/pacientes" },
+        { texto: "Añadir paciente", url: "/pacientes/crear" }];
+
+    /**
+     * Maneja los cambios en el campo de selección de comorbilidades.
+     * @param {Event} event 
+     */
+    const manejadorCambiosComor = (event) => {
+        setComorbilidades(event.target.value);
+    };
+
+    /**
+     * Manejador cuando el usuario hace clic en el botón de eliminar un chip de comorbilidad.
+     * @param {String} comorbilidad - Nombre de la comorbilidad a eliminar
+     */
+    const manejadorBtnQuitarChip = (comorbilidad) => {
+        const aux = comorbilidades.filter((x) => x !== comorbilidad);
+        setComorbilidades(aux);
+    };
+
+    /**
+     * Manejador de clic en el botón de pregunta.
+     * @param {Event} e Evento del mouse
+     */
+    const manejadorBtnPregunta = (e) => {
+        console.log("clickeado");
+    };
+
     return (
         <MenuLayout>
-            <Typography sx={{ marginBottom: 2 }} textAlign="justify">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-                tempor incididunt ut labore et dolore magna aliqua. Rhoncus dolor purus non
-                enim praesent elementum facilisis leo vel. Risus at ultrices mi tempus
-                imperdiet. Semper risus in hendrerit gravida rutrum quisque non tellus.
-                Convallis convallis tellus id interdum velit laoreet id donec ultrices.
-                Odio morbi quis commodo odio aenean sed adipiscing. Amet nisl suscipit
-                adipiscing bibendum est ultricies integer quis. Cursus euismod quis viverra
-                nibh cras. Metus vulputate eu scelerisque felis imperdiet proin fermentum
-                leo. Mauris commodo quis imperdiet massa tincidunt. Cras tincidunt lobortis
-                feugiat vivamus at augue. At augue eget arcu dictum varius duis at
-                consectetur lorem. Velit sed ullamcorper morbi tincidunt. Lorem donec massa
-                sapien faucibus et molestie ac.
-            </Typography>
-            <Typography sx={{ marginBottom: 2 }}>
-                Consequat mauris nunc congue nisi vitae suscipit. Fringilla est ullamcorper
-                eget nulla facilisi etiam dignissim diam. Pulvinar elementum integer enim
-                neque volutpat ac tincidunt. Ornare suspendisse sed nisi lacus sed viverra
-                tellus. Purus sit amet volutpat consequat mauris. Elementum eu facilisis
-                sed odio morbi. Euismod lacinia at quis risus sed vulputate odio. Morbi
-                tincidunt ornare massa eget egestas purus viverra accumsan in. In hendrerit
-                gravida rutrum quisque non tellus orci ac. Pellentesque nec nam aliquam sem
-                et tortor. Habitant morbi tristique senectus et. Adipiscing elit duis
-                tristique sollicitudin nibh sit. Ornare aenean euismod elementum nisi quis
-                eleifend. Commodo viverra maecenas accumsan lacus vel facilisis. Nulla
-                posuere sollicitudin aliquam ultrices sagittis orci a.
-            </Typography>
-        </MenuLayout>
+            <TabHeader
+                titulo="Añadir paciente"
+                pestanas={listadoPestanas}
+                tooltip="Volver a la pestaña de pacientes" />
+            <Grid container columns={2} spacing={1} rowSpacing={2} paddingTop="2vh" overflow="auto">
+                <Grid size={2}>
+                    <Typography variant="h5">
+                        <b>Datos personales</b>
+                    </Typography>
+                </Grid>
+                <Grid size={2}>
+                    <TextField
+                        fullWidth
+                        label="Nombre"
+                        name="nombre"
+                    />
+                </Grid>
+                <Grid size={1}>
+                    <TextField
+                        fullWidth
+                        label="Número de cédula"
+                        name="cedula"
+                    />
+                </Grid>
+                <Grid size={1}>
+                    <TextField
+                        select
+                        label="Sexo"
+                        fullWidth
+                        defaultValue={0}>
+                        {sexos.map((x) => (
+                            <MenuItem key={x.val} value={x.val}>
+                                {x.texto}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                </Grid>
+                <Grid size={1}>
+                    <TextField
+                        fullWidth
+                        name="telefono"
+                        label="Teléfono"
+                    />
+                </Grid>
+                <Grid size={1}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DatePicker
+                            label="Fecha de nacimiento"
+                            disableFuture={true}
+                            
+                            sx={{ width: "100%" }}
+                        /* 
+                        label="Fecha y hora de la reserva"
+                                    name="fecha"
+                                    error={setErrFecha}
+                                    value={dayjs(reserva.fecha)}
+                                    minDate={dayjs()}
+                                    maxDate={dayjs().add(2, "days")}
+                                    onChange={handleChangeFecha}
+                                    timeSteps={{ hours: 1, minutes: 15 }}
+                                    minTime={dayjs().set("hour", 9).set("minute", 0)}
+                                    maxTime={dayjs().set("hour", 21).set("minute", 45)}
+                                    slotProps={{
+                                        textField: {
+                                            helperText: errFecha ? "Debes seleccionar una fecha y hora futura." : ""
+                                        },
+                                    }}
+                        */
+                        />
+                    </LocalizationProvider>
+                </Grid>
+                <Grid size={2}>
+                    <Typography variant="h5">
+                        <b>Condiciones médicas preexistentes</b>
+                    </Typography>
+                </Grid>
+                <Grid size={2}>
+                    <FormGroup>
+                        <FormControlLabel
+                            control={<Checkbox size="small" />}
+                            label="El paciente padece otra enfermedad." />
+                    </FormGroup>
+                </Grid>
+                <Grid size={2}>
+                    <FormControl sx={{ width: "100%" }}>
+                        <InputLabel id="comorbilidades-tag">Padecimiento(s) del paciente</InputLabel>
+                        <Select
+                            labelId="comorbilidades-tag"
+                            multiple
+                            value={comorbilidades}
+                            onChange={manejadorCambiosComor}
+                            fullWidth
+                            input={<OutlinedInput id="select-multiple-chip" label="Padecimiento(s) del paciente" />}
+                            renderValue={(selected) => (
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                    {selected.map((value) => (
+                                        <Chip key={value} label={value} onDelete={() => manejadorBtnQuitarChip(value)} deleteIcon={<ClearIcon />} />
+                                    ))}
+                                </Box>
+                            )}>
+                            {COMORBILIDADES.map((x) => (
+                                <MenuItem
+                                    key={x}
+                                    value={x}>
+                                    {x}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Grid>
+                <Grid display="flex" justifyContent="center" size={12}>
+                    <Button
+                        startIcon={<SaveIcon />}
+                        variant="contained"
+                        sx={{
+                            textTransform: "none"
+                        }}>
+                        <b>Guardar</b>
+                    </Button>
+                </Grid>
+                <Grid display="flex" justifyContent="end" size={2}>
+                    <Fab color="primary" onClick={manejadorBtnPregunta} aria-label="add">
+                        <QuestionMarkIcon />
+                    </Fab>
+                </Grid>
+            </Grid>
+        </MenuLayout >
     );
 };

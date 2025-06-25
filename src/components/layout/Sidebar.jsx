@@ -59,6 +59,10 @@ export default function Sidebar() {
         }
     };
 
+    /**
+     * Determinar si el menú debe abrirse o no dependiendo del dispositivo y la orientación.
+     * @returns Boolean
+     */
     const detAbrirMenu = () => {
         return !navegacion.mostrarMenu &&
             (!navegacion.dispositivoMovil || (navegacion.dispositivoMovil && navegacion.orientacion == "horizontal"));

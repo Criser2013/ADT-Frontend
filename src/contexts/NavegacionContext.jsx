@@ -45,7 +45,9 @@ export function NavegacionProvider({ children }) {
         setMostrarMenu(!dispositivoMovil);
     }, [navigator.userAgent]);
 
-
+    /**
+     * Añade un escucha cuando la ventana cambia de tamaño.
+     */
     useEffect(() => {
         const handleResize = () => {
             const ancho = window.innerWidth;
