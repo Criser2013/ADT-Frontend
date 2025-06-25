@@ -1,12 +1,14 @@
-import { AppBar, Avatar, IconButton, Popover, Tooltip, Typography, Toolbar, Box, MenuItem, Divider } from "@mui/material";
+import { AppBar, Avatar, IconButton, Popover, Tooltip, Typography, Toolbar, Box, MenuItem, Divider, Stack } from "@mui/material";
 import { useEffect, useState } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router";
 import { useNavegacion } from "../../contexts/NavegacionContext";
-import MenuOpenIcon from '@mui/icons-material/MenuOpen';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import ContrastIcon from "@mui/icons-material/Contrast";
+import { ConstructionOutlined } from "@mui/icons-material";
 
 /**
  * Barra de navegación superior.
@@ -48,6 +50,13 @@ export default function Navbar() {
     };
 
     /**
+     * Manejador de evento para cambiar el tema de la aplicación.
+     */
+    const manejadorBtnTema = () => {
+        console.log("botón de tema presionado");
+    };
+
+    /**
      * Manejador de evento para cerrar el PopOver de usuario.
      */
     const cerrarPopOver = () => {
@@ -70,6 +79,11 @@ export default function Navbar() {
                         {navegacion.mostrarMenu ? <MenuOpenIcon /> : <MenuIcon />}
                     </IconButton>
                     <Typography variant="h6">HADT</Typography>
+
+                    <Stack direction="row" spacing={1}>
+                    <IconButton aria-label="delete" onClick={manejadorBtnTema}>
+                        <ContrastIcon />
+                    </IconButton>
                     <Tooltip title="Ver opciones de usuario">
                         <IconButton onClick={manejadorMousePopOver} color="inherit" aria-label="logout" aria-describedby={idPopOver}>
                             <Avatar alt="foto-usuario" src={img}>
@@ -78,20 +92,21 @@ export default function Navbar() {
                             <ArrowDropDownIcon color="inherit" />
                         </IconButton>
                     </Tooltip>
+                    </Stack>
                     <Popover
                         id={idPopOver}
                         open={open}
                         onClose={cerrarPopOver}
                         anchorEl={popOver}
                         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                        transformOrigin={{ vertical: "top", horizontal: "right" }}
                         PaperProps={{
                             sx: {
                                 p: 0,
                                 mt: 1.5,
                                 ml: 0.75,
-                                '& .MuiMenuItem-root': {
-                                    typography: 'body2',
+                                "& .MuiMenuItem-root": {
+                                    typography: "body2",
                                     borderRadius: 0.75,
                                 },
                             },

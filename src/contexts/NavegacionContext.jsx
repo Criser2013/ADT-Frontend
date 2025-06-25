@@ -29,6 +29,7 @@ export function NavegacionProvider({ children }) {
     const [cerrandoMenu, setCerrandoMenu] = useState(false);
     const [dispositivoMovil, setDispositivoMovil] = useState(null);
     const [variantSidebar, setVariantSidebar] = useState("permanent");
+    const [orientacion, setOrientacion] = useState("horizontal");
 
     /**
      * Detecta si el usuario está en un dispositivo móvil. Ajusta el menú lateral
@@ -44,8 +45,45 @@ export function NavegacionProvider({ children }) {
         setMostrarMenu(!dispositivoMovil);
     }, [navigator.userAgent]);
 
+
+    useEffect(() => {
+        const handleResize = () => {
+            const ancho = window.innerWidth;
+            const alto = window.innerHeight;
+
+            if (ancho < 500) {
+                setVariantSidebar("temporary");
+                setMostrarMenu(false);
+            } else if (ancho >= 500 && !dispositivoMovil) {
+                setVariantSidebar("permanent");
+                setMostrarMenu(true);
+            }
+
+            detecOrientacion(ancho, alto);
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
+
+    /**
+     * Detecta la orientación de la pantalla y ajusta el estado.
+     * @param {Int} ancho 
+     * @param {Int} alto 
+     */
+    const detecOrientacion = (ancho, alto) => {
+        if (ancho >= alto) {
+            setOrientacion("horizontal");
+        } else {
+            setOrientacion("vertical");
+        }
+    };
+
     return (
-        <navegacionContext.Provider value={{ paginaAnterior, setPaginaAnterior, callbackError, setCallbackError, mostrarMenu, setMostrarMenu, cerrandoMenu, variantSidebar, setCerrandoMenu, dispositivoMovil}}>
+        <navegacionContext.Provider value={{ paginaAnterior, setPaginaAnterior, callbackError, setCallbackError, mostrarMenu, setMostrarMenu, cerrandoMenu, variantSidebar, setCerrandoMenu, dispositivoMovil, orientacion }}>
             {children}
         </navegacionContext.Provider>
     );

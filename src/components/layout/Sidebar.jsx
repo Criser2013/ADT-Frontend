@@ -59,6 +59,11 @@ export default function Sidebar() {
         }
     };
 
+    const detAbrirMenu = () => {
+        return !navegacion.mostrarMenu &&
+            (!navegacion.dispositivoMovil || (navegacion.dispositivoMovil && navegacion.orientacion == "horizontal"));
+    };
+
     return (
         <Drawer
             variant={navegacion.variantSidebar}
@@ -67,7 +72,7 @@ export default function Sidebar() {
             onTransitionEnd={manejadorTranscionCerrar}
             sx={{
                 // Se encarga de cerrar el menú en tablets o computadores. No se usa en móviles.
-                display: (!navegacion.mostrarMenu && !navegacion.dispositivoMovil) ? "none" : "block",
+                display: (detAbrirMenu()) ? "none" : "block",
                 width: 240,
                 flexShrink: 0,
                 [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
