@@ -5,12 +5,13 @@ import WestIcon from '@mui/icons-material/West';
 
 /**
  * Header de las pestañas CRUD.
+ * @param {String} urlPredet - URL predeterminada para la navegación.
  * @param {String} titulo - Título de la pestaña actual
  * @param {Array} pestanas - Lista de pestañas con sus textos y URLs
  * @param {String} tooltip - Texto del tooltip para el botón de retroceso.
  * @returns JSX.Element
  */
-export default function TabHeader({ titulo, pestanas, tooltip }) {
+export default function TabHeader({ urlPredet, titulo, pestanas, tooltip }) {
     const navigate = useNavigate();
     const navegacion = useNavegacion();
 
@@ -20,6 +21,10 @@ export default function TabHeader({ titulo, pestanas, tooltip }) {
     const manejadorBtnAtras = () => {
         if (navegacion.paginaAnterior != "" && navegacion.paginaAnterior != null) {
             navigate(navegacion.paginaAnterior, { replace: true });
+        } else if (urlPredet != null && urlPredet != undefined) {
+            navigate(urlPredet, { replace: true });
+        } else {
+            navigate("/menu", { replace: true });
         }
     };
 

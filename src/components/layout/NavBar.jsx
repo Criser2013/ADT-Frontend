@@ -75,17 +75,17 @@ export default function Navbar() {
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
             <Toolbar>
                 <Box display="flex" justifyContent="space-between" alignItems="center" flexDirection="row" width="100%" >
-                    <IconButton edge="start" color="inherit" aria-label="menu" onClick={manejadorAbrirMenu}>
+                    <IconButton edge="start" color="inherit" onClick={manejadorAbrirMenu}>
                         {navegacion.mostrarMenu ? <MenuOpenIcon /> : <MenuIcon />}
                     </IconButton>
                     <Typography variant="h6">HADT</Typography>
 
                     <Stack direction="row" spacing={1}>
-                    <IconButton aria-label="delete" onClick={manejadorBtnTema}>
+                    <IconButton onClick={manejadorBtnTema}>
                         <ContrastIcon />
                     </IconButton>
                     <Tooltip title="Ver opciones de usuario">
-                        <IconButton onClick={manejadorMousePopOver} color="inherit" aria-label="logout" aria-describedby={idPopOver}>
+                        <IconButton onClick={manejadorMousePopOver} color="inherit"aria-describedby={idPopOver}>
                             <Avatar alt="foto-usuario" src={img}>
                                 {img === "" ? <AccountCircleIcon sx={{ height: 47, width: 47 }} /> : null}
                             </Avatar>
