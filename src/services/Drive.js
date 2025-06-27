@@ -24,15 +24,15 @@ function clasificarError(res, cuerpo) {
         case res.status == 200 || res.status == 201:
             return { success: true, data: cuerpo, error: null };
         case res.status == 403 && cuerpo.error.message == "Rate Limit Exceeded":
-            return { success: false, data: [], error: "Límite de peticiones alcanzado" };
+            return { success: false, data: [], error: `${res.status} Límite de peticiones alcanzado` };
         case res.status == 403 && cuerpo.error.message.includes("Drive storage quota has been exceeded"):
-            return { success: false, data: [], error: "Límite de almacenamiento alcanzado" };
+            return { success: false, data: [], error: `${res.status} Límite de almacenamiento alcanzado` };
         case res.status == 308 && cuerpo.error.includes("Resume Incomplete"):
-            return { success: false, data: [], error: "Carga resumible incompleta" };
+            return { success: false, data: [], error: `${res.status} Carga resumible incompleta` };
         case res.status == 404 && cuerpo.error.message.includes("Not found"):
-            return { success: false, data: [], error: "Sesión de carga resumible vencida" };
+            return { success: false, data: [], error: `${res.status} Sesión de carga resumible vencida` };
         case res.status == 404 && cuerpo.error.message.includes("File not found"):
-            return { success: false, data: [], error: "Archivo no encontrado" };
+            return { success: false, data: [], error: `${res.status} Archivo no encontrado` };
     }
 };
 

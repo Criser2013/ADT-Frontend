@@ -9,3 +9,4 @@ export const COMORBILIDADES = ["Enfermedad vascular", "Trombofilia", "Enfermedad
     "Enfermedad coronaria", "Enfermedad endocrina", "Enfermedad gastrointestinal", "Enfermedad urológica"
 ];
 export const EXPORT_FILENAME = `${import.meta.env.VITE_EXPORT_FILENAME} — ${fecha}.xlsx`;
+export const DRIVE_FOLDER_NAME = import.meta.env.VITE_DRIVE_FOLDER_NAME || "HADT: Herramienta para apoyar el diagnóstico de TEP";
