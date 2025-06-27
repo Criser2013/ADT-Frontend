@@ -24,9 +24,10 @@ Tenga en cuenta que de esta forma se requiere que el servidor backend esté en e
 
 ### Variables de entorno requeridas
 ```
-VITE_DRIVE_API_URL=<string>   # URL de la API de Drive
-VITE_DRIVE_FILE_NAME=<string> # Nombre del archivo con los pacientes en Drive
-VITE_API_URL=<string>         # URL del API (servidor backend)
+VITE_DRIVE_API_URL=<string>           # URL de la API de Drive
+VITE_DRIVE_FILENAME=<string>          # Nombre del archivo con los pacientes en Drive
+VITE_API_URL=<string>                 # URL del API (servidor backend)
+VITE_EXPORT_FILENAME=<nombre-archivo> # Nombre del archivo para exportar diagnósticos
 ```
 
 ## Ejecución del frontend  sin backend

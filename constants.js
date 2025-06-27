@@ -1,3 +1,5 @@
+const fecha = new Date().toDateString().replaceAll(":", "-");
+
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 export const ENTORNO = import.meta.env.VITE_ENTORNO || "0"; // 0: local, 1: production
 export const DRIVE_API_URL = import.meta.env.VITE_DRIVE_API_URL || "https://www.googleapis.com/drive/v3";
@@ -6,3 +8,4 @@ export const COMORBILIDADES = ["Enfermedad vascular", "Trombofilia", "Enfermedad
     "Diabetes", "Hipertensión arterial", "Hepatopatía crónica", "Enfermedad hematológica", "VIH", "Enfermedad cardíaca",
     "Enfermedad coronaria", "Enfermedad endocrina", "Enfermedad gastrointestinal", "Enfermedad urológica"
 ];
+export const EXPORT_FILENAME = `${import.meta.env.VITE_EXPORT_FILENAME} — ${fecha}.xlsx`;
