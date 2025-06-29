@@ -8,7 +8,6 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ContrastIcon from "@mui/icons-material/Contrast";
-import { ConstructionOutlined } from "@mui/icons-material";
 
 /**
  * Barra de navegación superior.
@@ -29,6 +28,8 @@ export default function Navbar() {
     useEffect(() => {
         if (auth.authInfo.user != null) {
             setImg(auth.authInfo.user.photoURL);
+        } else {
+            //navigate("/", { replace: true });
         }
     }, [auth.authInfo.user]);
 

@@ -53,10 +53,10 @@ export function NavegacionProvider({ children }) {
             const ancho = window.innerWidth;
             const alto = window.innerHeight;
 
-            if (ancho < 500) {
+            if (ancho < 600) {
                 setVariantSidebar("temporary");
                 setMostrarMenu(false);
-            } else if (ancho >= 500 && !dispositivoMovil) {
+            } else if (ancho >= 600 && !dispositivoMovil) {
                 setVariantSidebar("permanent");
                 setMostrarMenu(true);
             }

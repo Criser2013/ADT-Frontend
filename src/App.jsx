@@ -27,7 +27,7 @@ export default function App() {
         auth.setAuth(credenciales.obtenerInstanciaAuth());
         auth.setDb(credenciales.obtenerInstanciaDB());
         auth.setScopes(credenciales.scopesDrive);
-    }, [auth, credenciales]);
+    }, [credenciales]);
 
     useEffect(() => {
         setModalPermisos(!auth.permisos);

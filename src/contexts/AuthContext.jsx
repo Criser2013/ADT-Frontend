@@ -59,7 +59,7 @@ export function AuthProvider({ children }) {
                 setCargando(false);
             });
         }
-    }, [authInfo]);
+    }, [authInfo.user, authInfo.correo, authInfo.rol]);
 
     /**
      * Retira el indicador de carga cuando se tienen las instancias de la base de datos,
@@ -92,7 +92,7 @@ export function AuthProvider({ children }) {
      */
     const refrescartokens = async (currentUser) => {
         const creds = tokenDrive == null ? JSON.parse(sessionStorage.getItem("session-tokens")): tokenDrive;
-        if (currentUser != null && creds != null) {
+        if (currentUser != null && creds != null && window.location.pathname != "/cerrar-sesion") {
             try {
                 const cred = GoogleAuthProvider.credential(currentUser.idToken, creds.accessToken);
                 const res = await reauthenticateWithCredential(currentUser, cred);
@@ -167,6 +167,8 @@ export function AuthProvider({ children }) {
             const reg = await verRegistrado(res.user.email);
             const oauth = GoogleAuthProvider.credentialFromResult(res);
 
+            oauth["refreshToken"] = res._tokenResponse.refreshToken;
+
             verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
 
             // Guardando el token de acceso a Google Drive
@@ -208,6 +210,8 @@ export function AuthProvider({ children }) {
                 // Se vuelve a abrir el popup de Google para obtener el token de acceso a Drive
                 const res = await reauthenticateWithPopup(usuario, provider);
                 const oauth = GoogleAuthProvider.credentialFromResult(res);
+
+                oauth["refreshToken"] = res._tokenResponse.refreshToken;
 
                 verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
                 setTokenDrive(oauth);

@@ -1,4 +1,4 @@
-import { DRIVE_API_URL } from "../../constants";
+import { DRIVE_API_URL, DRIVE_UPLOAD_API_URL } from "../../constants";
 
 /**
  * Codifica los parámetros de consulta a una URL.
@@ -8,7 +8,7 @@ import { DRIVE_API_URL } from "../../constants";
 export function codificarParamsURL (params) {
     let url = encodeURIComponent(params);
 
-    url = url.replace("'","%27");
+    url = url.replaceAll("'","%27");
 
     return url;
 };
@@ -110,7 +110,7 @@ export async function crearArchivo(cuerpo, token, esCarpeta = false) {
  */
 export async function crearCargaResumible (idArchivo, token) {
     try {
-        const pet = await fetch(`${DRIVE_API_URL}/files/${idArchivo}?uploadType=resumable`, {
+        const pet = await fetch(`${DRIVE_UPLOAD_API_URL}/files/${idArchivo}?uploadType=resumable`, {
             method: "PATCH",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -165,9 +165,9 @@ export async function descargarArchivo(idArchivo, token) {
             }
         });
 
-        const res = await pet.blob();
+        const res = await pet.arrayBuffer();
 
-        return (res instanceof Blob) ? { success: true, data: res, error: null } : clasificarError(pet, res);
+        return (res instanceof ArrayBuffer) ? { success: true, data: res, error: null } : clasificarError(pet, res);
     } catch (error) {
         return { success: false, data: [], error: error };
     }
