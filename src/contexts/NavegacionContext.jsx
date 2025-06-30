@@ -30,6 +30,8 @@ export function NavegacionProvider({ children }) {
     const [dispositivoMovil, setDispositivoMovil] = useState(null);
     const [variantSidebar, setVariantSidebar] = useState("permanent");
     const [orientacion, setOrientacion] = useState("horizontal");
+    const [ancho, setAncho] = useState(window.viewport.segments[0].width);
+    const [alto, setAlto] = useState(window.viewport.segments[0].height);
 
     /**
      * Detecta si el usuario está en un dispositivo móvil. Ajusta el menú lateral
@@ -38,22 +40,25 @@ export function NavegacionProvider({ children }) {
     useEffect(() => {
         const userAgent = typeof navigator === 'undefined' ? 'SSR' : navigator.userAgent;
         const dispositivoMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-        const variantSidebar = dispositivoMovil ? "temporary" : "permanent";
+        const variantSidebar = (dispositivoMovil && orientacion == "vertical") ? "temporary" : "permanent";
 
         setVariantSidebar(variantSidebar);
         setDispositivoMovil(dispositivoMovil);
-        setMostrarMenu(!dispositivoMovil);
-    }, [navigator.userAgent]);
+        setMostrarMenu(!dispositivoMovil || (dispositivoMovil && orientacion == "horizontal"));
+    }, [navigator.userAgent, orientacion]);
 
     /**
      * Añade un escucha cuando la ventana cambia de tamaño.
      */
     useEffect(() => {
         const handleResize = () => {
-            const ancho = window.innerWidth;
-            const alto = window.innerHeight;
+            const ancho = window.viewport.segments[0].width;
+            const alto = window.viewport.segments[0].height;
 
-            if (ancho < 600) {
+            setAncho(ancho);
+            setAlto(alto);
+
+            if (ancho < 600 && !dispositivoMovil) {
                 setVariantSidebar("temporary");
                 setMostrarMenu(false);
             } else if (ancho >= 600 && !dispositivoMovil) {
@@ -85,7 +90,7 @@ export function NavegacionProvider({ children }) {
     };
 
     return (
-        <navegacionContext.Provider value={{ paginaAnterior, setPaginaAnterior, callbackError, setCallbackError, mostrarMenu, setMostrarMenu, cerrandoMenu, variantSidebar, setCerrandoMenu, dispositivoMovil, orientacion }}>
+        <navegacionContext.Provider value={{ paginaAnterior, setPaginaAnterior, callbackError, setCallbackError, mostrarMenu, setMostrarMenu, cerrandoMenu, variantSidebar, setCerrandoMenu, dispositivoMovil, orientacion, ancho, alto}}>
             {children}
         </navegacionContext.Provider>
     );

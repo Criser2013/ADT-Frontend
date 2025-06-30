@@ -161,13 +161,15 @@ export function AuthProvider({ children }) {
                 provider.addScope(i);
             }
 
+            provider.setCustomParameters({
+                access_type: "offline"
+            });
+
             // Se abre el popup de Google para iniciar sesión
             const res = await signInWithPopup(auth, provider);
             // Se verifica si el usuario ya está registrado en la base de datos y esté activado
             const reg = await verRegistrado(res.user.email);
             const oauth = GoogleAuthProvider.credentialFromResult(res);
-
-            oauth["refreshToken"] = res._tokenResponse.refreshToken;
 
             verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
 
@@ -207,11 +209,16 @@ export function AuthProvider({ children }) {
                     provider.addScope(i);
                 }
 
+                provider.setCustomParameters({
+                access_type: "offline"
+            });
+
+
                 // Se vuelve a abrir el popup de Google para obtener el token de acceso a Drive
                 const res = await reauthenticateWithPopup(usuario, provider);
                 const oauth = GoogleAuthProvider.credentialFromResult(res);
 
-                oauth["refreshToken"] = res._tokenResponse.refreshToken;
+                console.log(res)
 
                 verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
                 setTokenDrive(oauth);

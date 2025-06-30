@@ -16,11 +16,14 @@ import { useDrive } from "../contexts/DriveContext";
 import { oneHotEncondingOtraEnfermedad } from "../utils/TratarDatos";
 import { useNavigate } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavegacion } from "../contexts/NavegacionContext";
+import { detTamCarga } from "../utils/Responsividad";
 
 export default function AnadirPacientePage() {
     const drive = useDrive();
     const auth = useAuth();
     const navigate = useNavigate();
+    const navegacion = useNavegacion();
     const [datos, setDatos] = useState({
         nombre: "", cedula: "", sexo: 2, telefono: "", fechaNacimiento: null
     });
@@ -43,7 +46,7 @@ export default function AnadirPacientePage() {
     { texto: "Femenino", val: 1 }];
     const listadoPestanas = [
         { texto: "Lista de pacientes", url: "/pacientes" },
-        { texto: "Añadir paciente", url: "/pacientes/crear" }
+          { texto: "Añadir paciente", url: "/pacientes/crear" }
     ];
     const [cargando, setCargando] = useState(true);
 
@@ -230,11 +233,9 @@ export default function AnadirPacientePage() {
     return (
         <MenuLayout>
             {(cargando || auth.cargando) ? (
-                <Grid container columns={2} paddingTop="2vh">
-                    <Grid size={2} display="flex" justifyContent="center" alignItems="center" width="50vh" height="83vh">
-                        <CircularProgress />
-                    </Grid>
-                </Grid>
+                <Box display="flex" justifyContent="center" alignItems="center" width={detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu,navegacion.ancho)} height="85vh">
+                    <CircularProgress />
+                </Box>
             ) : (
                 <>
                     <TabHeader

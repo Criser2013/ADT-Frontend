@@ -36,9 +36,7 @@ export function DriveProvider({ children }) {
                     descargarContArchivo(res.data);
                 } else {
                     setDatos([]);
-                    console.error("Error al verificar o crear archivo y carpeta:", res.error);
                 }
-
                 setDescargando(false);
             });
         }
@@ -160,13 +158,10 @@ export function DriveProvider({ children }) {
      */
     const anadirPaciente = async (instancia) => {
         let tabla = datos;
-        const existe = await verificarExisteArchivo(DRIVE_FILENAME, false, carpetaId);
+        const existe = await verificarExisteArchivoYCarpeta();
 
         if (!existe.success) {
-            const petCrearArch = await crearArchivoMeta(DRIVE_FILENAME, false, carpetaId);
-            if (!petCrearArch.success) {
-                return { success: false, error: petCrearArch.error };
-            }
+            return { success: false, error: "Se ha producido un error al verificar o crear el archivo y la carpeta. Reintente nuevamente." };
         } else {
             const pet = await descargarArchivo(archivoId, token);
             if (!pet.success) {
