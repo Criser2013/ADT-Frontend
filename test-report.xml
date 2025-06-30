@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testExecutions version="1">
+  <file path="/usr/app/tests/unitarias/scripts/xlsxFiles.test.js">
+  </file>
+  <file path="/usr/app/tests/unitarias/scripts/drive.test.js">
+    <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 48" duration="91"/>
+    <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 50" duration="8">
+      <failure message="Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)"><![CDATA[Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+- Expected
++ Received
+
+  "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=xa298sd_sdlkj2",
+@@ -2,10 +2,10 @@
+    "body": Uint8Array [
+      0,
+    ],
+    "headers": Object {
+      "Authorization": "Bearer token",
+-     "Content-Length": "1",
++     "Content-Length": 1,
+      "Content-Type": "application/octet-stream",
+    },
+    "method": "PUT",
+  },
+
+Number of calls: 1
+    at Object.toHaveBeenCalledWith (/usr/app/tests/unitarias/scripts/drive.test.js:430:30)]]></failure>
+    </testCase>
+    <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 51" duration="19"/>
+  </file>
+  <file path="/usr/app/tests/unitarias/scripts/tratarDatos.test.js">
+  </file>
+  <file path="/usr/app/tests/unitarias/scripts/validadores.test.js">
+  </file>
+  <file path="/usr/app/tests/unitarias/scripts/responsividad.test.js">
+  </file>
+</testExecutions>

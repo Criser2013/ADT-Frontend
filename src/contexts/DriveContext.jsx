@@ -105,7 +105,7 @@ export function DriveProvider({ children }) {
                 if (res.success) {
                     setArchivoId(res.data.id);
                     return res;
-                } else if (!res.success && res.error.includes("40")) {
+                } else if (!res.success && !res.error.includes("Carga resumible incompleta")) {
                     return res;
                 } else {
                     reintentos--;

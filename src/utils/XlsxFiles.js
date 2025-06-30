@@ -69,7 +69,7 @@ export function leerArchivoXlsx (archivo) {
  * @param {JSON} json - 1º instancia del JSON del archivo.
  * @returns {boolean}
  */
-function validarXlsx (archivo, filas) {
+export function validarXlsx (archivo, filas) {
     const hojas = archivo.SheetNames.length == 1 && archivo.SheetNames[0] == "Datos";
     const campos = Object.keys(filas[0]).sort();
     const ord = COMORBILIDADES.concat(["cedula","nombre","sexo","telefono","fechaNacimiento"]).sort();
@@ -82,7 +82,7 @@ function validarXlsx (archivo, filas) {
  * @param {Array} filas - Lista de filas a validar como JSON.
  * @returns boolean
  */
-function validarFilas (filas) {
+export function validarFilas (filas) {
     for (const fila of filas) {
         let res = true;
         res &= validarNumero(fila.cedula);
@@ -101,4 +101,4 @@ function validarFilas (filas) {
     }
 
     return true;
-}
+};

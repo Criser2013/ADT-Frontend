@@ -27,7 +27,7 @@ function clasificarError(res, cuerpo) {
             return { success: false, data: [], error: `Límite de peticiones alcanzado. Reintente en 1 minuto.` };
         case res.status == 403 && cuerpo.error.message.includes("Drive storage quota has been exceeded"):
             return { success: false, data: [], error: `¡No hay espacio en tu cuenta de Google Drive disponible!` };
-        case res.status == 308 && cuerpo.error.includes("Resume Incomplete"):
+        case res.status == 308 && cuerpo.error.message.includes("Resume Incomplete"):
             return { success: false, data: [], error: `Carga resumible incompleta` };
         case res.status == 404 && cuerpo.error.message.includes("Not found"):
             return { success: false, data: [], error: `Sesión de carga resumible vencida` };
@@ -141,7 +141,7 @@ export async function subirArchivoResumible(url, contenido, token) {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/octet-stream",
-                "Content-Length": contenido.size
+                "Content-Length": contenido.length
             },
             body: contenido
         });
@@ -170,8 +170,12 @@ export async function descargarArchivo(idArchivo, token) {
         });
 
         const res = await pet.arrayBuffer();
-
-        return (res instanceof ArrayBuffer) ? { success: true, data: res, error: null } : clasificarError(pet, res);
+        
+        if ((res instanceof ArrayBuffer) && pet.ok) {
+            return { success: true, data: res, error: null };
+        } else {
+            return clasificarError(pet, await pet.json());
+        }
     } catch (error) {
         return { success: false, data: [], error: error };
     }
