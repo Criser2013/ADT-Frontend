@@ -1,38 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testExecutions version="1">
   <file path="/usr/app/tests/unitarias/scripts/xlsxFiles.test.js">
+    <testCase name="Validar la funcion &apos;validarXlsx CP - 25" duration="66"/>
+    <testCase name="Validar la funcion &apos;validarXlsx CP - 26" duration="1"/>
+    <testCase name="Validar la funcion &apos;validarFilas CP - 27" duration="1"/>
+    <testCase name="Validar la funcion &apos;validarFilas CP - 28" duration="1"/>
+    <testCase name="Validar la funcion &apos;validarFilas CP - 29" duration="1"/>
+    <testCase name="Validar la funcion &apos;validarFilas CP - 30" duration="1"/>
+    <testCase name="Validar la funcion &apos;validarFilas CP - 31" duration="0"/>
+    <testCase name="Validar la funcion &apos;validarFilas CP - 32" duration="0"/>
+    <testCase name="Validar la funcion &apos;validarFilas CP - 33" duration="1"/>
   </file>
   <file path="/usr/app/tests/unitarias/scripts/drive.test.js">
-    <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 48" duration="91"/>
-    <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 50" duration="8">
-      <failure message="Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)"><![CDATA[Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
-
-- Expected
-+ Received
-
-  "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=xa298sd_sdlkj2",
-@@ -2,10 +2,10 @@
-    "body": Uint8Array [
-      0,
-    ],
-    "headers": Object {
-      "Authorization": "Bearer token",
--     "Content-Length": "1",
-+     "Content-Length": 1,
-      "Content-Type": "application/octet-stream",
-    },
-    "method": "PUT",
-  },
-
-Number of calls: 1
-    at Object.toHaveBeenCalledWith (/usr/app/tests/unitarias/scripts/drive.test.js:430:30)]]></failure>
-    </testCase>
-    <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 51" duration="19"/>
-  </file>
-  <file path="/usr/app/tests/unitarias/scripts/tratarDatos.test.js">
-  </file>
-  <file path="/usr/app/tests/unitarias/scripts/validadores.test.js">
+    <testCase name="Validar la función &apos;codificarParamsURL&apos; CP - 34" duration="66"/>
+    <testCase name="Validar la función &apos;codificarParamsURL&apos; CP - 35" duration="0"/>
+    <testCase name="Validar la funcion &apos;descargarArchivo&apos; CP - 36" duration="4"/>
+    <testCase name="Validar la funcion &apos;descargarArchivo&apos; CP - 37" duration="31"/>
+    <testCase name="Validar la funcion &apos;descargarArchivo&apos; CP - 38" duration="1"/>
+    <testCase name="Validar la funcion &apos;crearCargaResumible&apos; CP - 39" duration="4"/>
+    <testCase name="Validar la funcion &apos;crearCargaResumible&apos; CP - 40" duration="2"/>
+    <testCase name="Validar la funcion &apos;crearArchivo&apos; CP - 41" duration="2"/>
+    <testCase name="Validar la funcion &apos;crearArchivo&apos; CP - 42" duration="1"/>
+    <testCase name="Validar la funcion &apos;crearArchivo&apos; CP - 43" duration="1"/>
+    <testCase name="Validar la funcion &apos;crearArchivo&apos; CP - 44" duration="1"/>
+    <testCase name="Validar la funcion &apos;buscarArchivo&apos; CP - 45" duration="1"/>
+    <testCase name="Validar la funcion &apos;buscarArchivo&apos; CP - 46" duration="1"/>
+    <testCase name="Validar la funcion &apos;buscarArchivo&apos; CP - 47" duration="1"/>
+    <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 48" duration="1"/>
+    <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 49" duration="1"/>
+    <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 50" duration="1"/>
   </file>
   <file path="/usr/app/tests/unitarias/scripts/responsividad.test.js">
+    <testCase name="Validar la función &apos;detAbrirMenu&apos; CP - 17" duration="2"/>
+    <testCase name="Validar la función &apos;detAbrirMenu&apos; CP - 18" duration="0"/>
+    <testCase name="Validar la función &apos;detAbrirMenu&apos; CP - 19" duration="1"/>
+    <testCase name="Validar la función &apos;detAbrirMenu&apos; CP - 20" duration="0"/>
+    <testCase name="Validar la función &apos;detTamCarga&apos; CP - 21" duration="1"/>
+    <testCase name="Validar la función &apos;detTamCarga&apos; CP - 22" duration="0"/>
+    <testCase name="Validar la función &apos;detTamCarga&apos; CP - 23" duration="0"/>
+    <testCase name="Validar la función &apos;detTamCarga&apos; CP - 24" duration="1"/>
+  </file>
+  <file path="/usr/app/tests/unitarias/scripts/tratarDatos.test.js">
+    <testCase name="Validar oneHotEncoder de &apos;otra enfermedad&apos; CP - 15" duration="6"/>
+    <testCase name="Validar oneHotEncoder de &apos;otra enfermedad&apos; CP - 16" duration="1"/>
+  </file>
+  <file path="/usr/app/tests/unitarias/scripts/validadores.test.js">
+    <testCase name="Validar número  CP - 1" duration="83"/>
+    <testCase name="Validar número  CP - 2" duration="0"/>
+    <testCase name="Validar número  CP - 3" duration="1"/>
+    <testCase name="Validar nombre CP - 4" duration="0"/>
+    <testCase name="Validar nombre CP - 5" duration="1"/>
+    <testCase name="Validar nombre CP - 6" duration="0"/>
+    <testCase name="Validar teléfono CP - 7" duration="1"/>
+    <testCase name="Validar teléfono CP - 8" duration="0"/>
+    <testCase name="Validar teléfono CP - 9" duration="1"/>
+    <testCase name="Validar fecha CP - 10" duration="0"/>
+    <testCase name="Validar fecha CP - 11" duration="1"/>
+    <testCase name="Validar fecha CP - 12" duration="0"/>
+    <testCase name="Validar fecha CP - 13" duration="1"/>
+    <testCase name="Validar fecha CP - 14" duration="0"/>
   </file>
 </testExecutions>

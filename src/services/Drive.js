@@ -171,7 +171,7 @@ export async function descargarArchivo(idArchivo, token) {
 
         const res = await pet.arrayBuffer();
         
-        if ((res instanceof ArrayBuffer) && pet.ok) {
+        if ((pet.status == 200 || pet.status == 201) && (res instanceof ArrayBuffer) && pet.ok) {
             return { success: true, data: res, error: null };
         } else {
             return clasificarError(pet, await pet.json());

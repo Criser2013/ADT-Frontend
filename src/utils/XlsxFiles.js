@@ -80,7 +80,6 @@ export function validarXlsx (archivo, filas) {
     // comparar los arrays no funciona con el operador de igualdad
     for (let i = 0; i < campos.length; i++) {
         igual &= campos[i] == ord[i];
-        console.log(campos[i], ord[i], igual);
     }
 
     return hojas && campos.length == ord.length && igual && validarFilas(filas);

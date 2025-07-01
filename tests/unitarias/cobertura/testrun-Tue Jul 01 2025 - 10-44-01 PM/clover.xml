@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1751409878803" clover="3.2.0">
+  <project timestamp="1751409878804" name="All files">
+    <metrics statements="110" coveredstatements="88" conditionals="85" coveredconditionals="77" methods="19" coveredmethods="16" elements="214" coveredelements="181" complexity="0" loc="110" ncloc="110" packages="3" files="6" classes="6"/>
+    <package name="app">
+      <metrics statements="9" coveredstatements="9" conditionals="12" coveredconditionals="12" methods="0" coveredmethods="0"/>
+      <file name="constants.js" path="/usr/app/constants.js">
+        <metrics statements="9" coveredstatements="9" conditionals="12" coveredconditionals="12" methods="0" coveredmethods="0"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="3" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="4" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="5" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="6" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="7" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="8" count="3" type="stmt"/>
+        <line num="12" count="3" type="stmt"/>
+        <line num="13" count="3" type="cond" truecount="2" falsecount="0"/>
+      </file>
+    </package>
+    <package name="app.src.services">
+      <metrics statements="41" coveredstatements="38" conditionals="31" coveredconditionals="26" methods="7" coveredmethods="7"/>
+      <file name="Drive.js" path="/usr/app/src/services/Drive.js">
+        <metrics statements="41" coveredstatements="38" conditionals="31" coveredconditionals="26" methods="7" coveredmethods="7"/>
+        <line num="9" count="5" type="stmt"/>
+        <line num="11" count="5" type="stmt"/>
+        <line num="13" count="5" type="stmt"/>
+        <line num="23" count="9" type="cond" truecount="5" falsecount="3"/>
+        <line num="25" count="5" type="stmt"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="35" count="1" type="stmt"/>
+        <line num="37" count="1" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="59" count="3" type="stmt"/>
+        <line num="60" count="3" type="stmt"/>
+        <line num="61" count="3" type="stmt"/>
+        <line num="68" count="2" type="stmt"/>
+        <line num="70" count="2" type="stmt"/>
+        <line num="72" count="1" type="stmt"/>
+        <line num="85" count="4" type="stmt"/>
+        <line num="86" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="87" count="2" type="stmt"/>
+        <line num="90" count="4" type="stmt"/>
+        <line num="99" count="3" type="stmt"/>
+        <line num="101" count="3" type="stmt"/>
+        <line num="103" count="1" type="stmt"/>
+        <line num="116" count="2" type="stmt"/>
+        <line num="117" count="2" type="stmt"/>
+        <line num="124" count="1" type="stmt"/>
+        <line num="126" count="1" type="stmt"/>
+        <line num="138" count="3" type="stmt"/>
+        <line num="139" count="3" type="stmt"/>
+        <line num="148" count="2" type="stmt"/>
+        <line num="150" count="2" type="stmt"/>
+        <line num="152" count="1" type="stmt"/>
+        <line num="164" count="3" type="stmt"/>
+        <line num="165" count="3" type="stmt"/>
+        <line num="172" count="2" type="stmt"/>
+        <line num="174" count="2" type="cond" truecount="6" falsecount="0"/>
+        <line num="175" count="1" type="stmt"/>
+        <line num="177" count="1" type="stmt"/>
+        <line num="180" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="app.src.utils">
+      <metrics statements="60" coveredstatements="41" conditionals="42" coveredconditionals="39" methods="12" coveredmethods="9"/>
+      <file name="Responsividad.js" path="/usr/app/src/utils/Responsividad.js">
+        <metrics statements="8" coveredstatements="8" conditionals="19" coveredconditionals="19" methods="2" coveredmethods="2"/>
+        <line num="9" count="4" type="cond" truecount="5" falsecount="0"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="12" count="3" type="cond" truecount="4" falsecount="0"/>
+        <line num="24" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="25" count="1" type="stmt"/>
+        <line num="26" count="3" type="cond" truecount="6" falsecount="0"/>
+        <line num="27" count="2" type="stmt"/>
+        <line num="29" count="1" type="stmt"/>
+      </file>
+      <file name="TratarDatos.js" path="/usr/app/src/utils/TratarDatos.js">
+        <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="13" count="28" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="20" count="2" type="stmt"/>
+      </file>
+      <file name="Validadores.js" path="/usr/app/src/utils/Validadores.js">
+        <metrics statements="8" coveredstatements="8" conditionals="8" coveredconditionals="8" methods="4" coveredmethods="4"/>
+        <line num="7" count="11" type="stmt"/>
+        <line num="8" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="10" count="11" type="cond" truecount="3" falsecount="0"/>
+        <line num="19" count="12" type="cond" truecount="3" falsecount="0"/>
+        <line num="28" count="31" type="stmt"/>
+        <line num="30" count="31" type="stmt"/>
+        <line num="38" count="12" type="stmt"/>
+        <line num="40" count="12" type="stmt"/>
+      </file>
+      <file name="XlsxFiles.js" path="/usr/app/src/utils/XlsxFiles.js">
+        <metrics statements="38" coveredstatements="19" conditionals="15" coveredconditionals="12" methods="5" coveredmethods="2"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="56" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="75" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="76" count="2" type="stmt"/>
+        <line num="77" count="2" type="stmt"/>
+        <line num="78" count="2" type="stmt"/>
+        <line num="81" count="2" type="stmt"/>
+        <line num="82" count="41" type="stmt"/>
+        <line num="85" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="94" count="8" type="stmt"/>
+        <line num="95" count="8" type="stmt"/>
+        <line num="96" count="8" type="stmt"/>
+        <line num="97" count="8" type="stmt"/>
+        <line num="98" count="8" type="stmt"/>
+        <line num="99" count="8" type="stmt"/>
+        <line num="100" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="102" count="8" type="stmt"/>
+        <line num="103" count="112" type="cond" truecount="2" falsecount="0"/>
+        <line num="106" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="107" count="6" type="stmt"/>
+        <line num="111" count="2" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>

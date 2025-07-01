@@ -19,6 +19,10 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavegacion } from "../contexts/NavegacionContext";
 import { detTamCarga } from "../utils/Responsividad";
 
+/**
+ * Página para añadir un nuevo paciente al sistema.
+ * @returns JSX.Element
+ */
 export default function AnadirPacientePage() {
     const drive = useDrive();
     const auth = useAuth();
