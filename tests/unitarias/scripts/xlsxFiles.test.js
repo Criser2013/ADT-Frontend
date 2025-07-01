@@ -41,7 +41,7 @@ describe("Validar la funcion 'validarFilas", () => {
 
         expect(res).toBe(true);
     });
-    a
+    
     test("CP - 28", () => {
         const res = validarFilas([{
             cedula: "asd", nombre: "Juan Nombre", sexo: 0, telefono: "1234567890", fechaNacimiento: "12-12-2025",
