@@ -1,4 +1,4 @@
-import { onIdTokenChanged, reauthenticateWithCredential, reauthenticateWithPopup, signOut } from "firebase/auth";
+import {  reauthenticateWithPopup, signOut } from "firebase/auth";
 import { createContext, useState, useContext, useEffect } from "react";
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { verUsuario } from "../firestore/usuarios-collection";
@@ -78,36 +78,9 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         if (auth != null) {
             const suscribed = onAuthStateChanged(auth, manejadorCambiosAuth);
-            const updated = onIdTokenChanged(auth, refrescartokens);
-            return () => {
-                suscribed();
-                updated();
-            };
+            return () => suscribed();
         }
     }, [auth]);
-
-    /**
-     * Refresca los tokens OAuth del usuario si este se encuentra autenticado.
-     * @param {User} currentUser - Ususario actual de Firebase.
-     */
-    const refrescartokens = async (currentUser) => {
-        const creds = tokenDrive == null ? JSON.parse(sessionStorage.getItem("session-tokens")): tokenDrive;
-        if (currentUser != null && creds != null && window.location.pathname != "/cerrar-sesion") {
-            try {
-                const cred = GoogleAuthProvider.credential(currentUser.idToken, creds.accessToken);
-                const res = await reauthenticateWithCredential(currentUser, cred);
-
-                verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
-
-                const prov = GoogleAuthProvider.credentialFromResult(res);
-                guardarAuthCredsSesion(prov);
-                setTokenDrive(prov);
-            } catch (error) {
-                console.error("Error al refrescar los tokens:", error);
-                setAuthError({ res: true, operacion: 3, error: "Error al verificar la sesión. Reintenta nuevamente." });
-            }
-        }
-    };
 
     /**
      * Verifica que el usuario tenga los permisos necesarios para usar la aplicación.
@@ -154,16 +127,12 @@ export function AuthProvider({ children }) {
         setCargando(true);
 
         try {
-            const provider = new GoogleAuthProvider();
+            let provider = new GoogleAuthProvider();
 
             // Se añaden los permisos necesarios para usar Drive
             for (const i of scopes) {
                 provider.addScope(i);
             }
-
-            provider.setCustomParameters({
-                access_type: "offline"
-            });
 
             // Se abre el popup de Google para iniciar sesión
             const res = await signInWithPopup(auth, provider);
@@ -202,23 +171,16 @@ export function AuthProvider({ children }) {
             setCargando(true);
 
             try {
-                const provider = new GoogleAuthProvider();
+                let provider = new GoogleAuthProvider();
 
                 // Se añaden los permisos necesarios para usar Drive
                 for (const i of scopes) {
                     provider.addScope(i);
                 }
 
-                provider.setCustomParameters({
-                access_type: "offline"
-            });
-
-
                 // Se vuelve a abrir el popup de Google para obtener el token de acceso a Drive
                 const res = await reauthenticateWithPopup(usuario, provider);
                 const oauth = GoogleAuthProvider.credentialFromResult(res);
-
-                console.log(res)
 
                 verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
                 setTokenDrive(oauth);

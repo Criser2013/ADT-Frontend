@@ -26,10 +26,11 @@ export default function Navbar() {
      * Carga de la imagen del usuario a iniciar.
      */
     useEffect(() => {
-        if (auth.authInfo.user != null) {
+        const inicial = sessionStorage.setItem("inicial","true");
+        if (auth.authInfo.user != null && inicial == "false") {
             setImg(auth.authInfo.user.photoURL);
-        } else {
-            //navigate("/", { replace: true });
+        } else if (auth.authInfo.user != null && inicial == "true"){
+            navigate("/", { replace: true });
         }
     }, [auth.authInfo.user]);
 

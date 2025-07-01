@@ -53,11 +53,13 @@ export function leerArchivoXlsx (archivo) {
         const data = read(archivo, { type: "buffer" });
         const json = utils.sheet_to_json(data.Sheets["Datos"]);
 
-        if (!validarXlsx(data, json[0], json)) {
-            return { success: true, data: [], error: null };
+        if (validarXlsx(data, json)) {
+            return { success: true, data: json, error: null };
         }
 
-        return { success: true, data: json, error: null };
+        return { success: false, data: [], error: {
+            code: 401, message: "El archivo no tiene la estructura correcta o contiene datos inválidos.",
+        } };
     } catch (error) {
         return { success: false, data: null, error: error };
     }
@@ -72,9 +74,16 @@ export function leerArchivoXlsx (archivo) {
 export function validarXlsx (archivo, filas) {
     const hojas = archivo.SheetNames.length == 1 && archivo.SheetNames[0] == "Datos";
     const campos = Object.keys(filas[0]).sort();
-    const ord = COMORBILIDADES.concat(["cedula","nombre","sexo","telefono","fechaNacimiento"]).sort();
+    const ord = COMORBILIDADES.concat(["cedula","nombre","sexo","telefono","fechaNacimiento","otraEnfermedad"]).sort();
+    let igual = true;
 
-    return hojas && campos.length == ord.length && campos == ord && validarFilas(filas);
+    // comparar los arrays no funciona con el operador de igualdad
+    for (let i = 0; i < campos.length; i++) {
+        igual &= campos[i] == ord[i];
+        console.log(campos[i], ord[i], igual);
+    }
+
+    return hojas && campos.length == ord.length && igual && validarFilas(filas);
 };
 
 /**

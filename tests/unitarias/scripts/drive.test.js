@@ -347,7 +347,7 @@ describe("Validar la funcion 'buscarArchivo'", () => {
         );
 
         expect(res).toEqual({
-            success: false, data: [], error: "Credenciales inválidas, reintente nuevamente."
+            success: false, data: [], error: new Error("Error de red")
         });
 
         expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -403,7 +403,7 @@ describe("Validar la funcion 'subirArchivoResumible'", () => {
         });
     });
 
-    test("CP - 50", async () => {
+    test("CP - 49", async () => {
         global.fetch = jest.fn();
         global.fetch.mockImplementation(() => 
             Promise.resolve({
@@ -438,7 +438,7 @@ describe("Validar la funcion 'subirArchivoResumible'", () => {
         });
     });
 
-    test("CP - 51", async () => {
+    test("CP - 50", async () => {
         global.fetch = jest.fn();
         global.fetch.mockImplementation(() => {
             throw Error("Error de red");

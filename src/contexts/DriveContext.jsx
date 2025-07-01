@@ -25,12 +25,12 @@ export const useDrive = () => {
 export function DriveProvider({ children }) {
     const [archivoId, setArchivoId] = useState(null);
     const [carpetaId, setCarpetaId] = useState(null);
-    const [datos, setDatos] = useState(null);
+    const [datos, setDatos] = useState([]);
     const [token, setToken] = useState(null);
     const [descargando, setDescargando] = useState(true);
 
     useEffect(() => {
-        if (token != null && datos == null) {
+        if (token != null) {
             verificarExisteArchivoYCarpeta(token).then((res) => {
                 if (res.success) {
                     descargarContArchivo(res.data);

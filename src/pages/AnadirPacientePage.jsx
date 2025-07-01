@@ -59,8 +59,10 @@ export default function AnadirPacientePage() {
 
         if (token != null) {
             drive.setToken(JSON.parse(token).accessToken);
+        } else if (auth.tokenDrive != null) {
+            drive.setToken(auth.tokenDrive);
         }
-    }, []);
+    }, [auth.tokenDrive]);
 
     /**
      * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
