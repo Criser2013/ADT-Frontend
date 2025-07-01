@@ -3,6 +3,7 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useNavigate } from "react-router-dom";
 import HomeIcon from "@mui/icons-material/Home";
 import { DiagnosticoIcono, DiagAnonimoIcono, HistDiagnosticoIcono, ListPacienteIcono } from "../icons/IconosSidebar";
+import { detAbrirMenu } from "../../utils/Responsividad";
 
 /**
  * Menú de navegación lateral de la aplicación.
@@ -67,7 +68,7 @@ export default function Sidebar() {
             onTransitionEnd={manejadorTranscionCerrar}
             sx={{
                 // Se encarga de cerrar el menú en tablets o computadores. No se usa en móviles.
-                display: (!navegacion.mostrarMenu && !navegacion.dispositivoMovil) ? "none" : "block",
+                display: (detAbrirMenu(navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion)) ? "none" : "block",
                 width: 240,
                 flexShrink: 0,
                 [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },

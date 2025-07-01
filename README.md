@@ -22,7 +22,16 @@ npm run dev
 
 Tenga en cuenta que de esta forma se requiere que el servidor backend esté en ejecución. En la siguiente sección se indica cómo incluir la URL del backend.
 
-## Ejecución del frontend con variables de entorno
+### Variables de entorno requeridas
+```
+VITE_DRIVE_API_URL=<string>          # URL de la API de Drive
+VITE_DRIVE_FILENAME=<string>         # Nombre del archivo con los pacientes en Drive
+VITE_API_URL=<string>                # URL del API (servidor backend)
+VITE_EXPORT_FILENAME=<string>        # Nombre del archivo para exportar diagnósticos
+VITE_DRIVE_FOLDER_NAME=<string>      # Nombre de la carpeta en Drive
+```
+
+## Ejecución del frontend  sin backend
 
 Es posible ejecutar la aplicación sin necesidad de tener activo el servidor backend, para esto se debe proveer las credenciales de Firebase y los permisos de drive en un archivo `.env`. Se provee el archivo `.env.example` como plantilla.  
 
@@ -40,7 +49,6 @@ VITE_APP_ID=<string>            # ID de la aplicación de Firebase
 VITE_MEASUREMENT_ID=<string>    # ID de Google Analytics (métricas)
 VITE_DRIVE_SCOPES=<string>      # URLs de permisos de Drive requeridos
 VITE_ENTORNO=<int>              # Número de entorno de ejecución
-VITE_API_URL=<string>           # URL del API (servidor backend)
 ```
 
 ## Dockerfile

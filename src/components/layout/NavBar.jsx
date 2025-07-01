@@ -1,12 +1,13 @@
-import { AppBar, Avatar, IconButton, Popover, Tooltip, Typography, Toolbar, Box, MenuItem, Divider } from "@mui/material";
+import { AppBar, Avatar, IconButton, Popover, Tooltip, Typography, Toolbar, Box, MenuItem, Divider, Stack } from "@mui/material";
 import { useEffect, useState } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router";
 import { useNavegacion } from "../../contexts/NavegacionContext";
-import MenuOpenIcon from '@mui/icons-material/MenuOpen';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import ContrastIcon from "@mui/icons-material/Contrast";
 
 /**
  * Barra de navegación superior.
@@ -25,8 +26,11 @@ export default function Navbar() {
      * Carga de la imagen del usuario a iniciar.
      */
     useEffect(() => {
-        if (auth.authInfo.user != null) {
+        const inicial = sessionStorage.setItem("inicial","true");
+        if (auth.authInfo.user != null && inicial == "false") {
             setImg(auth.authInfo.user.photoURL);
+        } else if (auth.authInfo.user != null && inicial == "true"){
+            navigate("/", { replace: true });
         }
     }, [auth.authInfo.user]);
 
@@ -48,6 +52,13 @@ export default function Navbar() {
     };
 
     /**
+     * Manejador de evento para cambiar el tema de la aplicación.
+     */
+    const manejadorBtnTema = () => {
+        console.log("botón de tema presionado");
+    };
+
+    /**
      * Manejador de evento para cerrar el PopOver de usuario.
      */
     const cerrarPopOver = () => {
@@ -66,32 +77,38 @@ export default function Navbar() {
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
             <Toolbar>
                 <Box display="flex" justifyContent="space-between" alignItems="center" flexDirection="row" width="100%" >
-                    <IconButton edge="start" color="inherit" aria-label="menu" onClick={manejadorAbrirMenu}>
+                    <IconButton edge="start" color="inherit" onClick={manejadorAbrirMenu}>
                         {navegacion.mostrarMenu ? <MenuOpenIcon /> : <MenuIcon />}
                     </IconButton>
                     <Typography variant="h6">HADT</Typography>
+
+                    <Stack direction="row" spacing={1}>
+                    <IconButton onClick={manejadorBtnTema}>
+                        <ContrastIcon />
+                    </IconButton>
                     <Tooltip title="Ver opciones de usuario">
-                        <IconButton onClick={manejadorMousePopOver} color="inherit" aria-label="logout" aria-describedby={idPopOver}>
+                        <IconButton onClick={manejadorMousePopOver} color="inherit"aria-describedby={idPopOver}>
                             <Avatar alt="foto-usuario" src={img}>
                                 {img === "" ? <AccountCircleIcon sx={{ height: 47, width: 47 }} /> : null}
                             </Avatar>
                             <ArrowDropDownIcon color="inherit" />
                         </IconButton>
                     </Tooltip>
+                    </Stack>
                     <Popover
                         id={idPopOver}
                         open={open}
                         onClose={cerrarPopOver}
                         anchorEl={popOver}
                         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                        transformOrigin={{ vertical: "top", horizontal: "right" }}
                         PaperProps={{
                             sx: {
                                 p: 0,
                                 mt: 1.5,
                                 ml: 0.75,
-                                '& .MuiMenuItem-root': {
-                                    typography: 'body2',
+                                "& .MuiMenuItem-root": {
+                                    typography: "body2",
                                     borderRadius: 0.75,
                                 },
                             },
