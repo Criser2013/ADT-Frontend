@@ -1,6 +1,6 @@
-import {  reauthenticateWithPopup, signOut } from "firebase/auth";
+import { reauthenticateWithPopup, signOut } from "firebase/auth";
 import { createContext, useState, useContext, useEffect } from "react";
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 import { verUsuario } from "../firestore/usuarios-collection";
 import { cambiarUsuario, verSiEstaRegistrado } from "../firestore/usuarios-collection";
 import { FirebaseError } from "firebase/app";
@@ -49,6 +49,7 @@ export function AuthProvider({ children }) {
     const [cargando, setCargando] = useState(true);
     const [permisos, setPermisos] = useState(true);
     const [autenticado, setAutenticado] = useState(null);
+    const [idTareaRefresco, setIdTareaRefresco] = useState(null);
 
     /**
      * Si el usuario ya está autenticado, obtiene sus datos.
@@ -84,6 +85,36 @@ export function AuthProvider({ children }) {
     }, [auth]);
 
     /**
+     * Refresca los tokens OAuth del usuario si este se encuentra autenticado.
+     * @param {User} currentUser - Ususario actual de Firebase.
+     */
+    const refrescarTokens = async (currentUser) => {
+        const creds = tokenDrive == null ? JSON.parse(sessionStorage.getItem("session-tokens")) : tokenDrive;
+        if (currentUser != null && creds != null) {
+            try {
+                const cred = GoogleAuthProvider.credential(currentUser.idToken, creds.accessToken);
+                const res = await reauthenticateWithCredential(currentUser, cred);
+
+                verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
+
+                const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
+                oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
+
+                clearTimeout(idTareaRefresco);
+                setIdTareaRefresco(
+                    setTimeout(refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000, currentUser)
+                );
+
+                guardarAuthCredsSesion(oauth);
+                setTokenDrive(oauth.accessToken);
+            } catch (error) {
+                console.error("Error al refrescar los tokens:", error);
+                setAuthError({ res: true, operacion: 3, error: "Error al verificar la sesión. Reintenta nuevamente." });
+            }
+        }
+    };
+
+    /**
      * Verifica que el usuario tenga los permisos necesarios para usar la aplicación.
      * @param {String} permisos - Permisos del usuario.
      * @param {Array} scopes  - Lista de permisos requeridos.
@@ -108,8 +139,18 @@ export function AuthProvider({ children }) {
             /* Evitando que se muestre el cuadro de seleccion de cuenta cuando se cierra sesión
                , el usuario se encuentre en la pestaña principal o cuando recargue la página */
             const resCredsSesion = cargarAuthCredsSesion();
+            const fecha = (resCredsSesion.expires != undefined && resCredsSesion.expires != null) ? ((parseInt(resCredsSesion.expires, 10) - Date.now()) / 1000) : null;
+            const exp = ((resCredsSesion.success && fecha <= 20) || !resCredsSesion.success);
 
-            if (!resCredsSesion && window.location.pathname != "/cerrar-sesion" && window.location.pathname != "/") {
+            // Se refresca el token de acceso sino hay pasado los 3 minutos - Cuando se recarga la página
+            if (resCredsSesion.success && fecha != null && fecha > 180) {
+                clearTimeout(idTareaRefresco);
+                setIdTareaRefresco(setTimeout(refrescarTokens, fecha - 180, currentUser));
+            } else if (resCredsSesion.success && fecha != null && fecha <= 180 && fecha > 20) {
+                // Si quedan menos de 3 minutos hasta 21 segs se refrescan los tokens - Cuando se recarga la página
+                await refrescarTokens(currentUser);
+            } else if (exp && window.location.pathname != "/cerrar-sesion" && window.location.pathname != "/") {
+                // En caso contrario, se reautentica al usuario para refrescar los tokens - Cuando se recarga la página
                 await reautenticarUsuario(currentUser);
             }
             setAuthInfo((x) => ({ ...x, user: currentUser, correo: currentUser.email }));
@@ -141,12 +182,17 @@ export function AuthProvider({ children }) {
             const res = await signInWithPopup(auth, provider);
             // Se verifica si el usuario ya está registrado en la base de datos y esté activado
             const reg = await verRegistrado(res.user.email);
-            const oauth = GoogleAuthProvider.credentialFromResult(res);
+            const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
+            oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
 
             verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
+            clearTimeout(idTareaRefresco);
+            setIdTareaRefresco(setTimeout(
+                refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000, res.user
+            ));
 
             // Guardando el token de acceso a Google Drive
-            setTokenDrive(oauth);
+            setTokenDrive(oauth.accessToken);
             guardarAuthCredsSesion(oauth);
 
             if (!reg.success) {
@@ -183,10 +229,16 @@ export function AuthProvider({ children }) {
 
                 // Se vuelve a abrir el popup de Google para obtener el token de acceso a Drive
                 const res = await reauthenticateWithPopup(usuario, provider);
-                const oauth = GoogleAuthProvider.credentialFromResult(res);
+                const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
+                oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
+
+                clearTimeout(idTareaRefresco);
+                setIdTareaRefresco(
+                    setTimeout(refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000, usuario)
+                );
 
                 verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
-                setTokenDrive(oauth);
+                setTokenDrive(oauth.accessToken);
                 guardarAuthCredsSesion(oauth);
 
                 setAuthError({ res: false, operacion: 2, error: "" });
@@ -206,6 +258,12 @@ export function AuthProvider({ children }) {
 
         try {
             await signOut(auth);
+
+            if (idTareaRefresco != null) {
+                clearTimeout(idTareaRefresco);
+                setIdTareaRefresco(null);
+            }
+
             borrarAuthCredsSesion();
             setTokenDrive(null);
             setAuthInfo({ user: null, email: null, rol: null });
@@ -281,10 +339,10 @@ export function AuthProvider({ children }) {
             const tokens = JSON.parse(valores);
             setTokenDrive(tokens.accessToken);
 
-            return true;
+            return { success: true, expires: tokens.expires };
         }
 
-        return false;
+        return { success: false };
     };
 
     /**
