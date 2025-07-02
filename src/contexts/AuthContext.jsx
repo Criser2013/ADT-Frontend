@@ -308,6 +308,9 @@ export function AuthProvider({ children }) {
         switch (error.code) {
             case "auth/popup-closed-by-user":
                 // Esto es cuando el usuario cierra el popup de Google antes de iniciar sesión
+                if (location.pathname != "/") {
+                    location.replace("/");
+                }
                 break;
             case "auth/user-cancelled":
                 // Esto es cuando el usuario cancela la autenticación y no otorga los permisos

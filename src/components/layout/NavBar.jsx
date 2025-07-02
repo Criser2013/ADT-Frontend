@@ -19,6 +19,7 @@ export default function Navbar() {
     const navigate = useNavigate();
     const [popOver, setPopOver] = useState(null);
     const [img, setImg] = useState("");
+    const [redireccionar, setRedireccionar] = useState(false);
     const open = Boolean(popOver);
     const idPopOver = open ? "simple-popover" : undefined;
 
@@ -26,14 +27,16 @@ export default function Navbar() {
      * Carga de la imagen del usuario a iniciar.
      */
     useEffect(() => {
-        const inicial = sessionStorage.setItem("inicial","true");
-        if (auth.authInfo.user != null && inicial == "false") {
+        if (auth.authInfo.user != null) {
             setImg(auth.authInfo.user.photoURL);
-        } else if (auth.authInfo.user != null && inicial == "true"){
-            navigate("/", { replace: true });
         }
     }, [auth.authInfo.user]);
 
+    useEffect(() => {
+        if (redireccionar) {
+            navigate("/", { replace: true });
+        }
+    }, [redireccionar]);
     /**
      * Manejador de evento de clic para mostrar el PopOver de usuario.
      * @param {Event} event 
@@ -83,17 +86,17 @@ export default function Navbar() {
                     <Typography variant="h6">HADT</Typography>
 
                     <Stack direction="row" spacing={1}>
-                    <IconButton onClick={manejadorBtnTema}>
-                        <ContrastIcon />
-                    </IconButton>
-                    <Tooltip title="Ver opciones de usuario">
-                        <IconButton onClick={manejadorMousePopOver} color="inherit"aria-describedby={idPopOver}>
-                            <Avatar alt="foto-usuario" src={img}>
-                                {img === "" ? <AccountCircleIcon sx={{ height: 47, width: 47 }} /> : null}
-                            </Avatar>
-                            <ArrowDropDownIcon color="inherit" />
+                        <IconButton onClick={manejadorBtnTema}>
+                            <ContrastIcon />
                         </IconButton>
-                    </Tooltip>
+                        <Tooltip title="Ver opciones de usuario">
+                            <IconButton onClick={manejadorMousePopOver} color="inherit" aria-describedby={idPopOver}>
+                                <Avatar alt="foto-usuario" src={img}>
+                                    {img === "" ? <AccountCircleIcon sx={{ height: 47, width: 47 }} /> : null}
+                                </Avatar>
+                                <ArrowDropDownIcon color="inherit" />
+                            </IconButton>
+                        </Tooltip>
                     </Stack>
                     <Popover
                         id={idPopOver}
