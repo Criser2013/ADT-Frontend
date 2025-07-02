@@ -19,7 +19,7 @@ export default function AnadirPacientePage() {
     const [cargando, setCargando] = useState(true);
     const listadoPestanas = [
         { texto: "Lista de pacientes", url: "/pacientes" },
-        { texto: "Añadir paciente", url: "/pacientes/crear" }
+        { texto: "Añadir paciente", url: "/pacientes/anadir" }
     ];
 
     /**

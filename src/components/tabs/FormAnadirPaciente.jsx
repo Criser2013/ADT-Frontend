@@ -26,7 +26,7 @@ export default function FormAnadirPaciente({ setCargando, nombre = "", cedula = 
         "nombre": nombre, "cedula": cedula, "sexo": sexo,
         "telefono": telefono, "fechaNacimiento": fechaNacimiento
     });
-    const [comorActivadas, setComorActivadas] = useState(false);
+    const [comorActivadas, setComorActivadas] = useState(otrasEnfermedades.length > 0);
     const [comorbilidades, setComorbilidades] = useState(otrasEnfermedades);
     const [errores, setErrores] = useState([
         { campo: "nombre", error: false, txt: "" },
@@ -168,7 +168,7 @@ export default function FormAnadirPaciente({ setCargando, nombre = "", cedula = 
      */
     const guardar = () => {
         const existe = drive.verificarExistePaciente(datos.cedula);
-        if (existe) {
+        if (existe && esAnadir) {
             setModal({
                 mostrar: true,
                 titulo: "Paciente ya registrado",
@@ -177,7 +177,7 @@ export default function FormAnadirPaciente({ setCargando, nombre = "", cedula = 
 
             setCargando(false);
         } else {
-            const oneHotComor = oneHotEncondingOtraEnfermedad(comorbilidades);
+            const oneHotComor = oneHotEncondingOtraEnfermedad(comorActivadas ? comorbilidades : []);
             const instancia = { ...datos, ...oneHotComor, otraEnfermedad: comorActivadas ? 1 : 0 };
 
             instancia.fechaNacimiento = datos.fechaNacimiento.format("DD-MM-YYYY");
@@ -191,7 +191,7 @@ export default function FormAnadirPaciente({ setCargando, nombre = "", cedula = 
      * @param {JSON} instancia - Datos del paciente.
      */
     const manejadorResGuardado = async (instancia) => {
-        const res = await drive.anadirPaciente(instancia, !esAnadir);
+        const res = await drive.anadirPaciente(instancia, !esAnadir, cedula);
 
         if (res.success) {
             navigate("/pacientes", { replace: true });
@@ -270,6 +270,7 @@ export default function FormAnadirPaciente({ setCargando, nombre = "", cedula = 
                             disableFuture={true}
                             name="fechaNacimiento"
                             onChange={manejadorCambiosFecha}
+                            value={datos.fechaNacimiento}
                             slotProps={{
                                 textField: {
                                     error: errores[4].error,
@@ -287,7 +288,7 @@ export default function FormAnadirPaciente({ setCargando, nombre = "", cedula = 
                 <Grid size={2}>
                     <FormGroup>
                         <FormControlLabel
-                            control={<Checkbox size="small" onChange={(e) => setComorActivadas(e.target.checked)} />}
+                            control={<Checkbox defaultChecked={comorbilidades.length != 0} size="small" onChange={(e) => setComorActivadas(e.target.checked)} />}
                             label="El paciente padece otra enfermedad." />
                     </FormGroup>
                 </Grid>

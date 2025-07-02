@@ -26,12 +26,13 @@ export function oneHotEncondingOtraEnfermedad(datos) {
  * @returns JSON
  */
 export function quitarDatosPersonales(datos) {
+    const aux = { ...datos };
     for (const j of COMORBILIDADES) {
-        if (datos[j] != undefined) {
-            delete datos[j];
+        if (aux[j] != undefined) {
+            delete aux[j];
         }
     }
-    return datos;
+    return aux;
 };
 
 /**
@@ -41,7 +42,7 @@ export function quitarDatosPersonales(datos) {
  */
 export function oneHotInversoOtraEnfermedad(datos) {
     const aux = [];
-    for (const i in datos) {
+    for (const i of COMORBILIDADES) {
         if (datos[i] == 1) {
             aux.push(i);
         }

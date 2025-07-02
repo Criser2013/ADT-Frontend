@@ -34,11 +34,13 @@ export function DriveProvider({ children }) {
         if (token != null) {
             verificarExisteArchivoYCarpeta(token).then((res) => {
                 if (res.success) {
-                    descargarContArchivo(res.data);
+                    descargarContArchivo(res.data).then(() => {
+                        setDescargando(false);
+                    });
                 } else {
                     setDatos([]);
+                    setDescargando(false);
                 }
-                setDescargando(false);
             });
         }
     }, [token]);
@@ -158,7 +160,7 @@ export function DriveProvider({ children }) {
      * @param {Boolean} esEditar - Indica si se está añadiendo o editando un paciente.
      * @returns JSON
      */
-    const anadirPaciente = async (instancia, esEditar = false) => {
+    const anadirPaciente = async (instancia, esEditar = false, prevCedula = null) => {
         let tabla = datos;
         const existe = await verificarExisteArchivoYCarpeta();
 
@@ -174,11 +176,12 @@ export function DriveProvider({ children }) {
         }
 
         if (esEditar) {
-            const indice = tabla.findIndex((paciente) => paciente.cedula === instancia.cedula);
-            if (indice == -1) {
-                return { success: false, error: "Paciente no encontrado" };
+            const indice = tabla.findIndex((paciente) => paciente.cedula == prevCedula);
+            if (prevCedula != null && instancia.cedula != prevCedula) {
+                tabla.splice(indice, 1, instancia);
+            } else {
+                tabla[indice] = instancia;
             }
-            tabla[indice] = instancia;
         } else {
             tabla.push(instancia);
         }
@@ -200,10 +203,10 @@ export function DriveProvider({ children }) {
      * @returns JSON
      */
     const cargarDatosPaciente = (cedula) => {
-        const indice = datos.findIndex((paciente) => paciente.cedula === cedula);
+        const indice = datos.findIndex((paciente) => paciente.cedula == cedula);
 
         if (indice == -1) {
-            return { success: false, error: "Paciente no encontrado" };
+            return { success: false };
         }
 
         const datosPersonales = quitarDatosPersonales(datos[indice]);
