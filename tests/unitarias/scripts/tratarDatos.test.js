@@ -1,6 +1,6 @@
 import { expect, describe, test } from '@jest/globals';
 import { oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, quitarDatosPersonales } from "../../../src/utils/TratarDatos";
-/*
+
 describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
     test("CP - 15", () => {
         const res = oneHotEncondingOtraEnfermedad(["Enfermedad vascular", "Diabetes"]);
@@ -23,7 +23,7 @@ describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
             "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0
         });
     });
-});*/
+});
 
 describe("Validar la función 'oneHotInversoOtraEnfermedad'", () => {
     test("CP - 51", () => {

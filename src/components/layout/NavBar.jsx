@@ -19,7 +19,6 @@ export default function Navbar() {
     const navigate = useNavigate();
     const [popOver, setPopOver] = useState(null);
     const [img, setImg] = useState("");
-    const [redireccionar, setRedireccionar] = useState(false);
     const open = Boolean(popOver);
     const idPopOver = open ? "simple-popover" : undefined;
 
@@ -27,16 +26,13 @@ export default function Navbar() {
      * Carga de la imagen del usuario a iniciar.
      */
     useEffect(() => {
-        if (auth.authInfo.user != null) {
+        if (auth.autenticado && auth.authInfo.user != null) {
             setImg(auth.authInfo.user.photoURL);
-        }
-    }, [auth.authInfo.user]);
-
-    useEffect(() => {
-        if (redireccionar) {
+        } else if (auth.autenticado != null && auth.autenticado == false){
             navigate("/", { replace: true });
         }
-    }, [redireccionar]);
+    }, [auth.authInfo.user, auth.autenticado]);
+
     /**
      * Manejador de evento de clic para mostrar el PopOver de usuario.
      * @param {Event} event 

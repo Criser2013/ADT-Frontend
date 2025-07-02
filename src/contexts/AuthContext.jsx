@@ -48,6 +48,7 @@ export function AuthProvider({ children }) {
     });
     const [cargando, setCargando] = useState(true);
     const [permisos, setPermisos] = useState(true);
+    const [autenticado, setAutenticado] = useState(null);
 
     /**
      * Si el usuario ya está autenticado, obtiene sus datos.
@@ -112,8 +113,10 @@ export function AuthProvider({ children }) {
                 await reautenticarUsuario(currentUser);
             }
             setAuthInfo((x) => ({ ...x, user: currentUser, correo: currentUser.email }));
+            setAutenticado(true);
         } else {
             setAuthInfo({ user: null, correo: null, rol: null });
+            setAutenticado(false);
         }
     };
 
@@ -328,7 +331,7 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <authContext.Provider value={{ useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive, setScopes, cerrarSesion, iniciarSesionGoogle, verDatosUsuario, reautenticarUsuario, permisos }}>
+        <authContext.Provider value={{ useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive, setScopes, cerrarSesion, iniciarSesionGoogle, verDatosUsuario, reautenticarUsuario, permisos, autenticado }}>
             {children}
         </authContext.Provider>
     );

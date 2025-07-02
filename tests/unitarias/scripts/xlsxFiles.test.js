@@ -1,4 +1,4 @@
-/*import { expect, describe, test } from '@jest/globals';
+import { expect, describe, test } from '@jest/globals';
 import { validarXlsx, validarFilas } from '../../../src/utils/XlsxFiles';
 
 describe("Validar la funcion 'validarXlsx", () => {
@@ -107,7 +107,7 @@ describe("Validar la funcion 'validarFilas", () => {
 
         expect(res).toBe(false);
     });
-});*/
+});
 /*
 describe("Validar la funcion 'crearArchivoXlsx", () => {
     beforeAll(() => {

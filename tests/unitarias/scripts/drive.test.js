@@ -1,4 +1,4 @@
-/*import { expect, describe, test, jest } from '@jest/globals';
+import { expect, describe, test, jest } from '@jest/globals';
 import { codificarParamsURL, descargarArchivo, crearCargaResumible, crearArchivo, buscarArchivo, subirArchivoResumible } from '../../../src/services/Drive';
 
 describe("Validar la función 'codificarParamsURL'", () => {
@@ -465,4 +465,4 @@ describe("Validar la funcion 'subirArchivoResumible'", () => {
         });
         expect(global.fetch).toThrow("Error de red");
     });
-});*/
+});

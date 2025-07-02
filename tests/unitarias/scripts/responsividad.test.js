@@ -1,4 +1,4 @@
-/*import { expect, describe, test } from '@jest/globals';
+import { expect, describe, test } from '@jest/globals';
 import { detAbrirMenu, detTamCarga } from '../../../src/utils/Responsividad';
 
 describe("Validar la función 'detAbrirMenu'", () => {
@@ -43,4 +43,4 @@ describe("Validar la función 'detTamCarga'", () => {
         const res = detTamCarga(false, "horizontal", true, 500);
         expect(res).toBe(240);
     });
-});*/
+});
