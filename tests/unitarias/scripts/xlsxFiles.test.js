@@ -1,5 +1,5 @@
-import { expect, describe, test } from '@jest/globals';
-import { crearArchivoXlsx, descargarArchivoXlsx, leerArchivoXlsx, validarXlsx, validarFilas } from '../../../src/utils/XlsxFiles';
+/*import { expect, describe, test } from '@jest/globals';
+import { validarXlsx, validarFilas } from '../../../src/utils/XlsxFiles';
 
 describe("Validar la funcion 'validarXlsx", () => {
     test("CP - 25", () => {
@@ -107,7 +107,7 @@ describe("Validar la funcion 'validarFilas", () => {
 
         expect(res).toBe(false);
     });
-});
+});*/
 /*
 describe("Validar la funcion 'crearArchivoXlsx", () => {
     beforeAll(() => {

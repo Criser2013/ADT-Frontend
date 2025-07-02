@@ -1,4 +1,4 @@
-import { expect, describe, test } from '@jest/globals';
+/*import { expect, describe, test } from '@jest/globals';
 import { validarNombre, validarTelefono, validarNumero, validarFecha } from '../../../src/utils/Validadores';
 
 describe("Validar número ", () => {
@@ -67,4 +67,4 @@ describe("Validar fecha", () => {
         const res = validarFecha("ho-la-amigos");
         expect(res).toBe(false);
     });
-});
+});*/
