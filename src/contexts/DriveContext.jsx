@@ -2,6 +2,7 @@ import { createContext, useState, useContext, useEffect } from "react";
 import { crearArchivoXlsx, leerArchivoXlsx } from "../utils/XlsxFiles";
 import { crearArchivo, buscarArchivo, crearCargaResumible, subirArchivoResumible, descargarArchivo } from "../services/Drive";
 import { DRIVE_FILENAME, DRIVE_FOLDER_NAME } from "../../constants";
+import { oneHotInversoOtraEnfermedad, quitarDatosPersonales } from "../utils/TratarDatos";
 
 export const driveContext = createContext();
 
@@ -33,11 +34,13 @@ export function DriveProvider({ children }) {
         if (token != null) {
             verificarExisteArchivoYCarpeta(token).then((res) => {
                 if (res.success) {
-                    descargarContArchivo(res.data);
+                    descargarContArchivo(res.data).then(() => {
+                        setDescargando(false);
+                    });
                 } else {
                     setDatos([]);
+                    setDescargando(false);
                 }
-                setDescargando(false);
             });
         }
     }, [token]);
@@ -154,9 +157,10 @@ export function DriveProvider({ children }) {
     /**
      * Guarda los datos de los pacientes en una hoja de Excel en Google Drive.
      * @param {String} instancia - Datos del paciente a guardar.
+     * @param {Boolean} esEditar - Indica si se está añadiendo o editando un paciente.
      * @returns JSON
      */
-    const anadirPaciente = async (instancia) => {
+    const anadirPaciente = async (instancia, esEditar = false, prevCedula = null) => {
         let tabla = datos;
         const existe = await verificarExisteArchivoYCarpeta();
 
@@ -171,7 +175,17 @@ export function DriveProvider({ children }) {
             tabla = leerArchivoXlsx(pet.data).data;
         }
 
-        tabla.push(instancia);
+        if (esEditar) {
+            const indice = tabla.findIndex((paciente) => paciente.cedula == prevCedula);
+            if (prevCedula != null && instancia.cedula != prevCedula) {
+                tabla.splice(indice, 1, instancia);
+            } else {
+                tabla[indice] = instancia;
+            }
+        } else {
+            tabla.push(instancia);
+        }
+
         setDatos(tabla);
 
         const binario = crearArchivoXlsx(tabla);
@@ -181,6 +195,24 @@ export function DriveProvider({ children }) {
         } else {
             return { success: false, error: res.error };
         }
+    };
+
+    /**
+     * Carga los datos de un paciente a partir de su cédula.
+     * @param {String} cedula - Cédula del paciente a cargar.
+     * @returns JSON
+     */
+    const cargarDatosPaciente = (cedula) => {
+        const indice = datos.findIndex((paciente) => paciente.cedula == cedula);
+
+        if (indice == -1) {
+            return { success: false };
+        }
+
+        const datosPersonales = quitarDatosPersonales(datos[indice]);
+        const comorbilidades = oneHotInversoOtraEnfermedad(datos[indice]);
+
+        return { success: true, data: { personales: datosPersonales, comorbilidades } };
     };
 
     /**
@@ -244,7 +276,7 @@ export function DriveProvider({ children }) {
     };
 
     return (
-        <driveContext.Provider value={{ anadirPaciente, descargarContArchivo, verificarExistePaciente, setToken, descargando }}>
+        <driveContext.Provider value={{ anadirPaciente, descargarContArchivo, verificarExistePaciente, setToken, descargando, cargarDatosPaciente }}>
             {children}
         </driveContext.Provider>
     );

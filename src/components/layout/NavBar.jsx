@@ -26,13 +26,12 @@ export default function Navbar() {
      * Carga de la imagen del usuario a iniciar.
      */
     useEffect(() => {
-        const inicial = sessionStorage.setItem("inicial","true");
-        if (auth.authInfo.user != null && inicial == "false") {
+        if (auth.autenticado && auth.authInfo.user != null) {
             setImg(auth.authInfo.user.photoURL);
-        } else if (auth.authInfo.user != null && inicial == "true"){
+        } else if (auth.autenticado != null && auth.autenticado == false){
             navigate("/", { replace: true });
         }
-    }, [auth.authInfo.user]);
+    }, [auth.authInfo.user, auth.autenticado]);
 
     /**
      * Manejador de evento de clic para mostrar el PopOver de usuario.
@@ -83,17 +82,17 @@ export default function Navbar() {
                     <Typography variant="h6">HADT</Typography>
 
                     <Stack direction="row" spacing={1}>
-                    <IconButton onClick={manejadorBtnTema}>
-                        <ContrastIcon />
-                    </IconButton>
-                    <Tooltip title="Ver opciones de usuario">
-                        <IconButton onClick={manejadorMousePopOver} color="inherit"aria-describedby={idPopOver}>
-                            <Avatar alt="foto-usuario" src={img}>
-                                {img === "" ? <AccountCircleIcon sx={{ height: 47, width: 47 }} /> : null}
-                            </Avatar>
-                            <ArrowDropDownIcon color="inherit" />
+                        <IconButton onClick={manejadorBtnTema}>
+                            <ContrastIcon />
                         </IconButton>
-                    </Tooltip>
+                        <Tooltip title="Ver opciones de usuario">
+                            <IconButton onClick={manejadorMousePopOver} color="inherit" aria-describedby={idPopOver}>
+                                <Avatar alt="foto-usuario" src={img}>
+                                    {img === "" ? <AccountCircleIcon sx={{ height: 47, width: 47 }} /> : null}
+                                </Avatar>
+                                <ArrowDropDownIcon color="inherit" />
+                            </IconButton>
+                        </Tooltip>
                     </Stack>
                     <Popover
                         id={idPopOver}

@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals';
-import { crearArchivoXlsx, descargarArchivoXlsx, leerArchivoXlsx, validarXlsx, validarFilas } from '../../../src/utils/XlsxFiles';
+import { validarXlsx, validarFilas } from '../../../src/utils/XlsxFiles';
 
 describe("Validar la funcion 'validarXlsx", () => {
     test("CP - 25", () => {

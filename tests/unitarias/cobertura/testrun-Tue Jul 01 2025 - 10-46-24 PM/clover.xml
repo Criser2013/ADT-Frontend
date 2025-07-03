@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1751409878803" clover="3.2.0">
-  <project timestamp="1751409878804" name="All files">
+<coverage generated="1751409987171" clover="3.2.0">
+  <project timestamp="1751409987171" name="All files">
     <metrics statements="110" coveredstatements="88" conditionals="85" coveredconditionals="77" methods="19" coveredmethods="16" elements="214" coveredelements="181" complexity="0" loc="110" ncloc="110" packages="3" files="6" classes="6"/>
-    <package name="app">
+    <package name="ADT-Frontend">
       <metrics statements="9" coveredstatements="9" conditionals="12" coveredconditionals="12" methods="0" coveredmethods="0"/>
-      <file name="constants.js" path="/usr/app/constants.js">
+      <file name="constants.js" path="/__w/ADT-Frontend/ADT-Frontend/constants.js">
         <metrics statements="9" coveredstatements="9" conditionals="12" coveredconditionals="12" methods="0" coveredmethods="0"/>
         <line num="1" count="3" type="stmt"/>
         <line num="3" count="3" type="cond" truecount="2" falsecount="0"/>
@@ -17,9 +17,9 @@
         <line num="13" count="3" type="cond" truecount="2" falsecount="0"/>
       </file>
     </package>
-    <package name="app.src.services">
+    <package name="ADT-Frontend.src.services">
       <metrics statements="41" coveredstatements="38" conditionals="31" coveredconditionals="26" methods="7" coveredmethods="7"/>
-      <file name="Drive.js" path="/usr/app/src/services/Drive.js">
+      <file name="Drive.js" path="/__w/ADT-Frontend/ADT-Frontend/src/services/Drive.js">
         <metrics statements="41" coveredstatements="38" conditionals="31" coveredconditionals="26" methods="7" coveredmethods="7"/>
         <line num="9" count="5" type="stmt"/>
         <line num="11" count="5" type="stmt"/>
@@ -64,9 +64,9 @@
         <line num="180" count="1" type="stmt"/>
       </file>
     </package>
-    <package name="app.src.utils">
+    <package name="ADT-Frontend.src.utils">
       <metrics statements="60" coveredstatements="41" conditionals="42" coveredconditionals="39" methods="12" coveredmethods="9"/>
-      <file name="Responsividad.js" path="/usr/app/src/utils/Responsividad.js">
+      <file name="Responsividad.js" path="/__w/ADT-Frontend/ADT-Frontend/src/utils/Responsividad.js">
         <metrics statements="8" coveredstatements="8" conditionals="19" coveredconditionals="19" methods="2" coveredmethods="2"/>
         <line num="9" count="4" type="cond" truecount="5" falsecount="0"/>
         <line num="10" count="1" type="stmt"/>
@@ -77,7 +77,7 @@
         <line num="27" count="2" type="stmt"/>
         <line num="29" count="1" type="stmt"/>
       </file>
-      <file name="TratarDatos.js" path="/usr/app/src/utils/TratarDatos.js">
+      <file name="TratarDatos.js" path="/__w/ADT-Frontend/ADT-Frontend/src/utils/TratarDatos.js">
         <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
         <line num="10" count="2" type="stmt"/>
         <line num="12" count="2" type="stmt"/>
@@ -86,7 +86,7 @@
         <line num="17" count="2" type="stmt"/>
         <line num="20" count="2" type="stmt"/>
       </file>
-      <file name="Validadores.js" path="/usr/app/src/utils/Validadores.js">
+      <file name="Validadores.js" path="/__w/ADT-Frontend/ADT-Frontend/src/utils/Validadores.js">
         <metrics statements="8" coveredstatements="8" conditionals="8" coveredconditionals="8" methods="4" coveredmethods="4"/>
         <line num="7" count="11" type="stmt"/>
         <line num="8" count="11" type="cond" truecount="2" falsecount="0"/>
@@ -97,7 +97,7 @@
         <line num="38" count="12" type="stmt"/>
         <line num="40" count="12" type="stmt"/>
       </file>
-      <file name="XlsxFiles.js" path="/usr/app/src/utils/XlsxFiles.js">
+      <file name="XlsxFiles.js" path="/__w/ADT-Frontend/ADT-Frontend/src/utils/XlsxFiles.js">
         <metrics statements="38" coveredstatements="19" conditionals="15" coveredconditionals="12" methods="5" coveredmethods="2"/>
         <line num="11" count="0" type="stmt"/>
         <line num="12" count="0" type="stmt"/>

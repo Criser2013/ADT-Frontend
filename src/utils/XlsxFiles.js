@@ -53,7 +53,7 @@ export function leerArchivoXlsx (archivo) {
         const data = read(archivo, { type: "buffer" });
         const json = utils.sheet_to_json(data.Sheets["Datos"]);
 
-        if (validarXlsx(data, json)) {
+        if (json.length == 0 || validarXlsx(data, json)) {
             return { success: true, data: json, error: null };
         }
 

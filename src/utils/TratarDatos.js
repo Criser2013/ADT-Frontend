@@ -6,7 +6,7 @@ import { COMORBILIDADES } from "../../constants";
  * @param {Array} datos - Lista de comorbilidades.
  * @returns JSON
  */
-export function oneHotEncondingOtraEnfermedad (datos) {
+export function oneHotEncondingOtraEnfermedad(datos) {
     const aux = {};
 
     for (const i of COMORBILIDADES) {
@@ -17,5 +17,35 @@ export function oneHotEncondingOtraEnfermedad (datos) {
         aux[i] = 1;
     }
 
+    return aux;
+};
+
+/**
+ * Elimina los datos personales de los pacientes. Solo deja los datos de comorbilidades.
+ * @param {JSON} datos - JSON con los datos de los pacientes.
+ * @returns JSON
+ */
+export function quitarDatosPersonales(datos) {
+    const aux = { ...datos };
+    for (const j of COMORBILIDADES) {
+        if (aux[j] != undefined) {
+            delete aux[j];
+        }
+    }
+    return aux;
+};
+
+/**
+ * Transforma los datos de comorbilidades codificados como one-hot a un Arrray.
+ * @param {JSON} datos - JSON con las comorbilidades codificadas como one-hot.
+ * @returns Array
+ */
+export function oneHotInversoOtraEnfermedad(datos) {
+    const aux = [];
+    for (const i of COMORBILIDADES) {
+        if (datos[i] == 1) {
+            aux.push(i);
+        }
+    }
     return aux;
 };
