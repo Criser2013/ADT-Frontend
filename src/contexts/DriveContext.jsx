@@ -198,6 +198,45 @@ export function DriveProvider({ children }) {
     };
 
     /**
+     * Elimina un paciente del documento en Google Drive.
+     * @param {String} cedula - Cédula del paciente a eliminar.
+     * @returns JSON
+     */
+    const eliminarPaciente = async (cedula) => {
+        let tabla = datos;
+        const existe = await verificarExisteArchivoYCarpeta();
+
+        if (!existe.success) {
+            return { success: false, error: "Se ha producido un error al verificar o crear el archivo y la carpeta. Reintente nuevamente." };
+        } else {
+            const pet = await descargarArchivo(archivoId, token);
+            if (!pet.success) {
+                return { success: false, error: pet.error };
+            }
+
+            tabla = leerArchivoXlsx(pet.data).data;
+        }
+
+        const indice = tabla.findIndex((paciente) => paciente.cedula == cedula);
+
+        if (indice == -1) {
+            return { success: false, error: "Paciente no encontrado" };
+        } else {
+            tabla.splice(indice, 1);
+        }
+
+        setDatos(tabla);
+
+        const binario = crearArchivoXlsx(tabla);
+        const res = await subirArchivo(binario.data);
+        if (res.success) {
+            return { success: true, data: "Archivo guardado correctamente" };
+        } else {
+            return { success: false, error: res.error };
+        }
+    };
+
+    /**
      * Carga los datos de un paciente a partir de su cédula.
      * @param {String} cedula - Cédula del paciente a cargar.
      * @returns JSON
@@ -276,7 +315,7 @@ export function DriveProvider({ children }) {
     };
 
     return (
-        <driveContext.Provider value={{ anadirPaciente, descargarContArchivo, verificarExistePaciente, setToken, descargando, cargarDatosPaciente }}>
+        <driveContext.Provider value={{ anadirPaciente, descargarContArchivo, verificarExistePaciente, setToken, descargando, cargarDatosPaciente, eliminarPaciente }}>
             {children}
         </driveContext.Provider>
     );

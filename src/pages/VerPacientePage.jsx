@@ -1,4 +1,7 @@
-import { Box, Chip, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip } from "@mui/material";
+import {
+    Box, Chip, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip, Dialog, DialogActions,
+    DialogContent, Button, DialogTitle, Popover, IconButton
+} from "@mui/material";
 import { useDrive } from "../contexts/DriveContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavegacion } from "../contexts/NavegacionContext";
@@ -8,9 +11,11 @@ import MenuLayout from "../components/layout/MenuLayout";
 import { detTamCarga } from "../utils/Responsividad";
 import { useNavigate, useSearchParams } from "react-router";
 import { validarNumero } from "../utils/Validadores";
-import EditIcon from '@mui/icons-material/Edit';
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
-import customParseFormat from 'dayjs/plugin/customParseFormat';
+import customParseFormat from "dayjs/plugin/customParseFormat";
 
 /**
  * Página para ver los datos de un paciente.
@@ -23,6 +28,13 @@ export default function VerPacientePage() {
     const navigate = useNavigate();
     const [params, setParams] = useSearchParams();
     const [cargando, setCargando] = useState(true);
+    const [eliminar, setEliminar] = useState(false);
+    const [popOver, setPopOver] = useState(null);
+    const open = Boolean(popOver)
+    const elem = open ? "simple-popover" : undefined;
+    const [modal, setModal] = useState({
+        mostrar: false, mensaje: "", titulo: ""
+    });
     const [datos, setDatos] = useState({
         personales: {
             nombre: "", cedula: "", sexo: "",
@@ -89,6 +101,9 @@ export default function VerPacientePage() {
             res.data.personales.edad = dayjs().diff(dayjs(
                 res.data.personales.fechaNacimiento, "DD-MM-YYYY"), "year", false
             );
+            res.data.personales.fechaNacimiento = dayjs(
+                res.data.personales.fechaNacimiento, "DD-MM-YYYY"
+            ).format("DD [de] MMMM [de] YYYY");
             setDatos(res.data);
         } else {
             navigate("/pacientes", { replace: true });
@@ -119,6 +134,56 @@ export default function VerPacientePage() {
         navigate(`/pacientes/editar?cedula=${datos.personales.cedula}`, { replace: true });
     };
 
+    /**
+     * Elimina el paciente actual de la hoja de Excel.
+     */
+    const eliminarPaciente = async () => {
+        setCargando(true);
+        const res = await drive.eliminarPaciente(datos.personales.cedula);
+        if (res.success) {
+            navigate("/pacientes", { replace: true });
+        } else {
+            setCargando(false);
+            setModal({ mostrar: true, titulo: "Error", mensaje: res.error });
+        }
+    };
+
+    /**
+     * Manejador del botón de cerrar el modal.
+     */
+    const manejadorBtnModal = () => {
+        if (eliminar) {
+            eliminarPaciente();
+        }
+
+        setEliminar(false);
+        setModal({ mostrar: false, titulo: "", mensaje: "" });
+    };
+
+    /**
+     * Manejador del botón de eliminar paciente.
+     */
+    const manejadorBtnEliminar = () => {
+        cerrarPopover();
+        setEliminar(true);
+        setModal({ mostrar: true, titulo: "Alerta", mensaje: "¿Estás seguro de que deseas eliminar este paciente?", eliminar: true });
+    };
+
+    /**
+     * Manejador del botón de más opciones.
+     * @param {Event} event 
+     */
+    const manejadorBtnMas = (event) => {
+        setPopOver(event.currentTarget);
+    };
+
+    /**
+     * Cierra el popover de opciones.
+     */
+    const cerrarPopover = () => {
+        setPopOver(null);
+    };
+
     return (
         <>
             <MenuLayout>
@@ -139,6 +204,36 @@ export default function VerPacientePage() {
                             paddingLeft={!navegacion.dispositivoMovil ? "3vh" : "0vh"}
                             paddingRight={!navegacion.dispositivoMovil ? "3vh" : "0vh"}
                             marginTop="3vh">
+                            <Grid size={12} display="flex" justifyContent="end">
+                                <Tooltip title="Ver más opciones.">
+                                    <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
+                                        <MoreVertIcon />
+                                    </IconButton>
+                                </Tooltip>
+                                <Popover
+                                    id={elem}
+                                    open={open}
+                                    anchorEl={popOver}
+                                    onClose={cerrarPopover}
+                                    anchorOrigin={{
+                                        vertical: "bottom",
+                                        horizontal: "left",
+                                    }}
+                                    transformOrigin={{
+                                        vertical: "top",
+                                        horizontal: "center",
+                                    }}>
+                                    <Tooltip title="Eliminar paciente">
+                                        <Button
+                                            color="error"
+                                            startIcon={<DeleteIcon />}
+                                            onClick={manejadorBtnEliminar}
+                                            sx={{ textTransform: "none", padding: 2 }}>
+                                            Eliminar
+                                        </Button>
+                                    </Tooltip>
+                                </Popover>
+                            </Grid>
                             {campos.map((campo, index) => (
                                 <Grid key={index} size={detVisualizacion(index)}>
                                     <Stack direction="row" spacing={1} alignItems="center">
@@ -167,7 +262,7 @@ export default function VerPacientePage() {
                                         border={1}
                                         padding="2vh"
                                         style={{ borderColor: "#adadad" }}
-                                        sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                        sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                                         {datos.comorbilidades.map((comorbilidad) => (
                                             <Chip
                                                 key={comorbilidad}
@@ -198,6 +293,29 @@ export default function VerPacientePage() {
                     </>
                 )
                 }
+                <Dialog open={modal.mostrar}>
+                    <DialogTitle>{modal.titulo}</DialogTitle>
+                    <DialogContent>
+                        <Typography>{modal.mensaje}</Typography>
+                    </DialogContent>
+                    <DialogActions>
+                        {eliminar ? (
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                onClick={() => setModal({ mostrar: false, titulo: "", mensaje: "" })}
+                                sx={{ textTransform: "none" }}>
+                                <b>Cancelar</b>
+                            </Button>) : null}
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            onClick={manejadorBtnModal}
+                            sx={{ textTransform: "none" }}>
+                            <b>{eliminar ? "Eliminar" : "Cerrar"}</b>
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </MenuLayout>
         </>
     );
