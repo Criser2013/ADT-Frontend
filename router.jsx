@@ -4,6 +4,7 @@ import CerrarSesionPage from "./src/pages/CerrarSesionPage";
 import AnadirPacientePage from "./src/pages/AnadirPacientePage";
 import { DriveProvider } from "./src/contexts/DriveContext";
 import EditarPacientePage from "./src/pages/EditarPacientePage";
+import VerPacientePage from "./src/pages/VerPacientePage";
 
 /**
  * Enrutador principal de la aplicación que define las rutas y páginas.
@@ -23,7 +24,12 @@ export default function Router() {
                     <DriveProvider>
                         <EditarPacientePage />
                     </DriveProvider>
-                }/>
+                } />
+                <Route path="/pacientes/ver-paciente" element={
+                    <DriveProvider>
+                        <VerPacientePage />
+                    </DriveProvider>
+                } />
             </Routes>
         </BrowserRouter>
     );
