@@ -1,7 +1,8 @@
 import {
     Grid, Typography, TextField, Button, MenuItem, FormControl, FormGroup, FormControlLabel, InputLabel,
     Select, OutlinedInput, Box, Checkbox, Chip, Dialog, DialogContent, DialogActions, DialogTitle,
-    FormHelperText
+    FormHelperText,
+    Tooltip
 } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -323,6 +324,7 @@ export default function FormAnadirPaciente({ setCargando, nombre = "", cedula = 
                     </FormControl>
                 </Grid>) : null}
                 <Grid display="flex" justifyContent="center" size={12}>
+                    <Tooltip title="Guarda los datos del paciente.">
                     <Button
                         startIcon={<SaveIcon />}
                         variant="contained"
@@ -332,6 +334,7 @@ export default function FormAnadirPaciente({ setCargando, nombre = "", cedula = 
                         }}>
                         <b>Guardar</b>
                     </Button>
+                    </Tooltip>
                 </Grid>
             </Grid>
             <Dialog open={modal.mostrar}>

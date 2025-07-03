@@ -27,6 +27,7 @@ export default function Navbar() {
      */
     useEffect(() => {
         if (auth.autenticado && auth.authInfo.user != null) {
+            console.log(auth.authInfo.user.photoURL)
             setImg(auth.authInfo.user.photoURL);
         } else if (auth.autenticado != null && auth.autenticado == false){
             navigate("/", { replace: true });
