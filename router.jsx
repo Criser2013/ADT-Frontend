@@ -5,6 +5,7 @@ import AnadirPacientePage from "./src/pages/AnadirPacientePage";
 import { DriveProvider } from "./src/contexts/DriveContext";
 import EditarPacientePage from "./src/pages/EditarPacientePage";
 import VerPacientePage from "./src/pages/VerPacientePage";
+import ListaPacientesPage from "./src/pages/ListaPacientesPage";
 
 /**
  * Enrutador principal de la aplicación que define las rutas y páginas.
@@ -28,6 +29,11 @@ export default function Router() {
                 <Route path="/pacientes/ver-paciente" element={
                     <DriveProvider>
                         <VerPacientePage />
+                    </DriveProvider>
+                } />
+                <Route path="/pacientes" element={
+                    <DriveProvider>
+                        <ListaPacientesPage />
                     </DriveProvider>
                 } />
             </Routes>
