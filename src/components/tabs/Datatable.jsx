@@ -1,8 +1,15 @@
-import { Box, Paper, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead, 
-    TableRow, TablePagination, TableSortLabel } from '@mui/material';
+import {
+    Box, Paper, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead,
+    TableRow, TablePagination, TableSortLabel, TextField, Typography, InputAdornment,
+    Toolbar, IconButton,
+    Stack
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import { useState, useMemo } from 'react';
 import { visuallyHidden } from '@mui/utils';
 import { obtenerComparadorStrNum } from '../../utils/Ordernamiento';
+import { buscar } from '../../utils/Busqueda';
 
 /**
  * Datatable con paginación, ordenamiento y selección de filas.
@@ -18,21 +25,29 @@ import { obtenerComparadorStrNum } from '../../utils/Ordernamiento';
  *   campo1: <valor>
  *   campo2: <valor>,
  *   ...
+ * @param {String} lblSeleccion - Texto del botón de selección de filas.
+ * @param {String} lblBusq - Texto del placeholder del campo de búsqueda.
+ * @param {Boolean} activarBusqueda - Si se muestra el campo de búsqueda.
+ * @param {String} terminoBusqueda - Valor inicial del campo de búsqueda.
+ * @param {Array[String]} camposBusq - Lista de campos en los que se buscará el término ingresado.
+ * @param {Function} cbClicCelda - Callback para manejar el clic en una
  * @returns JSX.Element
  */
-export default function Datatable({ campos, datos }) {
+export default function Datatable({ campos, datos, lblSeleccion, lblBusq = "", activarBusqueda = false, terminoBusqueda = "", camposBusq = [], cbClicCelda = null }) {
     const [orden, setOrden] = useState('asc');
     const [campoOrden, setCampoOrden] = useState(campos[0].id);
     const [numSeleccionados, setNumSeleccionados] = useState(0);
     const [seleccionados, setSeleccionados] = useState([]);
     const [pagina, setPagina] = useState(0);
     const [filasEnPagina, setFilasEnPagina] = useState(5);
+    const [busqueda, setBusqueda] = useState(terminoBusqueda);
+    const [auxDatos, setAuxDatos] = useState(datos);
     const filas = useMemo(() =>
-        [...datos]
+        [...auxDatos]
             .sort(obtenerComparadorStrNum(orden, campoOrden))
             .slice(pagina * filasEnPagina, pagina * filasEnPagina + filasEnPagina),
-        [orden, campoOrden, pagina, filasEnPagina]);
-    const numFilas = useMemo(() => datos.length, [datos]);
+        [auxDatos, orden, campoOrden, pagina, filasEnPagina]);
+    const numFilas = useMemo(() => auxDatos.length, [auxDatos]);
     const nombresCampos = useMemo(() => campos.map((campo) => campo.id), [campos]);
     const filasVacias = pagina > 0 ? Math.max(0, (1 + pagina) * filasEnPagina - datos.length) : 0;
 
@@ -44,7 +59,7 @@ export default function Datatable({ campos, datos }) {
     const seleccionarTodo = (event) => {
         if (event.target.checked) {
             setNumSeleccionados(numFilas);
-            setSeleccionados(datos.map((x) => x.id));
+            setSeleccionados(auxDatos.map((x) => x.id));
         } else {
             setNumSeleccionados(0);
             setSeleccionados([]);
@@ -99,9 +114,70 @@ export default function Datatable({ campos, datos }) {
         }
     };
 
+    /**
+     * Manejador de cambios en el campo de búsqueda.
+     * @param {Event} e 
+     */
+    const manejadorBusqueda = (e) => {
+        setBusqueda(e.target.value);
+        setAuxDatos(
+            ((e.target.value.length > 0) && (camposBusq.length > 0)) ? buscar(datos, e.target.value, camposBusq) : datos);
+    };
+
+    /**
+     * Manejador del botón de limpiar búsqueda.
+     */
+    const manejadorBtnLimpiarBusq = () => {
+        setBusqueda("");
+        setPagina(0);
+        setAuxDatos(datos);
+    };
+
     return (
         <Box sx={{ width: '100%' }}>
             <Paper sx={{ width: '100%', mb: 2 }}>
+                {(numSeleccionados > 0 || activarBusqueda) ? (
+                    <Toolbar
+                        sx={{ padding: "1vh 0vh" }}>
+                        <Stack direction="column" spacing={2} width={"100%"}>
+                            {numSeleccionados > 0 ? (
+                                <Typography
+                                    sx={{ flex: '1 1 100%' }}
+                                    color="inherit"
+                                    variant="body1"
+                                    component="div"
+                                >
+                                    <b>{numSeleccionados} {lblSeleccion}</b>
+                                </Typography>
+                            ) : null}
+                            <TextField
+                                name="busq"
+                                fullWidth
+                                placeholder={lblBusq}
+                                value={busqueda}
+                                onChange={manejadorBusqueda}
+                                sx={{
+                                    backgroundColor: "white",
+                                }}
+                                slotProps={{
+                                    input: {
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <SearchIcon />
+                                            </InputAdornment>
+                                        ),
+                                        endAdornment: (busqueda.length > 0) ? (
+                                            <InputAdornment position="end">
+                                                <IconButton onClick={manejadorBtnLimpiarBusq}>
+                                                    <ClearIcon />
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ) : null
+                                    }
+                                }}
+                            />
+                        </Stack>
+                    </Toolbar>) : null}
                 <TableContainer>
                     <Table
                         sx={{ minWidth: 750 }}
@@ -112,21 +188,20 @@ export default function Datatable({ campos, datos }) {
                                 <TableCell padding="checkbox">
                                     <Checkbox
                                         color="primary"
-                                        indeterminate={numSeleccionados > 0 && numSeleccionados < numFilas}
-                                        checked={numFilas > 0 && numSeleccionados === numFilas}
+                                        indeterminate={numSeleccionados > 0 && (numSeleccionados < numFilas || numSeleccionados < datos.length)}
+                                        checked={numFilas > 0 && (numSeleccionados === numFilas || numSeleccionados === datos.length)}
                                         onChange={seleccionarTodo}
                                     />
                                 </TableCell>
                                 {campos.map((headCell) => (
                                     <TableCell
-                                        key={headCell.nombre}
+                                        key={headCell.id}
                                         align="left"
                                         onClick={() => cambiarOrden(headCell.id)}
                                         sortDirection={campoOrden === headCell.id ? orden : false}>
                                         <TableSortLabel
                                             active={campoOrden === headCell.id}
-                                            direction={campoOrden === headCell.id ? orden : 'asc'}
-                                        >
+                                            direction={campoOrden === headCell.id ? orden : 'asc'}>
                                             {headCell.label}
                                             {campoOrden === headCell.id ? (
                                                 <Box component="span" sx={visuallyHidden}>
@@ -139,17 +214,29 @@ export default function Datatable({ campos, datos }) {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {filas.map((x, index) => {
+                            {filas.length == 0 ? (
+                                <TableRow>
+                                    <Typography
+                                        variant="body2"
+                                        align="center" component="th"
+                                        width="100%" colSpan={campos.length + 1}
+                                        sx={{ padding: "10vh 0" }}>
+                                        {busqueda.length > 0 ? "No se encontraron resultados para la búsqueda." : "No hay datos para mostrar."}
+                                    </Typography>
+                                </TableRow>
+                            ) : null
+                            }
+                            {filas.map((x, i) => {
                                 const estaSeleccionada = seleccionados.includes(x.id);
-                                const labelId = `enhanced-table-checkbox-${index}`;
+                                const labelId = `enhanced-table-checkbox-${i}`;
                                 return (
                                     <TableRow
                                         hover
-                                        onClick={() => console.log("clicqueada")}
+                                        onClick={() => cbClicCelda != null ? cbClicCelda(x) : null}
                                         tabIndex={-1}
                                         key={x.id}
                                         selected={estaSeleccionada}
-                                        sx={{ cursor: 'pointer' }}>
+                                        sx={{ cursor: cbClicCelda != null ? 'pointer' : "default" }}>
                                         <TableCell padding="checkbox">
                                             <Checkbox
                                                 color="primary"

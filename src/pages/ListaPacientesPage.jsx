@@ -67,6 +67,11 @@ export default function ListaPacientesPage() {
                     { id: 'xd', label: 'XD' }
                 ]}
                 datos={datos}
+                lblBusq="Buscar paciente por nombre o número de cédula"
+                activarBusqueda={true}
+                terminoBusqueda={""}
+                lblSeleccion="pacientes seleccionados"
+                camposBusq={["nombre", "xd"]} // Campos en los que se buscará el término
             />
         </>
     );
