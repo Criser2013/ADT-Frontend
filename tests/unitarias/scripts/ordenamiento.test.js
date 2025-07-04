@@ -5,7 +5,8 @@ describe("Validar la función 'comparadorStrNum'", () => {
     test("CP - 55", () => {
         const res = comparadorStrNum(
             {id: 1, campo1: "Hola", campo2: "texto"},
-            {id: 2, campo1: "Adios", campo2: "texto"}
+            {id: 2, campo1: "Adios", campo2: "texto"},
+            "campo1"
         )
         expect(res).toEqual(1);
     });
@@ -13,7 +14,8 @@ describe("Validar la función 'comparadorStrNum'", () => {
     test("CP - 56", () => {
         const res = comparadorStrNum(
             {id: 1, campo1: 1, campo2: "texto"},
-            {id: 2, campo1: 5, campo2: "texto"}
+            {id: 2, campo1: 5, campo2: "texto"},
+            "campo1"
         )
         expect(res).toEqual(-1);
     });
@@ -21,7 +23,8 @@ describe("Validar la función 'comparadorStrNum'", () => {
     test("CP - 57", () => {
         const res = comparadorStrNum(
             {id: 1, campo1: "Hola", campo2: "texto"},
-            {id: 2, campo1: "Hola", campo2: "texto"}
+            {id: 1, campo1: "Hola", campo2: "texto"},
+            "id"
         )
         expect(res).toEqual(0);
     });
