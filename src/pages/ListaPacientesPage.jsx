@@ -1,93 +1,236 @@
-import { Button, Grid } from "@mui/material";
+import { Button, Grid, Box, DialogContent, DialogActions, DialogTitle, CircularProgress, Dialog,
+    Typography
+ } from "@mui/material";
+import { detTamCarga } from "../utils/Responsividad";
+import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
 import TabHeader from "../components/tabs/TabHeader";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router";
 import { useNavegacion } from "../contexts/NavegacionContext";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useDrive } from "../contexts/DriveContext";
+import dayjs from "dayjs";
 
 /**
  * Página para ver la lista de pacientes.
  * @returns JSX.Element
  */
 export default function ListaPacientesPage() {
+    const auth = useAuth();
+    const drive = useDrive();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
     const listadoPestanas = [{
         texto: "Lista de pacientes", url: "/pacientes"
     }];
+    const [cargando, setCargando] = useState(true);
+    const [modal, setModal] = useState(false);
+    const [txtModal, setTxtModal] = useState({
+        mostrar: false, titulo: "", mensaje: ""
+    });
+    const [eliminar, setEliminar] = useState(false);
+    const [datos, setDatos] = useState([]);
+    const [seleccionados, setSeleccionados] = useState([]);
+    const width = useMemo(() => {
+        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
+    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
+    const campos = [
+        { id: "nombre", label: "Nombre" },
+        { id: "cedula", label: "Cédula" },
+        { id: "telefono", label: "Teléfono" },
+        { id: "sexo", label: "Sexo" },
+        { id: "edad", label: "Edad" }
+    ];
 
+    /**
+     * Carga el token de sesión y comienza a descargar el archivo de pacientes.
+     */
+    useEffect(() => {
+        const token = sessionStorage.getItem("session-tokens");
+        if (token != null) {
+            drive.setToken(JSON.parse(token).accessToken);
+        } else if (auth.tokenDrive != null) {
+            drive.setToken(auth.tokenDrive);
+        }
+    }, [auth.tokenDrive]);
+
+    /**
+     * Coloca el título de la página.
+     */
     useEffect(() => {
         document.title = "Lista de pacientes";
+
+        if (drive.datos != null && !drive.descargando) {
+            drive.cargarDatos().then((res) => {
+                if (!res.success) {
+                    setTxtModal({
+                        titulo: "Error al cargar los datos",
+                        mensaje: res.error
+                    });
+                    setModal(true);
+                }
+            });
+        }
     }, []);
 
+    /**
+     * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
+     */
+    useEffect(() => {
+        setCargando(drive.descargando);
+    }, [drive.descargando]);
+
+    /**
+     * Actualiza los datos de la tabla cuando cambian los datos de Drive.
+     */
+    useEffect(() => {
+        setDatos(formatearCeldas(drive.datos));
+    }, [drive.datos]);
+
+    /**
+     * Añade el campo edad y formatea el campo sexo.
+     * @param {Array} datos - Lista de datos
+     * @returns Array
+     */
+    const formatearCeldas = (datos) => {
+        return datos != null ? datos.map((dato, ) => ({
+            nombre: dato.nombre, cedula: dato.cedula,
+            telefono: dato.telefono,
+            edad: dayjs().diff(dayjs(
+                dato.fechaNacimiento, "DD-MM-YYYY"), "year", false
+            ),
+            sexo: dato.sexo == 0 ? "Masculino" : "Femenino",
+        })) : [];
+    };
+
+    /**
+     * Manejador del botón de anadir pacientes.
+     */
     const manejadorBtnAnadir = () => {
         navegacion.setPaginaAnterior("/pacientes");
         navigate("/pacientes/anadir", { replace: true });
     };
 
-    const datos = [{ id: 1, nombre: "BJF", xd: "XD" },
-    { id: 2, nombre: "BJF2", xd: "XD2" },
-    { id: 3, nombre: "BJF3", xd: "XD" },
-    { id: 4, nombre: "BJF4", xd: "XD2" },
-    { id: 5, nombre: "BJF5", xd: "XD" },
-    { id: 6, nombre: "BJF6", xd: "XD2" },
-    { id: 7, nombre: "BJF7", xd: "XD" },
-    { id: 8, nombre: "BJF8", xd: "XD2" },
-    { id: 9, nombre: "BJF9", xd: "XD" },
-    { id: 10, nombre: "BJF10", xd: "XD2" },
-    { id: 11, nombre: "BJF11", xd: "XD" },
-    { id: 12, nombre: "BJF12", xd: "XD2" },
-    { id: 13, nombre: "BJF12", xd: "XD" },
-    { id: 14, nombre: "BJF14", xd: "XD2" },
-    ]
+    /**
+     * Manejador de clic en el botón de eliminar pacientes de la tabla.
+     * @param {Array} seleccionados - Lista de pacientes seleccionados.
+     */
+    const manejadorEliminar = (seleccionados) => {
+        setSeleccionados(seleccionados);
+        setEliminar(true);
+        setTxtModal({ titulo: "Alerta", mensaje: "¿Estás seguro de querer eliminar a los pacientes seleccionados?"});
+        setModal(true);
+    };
 
-    const manejadorEliminar = (seleccionados, event) => {
-        console.log(seleccionados)
-    }
-
+    /**
+     * Manejador del clic en una celda de la tabla.
+     * @param {JSON} dato - Instancia
+     */
     const manejadorClicCelda = (dato) => {
-        console.log(dato);
-        /*navegacion.setPaginaAnterior("/pacientes");
-        navigate(`/pacientes/${dato.id}`, { replace: true });*/
+        navegacion.setPaginaAnterior("/pacientes");
+        navigate(`/pacientes/ver-paciente?cedula=${dato.cedula}`, { replace: true });
+    };
+
+    /**
+     * Manejador del botón derecho del modal.
+     */
+    const manejadorBtnModal = async () => {
+        if (eliminar) {
+            setCargando(true);
+            eliminarPacientes(seleccionados);
+        }
+
+        setEliminar(false);
+        setTxtModal(false);
+        setTxtModal({ mostrar: false, titulo: "", mensaje: "" });
+    };
+
+    /**
+     * Eliminar los pacientes seleccionados de Drive y maneja la respuesta.
+     * @param {Array} pacientes - Lista de pacientes a eliminar.
+     */
+    const eliminarPacientes = async (pacientes) => {
+        const res = await drive.eliminarPaciente(pacientes, true);
+        if (!res.success) {
+            setTxtModal({
+                titulo: "Error a los pacientes.",
+                mensaje: res.error
+            });
+            setModal(true);
+        }
+        setCargando(false);
     };
 
     return (
         <>
-            <TabHeader
-                activarBtnAtras={false}
-                titulo="Lista de pacientes"
-                pestanas={listadoPestanas} />
-            <Grid container columns={1} spacing={2} sx={{ marginTop: "3vh" }}>
-                <Grid size={1} display="flex" justifyContent="end">
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={manejadorBtnAnadir}
-                        sx={{ textTransform: "none" }}
-                        startIcon={<AddIcon />}>
-                        <b>Añadir paciente</b>
-                    </Button>
-                </Grid>
-
-            </Grid>
-            <Datatable
-                campos={[
-                    { id: "nombre", label: "Nombre" },
-                    { id: "xd", label: "XD" }
-                ]}
-                datos={datos}
-                lblBusq="Buscar paciente por nombre o número de cédula"
-                activarBusqueda={true}
-                terminoBusqueda={""}
-                lblSeleccion="pacientes seleccionados"
-                camposBusq={["nombre", "xd"]} // Campos en los que se buscará el término
-                cbClicCelda={manejadorClicCelda}
-                cbAccion={manejadorEliminar}
-                tooltipAccion="Eliminar pacientes seleccionados"
-                icono={<DeleteIcon />}
-            />
+            <MenuLayout>
+                {(cargando || auth.cargando) ? (
+                    <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
+                        <CircularProgress />
+                    </Box>
+                ) : (
+                    <>
+                        <TabHeader
+                            activarBtnAtras={false}
+                            titulo="Lista de pacientes"
+                            pestanas={listadoPestanas} />
+                        <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
+                            <Grid size={1} display="flex" justifyContent="end">
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={manejadorBtnAnadir}
+                                    sx={{ textTransform: "none" }}
+                                    startIcon={<AddIcon />}>
+                                    <b>Añadir paciente</b>
+                                </Button>
+                            </Grid>
+                            <Datatable
+                                campos={campos}
+                                datos={datos}
+                                lblBusq="Buscar paciente por nombre o número de cédula"
+                                activarBusqueda={true}
+                                campoId="cedula"
+                                terminoBusqueda={""}
+                                lblSeleccion="pacientes seleccionados"
+                                camposBusq={["nombre", "cedula"]}
+                                cbClicCelda={manejadorClicCelda}
+                                cbAccion={manejadorEliminar}
+                                tooltipAccion="Eliminar pacientes seleccionados"
+                                icono={<DeleteIcon />}
+                            />
+                        </Grid>
+                    </>)}
+                <Dialog open={modal}>
+                    <DialogTitle>{txtModal.titulo}</DialogTitle>
+                    <DialogContent>
+                        <Typography>{txtModal.mensaje}</Typography>
+                    </DialogContent>
+                    <DialogActions>
+                        {eliminar ? (
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                onClick={() => {
+                                    setModal(false);
+                                    setTxtModal({ titulo: "", mensaje: "" });
+                                }}
+                                sx={{ textTransform: "none" }}>
+                                <b>Cancelar</b>
+                            </Button>) : null}
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            onClick={manejadorBtnModal}
+                            sx={{ textTransform: "none" }}>
+                            <b>{eliminar ? "Eliminar" : "Cerrar"}</b>
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            </MenuLayout>
         </>
     );
 };

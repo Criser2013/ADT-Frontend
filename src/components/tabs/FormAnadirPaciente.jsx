@@ -1,8 +1,7 @@
 import {
     Grid, Typography, TextField, Button, MenuItem, FormControl, FormGroup, FormControlLabel, InputLabel,
     Select, OutlinedInput, Box, Checkbox, Chip, Dialog, DialogContent, DialogActions, DialogTitle,
-    FormHelperText,
-    Tooltip
+    FormHelperText, Tooltip
 } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -168,23 +167,23 @@ export default function FormAnadirPaciente({ setCargando, nombre = "", cedula = 
      * Verifica que el paciente no esté ya registrado y guarda los datos en Google Drive.
      */
     const guardar = () => {
-        const existe = drive.verificarExistePaciente(datos.cedula);
-        if (existe && esAnadir) {
-            setModal({
-                mostrar: true,
-                titulo: "Paciente ya registrado",
-                mensaje: "El paciente ya se encuentra registrado en el sistema."
-            });
+        const oneHotComor = oneHotEncondingOtraEnfermedad(comorActivadas ? comorbilidades : []);
+        const instancia = { ...datos, ...oneHotComor, otraEnfermedad: comorActivadas ? 1 : 0 };
 
+        instancia.fechaNacimiento = datos.fechaNacimiento.format("DD-MM-YYYY");
+
+        manejadorResGuardado(instancia).then((res) => {
+            if (res.success) {
+                //navigate("/pacientes", { replace: true });
+            } else {
+                setModal({
+                    mostrar: true,
+                    titulo: "Error al añadir paciente",
+                    mensaje: res.error
+                });
+            }
             setCargando(false);
-        } else {
-            const oneHotComor = oneHotEncondingOtraEnfermedad(comorActivadas ? comorbilidades : []);
-            const instancia = { ...datos, ...oneHotComor, otraEnfermedad: comorActivadas ? 1 : 0 };
-
-            instancia.fechaNacimiento = datos.fechaNacimiento.format("DD-MM-YYYY");
-
-            manejadorResGuardado(instancia);
-        }
+        });
     };
 
     /**
@@ -194,16 +193,7 @@ export default function FormAnadirPaciente({ setCargando, nombre = "", cedula = 
     const manejadorResGuardado = async (instancia) => {
         const res = await drive.anadirPaciente(instancia, !esAnadir, cedula);
 
-        if (res.success) {
-            navigate("/pacientes", { replace: true });
-        } else {
-            setModal({
-                mostrar: true,
-                titulo: "Error al añadir paciente",
-                mensaje: res.error
-            });
-        }
-        setCargando(false);
+        return res;
     };
 
     return (
@@ -325,15 +315,15 @@ export default function FormAnadirPaciente({ setCargando, nombre = "", cedula = 
                 </Grid>) : null}
                 <Grid display="flex" justifyContent="center" size={12}>
                     <Tooltip title="Guarda los datos del paciente.">
-                    <Button
-                        startIcon={<SaveIcon />}
-                        variant="contained"
-                        onClick={manejadorBtnGuardar}
-                        sx={{
-                            textTransform: "none"
-                        }}>
-                        <b>Guardar</b>
-                    </Button>
+                        <Button
+                            startIcon={<SaveIcon />}
+                            variant="contained"
+                            onClick={manejadorBtnGuardar}
+                            sx={{
+                                textTransform: "none"
+                            }}>
+                            <b>Guardar</b>
+                        </Button>
                     </Tooltip>
                 </Grid>
             </Grid>

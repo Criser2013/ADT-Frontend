@@ -32,8 +32,9 @@ export default function VerPacientePage() {
     const [popOver, setPopOver] = useState(null);
     const open = Boolean(popOver)
     const elem = open ? "simple-popover" : undefined;
-    const [modal, setModal] = useState({
-        mostrar: false, mensaje: "", titulo: ""
+    const [modal, setModal] = useState(false);
+    const [txtModal, setTxtModal] = useState({
+        mensaje: "", titulo: ""
     });
     const [datos, setDatos] = useState({
         personales: {
@@ -89,6 +90,8 @@ export default function VerPacientePage() {
         if (!res) {
             navigate("/pacientes", { replace: true });
         }
+
+        navegacion.setPaginaAnterior("/pacientes");
     }, [datos.personales.nombre]);
 
     /**
@@ -144,7 +147,8 @@ export default function VerPacientePage() {
             navigate("/pacientes", { replace: true });
         } else {
             setCargando(false);
-            setModal({ mostrar: true, titulo: "Error", mensaje: res.error });
+            setTxtModal({ titulo: "Error", mensaje: res.error });
+            setModal(true);
         }
     };
 
@@ -157,7 +161,8 @@ export default function VerPacientePage() {
         }
 
         setEliminar(false);
-        setModal({ mostrar: false, titulo: "", mensaje: "" });
+        setModal(false);
+        setTxtModal({ titulo: "", mensaje: "" });
     };
 
     /**
@@ -166,7 +171,8 @@ export default function VerPacientePage() {
     const manejadorBtnEliminar = () => {
         cerrarPopover();
         setEliminar(true);
-        setModal({ mostrar: true, titulo: "Alerta", mensaje: "¿Estás seguro de que deseas eliminar este paciente?", eliminar: true });
+        setTxtModal({ titulo: "Alerta", mensaje: "¿Estás seguro de que deseas eliminar este paciente?", eliminar: true });
+        setModal(true);
     };
 
     /**
@@ -293,17 +299,20 @@ export default function VerPacientePage() {
                     </>
                 )
                 }
-                <Dialog open={modal.mostrar}>
-                    <DialogTitle>{modal.titulo}</DialogTitle>
+                <Dialog open={modal}>
+                    <DialogTitle>{txtModal.titulo}</DialogTitle>
                     <DialogContent>
-                        <Typography>{modal.mensaje}</Typography>
+                        <Typography>{txtModal.mensaje}</Typography>
                     </DialogContent>
                     <DialogActions>
                         {eliminar ? (
                             <Button
                                 type="submit"
                                 variant="contained"
-                                onClick={() => setModal({ mostrar: false, titulo: "", mensaje: "" })}
+                                onClick={() => {
+                                    setModal(false);
+                                    setTxtModal({ titulo: "", mensaje: "" })
+                                }}
                                 sx={{ textTransform: "none" }}>
                                 <b>Cancelar</b>
                             </Button>) : null}

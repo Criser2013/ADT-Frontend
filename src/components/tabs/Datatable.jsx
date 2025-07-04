@@ -1,9 +1,7 @@
 import {
     Box, Paper, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead,
     TableRow, TablePagination, TableSortLabel, TextField, Typography, InputAdornment,
-    Toolbar, IconButton,
-    Stack,
-    Tooltip
+    Toolbar, IconButton, Stack, Tooltip
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -27,6 +25,7 @@ import { buscar } from "../../utils/Busqueda";
  *   campo2: <valor>,
  *   ...
  * @param {String} lblSeleccion - Texto del botón de selección de filas.
+ * @param {String} campoId - Nombre del campo que se usará como identificador único de cada fila.
  * @param {String} lblBusq - Texto del placeholder del campo de búsqueda.
  * @param {Boolean} activarBusqueda - Si se muestra el campo de búsqueda.
  * @param {String} terminoBusqueda - Valor inicial del campo de búsqueda.
@@ -37,10 +36,10 @@ import { buscar } from "../../utils/Busqueda";
  * @param {String} tooltipAccion - Texto del tooltip del botón de acción de selección de filas.
  * @returns JSX.Element
  */
-export default function Datatable({ campos, datos, lblSeleccion, lblBusq = "", activarBusqueda = false, 
+export default function Datatable({ campos, datos, lblSeleccion, campoId = "id", lblBusq = "", activarBusqueda = false, 
     terminoBusqueda = "", camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "" }) {
     const [orden, setOrden] = useState("asc");
-    const [campoOrden, setCampoOrden] = useState(campos[0].id);
+    const [campoOrden, setCampoOrden] = useState(campos[0][campoId]);
     const [numSeleccionados, setNumSeleccionados] = useState(0);
     const [seleccionados, setSeleccionados] = useState([]);
     const [pagina, setPagina] = useState(0);
@@ -74,7 +73,7 @@ export default function Datatable({ campos, datos, lblSeleccion, lblBusq = "", a
     const seleccionarTodo = (event) => {
         if (event.target.checked) {
             setNumSeleccionados(numFilas);
-            setSeleccionados(auxDatos.map((x) => x.id));
+            setSeleccionados(auxDatos.map((x) => x[campoId]));
         } else {
             setNumSeleccionados(0);
             setSeleccionados([]);
@@ -156,9 +155,6 @@ export default function Datatable({ campos, datos, lblSeleccion, lblBusq = "", a
     const manejadorClicCelda = (e, instancia) => {
         if (cbClicCelda != null && !modoSeleccion && e.target.checked == undefined) {
             cbClicCelda(instancia);
-        } else if (modoSeleccion) {
-            const estaSeleccionada = seleccionados.includes(instancia.id);
-            seleccionarFila({ target: { checked: !estaSeleccionada } }, instancia.id);
         }
     };
 
@@ -242,7 +238,7 @@ export default function Datatable({ campos, datos, lblSeleccion, lblBusq = "", a
                                         <TableSortLabel
                                             active={campoOrden === headCell.id}
                                             direction={campoOrden === headCell.id ? orden : "asc"}>
-                                            {headCell.label}
+                                            <b>{headCell.label}</b>
                                             {campoOrden === headCell.id ? (
                                                 <Box component="span" sx={visuallyHidden}>
                                                     {orden === "desc" ? "sorted descending" : "sorted ascending"}
@@ -267,21 +263,21 @@ export default function Datatable({ campos, datos, lblSeleccion, lblBusq = "", a
                             ) : null
                             }
                             {filas.map((x, i) => {
-                                const estaSeleccionada = seleccionados.includes(x.id);
+                                const estaSeleccionada = seleccionados.includes(x[campoId]);
                                 const labelId = `enhanced-table-checkbox-${i}`;
                                 return (
                                     <TableRow
                                         hover
                                         onClick={(e) => manejadorClicCelda(e,x)}
                                         tabIndex={-1}
-                                        key={x.id}
+                                        key={x[campoId]}
                                         selected={estaSeleccionada}
                                         sx={{ cursor: cbClicCelda != null ? "pointer" : "default" }}>
                                         <TableCell padding="checkbox">
                                             <Checkbox
                                                 color="primary"
                                                 checked={estaSeleccionada}
-                                                onClick={(e) => seleccionarFila(e, x.id)}
+                                                onClick={(e) => seleccionarFila(e, x[campoId])}
                                                 inputProps={{
                                                     "aria-labelledby": labelId,
                                                 }}

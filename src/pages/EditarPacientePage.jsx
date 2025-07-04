@@ -2,7 +2,7 @@ import { Box, CircularProgress } from "@mui/material";
 import { useDrive } from "../contexts/DriveContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavegacion } from "../contexts/NavegacionContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import FormAnadirPaciente from "../components/tabs/FormAnadirPaciente";
 import TabHeader from "../components/tabs/TabHeader";
 import MenuLayout from "../components/layout/MenuLayout";
@@ -33,6 +33,9 @@ export default function EditarPacientePage() {
         },
         comorbilidades: []
     });
+     const width = useMemo(() => {
+            return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
+        }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const listadoPestanas = [
         { texto: "Lista de pacientes", url: "/pacientes" },
         { texto: "Editar paciente", url: `/pacientes/editar${location.search}` }
@@ -91,7 +94,7 @@ export default function EditarPacientePage() {
     return (
         <MenuLayout>
             {(cargando || auth.cargando) ? (
-                <Box display="flex" justifyContent="center" alignItems="center" width={detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho)} height="85vh">
+                <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
                     <CircularProgress />
                 </Box>
             ) : (

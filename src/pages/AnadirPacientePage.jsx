@@ -2,7 +2,7 @@ import { Box, CircularProgress } from "@mui/material";
 import { useDrive } from "../contexts/DriveContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavegacion } from "../contexts/NavegacionContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import FormAnadirPaciente from "../components/tabs/FormAnadirPaciente";
 import TabHeader from "../components/tabs/TabHeader";
 import MenuLayout from "../components/layout/MenuLayout";
@@ -17,6 +17,9 @@ export default function AnadirPacientePage() {
     const drive = useDrive();
     const navegacion = useNavegacion();
     const [cargando, setCargando] = useState(true);
+    const width = useMemo(() => {
+        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
+    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const listadoPestanas = [
         { texto: "Lista de pacientes", url: "/pacientes" },
         { texto: "Añadir paciente", url: "/pacientes/anadir" }
@@ -51,7 +54,7 @@ export default function AnadirPacientePage() {
     return (
         <MenuLayout>
             {(cargando || auth.cargando) ? (
-                <Box display="flex" justifyContent="center" alignItems="center" width={detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho)} height="85vh">
+                <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
                     <CircularProgress />
                 </Box>
             ) : (
