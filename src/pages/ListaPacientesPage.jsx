@@ -1,7 +1,8 @@
 import { Button, Grid } from "@mui/material";
 import Datatable from "../components/tabs/Datatable";
 import TabHeader from "../components/tabs/TabHeader";
-import AddIcon from '@mui/icons-material/Add';
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router";
 import { useNavegacion } from "../contexts/NavegacionContext";
 import { useEffect } from "react";
@@ -42,6 +43,16 @@ export default function ListaPacientesPage() {
     { id: 14, nombre: "BJF14", xd: "XD2" },
     ]
 
+    const manejadorEliminar = (seleccionados, event) => {
+        console.log(seleccionados)
+    }
+
+    const manejadorClicCelda = (dato) => {
+        console.log(dato);
+        /*navegacion.setPaginaAnterior("/pacientes");
+        navigate(`/pacientes/${dato.id}`, { replace: true });*/
+    };
+
     return (
         <>
             <TabHeader
@@ -63,8 +74,8 @@ export default function ListaPacientesPage() {
             </Grid>
             <Datatable
                 campos={[
-                    { id: 'nombre', label: 'Nombre' },
-                    { id: 'xd', label: 'XD' }
+                    { id: "nombre", label: "Nombre" },
+                    { id: "xd", label: "XD" }
                 ]}
                 datos={datos}
                 lblBusq="Buscar paciente por nombre o número de cédula"
@@ -72,6 +83,10 @@ export default function ListaPacientesPage() {
                 terminoBusqueda={""}
                 lblSeleccion="pacientes seleccionados"
                 camposBusq={["nombre", "xd"]} // Campos en los que se buscará el término
+                cbClicCelda={manejadorClicCelda}
+                cbAccion={manejadorEliminar}
+                tooltipAccion="Eliminar pacientes seleccionados"
+                icono={<DeleteIcon />}
             />
         </>
     );

@@ -2,14 +2,15 @@ import {
     Box, Paper, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead,
     TableRow, TablePagination, TableSortLabel, TextField, Typography, InputAdornment,
     Toolbar, IconButton,
-    Stack
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import ClearIcon from '@mui/icons-material/Clear';
-import { useState, useMemo } from 'react';
-import { visuallyHidden } from '@mui/utils';
-import { obtenerComparadorStrNum } from '../../utils/Ordernamiento';
-import { buscar } from '../../utils/Busqueda';
+    Stack,
+    Tooltip
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
+import { useState, useMemo, useEffect } from "react";
+import { visuallyHidden } from "@mui/utils";
+import { obtenerComparadorStrNum } from "../../utils/Ordernamiento";
+import { buscar } from "../../utils/Busqueda";
 
 /**
  * Datatable con paginación, ordenamiento y selección de filas.
@@ -31,10 +32,14 @@ import { buscar } from '../../utils/Busqueda';
  * @param {String} terminoBusqueda - Valor inicial del campo de búsqueda.
  * @param {Array[String]} camposBusq - Lista de campos en los que se buscará el término ingresado.
  * @param {Function} cbClicCelda - Callback para manejar el clic en una
+ * @param {Function} cbAccion - Callback para manejar la acción del botón de selección de filas.
+ * @param {JSX.Element} icono - Icono a mostrar en el botón de acción de selección de filas.
+ * @param {String} tooltipAccion - Texto del tooltip del botón de acción de selección de filas.
  * @returns JSX.Element
  */
-export default function Datatable({ campos, datos, lblSeleccion, lblBusq = "", activarBusqueda = false, terminoBusqueda = "", camposBusq = [], cbClicCelda = null }) {
-    const [orden, setOrden] = useState('asc');
+export default function Datatable({ campos, datos, lblSeleccion, lblBusq = "", activarBusqueda = false, 
+    terminoBusqueda = "", camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "" }) {
+    const [orden, setOrden] = useState("asc");
     const [campoOrden, setCampoOrden] = useState(campos[0].id);
     const [numSeleccionados, setNumSeleccionados] = useState(0);
     const [seleccionados, setSeleccionados] = useState([]);
@@ -42,6 +47,7 @@ export default function Datatable({ campos, datos, lblSeleccion, lblBusq = "", a
     const [filasEnPagina, setFilasEnPagina] = useState(5);
     const [busqueda, setBusqueda] = useState(terminoBusqueda);
     const [auxDatos, setAuxDatos] = useState(datos);
+    const [modoSeleccion, setModoSeleccion] = useState(false);
     const filas = useMemo(() =>
         [...auxDatos]
             .sort(obtenerComparadorStrNum(orden, campoOrden))
@@ -51,6 +57,15 @@ export default function Datatable({ campos, datos, lblSeleccion, lblBusq = "", a
     const nombresCampos = useMemo(() => campos.map((campo) => campo.id), [campos]);
     const filasVacias = pagina > 0 ? Math.max(0, (1 + pagina) * filasEnPagina - datos.length) : 0;
 
+
+    useEffect(() => {
+        if (numSeleccionados > 0) {
+            setModoSeleccion(true);
+        } else {
+            setModoSeleccion(false);
+        }
+
+    }, [numSeleccionados]);
 
     /**
      * Manejador de evento para seleccionar o deseleccionar todas las filas.
@@ -133,22 +148,47 @@ export default function Datatable({ campos, datos, lblSeleccion, lblBusq = "", a
         setAuxDatos(datos);
     };
 
+    /**
+     * Manejador de clic en una celda de la tabla.
+     *  @param {Event} e - Evento de clic.
+     * @param {JSON} instancia - Instancia de fila de datos.
+     */
+    const manejadorClicCelda = (e, instancia) => {
+        if (cbClicCelda != null && !modoSeleccion && e.target.checked == undefined) {
+            cbClicCelda(instancia);
+        } else if (modoSeleccion) {
+            const estaSeleccionada = seleccionados.includes(instancia.id);
+            seleccionarFila({ target: { checked: !estaSeleccionada } }, instancia.id);
+        }
+    };
+
     return (
-        <Box sx={{ width: '100%' }}>
-            <Paper sx={{ width: '100%', mb: 2 }}>
+        <Box sx={{ width: "100%" }}>
+            <Paper sx={{ width: "100%", mb: 2 }}>
                 {(numSeleccionados > 0 || activarBusqueda) ? (
                     <Toolbar
                         sx={{ padding: "1vh 0vh" }}>
-                        <Stack direction="column" spacing={2} width={"100%"}>
+                        <Stack
+                            direction="column"
+                            display="flex"
+                            spacing={2}
+                            width="100%"
+                            alignItems="center">
                             {numSeleccionados > 0 ? (
-                                <Typography
-                                    sx={{ flex: '1 1 100%' }}
-                                    color="inherit"
-                                    variant="body1"
-                                    component="div"
-                                >
-                                    <b>{numSeleccionados} {lblSeleccion}</b>
-                                </Typography>
+                                <Stack direction="row" display="flex" width="100%" justifyContent="space-between">
+                                    <Typography
+                                        sx={{ flex: "1 1 100%" }}
+                                        color="inherit"
+                                        variant="body1"
+                                        component="div">
+                                        <b>{numSeleccionados} {lblSeleccion}</b>
+                                    </Typography>
+                                    <Tooltip title={tooltipAccion}>
+                                        <IconButton onClick={(e) => cbAccion(seleccionados, e)}>
+                                            {icono ? icono : null}
+                                        </IconButton>
+                                    </Tooltip>
+                                </Stack>
                             ) : null}
                             <TextField
                                 name="busq"
@@ -201,11 +241,11 @@ export default function Datatable({ campos, datos, lblSeleccion, lblBusq = "", a
                                         sortDirection={campoOrden === headCell.id ? orden : false}>
                                         <TableSortLabel
                                             active={campoOrden === headCell.id}
-                                            direction={campoOrden === headCell.id ? orden : 'asc'}>
+                                            direction={campoOrden === headCell.id ? orden : "asc"}>
                                             {headCell.label}
                                             {campoOrden === headCell.id ? (
                                                 <Box component="span" sx={visuallyHidden}>
-                                                    {orden === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                                                    {orden === "desc" ? "sorted descending" : "sorted ascending"}
                                                 </Box>
                                             ) : null}
                                         </TableSortLabel>
@@ -232,18 +272,18 @@ export default function Datatable({ campos, datos, lblSeleccion, lblBusq = "", a
                                 return (
                                     <TableRow
                                         hover
-                                        onClick={() => cbClicCelda != null ? cbClicCelda(x) : null}
+                                        onClick={(e) => manejadorClicCelda(e,x)}
                                         tabIndex={-1}
                                         key={x.id}
                                         selected={estaSeleccionada}
-                                        sx={{ cursor: cbClicCelda != null ? 'pointer' : "default" }}>
+                                        sx={{ cursor: cbClicCelda != null ? "pointer" : "default" }}>
                                         <TableCell padding="checkbox">
                                             <Checkbox
                                                 color="primary"
                                                 checked={estaSeleccionada}
                                                 onClick={(e) => seleccionarFila(e, x.id)}
                                                 inputProps={{
-                                                    'aria-labelledby': labelId,
+                                                    "aria-labelledby": labelId,
                                                 }}
                                             />
                                         </TableCell>
