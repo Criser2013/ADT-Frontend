@@ -76,13 +76,12 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
         const res = await drive.cargarDatosPaciente(cedula);
         if (res.success) {
             dayjs.extend(customParseFormat);
-            res.data.personales.fechaNacimiento = dayjs(res.data.personales.fechaNacimiento, "DD-MM-YYYY");
             setDatos({
                 nombre: res.data.personales.nombre,
                 cedula: res.data.personales.cedula,
                 sexo: res.data.personales.sexo,
                 telefono: res.data.personales.telefono,
-                fechaNacimiento: res.data.personales.fechaNacimiento
+                fechaNacimiento: dayjs(res.data.personales.fechaNacimiento, "DD-MM-YYYY")
             });
             setComorActivadas(res.data.comorbilidades.length > 0);
             setComorbilidades(res.data.comorbilidades);
@@ -336,7 +335,7 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
                         <Grid size={2}>
                             <FormGroup>
                                 <FormControlLabel
-                                    control={<Checkbox defaultChecked={comorbilidades.length != 0}
+                                    control={<Checkbox checked={comorActivadas}
                                         size="medium"
                                         onChange={(e) => setComorActivadas(e.target.checked)} />}
                                     label="El paciente padece otra enfermedad." />

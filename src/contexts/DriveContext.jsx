@@ -323,7 +323,7 @@ export function DriveProvider({ children }) {
         setDescargando(true);
         const res = await verificarExisteArchivoYCarpeta(token);
         if (res.success) {
-            respuesta = descargarContArchivo(res.data);
+            respuesta = await descargarContArchivo(res.data);
         } else {
             setDatos([]);
             respuesta = { success: false, error: res.error };
