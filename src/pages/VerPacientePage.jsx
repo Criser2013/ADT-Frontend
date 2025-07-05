@@ -28,7 +28,7 @@ export default function VerPacientePage() {
     const navigate = useNavigate();
     const [params, setParams] = useSearchParams();
     const [cargando, setCargando] = useState(true);
-    const [eliminar, setEliminar] = useState(false);
+    const [modoEliminar, setModoEliminar] = useState(false);
     const [popOver, setPopOver] = useState(null);
     const open = Boolean(popOver)
     const elem = open ? "simple-popover" : undefined;
@@ -89,6 +89,8 @@ export default function VerPacientePage() {
         if (!res) {
             navigate("/pacientes", { replace: true });
         }
+
+        navegacion.setPaginaAnterior("/pacientes");
     }, [datos.personales.nombre]);
 
     /**
@@ -152,12 +154,12 @@ export default function VerPacientePage() {
      * Manejador del botón de cerrar el modal.
      */
     const manejadorBtnModal = () => {
-        if (eliminar) {
+        if (modoEliminar) {
             eliminarPaciente();
         }
 
-        setEliminar(false);
-        setModal({ mostrar: false, titulo: "", mensaje: "" });
+        setModoEliminar(false);
+        setModal({ ...modal, mostrar: false });
     };
 
     /**
@@ -165,8 +167,11 @@ export default function VerPacientePage() {
      */
     const manejadorBtnEliminar = () => {
         cerrarPopover();
-        setEliminar(true);
-        setModal({ mostrar: true, titulo: "Alerta", mensaje: "¿Estás seguro de que deseas eliminar este paciente?", eliminar: true });
+        setModoEliminar(true);
+        setModal({
+            mostrar:true, titulo: "Alerta",
+            mensaje: "¿Estás seguro de que deseas eliminar este paciente?"
+        });
     };
 
     /**
@@ -299,7 +304,7 @@ export default function VerPacientePage() {
                         <Typography>{modal.mensaje}</Typography>
                     </DialogContent>
                     <DialogActions>
-                        {eliminar ? (
+                        {modoEliminar ? (
                             <Button
                                 type="submit"
                                 variant="contained"
@@ -312,7 +317,7 @@ export default function VerPacientePage() {
                             variant="contained"
                             onClick={manejadorBtnModal}
                             sx={{ textTransform: "none" }}>
-                            <b>{eliminar ? "Eliminar" : "Cerrar"}</b>
+                            <b>{modoEliminar ? "Eliminar" : "Cerrar"}</b>
                         </Button>
                     </DialogActions>
                 </Dialog>

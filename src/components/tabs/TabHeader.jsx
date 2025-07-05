@@ -9,9 +9,10 @@ import WestIcon from '@mui/icons-material/West';
  * @param {String} titulo - Título de la pestaña actual
  * @param {Array} pestanas - Lista de pestañas con sus textos y URLs
  * @param {String} tooltip - Texto del tooltip para el botón de retroceso.
+ * @param {Boolean} activarBtnAtras - Si se debe mostrar el botón de volver atrás
  * @returns JSX.Element
  */
-export default function TabHeader({ urlPredet, titulo, pestanas, tooltip }) {
+export default function TabHeader({ urlPredet, titulo, pestanas, tooltip, activarBtnAtras = true }) {
     const navigate = useNavigate();
     const navegacion = useNavegacion();
 
@@ -31,12 +32,13 @@ export default function TabHeader({ urlPredet, titulo, pestanas, tooltip }) {
     return (
         <Box>
             <Stack direction="row" spacing={1}>
-                <Tooltip
-                    title={(tooltip != null && tooltip != undefined) ? tooltip : "Volver a la página anterior"}>
-                    <IconButton onClick={manejadorBtnAtras}>
-                        <WestIcon />
-                    </IconButton>
-                </Tooltip>
+                {activarBtnAtras ? (
+                    <Tooltip
+                        title={(tooltip != null && tooltip != undefined) ? tooltip : "Volver a la página anterior"}>
+                        <IconButton onClick={manejadorBtnAtras}>
+                            <WestIcon />
+                        </IconButton>
+                    </Tooltip>) : null}
                 <Box>
                     <Breadcrumbs>
                         {pestanas && pestanas.length > 0 ? (

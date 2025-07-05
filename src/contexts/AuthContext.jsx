@@ -49,6 +49,7 @@ export function AuthProvider({ children }) {
     const [cargando, setCargando] = useState(true);
     const [permisos, setPermisos] = useState(true);
     const [autenticado, setAutenticado] = useState(null);
+    const [requiereRefresco, setRequiereRefresco] = useState(false);
     const [idTareaRefresco, setIdTareaRefresco] = useState(null);
 
     /**
@@ -86,32 +87,10 @@ export function AuthProvider({ children }) {
 
     /**
      * Refresca los tokens OAuth del usuario si este se encuentra autenticado.
-     * @param {User} currentUser - Ususario actual de Firebase.
      */
-    const refrescarTokens = async (currentUser) => {
-        const creds = tokenDrive == null ? JSON.parse(sessionStorage.getItem("session-tokens")) : tokenDrive;
-        if (currentUser != null && creds != null) {
-            try {
-                const cred = GoogleAuthProvider.credential(currentUser.idToken, creds.accessToken);
-                const res = await reauthenticateWithCredential(currentUser, cred);
-
-                verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
-
-                const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
-                oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
-
-                clearTimeout(idTareaRefresco);
-                setIdTareaRefresco(
-                    setTimeout(refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000, currentUser)
-                );
-
-                guardarAuthCredsSesion(oauth);
-                setTokenDrive(oauth.accessToken);
-            } catch (error) {
-                console.error("Error al refrescar los tokens:", error);
-                setAuthError({ res: true, operacion: 3, error: "Error al verificar la sesión. Reintenta nuevamente." });
-            }
-        }
+    const refrescarTokens = () => {
+        clearTimeout(idTareaRefresco);
+        setRequiereRefresco(true);
     };
 
     /**
@@ -134,25 +113,21 @@ export function AuthProvider({ children }) {
      * @param {User} currentUser - Usuario actual de Firebase.
      */
     const manejadorCambiosAuth = async (currentUser) => {
-        // Si ya estaba autenticado, se actualiza su información y refrescan los tokens de OAuth
         if (currentUser != null) {
-            /* Evitando que se muestre el cuadro de seleccion de cuenta cuando se cierra sesión
-               , el usuario se encuentre en la pestaña principal o cuando recargue la página */
             const resCredsSesion = cargarAuthCredsSesion();
-            const fecha = (resCredsSesion.expires != undefined && resCredsSesion.expires != null) ? ((parseInt(resCredsSesion.expires, 10) - Date.now()) / 1000) : null;
-            const exp = ((resCredsSesion.success && fecha <= 20) || !resCredsSesion.success);
+            const fecha = (resCredsSesion.success && resCredsSesion.expires != undefined) ? ((parseInt(resCredsSesion.expires, 10) - Date.now()) / 1000) : null;
+            const exp = ((fecha != null && fecha <= 20) || !resCredsSesion.success);
+            const urlConds = ["/cerrar-sesion", "/"].includes(window.location.pathname);
 
-            // Se refresca el token de acceso sino hay pasado los 3 minutos - Cuando se recarga la página
-            if (resCredsSesion.success && fecha != null && fecha > 180) {
-                clearTimeout(idTareaRefresco);
-                setIdTareaRefresco(setTimeout(refrescarTokens, fecha - 180, currentUser));
-            } else if (resCredsSesion.success && fecha != null && fecha <= 180 && fecha > 20) {
-                // Si quedan menos de 3 minutos hasta 21 segs se refrescan los tokens - Cuando se recarga la página
-                await refrescarTokens(currentUser);
-            } else if (exp && window.location.pathname != "/cerrar-sesion" && window.location.pathname != "/") {
-                // En caso contrario, se reautentica al usuario para refrescar los tokens - Cuando se recarga la página
-                await reautenticarUsuario(currentUser);
+            if (fecha != null && fecha > 180) {
+                clearTimeout(idTareaRefresco);              // Se refresca el token de acceso sino falta 3 minutos para que caduque el token - Cuando se recarga la página
+                setIdTareaRefresco(setTimeout(refrescarTokens, (fecha - 180) * 1000));
+            } else if (fecha != null && (fecha <= 180 && fecha > 20)) {
+                refrescarTokens();                          // Si quedan menos de 3 minutos hasta 21 segs se refrescan los tokens - Cuando se recarga la página
+            } else if (exp && !urlConds) {
+                await reautenticarUsuario(currentUser);     // En caso contrario, se reautentica al usuario para refrescar los tokens - Cuando se recarga la página
             }
+
             setAuthInfo((x) => ({ ...x, user: currentUser, correo: currentUser.email }));
             setAutenticado(true);
         } else {
@@ -187,9 +162,9 @@ export function AuthProvider({ children }) {
 
             verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
             clearTimeout(idTareaRefresco);
-            setIdTareaRefresco(setTimeout(
-                refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000, res.user
-            ));
+            setIdTareaRefresco(
+                setTimeout(refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000)
+            );
 
             // Guardando el token de acceso a Google Drive
             setTokenDrive(oauth.accessToken);
@@ -218,7 +193,6 @@ export function AuthProvider({ children }) {
     const reautenticarUsuario = async (usuario) => {
         if (usuario != null && tokenDrive == null) {
             setCargando(true);
-
             try {
                 let provider = new GoogleAuthProvider();
 
@@ -234,15 +208,19 @@ export function AuthProvider({ children }) {
 
                 clearTimeout(idTareaRefresco);
                 setIdTareaRefresco(
-                    setTimeout(refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000, usuario)
+                    setTimeout(refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000)
                 );
 
                 verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
                 setTokenDrive(oauth.accessToken);
                 guardarAuthCredsSesion(oauth);
-
                 setAuthError({ res: false, operacion: 2, error: "" });
+                setRequiereRefresco(false);
             } catch (error) {
+                if (requiereRefresco) {
+                    // Necesario por si cierra el popup de Google antes de reautenticarse cuando el token caduca
+                    setRequiereRefresco(true);
+                }
                 manejadorErroresAuth(error, 2);
             }
 
@@ -389,7 +367,10 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <authContext.Provider value={{ useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive, setScopes, cerrarSesion, iniciarSesionGoogle, verDatosUsuario, reautenticarUsuario, permisos, autenticado }}>
+        <authContext.Provider value={{
+            useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive,
+            setScopes, cerrarSesion, iniciarSesionGoogle, verDatosUsuario, reautenticarUsuario, permisos, autenticado, requiereRefresco
+        }}>
             {children}
         </authContext.Provider>
     );

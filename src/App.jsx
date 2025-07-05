@@ -17,7 +17,9 @@ export default function App() {
     const [modal, setModal] = useState({
         mostrar: false, mensaje: ""
     });
-    const [modalPermisos, setModalPermisos] = useState(false);
+    const [modal2Btn, setModal2Btn] = useState({
+        mostrar: false, mensaje: "", titulo: "", txtBtn: ""
+    });
 
     /**
      * Actualiza las instancia de Firebase y permisos de Drive
@@ -30,8 +32,18 @@ export default function App() {
     }, [credenciales]);
 
     useEffect(() => {
-        setModalPermisos(!auth.permisos);
-    }, [auth.permisos]);
+        let compsModal = {
+            mostrar: !auth.permisos, mensaje: "Debes otorgar los permisos requeridos en tu cuenta de Google.",
+            titulo: "Permisos insuficientes", txtBtn: "Conceder permisos"
+        };
+        if (auth.requiereRefresco) {
+            compsModal = {
+                mostrar: true, titulo: "La sesión ha caducado", txtBtn: "Extender sesión",
+                mensaje: "Tu sesión ha caducado, por favor reautentícate para continuar utilizando la aplicación."
+            };
+        }
+        setModal2Btn(compsModal);
+    }, [auth.permisos, auth.requiereRefresco]);
 
     /** 
      * Escucha y muestra los errores de autenticación que se presenten.
@@ -40,7 +52,7 @@ export default function App() {
         if (!auth.cargando && auth.authError.res) {
             setModal({ mostrar: true, mensaje: auth.authError.error });
         } else {
-            setModal({ mostrar: false, mensaje: "" });
+            setModal({ ...modal, mostrar: false });
         }
     }, [auth.cargando, auth.authError.res, auth.authError.error]);
 
@@ -61,7 +73,7 @@ export default function App() {
      * Manejador de eventos del botón de reintentar.
      */
     const manejadorBtnPermisos = async () => {
-        setModalPermisos(false);
+        setModal2Btn(false);
 
         const { user } = auth.authInfo;
         await auth.reautenticarUsuario(user);
@@ -72,34 +84,43 @@ export default function App() {
      * Solo está presente cuando el usuario no ha otorgado los permisos.
      */
     const manejadorBtnCerrarSesion = () => {
-        setModalPermisos(false);
+        setModal2Btn({ ...modal2Btn, mostrar: false });
         navegacion.setPaginaAnterior(window.location.pathname);
 
         location.replace("/cerrar-sesion");
     };
 
+    /**
+     * Manejador del botón para extender la sesión.
+     */
+    const manejadorBtnReautenticar = () => {
+        const { user } = auth.authInfo;
+        setModal2Btn({ ...modal2Btn, mostrar: false });
+        auth.reautenticarUsuario(user);
+    };
+
     return (
         <>
             <Router />
-            <Dialog open={modalPermisos}>
+            <Dialog open={modal2Btn.mostrar}>
                 <DialogTitle>Aviso</DialogTitle>
                 <DialogContent>
-                    <Typography>Debes otorgar los permisos requeridos en tu cuenta de Google.</Typography>
+                    <Typography>{modal2Btn.mensaje}</Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        onClick={manejadorBtnPermisos}
-                        sx={{ textTransform: "none" }}>
-                        <b>Conceder permisos</b>
-                    </Button>
                     <Button
                         type="submit"
                         variant="contained"
                         onClick={manejadorBtnCerrarSesion}
                         sx={{ textTransform: "none" }}>
                         <b>Cerrar sesión</b>
+                    </Button>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        onClick={auth.permisos ? manejadorBtnPermisos : manejadorBtnReautenticar}
+                        sx={{ textTransform: "none" }}>
+                        <b>{modal2Btn.txtBtn}</b>
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -25,23 +25,13 @@ export const useDrive = () => {
  */
 export function DriveProvider({ children }) {
     const [archivoId, setArchivoId] = useState(null);
-    const [carpetaId, setCarpetaId] = useState(null);
-    const [datos, setDatos] = useState([]);
+    const [datos, setDatos] = useState(null);
     const [token, setToken] = useState(null);
     const [descargando, setDescargando] = useState(true);
 
     useEffect(() => {
         if (token != null) {
-            verificarExisteArchivoYCarpeta(token).then((res) => {
-                if (res.success) {
-                    descargarContArchivo(res.data).then(() => {
-                        setDescargando(false);
-                    });
-                } else {
-                    setDatos([]);
-                    setDescargando(false);
-                }
-            });
+            cargarDatos(token);
         }
     }, [token]);
 
@@ -87,7 +77,6 @@ export function DriveProvider({ children }) {
             setArchivoId(res.data.id);
             return { success: true, data: res.data };
         } else if (res.success && esCarpeta) {
-            setCarpetaId(res.data.id);
             return { success: true, data: res.data };
         } else {
             return res;
@@ -124,33 +113,29 @@ export function DriveProvider({ children }) {
      * @returns JSON
      */
     const descargarContArchivo = async (archivoId) => {
-        setDescargando(true);
+        if (token != null) {
+            setDescargando(true);
+            const existe = await verificarExisteArchivoYCarpeta(token);
 
-        const existe = await verificarExisteArchivoYCarpeta(token);
+            if (!existe.success) {
+                setDatos([]);
+                return { success: false, error: existe.error };
+            }
 
-        if (!existe.success) {
-            setDatos([]);
-            return { success: false, error: existe.error };
-        }
+            const pet = await descargarArchivo(archivoId, token);
 
-        const pet = await descargarArchivo(archivoId, token);
-
-        if (pet.success) {
-            let intentos = 3;
-
-            while (intentos > 0) {
+            if (pet.success) {
                 const datosArchivo = leerArchivoXlsx(pet.data);
                 if (datosArchivo.success) {
                     setDatos(datosArchivo.data);
                     return { success: true, data: null };
                 }
-                intentos--;
+                setDatos([]);
+                return { success: false, error: "Error al leer el archivo" };
+            } else {
+                setDatos([]);
+                return { success: false, error: pet.error };
             }
-            setDatos([]);
-            return { success: false, error: "Error al leer el archivo" };
-        } else {
-            setDatos([]);
-            return { success: false, error: pet.error };
         }
     };
 
@@ -175,6 +160,11 @@ export function DriveProvider({ children }) {
             tabla = leerArchivoXlsx(pet.data).data;
         }
 
+        const yaExiste = verificarExistePaciente(instancia.cedula, tabla);
+        if (yaExiste && (!esEditar || (esEditar && instancia.cedula != prevCedula))) {
+            return { success: false, error: "El paciente ya está registrado" };
+        }
+
         if (esEditar) {
             const indice = tabla.findIndex((paciente) => paciente.cedula == prevCedula);
             if (prevCedula != null && instancia.cedula != prevCedula) {
@@ -186,11 +176,10 @@ export function DriveProvider({ children }) {
             tabla.push(instancia);
         }
 
-        setDatos(tabla);
-
         const binario = crearArchivoXlsx(tabla);
         const res = await subirArchivo(binario.data);
         if (res.success) {
+            setDatos(tabla);
             return { success: true, data: "Archivo guardado correctamente" };
         } else {
             return { success: false, error: res.error };
@@ -199,10 +188,11 @@ export function DriveProvider({ children }) {
 
     /**
      * Elimina un paciente del documento en Google Drive.
-     * @param {String} cedula - Cédula del paciente a eliminar.
+     * @param {String|Array[String]} cedula - Cédula del paciente a eliminar.
+     * @param {Boolean} varios - Indica si se están eliminando varios pacientes.
      * @returns JSON
      */
-    const eliminarPaciente = async (cedula) => {
+    const eliminarPaciente = async (cedula, varios = false) => {
         let tabla = datos;
         const existe = await verificarExisteArchivoYCarpeta();
 
@@ -213,23 +203,38 @@ export function DriveProvider({ children }) {
             if (!pet.success) {
                 return { success: false, error: pet.error };
             }
-
             tabla = leerArchivoXlsx(pet.data).data;
         }
 
-        const indice = tabla.findIndex((paciente) => paciente.cedula == cedula);
+        if (varios) {
+            const aux = [];
+            let cont = 0;
+            for (let i = 0; i < tabla.length; i++) {
+                for (const j of cedula) {
+                    if (tabla[i].cedula == j) {
+                        aux.push(i);
+                    }
+                }
+            }
 
-        if (indice == -1) {
-            return { success: false, error: "Paciente no encontrado" };
+            for (const i of aux) {
+                tabla.splice(i - cont, 1);
+                cont++;
+            }
         } else {
-            tabla.splice(indice, 1);
-        }
+            const indice = tabla.findIndex((paciente) => paciente.cedula == cedula);
+            if (indice == -1) {
+                return { success: false, error: "Paciente no encontrado" };
+            } else {
+                tabla.splice(indice, 1);
+            }
 
-        setDatos(tabla);
+        }
 
         const binario = crearArchivoXlsx(tabla);
         const res = await subirArchivo(binario.data);
         if (res.success) {
+            setDatos(tabla);
             return { success: true, data: "Archivo guardado correctamente" };
         } else {
             return { success: false, error: res.error };
@@ -242,7 +247,7 @@ export function DriveProvider({ children }) {
      * @returns JSON
      */
     const cargarDatosPaciente = (cedula) => {
-        const indice = datos.findIndex((paciente) => paciente.cedula == cedula);
+        const indice = datos != null ? datos.findIndex((paciente) => paciente.cedula == cedula) : -1;
 
         if (indice == -1) {
             return { success: false };
@@ -262,10 +267,7 @@ export function DriveProvider({ children }) {
         const petCrearCarp = await crearArchivoMeta(DRIVE_FOLDER_NAME, true);
         if (!petCrearCarp.success) {
             return { success: false, error: petCrearCarp.error };
-        } else {
-            setCarpetaId(petCrearCarp.data.id);
         }
-
         const petCrearArch = await crearArchivoMeta(DRIVE_FILENAME, false, petCrearCarp.data.id);
         if (!petCrearArch.success) {
             return { success: false, error: petCrearArch.error };
@@ -286,8 +288,6 @@ export function DriveProvider({ children }) {
         const idCarpeta = (existeCarpeta.data != null) ? existeCarpeta.data.files[0].id : null;
 
         if (existeCarpeta.success) {
-            setCarpetaId(existeCarpeta.data.files[0].id);
-
             const busquedaArchivo = await verificarExisteArchivo(DRIVE_FILENAME, false, idCarpeta);
             if (busquedaArchivo.success && busquedaArchivo.data.files.length > 0) {
                 setArchivoId(busquedaArchivo.data.files[0].id);
@@ -303,9 +303,10 @@ export function DriveProvider({ children }) {
     /**
      * Verifica si el paciente ya está registrado.
      * @param {String} cedula - Cédula del paciente a verificar.
+     * @param {Array} datos - Lista de pacientes registrados.
      * @returns Boolean
      */
-    const verificarExistePaciente = (cedula) => {
+    const verificarExistePaciente = (cedula, datos) => {
         for (const i of datos) {
             if (i.cedula == cedula) {
                 return true;
@@ -314,8 +315,29 @@ export function DriveProvider({ children }) {
         return false;
     };
 
+    /**
+     * Carga los datos del archivo de pacientes desde Google Drive.
+     */
+    const cargarDatos = async () => {
+        let respuesta = null;
+        setDescargando(true);
+        const res = await verificarExisteArchivoYCarpeta(token);
+        if (res.success) {
+            respuesta = await descargarContArchivo(res.data);
+        } else {
+            setDatos([]);
+            respuesta = { success: false, error: res.error };
+        }
+        setDescargando(false);
+
+        return respuesta;
+    };
+
     return (
-        <driveContext.Provider value={{ anadirPaciente, descargarContArchivo, verificarExistePaciente, setToken, descargando, cargarDatosPaciente, eliminarPaciente }}>
+        <driveContext.Provider value={{
+            anadirPaciente, descargarContArchivo, setToken, descargando, cargarDatosPaciente,
+            eliminarPaciente, cargarDatos, datos
+        }}>
             {children}
         </driveContext.Provider>
     );
