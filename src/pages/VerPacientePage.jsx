@@ -28,13 +28,12 @@ export default function VerPacientePage() {
     const navigate = useNavigate();
     const [params, setParams] = useSearchParams();
     const [cargando, setCargando] = useState(true);
-    const [eliminar, setEliminar] = useState(false);
+    const [modoEliminar, setModoEliminar] = useState(false);
     const [popOver, setPopOver] = useState(null);
     const open = Boolean(popOver)
     const elem = open ? "simple-popover" : undefined;
-    const [modal, setModal] = useState(false);
-    const [txtModal, setTxtModal] = useState({
-        mensaje: "", titulo: ""
+    const [modal, setModal] = useState({
+        mostrar: false, mensaje: "", titulo: ""
     });
     const [datos, setDatos] = useState({
         personales: {
@@ -147,8 +146,7 @@ export default function VerPacientePage() {
             navigate("/pacientes", { replace: true });
         } else {
             setCargando(false);
-            setTxtModal({ titulo: "Error", mensaje: res.error });
-            setModal(true);
+            setModal({ mostrar: true, titulo: "Error", mensaje: res.error });
         }
     };
 
@@ -156,13 +154,12 @@ export default function VerPacientePage() {
      * Manejador del botón de cerrar el modal.
      */
     const manejadorBtnModal = () => {
-        if (eliminar) {
+        if (modoEliminar) {
             eliminarPaciente();
         }
 
-        setEliminar(false);
-        setModal(false);
-        setTxtModal({ titulo: "", mensaje: "" });
+        setModoEliminar(false);
+        setModal({ ...modal, mostrar: false });
     };
 
     /**
@@ -170,9 +167,11 @@ export default function VerPacientePage() {
      */
     const manejadorBtnEliminar = () => {
         cerrarPopover();
-        setEliminar(true);
-        setTxtModal({ titulo: "Alerta", mensaje: "¿Estás seguro de que deseas eliminar este paciente?", eliminar: true });
-        setModal(true);
+        setModoEliminar(true);
+        setModal({
+            mostrar:true, titulo: "Alerta",
+            mensaje: "¿Estás seguro de que deseas eliminar este paciente?"
+        });
     };
 
     /**
@@ -299,20 +298,17 @@ export default function VerPacientePage() {
                     </>
                 )
                 }
-                <Dialog open={modal}>
-                    <DialogTitle>{txtModal.titulo}</DialogTitle>
+                <Dialog open={modal.mostrar}>
+                    <DialogTitle>{modal.titulo}</DialogTitle>
                     <DialogContent>
-                        <Typography>{txtModal.mensaje}</Typography>
+                        <Typography>{modal.mensaje}</Typography>
                     </DialogContent>
                     <DialogActions>
-                        {eliminar ? (
+                        {modoEliminar ? (
                             <Button
                                 type="submit"
                                 variant="contained"
-                                onClick={() => {
-                                    setModal(false);
-                                    setTxtModal({ titulo: "", mensaje: "" })
-                                }}
+                                onClick={() => setModal({ mostrar: false, titulo: "", mensaje: "" })}
                                 sx={{ textTransform: "none" }}>
                                 <b>Cancelar</b>
                             </Button>) : null}
@@ -321,7 +317,7 @@ export default function VerPacientePage() {
                             variant="contained"
                             onClick={manejadorBtnModal}
                             sx={{ textTransform: "none" }}>
-                            <b>{eliminar ? "Eliminar" : "Cerrar"}</b>
+                            <b>{modoEliminar ? "Eliminar" : "Cerrar"}</b>
                         </Button>
                     </DialogActions>
                 </Dialog>

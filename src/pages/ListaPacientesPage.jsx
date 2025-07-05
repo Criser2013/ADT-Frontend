@@ -27,8 +27,7 @@ export default function ListaPacientesPage() {
         texto: "Lista de pacientes", url: "/pacientes"
     }];
     const [cargando, setCargando] = useState(true);
-    const [modal, setModal] = useState(false);
-    const [txtModal, setTxtModal] = useState({
+    const [modal, setModal] = useState({
         mostrar: false, titulo: "", mensaje: ""
     });
     const [eliminar, setEliminar] = useState(false);
@@ -66,11 +65,10 @@ export default function ListaPacientesPage() {
         if (drive.datos != null && !drive.descargando) {
             drive.cargarDatos().then((res) => {
                 if (!res.success) {
-                    setTxtModal({
+                    setModal({
                         titulo: "Error al cargar los datos",
                         mensaje: res.error
                     });
-                    setModal(true);
                 }
             });
         }
@@ -121,8 +119,10 @@ export default function ListaPacientesPage() {
     const manejadorEliminar = (seleccionados) => {
         setSeleccionados(seleccionados);
         setEliminar(true);
-        setTxtModal({ titulo: "Alerta", mensaje: "¿Estás seguro de querer eliminar a los pacientes seleccionados?"});
-        setModal(true);
+        setModal({ 
+            mostrar: true, titulo: "Alerta",
+            mensaje: "¿Estás seguro de querer eliminar a los pacientes seleccionados?"
+        });
     };
 
     /**
@@ -144,8 +144,7 @@ export default function ListaPacientesPage() {
         }
 
         setEliminar(false);
-        setTxtModal(false);
-        setTxtModal({ mostrar: false, titulo: "", mensaje: "" });
+        setModal({ ...modal, mostrar: false });
     };
 
     /**
@@ -155,11 +154,11 @@ export default function ListaPacientesPage() {
     const eliminarPacientes = async (pacientes) => {
         const res = await drive.eliminarPaciente(pacientes, true);
         if (!res.success) {
-            setTxtModal({
+            setModal({
+                mostrar: true,
                 titulo: "Error a los pacientes.",
                 mensaje: res.error
             });
-            setModal(true);
         }
         setCargando(false);
     };
@@ -204,20 +203,17 @@ export default function ListaPacientesPage() {
                             />
                         </Grid>
                     </>)}
-                <Dialog open={modal}>
-                    <DialogTitle>{txtModal.titulo}</DialogTitle>
+                <Dialog open={modal.mostrar}>
+                    <DialogTitle>{modal.titulo}</DialogTitle>
                     <DialogContent>
-                        <Typography>{txtModal.mensaje}</Typography>
+                        <Typography>{modal.mensaje}</Typography>
                     </DialogContent>
                     <DialogActions>
                         {eliminar ? (
                             <Button
                                 type="submit"
                                 variant="contained"
-                                onClick={() => {
-                                    setModal(false);
-                                    setTxtModal({ titulo: "", mensaje: "" });
-                                }}
+                                onClick={() => setModal({ ...modal, mostrar: false })}
                                 sx={{ textTransform: "none" }}>
                                 <b>Cancelar</b>
                             </Button>) : null}

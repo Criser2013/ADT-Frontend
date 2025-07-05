@@ -115,7 +115,6 @@ export function DriveProvider({ children }) {
     const descargarContArchivo = async (archivoId) => {
         if (token != null) {
             setDescargando(true);
-
             const existe = await verificarExisteArchivoYCarpeta(token);
 
             if (!existe.success) {
@@ -126,15 +125,10 @@ export function DriveProvider({ children }) {
             const pet = await descargarArchivo(archivoId, token);
 
             if (pet.success) {
-                let intentos = 3;
-
-                while (intentos > 0) {
-                    const datosArchivo = leerArchivoXlsx(pet.data);
-                    if (datosArchivo.success) {
-                        setDatos(datosArchivo.data);
-                        return { success: true, data: null };
-                    }
-                    intentos--;
+                const datosArchivo = leerArchivoXlsx(pet.data);
+                if (datosArchivo.success) {
+                    setDatos(datosArchivo.data);
+                    return { success: true, data: null };
                 }
                 setDatos([]);
                 return { success: false, error: "Error al leer el archivo" };
@@ -167,7 +161,7 @@ export function DriveProvider({ children }) {
         }
 
         const yaExiste = verificarExistePaciente(instancia.cedula, tabla);
-        if (yaExiste && !esEditar) {
+        if (yaExiste && (!esEditar || (esEditar && instancia.cedula != prevCedula))) {
             return { success: false, error: "El paciente ya está registrado" };
         }
 
@@ -182,11 +176,10 @@ export function DriveProvider({ children }) {
             tabla.push(instancia);
         }
 
-        setDatos(tabla);
-
         const binario = crearArchivoXlsx(tabla);
         const res = await subirArchivo(binario.data);
         if (res.success) {
+            setDatos(tabla);
             return { success: true, data: "Archivo guardado correctamente" };
         } else {
             return { success: false, error: res.error };
@@ -238,11 +231,10 @@ export function DriveProvider({ children }) {
 
         }
 
-        setDatos(tabla);
-
         const binario = crearArchivoXlsx(tabla);
         const res = await subirArchivo(binario.data);
         if (res.success) {
+            setDatos(tabla);
             return { success: true, data: "Archivo guardado correctamente" };
         } else {
             return { success: false, error: res.error };
@@ -255,7 +247,7 @@ export function DriveProvider({ children }) {
      * @returns JSON
      */
     const cargarDatosPaciente = (cedula) => {
-        const indice = datos.findIndex((paciente) => paciente.cedula == cedula);
+        const indice = datos != null ? datos.findIndex((paciente) => paciente.cedula == cedula) : -1;
 
         if (indice == -1) {
             return { success: false };

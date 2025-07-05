@@ -40,7 +40,7 @@ export default function App() {
         if (!auth.cargando && auth.authError.res) {
             setModal({ mostrar: true, mensaje: auth.authError.error });
         } else {
-            setModal({ mostrar: false, mensaje: "" });
+            setModal({ ...modal, mostrar: false });
         }
     }, [auth.cargando, auth.authError.res, auth.authError.error]);
 
