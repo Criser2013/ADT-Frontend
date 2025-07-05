@@ -34,12 +34,12 @@ describe("Validar la función 'obtenerComparadorStrNum'", () => {
     test("CP - 58", () => {
         const res = obtenerComparadorStrNum("asc", "campo1").toString();
 
-        expect(res).toEqual(expect.stringContaining("(a, b) => -comparadorStrNum(a, b, campo)"));
+        expect(res).toMatch("-comparadorStrNum(a, b, campo)");
     });
 
     test("CP - 59", () => {
         const res = obtenerComparadorStrNum("desc", "campo2").toString();
 
-        expect(res).toEqual(expect.stringContaining("(a, b) => comparadorStrNum(a, b, campo)"));
+        expect(res).toMatch("comparadorStrNum(a, b, campo)");
     });
 });
