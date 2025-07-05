@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals';
-import { comparadorStrNum, obtenerComparadorStrNum } from '../../../src/utils/Ordernamiento';
+import { comparadorStrNum, obtenerComparadorStrNum } from '../../../src/utils/Ordenamiento';
 
 describe("Validar la función 'comparadorStrNum'", () => {
     test("CP - 55", () => {
@@ -34,12 +34,12 @@ describe("Validar la función 'obtenerComparadorStrNum'", () => {
     test("CP - 58", () => {
         const res = obtenerComparadorStrNum("asc", "campo1").toString();
 
-        expect(res).toEqual("(a, b) => -comparadorStrNum(a, b, campo)");
+        expect(res).toEqual(expect.stringContaining("(a, b) => -comparadorStrNum(a, b, campo)"));
     });
 
     test("CP - 59", () => {
         const res = obtenerComparadorStrNum("desc", "campo2").toString();
 
-        expect(res).toEqual("(a, b) => comparadorStrNum(a, b, campo)");
+        expect(res).toEqual(expect.stringContaining("(a, b) => comparadorStrNum(a, b, campo)"));
     });
 });

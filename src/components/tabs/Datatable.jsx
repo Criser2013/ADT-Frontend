@@ -7,7 +7,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import { useState, useMemo, useEffect } from "react";
 import { visuallyHidden } from "@mui/utils";
-import { obtenerComparadorStrNum } from "../../utils/Ordernamiento";
+import { obtenerComparadorStrNum } from "../../utils/Ordenamiento";
 import { buscar } from "../../utils/Busqueda";
 
 /**
