@@ -143,8 +143,8 @@ export default function ListaPacientesPage() {
             eliminarPacientes(seleccionados);
         }
 
-        setEliminar(false);
         setModal({ ...modal, mostrar: false });
+        setEliminar(false);
     };
 
     /**

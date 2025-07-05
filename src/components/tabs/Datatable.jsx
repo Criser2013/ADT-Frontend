@@ -38,8 +38,8 @@ import { buscar } from "../../utils/Busqueda";
  */
 export default function Datatable({ campos, datos, lblSeleccion, campoId = "id", lblBusq = "", activarBusqueda = false, 
     terminoBusqueda = "", camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "" }) {
-    const [orden, setOrden] = useState("asc");
-    const [campoOrden, setCampoOrden] = useState(campos[0][campoId]);
+    const [orden, setOrden] = useState("desc");
+    const [campoOrden, setCampoOrden] = useState(campos[0].id);
     const [numSeleccionados, setNumSeleccionados] = useState(0);
     const [seleccionados, setSeleccionados] = useState([]);
     const [pagina, setPagina] = useState(0);
@@ -56,7 +56,9 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     const nombresCampos = useMemo(() => campos.map((campo) => campo.id), [campos]);
     const filasVacias = pagina > 0 ? Math.max(0, (1 + pagina) * filasEnPagina - datos.length) : 0;
 
-
+    /**
+     * Activando el modo de selección si hay filas seleccionadas.
+     */
     useEffect(() => {
         if (numSeleccionados > 0) {
             setModoSeleccion(true);
@@ -65,6 +67,13 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
         }
 
     }, [numSeleccionados]);
+
+    /**
+     * Actualizando los datos auxiliares cuando cambian los datos originales.
+     */
+    useEffect(() => {
+        setAuxDatos(datos);
+    }, [datos]);
 
     /**
      * Manejador de evento para seleccionar o deseleccionar todas las filas.
