@@ -71,25 +71,21 @@ export function CredencialesProvider({ children }) {
         while (intentos < 4) {
             try {
                 const res = await fetch(`${API_URL}/credenciales`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Access-Control-Allow-Origin": `${API_URL}`
-                    }
+                    method: "GET"
                 });
 
                 const json = await res.json();
 
-                if (json.success) {
+                if (res.status == 200 && res.ok) {
                     inicializarFirebase({
-                        apiKey: json.data.firebase_apiKey,
-                        authDomain: json.data.firebase_authDomain,
-                        projectId: json.data.firebase_projectId,
-                        storeBucket: json.data.firebase_storeBucket,
-                        messagingSenderId: json.data.firebase_messagingSenderId,
-                        appId: json.data.firebase_appId,
-                        measurementId: json.data.firebase_measurementId,
-                        scopes: json.data.scopes
+                        apiKey: json.apiKey,
+                        authDomain: json.authDomain,
+                        projectId: json.projectId,
+                        storeBucket: json.storeBucket,
+                        messagingSenderId: json.messagingSenderId,
+                        appId: json.appId,
+                        measurementId: json.measurementId,
+                        scopes: json.driveScopes
                     });
 
                     setScopesDrive(json.data.scopes);
@@ -119,6 +115,7 @@ export function CredencialesProvider({ children }) {
 
             almacenarCredenciales(credsInfo, scopes);
 
+            setScopesDrive(scopes);
             setCredsInfo((x) => ({ ...x, app: app, db: db, auth: auth }));
         }
     };
