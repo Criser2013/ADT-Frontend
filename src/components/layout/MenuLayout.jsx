@@ -12,7 +12,7 @@ export default function MenuLayout({ children }) {
         <Box display="flex">
             <NavBar />
             <Sidebar />
-            <Box component="main" sx={{ padding: "2vh 2vh" }}>
+            <Box component="main" sx={{ padding: "2vh 1vh" }}>
                 <Toolbar />
                 {children}
             </Box>
