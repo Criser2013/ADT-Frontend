@@ -2,8 +2,9 @@ import Router from "../router";
 import { useAuth } from "./contexts/AuthContext";
 import { useCredenciales } from "./contexts/CredencialesContext";
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogActions, DialogTitle, Button, Typography } from "@mui/material";
 import { useNavegacion } from "./contexts/NavegacionContext";
+import ModalSimple from "./components/modals/ModalSimple";
+import ModalAccion from "./components/modals/ModalAccion";
 
 /**
  * Componente principal que provee las credenciales de autenticación y muestra los 
@@ -60,7 +61,7 @@ export default function App() {
      * Manejador de eventos del botón de cerrar el modal de error.
      */
     const manejadorBtnModal = () => {
-        setModal({ ...modal, mostrar: false  });
+        setModal({ ...modal, mostrar: false });
 
         if ((navegacion.callbackError.fn != null) && (typeof (navegacion.callbackError.fn) == "function")) {
             navegacion.callbackError.fn();
@@ -102,43 +103,24 @@ export default function App() {
     return (
         <>
             <Router />
-            <Dialog open={modal2Btn.mostrar}>
-                <DialogTitle>Aviso</DialogTitle>
-                <DialogContent>
-                    <Typography>{modal2Btn.mensaje}</Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        onClick={manejadorBtnCerrarSesion}
-                        sx={{ textTransform: "none" }}>
-                        <b>Cerrar sesión</b>
-                    </Button>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        onClick={auth.permisos ? manejadorBtnPermisos : manejadorBtnReautenticar}
-                        sx={{ textTransform: "none" }}>
-                        <b>{modal2Btn.txtBtn}</b>
-                    </Button>
-                </DialogActions>
-            </Dialog>
-            <Dialog open={modal.mostrar}>
-                <DialogTitle>Error</DialogTitle>
-                <DialogContent>
-                    <Typography>{modal.mensaje}</Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        onClick={manejadorBtnModal}
-                        sx={{ textTransform: "none" }}>
-                        <b>Cerrar</b>
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <ModalAccion
+                abrir={modal.mostrar}
+                mensaje={modal.mensaje}
+                titulo="Aviso"
+                manejadorBtnPrimario={auth.permisos ? manejadorBtnPermisos : manejadorBtnReautenticar}
+                manejadorBtnSecundario={manejadorBtnCerrarSesion}
+                mostrarBtnSecundario={true}
+                txtBtnSimple={modal2Btn.txtBtn}
+                txtBtnSecundario="Cerrar sesión"
+                txtBtnSimpleAlt={modal2Btn.txtBtn}
+            />
+            <ModalSimple
+                abrir={modal.mostrar}
+                titulo="Error"
+                mensaje={modal.mensaje}
+                manejadorCerrar={manejadorBtnModal}
+                txtBtn="Cerrar"
+            />
         </>
     );
 };

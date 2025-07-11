@@ -1,6 +1,6 @@
 import {
-    Dialog, DialogActions, DialogContent, Grid, Button, Typography, TextField,
-    Stack, Tooltip, Box, CircularProgress, MenuItem, DialogTitle
+    Grid, Button, Typography, TextField, Stack, Tooltip, Box, 
+    CircularProgress, MenuItem
 } from "@mui/material";
 import { useAuth } from "../contexts/AuthContext";
 import { useEffect, useMemo, useState } from "react";
@@ -15,6 +15,7 @@ import { DiagnosticoIcono } from "../components/icons/IconosSidebar";
 import { validarNumero } from "../utils/Validadores";
 import { validarArray } from "../utils/TratarDatos";
 import MenuLayout from "../components/layout/MenuLayout";
+import ModalSimple from "../components/modals/ModalSimple";
 
 export default function DiagnosticoAnonimoPage() {
     const auth = useAuth();
@@ -77,8 +78,8 @@ export default function DiagnosticoAnonimoPage() {
         { texto: "Dolor torácico", nombre: "dolorToracico" },
         { texto: "TEP - TVP previo", nombre: "tepPrevio" },
     ]), []);
-    const numCols = useMemo(()  => {
-        return navegacion.dispositivoMovil || (!navegacion.dispositivoMovil && (navegacion.ancho < 500)) ? 1 : 3; 
+    const numCols = useMemo(() => {
+        return navegacion.dispositivoMovil || (!navegacion.dispositivoMovil && (navegacion.ancho < 500)) ? 1 : 3;
     }, [navegacion.dispositivoMovil, navegacion.ancho]);
 
     useEffect(() => {
@@ -279,15 +280,15 @@ export default function DiagnosticoAnonimoPage() {
                                 </Typography>
                             </Grid>
                             <Grid container size={numCols} columns={numCols} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
-                            {sintomas.map((x) => (
-                                <Grid size={1} key={x.nombre}>
-                                    <Check
-                                        nombre={x.nombre}
-                                        etiqueta={x.texto}
-                                        checked={datosBin[x.nombre]}
-                                        manejadorCambios={manejadorCambiosDatosBin} />
-                                </Grid>
-                            ))}
+                                {sintomas.map((x) => (
+                                    <Grid size={1} key={x.nombre}>
+                                        <Check
+                                            nombre={x.nombre}
+                                            etiqueta={x.texto}
+                                            checked={datosBin[x.nombre]}
+                                            manejadorCambios={manejadorCambiosDatosBin} />
+                                    </Grid>
+                                ))}
                             </Grid>
                             <Grid size={numCols}>
                                 <Typography variant="h6">
@@ -427,21 +428,12 @@ export default function DiagnosticoAnonimoPage() {
                             </Grid>
                         </Grid>
                     </>)}
-                <Dialog open={modal.mostrar}>
-                    <DialogTitle>{modal.titulo}</DialogTitle>
-                    <DialogContent>
-                        <Typography>{modal.mensaje}</Typography>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            onClick={() => setModal({ ...modal, mostrar: false })}
-                            sx={{ textTransform: "none" }}>
-                            Cerrar
-                        </Button>
-                    </DialogActions>
-                </Dialog>
+                <ModalSimple
+                    abrir={modal.mostrar}
+                    titulo={modal.titulo}
+                    mensaje={modal.mensaje}
+                    manejadorCerrar={() => setModal({ ...modal, mostrar: false })}
+                />
             </MenuLayout>
         </>
     );

@@ -1,6 +1,4 @@
-import { Button, Grid, Box, DialogContent, DialogActions, DialogTitle, CircularProgress, Dialog,
-    Typography
- } from "@mui/material";
+import { Button, Grid, Box, CircularProgress } from "@mui/material";
 import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
@@ -13,6 +11,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useDrive } from "../contexts/DriveContext";
 import dayjs from "dayjs";
+import ModalAccion from "../components/modals/ModalAccion";
 
 /**
  * Página para ver la lista de pacientes.
@@ -203,29 +202,16 @@ export default function ListaPacientesPage() {
                             />
                         </Grid>
                     </>)}
-                <Dialog open={modal.mostrar}>
-                    <DialogTitle>{modal.titulo}</DialogTitle>
-                    <DialogContent>
-                        <Typography>{modal.mensaje}</Typography>
-                    </DialogContent>
-                    <DialogActions>
-                        {eliminar ? (
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                onClick={() => setModal({ ...modal, mostrar: false })}
-                                sx={{ textTransform: "none" }}>
-                                <b>Cancelar</b>
-                            </Button>) : null}
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            onClick={manejadorBtnModal}
-                            sx={{ textTransform: "none" }}>
-                            <b>{eliminar ? "Eliminar" : "Cerrar"}</b>
-                        </Button>
-                    </DialogActions>
-                </Dialog>
+                    <ModalAccion
+                        abrir={modal.mostrar}
+                        titulo={modal.titulo}
+                        mensaje={modal.mensaje}
+                        manejadorBtnPrimario={manejadorBtnModal}
+                        manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
+                        mostrarBtnSecundario={eliminar}
+                        txtBtnSimple="Eliminar"
+                        txtBtnSecundario="Cancelar"
+                        txtBtnSimpleAlt="Cerrar" />
             </MenuLayout>
         </>
     );

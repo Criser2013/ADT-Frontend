@@ -1,6 +1,6 @@
 import {
-    Box, Chip, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip, Dialog, DialogActions,
-    DialogContent, Button, DialogTitle, Popover, IconButton
+    Box, Chip, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
+    Button, Popover, IconButton
 } from "@mui/material";
 import { useDrive } from "../contexts/DriveContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -16,6 +16,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import ModalAccion from "../components/modals/ModalAccion";
 
 /**
  * Página para ver los datos de un paciente.
@@ -169,7 +170,7 @@ export default function VerPacientePage() {
         cerrarPopover();
         setModoEliminar(true);
         setModal({
-            mostrar:true, titulo: "Alerta",
+            mostrar: true, titulo: "Alerta",
             mensaje: "¿Estás seguro de que deseas eliminar este paciente?"
         });
     };
@@ -298,29 +299,16 @@ export default function VerPacientePage() {
                     </>
                 )
                 }
-                <Dialog open={modal.mostrar}>
-                    <DialogTitle>{modal.titulo}</DialogTitle>
-                    <DialogContent>
-                        <Typography>{modal.mensaje}</Typography>
-                    </DialogContent>
-                    <DialogActions>
-                        {modoEliminar ? (
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                onClick={() => setModal({ mostrar: false, titulo: "", mensaje: "" })}
-                                sx={{ textTransform: "none" }}>
-                                <b>Cancelar</b>
-                            </Button>) : null}
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            onClick={manejadorBtnModal}
-                            sx={{ textTransform: "none" }}>
-                            <b>{modoEliminar ? "Eliminar" : "Cerrar"}</b>
-                        </Button>
-                    </DialogActions>
-                </Dialog>
+                <ModalAccion
+                    abrir={modal.mostrar}
+                    titulo={modal.titulo}
+                    mensaje={modal.mensaje}
+                    manejadorBtnPrimario={manejadorBtnModal}
+                    manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
+                    mostrarBtnSecundario={modoEliminar}
+                    txtBtnSimple="Eliminar"
+                    txtBtnSecundario="Cancelar"
+                    txtBtnSimpleAlt="Cerrar" />
             </MenuLayout>
         </>
     );
