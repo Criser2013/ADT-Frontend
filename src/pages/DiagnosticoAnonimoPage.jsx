@@ -11,7 +11,7 @@ import SelectChip from "../components/tabs/SelectChip";
 import { COMORBILIDADES } from "../../constants";
 import CloseIcon from "@mui/icons-material/Close";
 import { DiagnosticoIcono } from "../components/icons/IconosSidebar";
-import { validarNumero } from "../utils/Validadores";
+import { validarFloatPos, validarNumero } from "../utils/Validadores";
 import { oneHotEncondingOtraEnfermedad, transformarDatos, validarArray } from "../utils/TratarDatos";
 import MenuLayout from "../components/layout/MenuLayout";
 import ModalSimple from "../components/modals/ModalSimple";
@@ -171,29 +171,29 @@ export default function DiagnosticoAnonimoPage() {
             case (cod == "edad" && !validarNumero(datosTxt.edad)):
                 res = { error: true, txt: "Edad inválida" };
                 break;
-            case (cod == "presionSis" && !validarNumero(datosTxt.presionSis)):
-                res = { error: true, txt: "Solo debes ingresar números" };
+            case (cod == "presionSis" && !validarFloatPos(datosTxt.presionSis)):
+                res = { error: true, txt: "Solo debes ingresar números positivos" };
                 break;
-            case (cod == "presionDias" && !validarNumero(datosTxt.presionDias)):
-                res = { error: true, txt: "Solo debes ingresar números" };
+            case (cod == "presionDias" && !validarFloatPos(datosTxt.presionDias)):
+                res = { error: true, txt: "Solo debes ingresar números positivos" };
                 break;
-            case (cod == "frecRes" && !validarNumero(datosTxt.frecRes)):
-                res = { error: true, txt: "Solo debes ingresar números" };
+            case (cod == "frecRes" && !validarFloatPos(datosTxt.frecRes)):
+                res = { error: true, txt: "Solo debes ingresar números positivos" };
                 break;
-            case (cod == "frecCard" && !validarNumero(datosTxt.frecCard)):
-                res = { error: true, txt: "Solo debes ingresar números" };
+            case (cod == "frecCard" && !validarFloatPos(datosTxt.frecCard)):
+                res = { error: true, txt: "Solo debes ingresar números positivos" };
                 break;
-            case (cod == "so2" && !validarNumero(datosTxt.so2)):
-                res = { error: true, txt: "Solo debes ingresar números" };
+            case (cod == "so2" && !validarFloatPos(datosTxt.so2)):
+                res = { error: true, txt: "Solo debes ingresar números positivos" };
                 break;
-            case (cod == "plaquetas" && !validarNumero(datosTxt.plaquetas)):
-                res = { error: true, txt: "Solo debes ingresar números" };
+            case (cod == "plaquetas" && !validarFloatPos(datosTxt.plaquetas)):
+                res = { error: true, txt: "Solo debes ingresar números positivos" };
                 break;
-            case (cod == "hemoglobina" && !validarNumero(datosTxt.hemoglobina)):
-                res = { error: true, txt: "Solo debes ingresar números" };
+            case (cod == "hemoglobina" && !validarFloatPos(datosTxt.hemoglobina)):
+                res = { error: true, txt: "Solo debes ingresar números positivos" };
                 break;
-            case (cod == "wbc" && !validarNumero(datosTxt.wbc)):
-                res = { error: true, txt: "Solo debes ingresar números" };
+            case (cod == "wbc" && !validarFloatPos(datosTxt.wbc)):
+                res = { error: true, txt: "Solo debes ingresar números positivos" };
                 break;
             case (cod == "comorbilidades" && (datosBin.otraEnfermedad && otrasEnfermedades.length == 0)):
                 res = { error: true, txt: "Selecciona al menos un padecimiento" };

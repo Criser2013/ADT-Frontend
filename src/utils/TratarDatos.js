@@ -92,18 +92,18 @@ export function transformarDatos(datos, comorbilidades) {
         hemoptisis: procBool(datos.hemoptisis),
         sintomas_disautonomicos: procBool(datos.disautonomicos),
         edema_de_m_inferiores: procBool(datos.edema),
-        frecuencia_respiratoria: procFrecRes(datos.frecRes),
-        saturacion_de_la_sangre: procSo2(datos.so2),
-        frecuencia_cardiaca: procFrecCard(datos.frecCard),
-        presion_sistolica: procPresionSist(datos.presionSis),
-        presion_diastolica: procPresionDiast(datos.presionDias),
+        frecuencia_respiratoria: procFrecRes(datos.frecRes.replace(",", ".")),
+        saturacion_de_la_sangre: procSo2(datos.so2.replace(",", ".")),
+        frecuencia_cardiaca: procFrecCard(datos.frecCard.replace(",", ".")),
+        presion_sistolica: procPresionSist(datos.presionSis.replace(",", ".")),
+        presion_diastolica: procPresionDiast(datos.presionDias.replace(",", ".")),
         fiebre: procBool(datos.fiebre),
         crepitaciones: procBool(datos.crepitaciones),
         sibilancias: procBool(datos.sibilancias),
         soplos: procBool(datos.soplos),
-        wbc: procWbc(datos.wbc),
-        hb: procHb(datos.hemoglobina),
-        plt: procPlt(datos.plaquetas),
+        wbc: procWbc(datos.wbc.replace(",", ".")),
+        hb: procHb(datos.hemoglobina.replace(",", ".")),
+        plt: procPlt(datos.plaquetas.replace(",", ".")),
         derrame: procBool(datos.derrame),
         otra_enfermedad: procBool(datos.otraEnfermedad),
         hematologica: comorbilidades["Enfermedad hematológica"],
@@ -170,7 +170,7 @@ export function evaluarIntervalo(valor, intervalos) {
  * @returns Number
  */
 export function procPresionSist(valor) {
-    return evaluarIntervalo(parseInt(valor, 10), [
+    return evaluarIntervalo(parseFloat(valor), [
         [50, 70, 1], [70, 90, 2], [90, 110, 3], [110, 130, 4],
         [130, 150, 5], [150, 170, 6], [170, 190, 7], [190, 210, 8],
         [null, 50, 9], [210, null, 10]
@@ -193,7 +193,7 @@ export function procPresionSist(valor) {
  * @returns Number
  */
 export function procPresionDiast(valor) {
-    return evaluarIntervalo(parseInt(valor, 10), [
+    return evaluarIntervalo(parseFloat(valor), [
         [40, 50, 1], [50, 60, 2], [60, 70, 3], [70, 80, 4],
         [80, 90, 5], [90, 100, 6], [100, 110, 7], [110, 120, 8],
         [null, 40, 9], [120, null, 10]
@@ -214,7 +214,7 @@ export function procPresionDiast(valor) {
  * @returns Number
  */
 export function procWbc(valor) {
-    return evaluarIntervalo(parseInt(valor, 10), [
+    return evaluarIntervalo(parseFloat(valor), [
         [2000, 4000, 1], [4000, 10000, 2], [10000, 15000, 3],
         [15000, 20000, 4], [20000, 30000, 5], [30000, 35000, 6],
         [null, 2000, 7], [35000, null, 7]
@@ -237,7 +237,7 @@ export function procWbc(valor) {
  * @returns Number
  */
 export function procHb(valor) {
-    return evaluarIntervalo(parseInt(valor, 10), [
+    return evaluarIntervalo(parseFloat(valor), [
         [6, 8, 1], [8, 10, 2], [10, 12, 3], [12, 14, 4], [14, 16, 5],
         [16, 18, 6], [18, 20, 7], [20, 22, 8], [null, 6, 9], [22, null, 10]
     ]);
@@ -258,7 +258,7 @@ export function procHb(valor) {
  * @returns Number
  */
 export function procPlt(valor) {
-    return evaluarIntervalo(parseInt(valor, 10), [
+    return evaluarIntervalo(parseFloat(valor), [
         [10000, 50000, 1], [50000, 100000, 2], [100000, 150000, 3],
         [150000, 400000, 4], [400000, 500000, 5], [500000, 600000, 6],
         [600000, 700000, 7], [null, 10000, 9], [700000, null, 10]
@@ -282,7 +282,7 @@ export function procPlt(valor) {
  * @returns Number
  */
 export function procFrecRes(valor) {
-    return evaluarIntervalo(parseInt(valor, 10), [
+    return evaluarIntervalo(parseFloat(valor), [
         [15, 20, 1], [20, 25, 2], [25, 30, 3], [30, 35, 4], [35, 40, 5],
         [40, 45, 6], [45, 50, 7], [50, 55, 8], [55, 60, 9], [null, 15, 10],
         [60, null, 11]
@@ -307,7 +307,7 @@ export function procFrecRes(valor) {
  * @returns Number
  */
 export function procSo2(valor) {
-    return evaluarIntervalo(parseInt(valor, 10), [
+    return evaluarIntervalo(parseFloat(valor), [
         [50, 55, 1], [55, 60, 2], [60, 65, 3], [65, 70, 4], [70, 75, 5],
         [75, 80, 6], [80, 85, 7], [85, 90, 8], [90, 95, 9], [95, 100, 10],
         [null, 50, 11], [100, null, 12]
@@ -330,7 +330,7 @@ export function procSo2(valor) {
  * @returns Number
  */
 export function procFrecCard(valor) {
-    return evaluarIntervalo(parseInt(valor, 10), [
+    return evaluarIntervalo(parseFloat(valor), [
         [50, 70, 1], [70, 90, 2], [90, 110, 3], [110, 130, 4], [130, 150, 5],
         [150, 170, 6], [170, 190, 7], [190, 210, 8], [null, 50, 9], [210, null, 10]
     ]);
@@ -347,7 +347,7 @@ export function procFrecCard(valor) {
  * @returns Number
  */
 export function procEdad(valor) {
-    return evaluarIntervalo(parseInt(valor, 10), [
+    return evaluarIntervalo(parseFloat(valor), [
         [0, 20, 0], [20, 41, 1], [41, 61, 2],
         [61, 81, 3], [81, null, 4]
     ]);

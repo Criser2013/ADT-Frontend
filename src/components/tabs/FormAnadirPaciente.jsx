@@ -138,7 +138,7 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
                 res = { error: true, txt: "La fecha de nacimiento debe ser anterior a la fecha actual" };
                 break;
             case (cod == "telefono" && !validarTelefono(datos.telefono)):
-                res = { error: true, txt: "Solo debes ingresar números" };
+                res = { error: true, txt: "El número de teléfono debe contener entre 8 y 10 dígitos." };
                 break;
             case (cod == "sexo" && datos.sexo > 1):
                 res = { error: true, txt: "Selecciona el sexo del paciente" };
