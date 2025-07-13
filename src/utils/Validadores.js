@@ -49,5 +49,5 @@ export function validarFloatPos(val) {
     val = val.replace(",",".");
     const exp = /^\d+(\.\d+)?$/;
 
-    return exp.test(val);
+    return exp.test(val) || validarNumero(val);
 };

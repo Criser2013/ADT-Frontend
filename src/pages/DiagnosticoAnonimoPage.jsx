@@ -489,7 +489,7 @@ export default function DiagnosticoAnonimoPage() {
                             </Typography>
                         ) : (
                             <Typography variant="body1">
-                                ℹEl paciente <b>no ha sido diagnosticado con TEP</b>, la probabilidad de no padecerlo es del <b>{diagnostico.probabilidad.toFixed(2)-1}%</b>.
+                                El paciente <b>no ha sido diagnosticado con TEP</b>, la probabilidad de no padecerlo es del <b>{diagnostico.probabilidad.toFixed(2)-1}%</b>.
                             </Typography>
                         )}
                     </Box>

@@ -9,7 +9,7 @@ describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
             "Enfermedad pulmonar": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0,
             "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0,
-            "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0
+            "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0, "Enfermedad neurológica": 0
         });
     });
 
@@ -20,7 +20,7 @@ describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
             "Enfermedad pulmonar": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0,
             "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0,
-            "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0
+            "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0, "Enfermedad neurológica": 0
         });
     });
 });
