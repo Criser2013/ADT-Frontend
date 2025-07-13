@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals';
-import { oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, quitarDatosPersonales } from "../../../src/utils/TratarDatos";
+import { evaluarIntervalo, oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, quitarDatosPersonales } from "../../../src/utils/TratarDatos";
 
 describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
     test("CP - 15", () => {
@@ -80,5 +80,34 @@ describe("Validar la función 'quitarDatosPersonales'", () => {
             nombre: "Nombre de persona", sexo: 0, fechaNacimiento: "20/12/2025",
             telefono: "12345678", cedula: "123456789"
         });
+    });
+});
+
+describe("Validar la función 'evaluarIntervalo'", () => {
+    test("CP - 62", () => {
+        const res = evaluarIntervalo(37, [[30, 50, 1], [60, 70, 2], [70, 100, 3]]);
+        expect(res).toBe(1);
+    });
+
+    test("CP - 63", () => {
+        const res = evaluarIntervalo(12, [[null, 15, 3], [15, 20, 2], [21, null, 1]]);
+        expect(res).toBe(3);
+    });
+
+    test("CP - 64", () => {
+        const res = evaluarIntervalo(20, [[19, null, 4], [10, 19, 1]]);
+        expect(res).toBe(4);
+    });
+});
+
+describe("Validar la función 'procBool'", () => {
+    test("CP - 65", () => {
+        const res = procBool(true);
+        expect(res).toBe(1);
+    });
+
+    test("CP - 66", () => {
+        const res = procBool(false);
+        expect(res).toBe(0);
     });
 });
