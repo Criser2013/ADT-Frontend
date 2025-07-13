@@ -266,7 +266,7 @@ export default function DiagnosticoAnonimoPage() {
     return (
         <>
             <MenuLayout>
-                {(cargando || auth.cargando) ? (
+                {cargando ? (
                     <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
                         <CircularProgress />
                     </Box>

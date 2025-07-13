@@ -15,7 +15,6 @@ import { useNavigate } from "react-router";
 import TabHeader from "./TabHeader";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import { detTamCarga } from "../../utils/Responsividad";
-import { useAuth } from "../../contexts/AuthContext";
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import SelectChip from "./SelectChip";
 import ModalSimple from "../modals/ModalSimple";
@@ -30,7 +29,6 @@ import ModalSimple from "../modals/ModalSimple";
  */
 export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula = "", esAnadir = true }) {
     const drive = useDrive();
-    const auth = useAuth();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
     const [datos, setDatos] = useState({
@@ -233,7 +231,7 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
 
     return (
         <>
-            {(cargando || auth.cargando) ? (
+            {cargando ? (
                 <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
                     <CircularProgress />
                 </Box>

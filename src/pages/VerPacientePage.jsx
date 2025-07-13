@@ -193,7 +193,7 @@ export default function VerPacientePage() {
     return (
         <>
             <MenuLayout>
-                {(cargando || auth.cargando) ? (
+                {cargando ? (
                     <Box display="flex" justifyContent="center" alignItems="center" width={detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho)} height="85vh">
                         <CircularProgress />
                     </Box>

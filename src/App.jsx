@@ -53,7 +53,7 @@ export default function App() {
         if (!auth.cargando && auth.authError.res) {
             setModal({ mostrar: true, mensaje: auth.authError.error });
         } else {
-            setModal({ ...modal, mostrar: false });
+            setModal((x) => ({ ...x, mostrar: false }));
         }
     }, [auth.cargando, auth.authError.res, auth.authError.error]);
 
@@ -118,7 +118,7 @@ export default function App() {
                 abrir={modal.mostrar}
                 titulo="Error"
                 mensaje={modal.mensaje}
-                manejadorCerrar={manejadorBtnModal}
+                manejadorBtnModal={manejadorBtnModal}
                 txtBtn="Cerrar"
             />
         </>

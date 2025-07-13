@@ -180,7 +180,7 @@ export function AuthProvider({ children }) {
             }
             setAuthError(resultado);
         } catch (error) {
-            manejadorErroresAuth(error, 0);
+            manejadorErroresAuth(error, 0, null);
         }
 
         setCargando(false);
@@ -221,7 +221,7 @@ export function AuthProvider({ children }) {
                     // Necesario por si cierra el popup de Google antes de reautenticarse cuando el token caduca
                     setRequiereRefresco(true);
                 }
-                manejadorErroresAuth(error, 2);
+                manejadorErroresAuth(error, 2, usuario);
             }
 
             setCargando(false);
@@ -343,7 +343,7 @@ export function AuthProvider({ children }) {
      * @param {FirebaseError} error - Error de Firebase Auth.
      * @param {Int} codigo - Código de la operación que produjo el error.
      */
-    const manejadorErroresAuth = (error, codigo) => {
+    const manejadorErroresAuth = (error, codigo, usuario) => {
         switch (error.code) {
             case "auth/popup-closed-by-user":
                 // Esto es cuando el usuario cierra el popup de Google antes de iniciar sesión
@@ -357,7 +357,10 @@ export function AuthProvider({ children }) {
                 break;
             case "auth/user-mismatch":
                 // Esto es cuando el usuario que intenta iniciar sesión no coincide con el usuario actual
-                setAuthError({ res: true, operacion: codigo, error: `Ya tienes una sesión iniciada con el usuario: "${authInfo.user.displayName}" (${authInfo.user.email}).` });
+                setAuthError({
+                    res: true, operacion: codigo,
+                    error: `Ya tienes una sesión iniciada con el usuario: "${usuario.displayName}" (${usuario.email}).`
+                });
                 break;
             default:
                 console.error("Error de autenticación:", error);
