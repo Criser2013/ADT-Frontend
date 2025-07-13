@@ -61,7 +61,7 @@ export default function App() {
      * Manejador de eventos del botón de cerrar el modal de error.
      */
     const manejadorBtnModal = () => {
-        setModal({ ...modal, mostrar: false });
+        setModal((x) => { ...x, mostrar: false });
 
         if ((navegacion.callbackError.fn != null) && (typeof (navegacion.callbackError.fn) == "function")) {
             navegacion.callbackError.fn();
@@ -85,7 +85,7 @@ export default function App() {
      * Solo está presente cuando el usuario no ha otorgado los permisos.
      */
     const manejadorBtnCerrarSesion = () => {
-        setModal2Btn({ ...modal2Btn, mostrar: false });
+        setModal2Btn((x) => ({ ...x, mostrar: false }));
         navegacion.setPaginaAnterior(window.location.pathname);
 
         location.replace("/cerrar-sesion");
@@ -96,7 +96,7 @@ export default function App() {
      */
     const manejadorBtnReautenticar = () => {
         const { user } = auth.authInfo;
-        setModal2Btn({ ...modal2Btn, mostrar: false });
+        setModal2Btn((x) => ({ ...x, mostrar: false }));
         auth.reautenticarUsuario(user);
     };
 
@@ -104,8 +104,8 @@ export default function App() {
         <>
             <Router />
             <ModalAccion
-                abrir={modal.mostrar}
-                mensaje={modal.mensaje}
+                abrir={modal2Btn.mostrar}
+                mensaje={modal2Btn.mensaje}
                 titulo="Aviso"
                 manejadorBtnPrimario={auth.permisos ? manejadorBtnPermisos : manejadorBtnReautenticar}
                 manejadorBtnSecundario={manejadorBtnCerrarSesion}

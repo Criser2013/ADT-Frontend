@@ -1,5 +1,5 @@
 import {
-    Grid, Button, Typography, TextField, Stack, Tooltip, Box, 
+    Grid, Button, Typography, TextField, Stack, Tooltip, Box,
     CircularProgress, MenuItem
 } from "@mui/material";
 import { useAuth } from "../contexts/AuthContext";
@@ -13,7 +13,7 @@ import { COMORBILIDADES } from "../../constants";
 import CloseIcon from "@mui/icons-material/Close";
 import { DiagnosticoIcono } from "../components/icons/IconosSidebar";
 import { validarNumero } from "../utils/Validadores";
-import { validarArray } from "../utils/TratarDatos";
+import { oneHotEncondingOtraEnfermedad, validarArray } from "../utils/TratarDatos";
 import MenuLayout from "../components/layout/MenuLayout";
 import ModalSimple from "../components/modals/ModalSimple";
 
@@ -34,7 +34,7 @@ export default function DiagnosticoAnonimoPage() {
         hemoptisis: false, disnea: false, sibilancias: false,
         derrame: false, tepPrevio: false, edema: false, disautonomicos: false,
         inmovilidad: false, viajeProlongado: false, cirugiaReciente: false,
-        otraEnfermedad: false
+        otraEnfermedad: false, soplos: false
     });
     const [otrasEnfermedades, setOtrasEnfermedades] = useState([]);
     const [errores, setErrores] = useState([
@@ -77,6 +77,7 @@ export default function DiagnosticoAnonimoPage() {
         { texto: "Hemoptisis", nombre: "hemoptisis" },
         { texto: "Dolor torácico", nombre: "dolorToracico" },
         { texto: "TEP - TVP previo", nombre: "tepPrevio" },
+        { texto: "Soplos", nombre: "soplos" }
     ]), []);
     const numCols = useMemo(() => {
         return navegacion.dispositivoMovil || (!navegacion.dispositivoMovil && (navegacion.ancho < 500)) ? 1 : 3;
@@ -224,8 +225,12 @@ export default function DiagnosticoAnonimoPage() {
         if (!res) {
             mostrarErrDatosInv();
         } else {
-            console.log("asd")
+            setCargando(true);
         }
+    };
+
+    const diagnosticar = () => {
+        const oneHotComor = oneHotEncondingOtraEnfermedad(datosBin.otraEnfermedad ? otrasEnfermedades : []);
     };
 
     return (
