@@ -9,12 +9,15 @@ import { Dialog, DialogTitle, DialogContent, Button, Typography, DialogActions }
  * @param {Function} manejadorBtnModal - Función que se ejecuta al hacer clic en el botón del modal.
  * @returns JSX.Element
  */
-export default function ModalSimple({ abrir, titulo, mensaje, txtBtn, manejadorBtnModal}) {
+export default function ModalSimple({ abrir, titulo, mensaje, txtBtn, manejadorBtnModal, children }) {
     return (
         <Dialog open={abrir}>
             <DialogTitle>{titulo}</DialogTitle>
             <DialogContent>
-                <Typography>{mensaje}</Typography>
+                {(mensaje != null && mensaje != "") ? (
+                    <Typography>{mensaje}</Typography>) : (
+                    children
+                )}
             </DialogContent>
             <DialogActions>
                 <Button
@@ -27,4 +30,4 @@ export default function ModalSimple({ abrir, titulo, mensaje, txtBtn, manejadorB
             </DialogActions>
         </Dialog>
     );
-}
+};

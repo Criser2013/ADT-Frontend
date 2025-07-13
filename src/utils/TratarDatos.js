@@ -95,7 +95,7 @@ export function transformarDatos(datos, comorbilidades) {
         frecuencia_respiratoria: procFrecRes(datos.frecRes),
         saturacion_de_la_sangre: procSo2(datos.so2),
         frecuencia_cardiaca: procFrecCard(datos.frecCard),
-        presion_sistolica: procPresionSist(datos.presionSist),
+        presion_sistolica: procPresionSist(datos.presionSis),
         presion_diastolica: procPresionDiast(datos.presionDias),
         fiebre: procBool(datos.fiebre),
         crepitaciones: procBool(datos.crepitaciones),
@@ -105,8 +105,22 @@ export function transformarDatos(datos, comorbilidades) {
         hb: procHb(datos.hemoglobina),
         plt: procPlt(datos.plaquetas),
         derrame: procBool(datos.derrame),
-        otraEnfermedad: procBool(datos.otraEnfermedad),
-        ...comorbilidades
+        otra_enfermedad: procBool(datos.otraEnfermedad),
+        hematologica: comorbilidades["Enfermedad hematológica"],
+        cardiaca: comorbilidades["Enfermedad cardíaca"],
+        enfermedad_coronaria: comorbilidades["Enfermedad coronaria"],
+        diabetes_mellitus: comorbilidades["Diabetes"],
+        endocrina: comorbilidades["Enfermedad endocrina"],
+        neurologica: comorbilidades["Enfermedad neurológica"],
+        gastrointestinal: comorbilidades["Enfermedad gastrointestinal"],
+        hepatopatia_cronica: comorbilidades["Hepatopatía crónica"],
+        hipertension_arterial: comorbilidades["Hipertensión arterial"],
+        pulmonar: comorbilidades["Enfermedad pulmonar"],
+        renal: comorbilidades["Enfermedad renal"],
+        trombofilia: comorbilidades["Trombofilia"],
+        urologica: comorbilidades["Enfermedad urológica"],
+        vascular: comorbilidades["Enfermedad vascular"],
+        vih: comorbilidades["VIH"]
     };
 };
 

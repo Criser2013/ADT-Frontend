@@ -9,9 +9,10 @@ import { FormControl, InputLabel, Select, Box, OutlinedInput, MenuItem, FormHelp
  * @param {Boolean} error - Indica si hay un error en la selección.
  * @param {String} txtError - Mensaje de error a mostrar si hay un error.
  * @param {String} etiqueta - Etiqueta del campo de selección.
+ * @param {Boolean} desactivado - Indica si el campo está desactivado.
  * @returns JSX.Element
  */
-export default function SelectChip({ valor, listaValores, manejadorCambios, nombre, error, txtError, etiqueta }) {
+export default function SelectChip({ valor, listaValores, manejadorCambios, nombre, error, txtError, etiqueta, desactivado = false }) {
     return (
         <FormControl sx={{ width: "100%" }}>
             <InputLabel id="select-chip-tag">
@@ -25,6 +26,7 @@ export default function SelectChip({ valor, listaValores, manejadorCambios, nomb
                 fullWidth
                 name={nombre}
                 error={error}
+                disabled={desactivado}
                 input={<OutlinedInput id="select-multiple-chip" label={etiqueta} />}
                 renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>

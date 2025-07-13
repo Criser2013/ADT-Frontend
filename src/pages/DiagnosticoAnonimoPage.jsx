@@ -1,7 +1,6 @@
 import {
     Grid, Button, Typography, TextField, Stack, Tooltip, Box,
-    CircularProgress, MenuItem
-} from "@mui/material";
+    CircularProgress, MenuItem } from "@mui/material";
 import { useAuth } from "../contexts/AuthContext";
 import { useEffect, useMemo, useState } from "react";
 import TabHeader from "../components/tabs/TabHeader";
@@ -13,9 +12,11 @@ import { COMORBILIDADES } from "../../constants";
 import CloseIcon from "@mui/icons-material/Close";
 import { DiagnosticoIcono } from "../components/icons/IconosSidebar";
 import { validarNumero } from "../utils/Validadores";
-import { oneHotEncondingOtraEnfermedad, validarArray } from "../utils/TratarDatos";
+import { oneHotEncondingOtraEnfermedad, transformarDatos, validarArray } from "../utils/TratarDatos";
 import MenuLayout from "../components/layout/MenuLayout";
 import ModalSimple from "../components/modals/ModalSimple";
+import { generarDiagnostico } from "../services/Api";
+import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 
 export default function DiagnosticoAnonimoPage() {
     const auth = useAuth();
@@ -36,6 +37,10 @@ export default function DiagnosticoAnonimoPage() {
         inmovilidad: false, viajeProlongado: false, cirugiaReciente: false,
         otraEnfermedad: false, soplos: false
     });
+    const [diagnostico, setDiagnostico] = useState({
+        resultado: false, probabilidad: 0, diagnosticado: false
+    });
+    const [desactivarCampos, setDesactivarCampos] = useState(false);
     const [otrasEnfermedades, setOtrasEnfermedades] = useState([]);
     const [errores, setErrores] = useState([
         { campo: "sexo", error: false, txt: "" },
@@ -115,6 +120,8 @@ export default function DiagnosticoAnonimoPage() {
      * Manejador del botón de vaciar campos.
      */
     const manejadorBtnVaciar = () => {
+        setDesactivarCampos(false);
+        setDiagnostico({ resultado: false, probabilidad: 0, diagnosticado: false });
         setDatosTxt({
             sexo: 2, edad: "", presionSis: "", presionDias: "", frecRes: "",
             frecCard: "", so2: "", plaquetas: "", hemoglobina: "", wbc: ""
@@ -213,6 +220,11 @@ export default function DiagnosticoAnonimoPage() {
      * Manejador del botón de guardar.
      */
     const manejadorBtnDiagnosticar = () => {
+        if (diagnostico.diagnosticado) {
+            setModal({ mostrar: true, titulo: "Resultado del diagnóstico", mensaje: "" });
+            return;
+        }
+
         limpiarErrores();
         const res = validarArray(
             ["sexo", "edad", "presionSis", "presionDias", "frecRes",
@@ -226,11 +238,29 @@ export default function DiagnosticoAnonimoPage() {
             mostrarErrDatosInv();
         } else {
             setCargando(true);
+            diagnosticar();
         }
     };
 
-    const diagnosticar = () => {
+    /**
+     * Genera el diagnóstico y muestra el resultado en un modal.
+     */
+    const diagnosticar = async () => {
         const oneHotComor = oneHotEncondingOtraEnfermedad(datosBin.otraEnfermedad ? otrasEnfermedades : []);
+        const datos = transformarDatos({ ...datosTxt, ...datosBin }, oneHotComor);
+
+        const res = await generarDiagnostico(datos, auth.authInfo.user.accessToken);
+        const { success, data } = res;
+
+        if (!success) {
+            setModal({ mostrar: true, titulo: "Error", mensaje: res.error });
+        } else {
+            setDesactivarCampos(true);
+            setDiagnostico({ resultado: data.prediccion, probabilidad: data.probabilidad * 100, diagnosticado: true });
+            setModal({ mostrar: true, titulo: "Resultado del diagnóstico", mensaje: "" });
+        }
+
+        setCargando(false);
     };
 
     return (
@@ -261,6 +291,7 @@ export default function DiagnosticoAnonimoPage() {
                                     onChange={manejadorCambiosDatosTxt}
                                     error={errores[0].error}
                                     helperText={errores[0].txt}
+                                    disabled={desactivarCampos}
                                     fullWidth>
                                     {sexos.map((x) => (
                                         <MenuItem key={x.val} value={x.val}>
@@ -276,6 +307,7 @@ export default function DiagnosticoAnonimoPage() {
                                     value={datosTxt.edad}
                                     onChange={manejadorCambiosDatosTxt}
                                     error={errores[1].error}
+                                    disabled={desactivarCampos}
                                     helperText={errores[1].txt}
                                     fullWidth />
                             </Grid>
@@ -290,6 +322,7 @@ export default function DiagnosticoAnonimoPage() {
                                         <Check
                                             nombre={x.nombre}
                                             etiqueta={x.texto}
+                                            desactivado={desactivarCampos}
                                             checked={datosBin[x.nombre]}
                                             manejadorCambios={manejadorCambiosDatosBin} />
                                     </Grid>
@@ -307,6 +340,7 @@ export default function DiagnosticoAnonimoPage() {
                                     value={datosTxt.presionSis}
                                     onChange={manejadorCambiosDatosTxt}
                                     error={errores[2].error}
+                                    disabled={desactivarCampos}
                                     helperText={errores[2].txt}
                                     fullWidth />
                             </Grid>
@@ -317,6 +351,7 @@ export default function DiagnosticoAnonimoPage() {
                                     value={datosTxt.presionDias}
                                     onChange={manejadorCambiosDatosTxt}
                                     error={errores[3].error}
+                                    disabled={desactivarCampos}
                                     helperText={errores[3].txt}
                                     fullWidth />
                             </Grid>
@@ -327,6 +362,7 @@ export default function DiagnosticoAnonimoPage() {
                                     value={datosTxt.frecRes}
                                     onChange={manejadorCambiosDatosTxt}
                                     error={errores[4].error}
+                                    disabled={desactivarCampos}
                                     helperText={errores[4].txt}
                                     fullWidth />
                             </Grid>
@@ -337,16 +373,18 @@ export default function DiagnosticoAnonimoPage() {
                                     value={datosTxt.frecCard}
                                     onChange={manejadorCambiosDatosTxt}
                                     error={errores[5].error}
+                                    disabled={desactivarCampos}
                                     helperText={errores[5].txt}
                                     fullWidth />
                             </Grid>
                             <Grid size={1}>
                                 <TextField
                                     label="Saturación de la sangre"
-                                    name="s02"
+                                    name="so2"
                                     value={datosTxt.so2}
                                     onChange={manejadorCambiosDatosTxt}
                                     error={errores[6].error}
+                                    disabled={desactivarCampos}
                                     helperText={errores[6].txt}
                                     fullWidth />
                             </Grid>
@@ -362,6 +400,7 @@ export default function DiagnosticoAnonimoPage() {
                                     value={datosTxt.plaquetas}
                                     onChange={manejadorCambiosDatosTxt}
                                     error={errores[7].error}
+                                    disabled={desactivarCampos}
                                     helperText={errores[7].txt}
                                     fullWidth />
                             </Grid>
@@ -372,6 +411,7 @@ export default function DiagnosticoAnonimoPage() {
                                     value={datosTxt.hemoglobina}
                                     onChange={manejadorCambiosDatosTxt}
                                     error={errores[8].error}
+                                    disabled={desactivarCampos}
                                     helperText={errores[8].txt}
                                     fullWidth />
                             </Grid>
@@ -382,6 +422,7 @@ export default function DiagnosticoAnonimoPage() {
                                     value={datosTxt.wbc}
                                     onChange={manejadorCambiosDatosTxt}
                                     error={errores[9].error}
+                                    disabled={desactivarCampos}
                                     helperText={errores[9].txt}
                                     fullWidth />
                             </Grid>
@@ -390,6 +431,7 @@ export default function DiagnosticoAnonimoPage() {
                                     nombre="otraEnfermedad"
                                     etiqueta="El paciente padece otra enfermedad."
                                     checked={datosBin.otraEnfermedad}
+                                    desactivado={desactivarCampos}
                                     manejadorCambios={manejadorCambiosDatosBin} />
                             </Grid>
                             {datosBin.otraEnfermedad ? (
@@ -401,24 +443,25 @@ export default function DiagnosticoAnonimoPage() {
                                         nombre="comorbilidades"
                                         error={errores[10].error}
                                         txtError={errores[10].txt}
+                                        desactivado={desactivarCampos}
                                         etiqueta="Padecimiento(s) del paciente"
                                     />
                                 </Grid>
                             ) : null}
                             <Grid display="flex" justifyContent="center" size={numCols}>
                                 <Stack direction="row" spacing={2}>
-                                    <Tooltip title="Genera el diagnóstico de TEP.">
+                                    <Tooltip title={diagnostico.diagnosticado ? "Ver resultados del diagnóstico" :"Genera el diagnóstico de TEP."}>
                                         <Button
-                                            startIcon={<DiagnosticoIcono />}
+                                            startIcon={diagnostico.diagnosticado ? <PersonSearchIcon/> : <DiagnosticoIcono />}
                                             variant="contained"
                                             onClick={manejadorBtnDiagnosticar}
                                             sx={{
                                                 textTransform: "none"
                                             }}>
-                                            <b>Diagnosticar</b>
+                                            <b>{diagnostico.diagnosticado ? "Ver diagnóstico" : "Diagnosticar"}</b>
                                         </Button>
                                     </Tooltip>
-                                    <Tooltip title="Vaciar el contenido de los campos.">
+                                    <Tooltip title={diagnostico.diagnosticado ? "Vaciar los campos para realizar otro diagnóstico." : "Vaciar el contenido de los campos."}>
                                         <Button
                                             startIcon={<CloseIcon />}
                                             variant="contained"
@@ -437,8 +480,20 @@ export default function DiagnosticoAnonimoPage() {
                     abrir={modal.mostrar}
                     titulo={modal.titulo}
                     mensaje={modal.mensaje}
-                    manejadorCerrar={() => setModal({ ...modal, mostrar: false })}
-                />
+                    txtBtn="Cerrar"
+                    manejadorBtnModal={() => setModal((x) => ({ ...x, mostrar: false }))}>
+                    <Box>
+                        {diagnostico.resultado ? (
+                            <Typography variant="body1">
+                                ⚠️ Atención, se ha <b>diagnosticado al paciente con TEP</b>, teniendo una probabilidad del <b>{diagnostico.probabilidad.toFixed(2)}%</b>.
+                            </Typography>
+                        ) : (
+                            <Typography variant="body1">
+                                ℹEl paciente <b>no ha sido diagnosticado con TEP</b>, la probabilidad de no padecerlo es del <b>{diagnostico.probabilidad.toFixed(2)-1}%</b>.
+                            </Typography>
+                        )}
+                    </Box>
+                </ModalSimple>
             </MenuLayout>
         </>
     );
