@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals';
-import { evaluarIntervalo, oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, quitarDatosPersonales } from "../../../src/utils/TratarDatos";
+import { evaluarIntervalo, oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, quitarDatosPersonales, transformarDatos } from "../../../src/utils/TratarDatos";
 
 describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
     test("CP - 15", () => {
@@ -109,5 +109,51 @@ describe("Validar la función 'procBool'", () => {
     test("CP - 66", () => {
         const res = procBool(false);
         expect(res).toBe(0);
+    });
+});
+
+describe("Validar la función 'tratarDatos'", () => {
+    test("CP - 73", () => {
+        const params = {
+            sexo: 0, bebedor: false, fumador: false,
+            cirugiaReciente: false, viajeProlongado: false,
+            tos: false, fiebre: false, crepitaciones: false,
+            dolorToracico: true, malignidad: false, hemoptisis: false,
+            disnea: true, sibilancias: false, derrame: false,
+            tepPrevio: false, edema: false, disautonomicos: false,
+            inmovilidad: false, otraEnfermedad: false, soplos: false,
+            edad: "60", presionSis: "129", presionDias: "93", frecRes: "26",
+            frecCard: "128", so2: "80", plaquetas: "211100", hemoglobina: "13,8", wbc: "12300",
+        }
+        const comor = {
+            "Enfermedad hematológica": 1, "Enfermedad vascular": 0,
+            "Enfermedad pulmonar": 0, "Enfermedad renal": 0,
+            "Enfermedad cardíaca": 0, "Enfermedad coronaria": 0,
+            "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
+            "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
+            "Enfermedad hepática": 0, "Trombofilia": 0, "VIH": 0,
+            "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1
+        };
+        const respuesta = {
+            edad: 2, sexo: 0, bebedor: 0, fumador: 0,
+            "cirugia_reciente": 0, "viaje_prolongado": 0,
+            tos: 0, fiebre: 0, crepitaciones: 0,
+            "dolor_toracico": 1, malignidad: 0, hemoptisis: 0,
+            disnea: 1, sibilancias: 0, derrame: 0,
+            "TEP_TVP_previo": 0, "edema_de_m_inferiores": 0, "sintomas_disautonomicos": 0,
+            "inmovilidad_de_m_inferiores": 0, "otra_enfermedad": 0, soplos: 0,
+            "presion_sistolica": 4, "presion_diastolica": 6, "frecuencia_respiratoria": 3,
+            "frecuencia_cardiaca": 4, "saturacion_de_la_sangre": 7, "plt": 4, "hb": 4, "wbc": 3,
+            "hematologica": 1, "vascular": 0,
+            "pulmonar": 0, "renal": 0,
+            "cardiaca": 0, "enfermedad_coronaria": 0,
+            "endocrina": 0, "gastrointestinal": 0,
+            "urologica": 0, "neurologica": 0,
+            "trombofilia": 0, "vih": 0,
+            "diabetes_mellitus": 0, "hepatopatia_cronica": 0, "hipertension_arterial": 1
+        }
+
+        const res = transformarDatos(params, comor);
+        expect(res).toEqual(respuesta);
     });
 });
