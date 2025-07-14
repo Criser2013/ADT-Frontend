@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router";
 import { useNavegacion } from "../../contexts/NavegacionContext";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 /**
  * Layout que contiene la sidebar y la barra de navegación superior.

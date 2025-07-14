@@ -166,11 +166,11 @@ export function evaluarIntervalo(valor, intervalos) {
  * 8 = [190, 210)
  * 9 = (-∞ , 50)
  * 10 = [210, ∞)
- * @param {Number} valor - Valor a convertir.
+ * @param {String} valor - Valor a convertir.
  * @returns Number
  */
 export function procPresionSist(valor) {
-    return evaluarIntervalo(parseFloat(valor), [
+    return evaluarIntervalo(valor, [
         [50, 70, 1], [70, 90, 2], [90, 110, 3], [110, 130, 4],
         [130, 150, 5], [150, 170, 6], [170, 190, 7], [190, 210, 8],
         [null, 50, 9], [210, null, 10]
@@ -189,11 +189,11 @@ export function procPresionSist(valor) {
  * 8 = [110, 120)
  * 9 = (-∞ , 40)
  * 10 = [120, ∞)
- * @param {Number} valor - Valor a convertir.
+ * @param {String} valor - Valor a convertir.
  * @returns Number
  */
 export function procPresionDiast(valor) {
-    return evaluarIntervalo(parseFloat(valor), [
+    return evaluarIntervalo(valor, [
         [40, 50, 1], [50, 60, 2], [60, 70, 3], [70, 80, 4],
         [80, 90, 5], [90, 100, 6], [100, 110, 7], [110, 120, 8],
         [null, 40, 9], [120, null, 10]
@@ -210,11 +210,11 @@ export function procPresionDiast(valor) {
  * 6 = [30000, 35000)
  * 7 = (-∞ , 2000)
  * 8 = [35000, ∞)
- * @param {Number} valor - Valor a convertir.
+ * @param {String} valor - Valor a convertir.
  * @returns Number
  */
 export function procWbc(valor) {
-    return evaluarIntervalo(parseFloat(valor), [
+    return evaluarIntervalo(valor, [
         [2000, 4000, 1], [4000, 10000, 2], [10000, 15000, 3],
         [15000, 20000, 4], [20000, 30000, 5], [30000, 35000, 6],
         [null, 2000, 7], [35000, null, 7]
@@ -233,11 +233,11 @@ export function procWbc(valor) {
  * 8 = [20, 22)
  * 9 = (-∞ , 6)
  * 10 = [22, ∞)
- * @param {Number} valor - Valor a convertir.
+ * @param {String} valor - Valor a convertir.
  * @returns Number
  */
 export function procHb(valor) {
-    return evaluarIntervalo(parseFloat(valor), [
+    return evaluarIntervalo(valor, [
         [6, 8, 1], [8, 10, 2], [10, 12, 3], [12, 14, 4], [14, 16, 5],
         [16, 18, 6], [18, 20, 7], [20, 22, 8], [null, 6, 9], [22, null, 10]
     ]);
@@ -254,11 +254,11 @@ export function procHb(valor) {
  * 7 = [600000, 700000)
  * 8 = (-∞ , 10000)
  * 9 = [700000, ∞)
- * @param {Number} valor - Valor a convertir.
+ * @param {String} valor - Valor a convertir.
  * @returns Number
  */
 export function procPlt(valor) {
-    return evaluarIntervalo(parseFloat(valor), [
+    return evaluarIntervalo(valor, [
         [10000, 50000, 1], [50000, 100000, 2], [100000, 150000, 3],
         [150000, 400000, 4], [400000, 500000, 5], [500000, 600000, 6],
         [600000, 700000, 7], [null, 10000, 9], [700000, null, 10]
@@ -278,11 +278,11 @@ export function procPlt(valor) {
  * 9 = [55, 60)
  * 10 = (-∞,15]
  * 11 = [60, ∞)
- * @param {Number} valor - Valor a convertir
+ * @param {String} valor - Valor a convertir
  * @returns Number
  */
 export function procFrecRes(valor) {
-    return evaluarIntervalo(parseFloat(valor), [
+    return evaluarIntervalo(valor, [
         [15, 20, 1], [20, 25, 2], [25, 30, 3], [30, 35, 4], [35, 40, 5],
         [40, 45, 6], [45, 50, 7], [50, 55, 8], [55, 60, 9], [null, 15, 10],
         [60, null, 11]
@@ -303,11 +303,11 @@ export function procFrecRes(valor) {
  * 10 = [95, 100)
  * 11 = (-∞ , 50)
  * 12 = [100, ∞)
- * @param {Number} valor - Valor a convertir.
+ * @param {String} valor - Valor a convertir.
  * @returns Number
  */
 export function procSo2(valor) {
-    return evaluarIntervalo(parseFloat(valor), [
+    return evaluarIntervalo(valor, [
         [50, 55, 1], [55, 60, 2], [60, 65, 3], [65, 70, 4], [70, 75, 5],
         [75, 80, 6], [80, 85, 7], [85, 90, 8], [90, 95, 9], [95, 100, 10],
         [null, 50, 11], [100, null, 12]
@@ -326,11 +326,11 @@ export function procSo2(valor) {
  * 8 = [190, 210)
  * 9 = (-∞ , 50)
  * 10 = [210, ∞)
- * @param {Number} valor - Valor a convertir.
+ * @param {String} valor - Valor a convertir.
  * @returns Number
  */
 export function procFrecCard(valor) {
-    return evaluarIntervalo(parseFloat(valor), [
+    return evaluarIntervalo(valor, [
         [50, 70, 1], [70, 90, 2], [90, 110, 3], [110, 130, 4], [130, 150, 5],
         [150, 170, 6], [170, 190, 7], [190, 210, 8], [null, 50, 9], [210, null, 10]
     ]);
@@ -343,11 +343,11 @@ export function procFrecCard(valor) {
  * 2 = [40, 60) - 41 a 60 años.
  * 3 = [60, 80) - 60 a 80 años.
  * 4 = [81, ∞) - Mayor de 80 años.
- * @param {Number} valor - Valor a convertir.
+ * @param {String} valor - Valor a convertir.
  * @returns Number
  */
 export function procEdad(valor) {
-    return evaluarIntervalo(parseFloat(valor), [
+    return evaluarIntervalo(valor, [
         [0, 20, 0], [20, 41, 1], [41, 61, 2],
         [61, 81, 3], [81, null, 4]
     ]);

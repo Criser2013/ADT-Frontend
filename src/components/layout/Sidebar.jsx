@@ -47,7 +47,7 @@ export default function Sidebar() {
                 break;
             case 2:
                 navegacion.setPaginaAnterior(window.location.pathname);
-                navigate("/diagnosticar-paciente", { replace: true });
+                navigate("/diagnostico-paciente", { replace: true });
                 break;
             case 3:
                 navegacion.setPaginaAnterior(window.location.pathname);
