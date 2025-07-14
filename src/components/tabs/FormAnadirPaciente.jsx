@@ -1,7 +1,6 @@
 import {
-    Grid, Typography, TextField, Button, MenuItem, FormControl, FormGroup, FormControlLabel, InputLabel,
-    Select, OutlinedInput, Box, Checkbox, Chip, Dialog, DialogContent, DialogActions, DialogTitle,
-    FormHelperText, Tooltip, CircularProgress
+    Grid, Typography, TextField, Button, MenuItem, FormGroup, FormControlLabel, Box, Checkbox,
+    Tooltip, CircularProgress
 } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -11,13 +10,14 @@ import { COMORBILIDADES } from "../../../constants";
 import { useState, useMemo, useEffect } from "react";
 import { validarNombre, validarNumero, validarTelefono } from "../../utils/Validadores";
 import { useDrive } from "../../contexts/DriveContext";
-import { oneHotEncondingOtraEnfermedad } from "../../utils/TratarDatos";
+import { oneHotEncondingOtraEnfermedad, validarArray } from "../../utils/TratarDatos";
 import { useNavigate } from "react-router";
 import TabHeader from "./TabHeader";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import { detTamCarga } from "../../utils/Responsividad";
-import { useAuth } from "../../contexts/AuthContext";
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import SelectChip from "./SelectChip";
+import ModalSimple from "../modals/ModalSimple";
 
 /**
  * Componente que representa el formularios para añadir/editar los datos de
@@ -29,7 +29,6 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
  */
 export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula = "", esAnadir = true }) {
     const drive = useDrive();
-    const auth = useAuth();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
     const [datos, setDatos] = useState({
@@ -139,7 +138,7 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
                 res = { error: true, txt: "La fecha de nacimiento debe ser anterior a la fecha actual" };
                 break;
             case (cod == "telefono" && !validarTelefono(datos.telefono)):
-                res = { error: true, txt: "Solo debes ingresar números" };
+                res = { error: true, txt: "El número de teléfono debe contener entre 8 y 10 dígitos." };
                 break;
             case (cod == "sexo" && datos.sexo > 1):
                 res = { error: true, txt: "Selecciona el sexo del paciente" };
@@ -180,27 +179,16 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
     };
 
     /**
-     * Valida los datos ingresados por el usuario.
-     */
-    const validarDatos = () => {
-        const errores = [];
-
-        ["nombre", "cedula", "sexo", "telefono", "fecha", "comor"].forEach((x) => {
-            errores.push(evaluarErrores(x));
-        });
-
-        const res = errores.every((x) => !x.error);
-        setErrores(errores);
-
-        return res;
-    };
-
-    /**
      * Manejador del botón de guardar.
      */
     const manejadorBtnGuardar = () => {
         limpiarErrores();
-        const res = validarDatos();
+        const res = validarArray(
+            ["nombre", "cedula", "sexo", "telefono", "fecha", "comor"],
+            evaluarErrores,
+            (x) => !x.error,
+            setErrores
+        );
 
         if (!res) {
             mostrarErrDatosInv();
@@ -243,7 +231,7 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
 
     return (
         <>
-            {(cargando || auth.cargando) ? (
+            {cargando ? (
                 <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
                     <CircularProgress />
                 </Box>
@@ -341,36 +329,19 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
                                     label="El paciente padece otra enfermedad." />
                             </FormGroup>
                         </Grid>
-                        {comorActivadas ? (<Grid size={2}>
-                            <FormControl sx={{ width: "100%" }}>
-                                <InputLabel id="comorbilidades-tag">Padecimiento(s) del paciente</InputLabel>
-                                <Select
-                                    labelId="comorbilidades-tag"
-                                    multiple
-                                    value={comorbilidades}
-                                    onChange={manejadorCambiosComor}
-                                    fullWidth
-                                    name="comor"
+                        {comorActivadas ? (
+                            <Grid size={12}>
+                                <SelectChip
+                                    valor={comorbilidades}
+                                    listaValores={COMORBILIDADES}
+                                    manejadorCambios={manejadorCambiosComor}
+                                    nombre="comor"
                                     error={errores[5].error}
-                                    input={<OutlinedInput id="select-multiple-chip" label="Padecimiento(s) del paciente" />}
-                                    renderValue={(selected) => (
-                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                            {selected.map((value) => (
-                                                <Chip key={value} label={value} />
-                                            ))}
-                                        </Box>
-                                    )}>
-                                    {COMORBILIDADES.map((x) => (
-                                        <MenuItem
-                                            key={x}
-                                            value={x}>
-                                            {x}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                                <FormHelperText error={errores[5].error}>{errores[5].txt}</FormHelperText>
-                            </FormControl>
-                        </Grid>) : null}
+                                    txtError={errores[5].txt}
+                                    etiqueta="Padecimiento(s) del paciente"
+                                />
+                            </Grid>
+                        ) : null}
                         <Grid display="flex" justifyContent="center" size={12}>
                             <Tooltip title="Guarda los datos del paciente.">
                                 <Button
@@ -386,21 +357,13 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
                         </Grid>
                     </Grid>
                 </>)}
-            <Dialog open={modal.mostrar}>
-                <DialogTitle>{modal.titulo}</DialogTitle>
-                <DialogContent>
-                    <Typography>{modal.mensaje}</Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        onClick={manejadorBtnModal}
-                        sx={{ textTransform: "none" }}>
-                        <b>Cerrar</b>
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <ModalSimple
+                abrir={modal.mostrar}
+                titulo={modal.titulo}
+                mensaje={modal.mensaje}
+                txtBtn="Cerrar"
+                manejadorBtnModal={manejadorBtnModal}
+            />
         </>
     );
 };

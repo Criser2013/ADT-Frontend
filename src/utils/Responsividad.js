@@ -24,7 +24,7 @@ export function detTamCarga(dispositivoMovil, orientacion, mostrarMenu, ancho) {
     if (dispositivoMovil && orientacion == "vertical") {
         return ancho * 0.92;
     } else if ((!dispositivoMovil || (dispositivoMovil && orientacion == "horizontal")) && !mostrarMenu) {
-        return ancho * 0.97;
+        return ancho * 0.92;
     } else {
         return ancho * 0.96 - 240;
     }

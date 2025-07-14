@@ -39,3 +39,15 @@ export function validarFecha(val) {
 
     return exp.test(val);
 };
+
+/**
+ * Valida si un texto es un número decimal positivo.
+ * @param {String} val - Texto
+ * @returns Boolean
+ */
+export function validarFloatPos(val) {
+    val = val.replace(",",".");
+    const exp = /^\d+(\.\d+)?$/;
+
+    return exp.test(val) || validarNumero(val);
+};
