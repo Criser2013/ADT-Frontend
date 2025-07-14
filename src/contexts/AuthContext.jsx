@@ -1,6 +1,6 @@
 import { reauthenticateWithPopup, signOut } from "firebase/auth";
 import { createContext, useState, useContext, useEffect } from "react";
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, reauthenticateWithCredential } from "firebase/auth";
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { verUsuario } from "../firestore/usuarios-collection";
 import { cambiarUsuario, verSiEstaRegistrado } from "../firestore/usuarios-collection";
 import { FirebaseError } from "firebase/app";

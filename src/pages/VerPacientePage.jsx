@@ -27,11 +27,11 @@ export default function VerPacientePage() {
     const drive = useDrive();
     const navegacion = useNavegacion();
     const navigate = useNavigate();
-    const [params, setParams] = useSearchParams();
+    const [params] = useSearchParams();
     const [cargando, setCargando] = useState(true);
     const [modoEliminar, setModoEliminar] = useState(false);
     const [popOver, setPopOver] = useState(null);
-    const open = Boolean(popOver)
+    const open = Boolean(popOver);
     const elem = open ? "simple-popover" : undefined;
     const [modal, setModal] = useState({
         mostrar: false, mensaje: "", titulo: ""
