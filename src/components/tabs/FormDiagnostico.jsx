@@ -12,16 +12,20 @@ import { COMORBILIDADES, SEXOS } from "../../../constants";
 import CloseIcon from "@mui/icons-material/Close";
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import { validarFloatPos, validarNumero } from "../../utils/Validadores";
-import { oneHotEncondingOtraEnfermedad, transformarDatos, validarArray } from "../../utils/TratarDatos";
+import { oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, transformarDatos, validarArray } from "../../utils/TratarDatos";
 import ModalSimple from "../modals/ModalSimple";
 import { generarDiagnostico } from "../../services/Api";
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 
 /**
  * Formulario para realizar un diagnostico de TEP.
+ * @param {Array} pacientes - Lista de pacientes registrados.
+ * @param {Boolean} esDiagPacientes - Indica si el formulario es para diagnosticar pacientes.
  * @returns JSX.Element
  */
-export default function FormDiagnostico() {
+export default function FormDiagnostico({ pacientes = [], esDiagPacientes = false }) {
     const auth = useAuth();
     const navegacion = useNavegacion();
     const [cargando, setCargando] = useState(false);
@@ -40,6 +44,9 @@ export default function FormDiagnostico() {
         inmovilidad: false, viajeProlongado: false, cirugiaReciente: false,
         otraEnfermedad: false, soplos: false
     });
+    const [paciente, setPaciente] = useState({
+        cedula: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null
+    });
     const [diagnostico, setDiagnostico] = useState({
         resultado: false, probabilidad: 0, diagnosticado: false
     });
@@ -57,6 +64,7 @@ export default function FormDiagnostico() {
         { campo: "hemoglobina", error: false, txt: "" },
         { campo: "wbc", error: false, txt: "" },
         { campo: "comorbilidades", error: false, txt: "" },
+        { campo: "paciente", error: false, txt: "" }
     ]);
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
@@ -102,6 +110,43 @@ export default function FormDiagnostico() {
     };
 
     /**
+     * Manejador de cambios para menú desplegable de pacientes.
+     * @param {Event} e 
+     */
+    const manejadorCambiosPaciente = (e) => {
+        dayjs.extend(customParseFormat);
+        const pacienteSeleccionado = pacientes.find((x) => x.cedula == e.target.value);
+
+        if (e.target.value != -1) {
+            const comorbilidades = oneHotInversoOtraEnfermedad(pacienteSeleccionado);
+
+            setDatosTxt({
+                ...datosTxt, sexo: pacienteSeleccionado.sexo, edad: dayjs().diff(dayjs(
+                    pacienteSeleccionado.fechaNacimiento, "DD-MM-YYYY"), "year", false
+                )
+            });
+            setDatosBin({ ...datosBin, otraEnfermedad: pacienteSeleccionado.otraEnfermedad });
+            setOtrasEnfermedades(comorbilidades);
+        } else {
+            setDatosTxt({
+                sexo: 2, edad: "", presionSis: "", presionDias: "", frecRes: "",
+                frecCard: "", so2: "", plaquetas: "", hemoglobina: "", wbc: ""
+            });
+            setDatosBin({
+                fumador: false, bebedor: false, tos: false, fiebre: false,
+                crepitaciones: false, dolorToracico: false, malignidad: false,
+                hemoptisis: false, disnea: false, sibilancias: false,
+                derrame: false, tepPrevio: false, edema: false, disautonomicos: false,
+                inmovilidad: false, viajeProlongado: false, cirugiaReciente: false,
+                otraEnfermedad: false, soplos: false
+            });
+            setOtrasEnfermedades([]);
+        }
+
+        setPaciente(pacienteSeleccionado);
+    };
+
+    /**
      * Manejador de cambios para las comorbilidades.
      * @param {Event} e 
      */
@@ -129,6 +174,10 @@ export default function FormDiagnostico() {
         });
         setOtrasEnfermedades([]);
         setErrores(errores.map(e => ({ ...e, error: false, txt: "" })));
+
+        if (esDiagPacientes) {
+            setPaciente({ cedula: -1, nombre: "Seleccionar paciente" });
+        }
     };
 
     /**
@@ -147,6 +196,7 @@ export default function FormDiagnostico() {
             { campo: "hemoglobina", error: false, txt: "" },
             { campo: "wbc", error: false, txt: "" },
             { campo: "comorbilidades", error: false, txt: "" },
+            { campo: "paciente", error: false, txt: "" }
         ]);
     };
 
@@ -158,6 +208,9 @@ export default function FormDiagnostico() {
     const evaluarErrores = (cod) => {
         let res = { campo: cod, error: false, txt: "" };
         switch (true) {
+            case (cod == "paciente" && paciente.cedula == -1):
+                res = { error: true, txt: "Debes seleccionar un paciente" };
+                break;
             case (cod == "sexo" && datosTxt.sexo > 1):
                 res = { error: true, txt: "Selecciona el sexo del paciente" };
                 break;
@@ -213,6 +266,17 @@ export default function FormDiagnostico() {
      * Manejador del botón de guardar.
      */
     const manejadorBtnDiagnosticar = () => {
+        const camposEval = ["paciente", "presionSis", "presionDias", "frecRes",
+            "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"
+        ];
+
+        if (esDiagPacientes) {
+            camposEval.unshift("paciente");
+        } else {
+            camposEval.unshift("sexo", "edad");
+            camposEval.push("comorbilidades");
+        }
+
         if (diagnostico.diagnosticado) {
             setModal({ mostrar: true, titulo: "Resultado del diagnóstico", mensaje: "" });
             return;
@@ -220,8 +284,7 @@ export default function FormDiagnostico() {
 
         limpiarErrores();
         const res = validarArray(
-            ["sexo", "edad", "presionSis", "presionDias", "frecRes",
-                "frecCard", "so2", "plaquetas", "hemoglobina", "wbc", "comorbilidades"],
+            camposEval,
             evaluarErrores,
             (x) => !x.error,
             setErrores
@@ -256,6 +319,8 @@ export default function FormDiagnostico() {
         setCargando(false);
     };
 
+    console.log(pacientes)
+
     return (
         <>
             {cargando ? (
@@ -269,6 +334,25 @@ export default function FormDiagnostico() {
                             <b>Datos personales</b>
                         </Typography>
                     </Grid>
+                    {esDiagPacientes ? (
+                        <Grid size={1}>
+                            <TextField
+                                select
+                                label="Paciente"
+                                name="paciente"
+                                value={paciente.cedula}
+                                onChange={manejadorCambiosPaciente}
+                                error={errores[0].error}
+                                helperText={errores[0].txt}
+                                fullWidth>
+                                {pacientes.map((x) => (
+                                    <MenuItem key={x.cedula} value={x.cedula}>
+                                        {x.nombre}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        </Grid>
+                    ) : null}
                     <Grid size={1}>
                         <TextField
                             select
@@ -278,7 +362,7 @@ export default function FormDiagnostico() {
                             onChange={manejadorCambiosDatosTxt}
                             error={errores[0].error}
                             helperText={errores[0].txt}
-                            disabled={desactivarCampos}
+                            disabled={desactivarCampos || esDiagPacientes}
                             fullWidth>
                             {SEXOS.map((x) => (
                                 <MenuItem key={x.val} value={x.val}>
@@ -294,7 +378,7 @@ export default function FormDiagnostico() {
                             value={datosTxt.edad}
                             onChange={manejadorCambiosDatosTxt}
                             error={errores[1].error}
-                            disabled={desactivarCampos}
+                            disabled={desactivarCampos || esDiagPacientes}
                             helperText={errores[1].txt}
                             fullWidth />
                     </Grid>
@@ -414,11 +498,16 @@ export default function FormDiagnostico() {
                             fullWidth />
                     </Grid>
                     <Grid size={numCols}>
+                        <Typography variant="h6">
+                            <b>Condiciones médicas preexistentes</b>
+                        </Typography>
+                    </Grid>
+                    <Grid size={numCols}>
                         <Check
                             nombre="otraEnfermedad"
                             etiqueta="El paciente padece otra enfermedad."
                             checked={datosBin.otraEnfermedad}
-                            desactivado={desactivarCampos}
+                            desactivado={desactivarCampos || esDiagPacientes}
                             manejadorCambios={manejadorCambiosDatosBin} />
                     </Grid>
                     {datosBin.otraEnfermedad ? (
@@ -430,7 +519,7 @@ export default function FormDiagnostico() {
                                 nombre="comorbilidades"
                                 error={errores[10].error}
                                 txtError={errores[10].txt}
-                                desactivado={desactivarCampos}
+                                desactivado={desactivarCampos || esDiagPacientes}
                                 etiqueta="Padecimiento(s) del paciente"
                             />
                         </Grid>
