@@ -12,12 +12,17 @@ import { COMORBILIDADES, SEXOS } from "../../../constants";
 import CloseIcon from "@mui/icons-material/Close";
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import { validarFloatPos, validarNumero } from "../../utils/Validadores";
-import { oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, transformarDatos, validarArray } from "../../utils/TratarDatos";
+import { oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, transformarDatos, validarArray } from "../../utils/TratarDatos";
 import ModalSimple from "../modals/ModalSimple";
 import { generarDiagnostico } from "../../services/Api";
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import { cambiarDiagnostico } from "../../firestore/diagnosticos-collection";
+import { useNavigate } from "react-router";
+import { v6 } from "uuid";
+import { Timestamp } from "firebase/firestore";
+import { useCredenciales } from "../../contexts/CredencialesContext";
 
 /**
  * Formulario para realizar un diagnostico de TEP.
@@ -28,6 +33,8 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 export default function FormDiagnostico({ pacientes = [], esDiagPacientes = false }) {
     const auth = useAuth();
     const navegacion = useNavegacion();
+    const credenciales = useCredenciales();
+    const navigate = useNavigate();
     const [cargando, setCargando] = useState(false);
     const [modal, setModal] = useState({
         mostrar: false, titulo: "", mensaje: ""
@@ -310,6 +317,8 @@ export default function FormDiagnostico({ pacientes = [], esDiagPacientes = fals
 
         if (!success) {
             setModal({ mostrar: true, titulo: "Error", mensaje: res.error });
+        } else if (success && esDiagPacientes) {
+            guardarDiagnostico(oneHotComor, data);
         } else {
             setDesactivarCampos(true);
             setDiagnostico({ resultado: data.prediccion, probabilidad: data.probabilidad * 100, diagnosticado: true });
@@ -319,7 +328,38 @@ export default function FormDiagnostico({ pacientes = [], esDiagPacientes = fals
         setCargando(false);
     };
 
-    console.log(pacientes)
+    /**
+     * Guarda el diagnóstico en la base de datos.
+     * @param {JSON} oneHotComor - Datos de comorbilidades en formato one-hot.
+     * @param {JSON} resultado - Diagnóstico generado por la API.
+     */
+    const guardarDiagnostico = async (oneHotComor, resultado) => {
+        const auxBin = { ...datosBin };
+
+        for (const i in datosBin) {
+            auxBin[i] = procBool(datosBin[i]);
+        }
+
+        const datos = {
+            id: v6(), medico: auth.authInfo.correo, ...datosTxt, ...auxBin, ...oneHotComor,
+            probabilidad: resultado.probabilidad, diagnostico: resultado.prediccion,
+            fecha: Timestamp.now()
+        };
+
+        console.log(datos)
+
+        const res = await cambiarDiagnostico(datos, credenciales.obtenerInstanciaDB());
+
+        if (res.success) {
+            navigate(`/diagnosticos/ver-diagnostico?id=${res.data.id}`, { replace: true, state: datos });
+        } else {
+            setModal({
+                mostrar: true,
+                titulo: "Error al guardar el diagnóstico",
+                mensaje: `No se pudo guardar el diagnóstico: ${res.data}.`
+            });
+        }
+    };
 
     return (
         <>
