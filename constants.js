@@ -11,3 +11,8 @@ export const COMORBILIDADES = ["Enfermedad vascular", "Trombofilia", "Enfermedad
 ];
 export const EXPORT_FILENAME = `HADT Diagnósticos — ${fecha}.xlsx`;
 export const DRIVE_FOLDER_NAME = import.meta.env.VITE_DRIVE_FOLDER_NAME || "HADT: Herramienta para apoyar el diagnóstico de TEP";
+export const SEXOS = [
+    { texto: "Seleccione el sexo", val: 2 },
+    { texto: "Masculino", val: 0 },
+    { texto: "Femenino", val: 1 }
+];
