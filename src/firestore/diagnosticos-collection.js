@@ -13,7 +13,6 @@ export const cambiarDiagnostico = async (datos, db) => {
 
         return { success: true, data: datosDiagnostico };
     } catch (error) {
-        console.error("Error al cambiar el diagnóstico:", error);
         return { success: false, data: error };
     }
 };

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import MenuLayout from "../components/layout/MenuLayout";
-import TabHeader from "../components/tabs/TabHeader";
 import FormDiagnostico from "../components/tabs/FormDiagnostico";
 import { useAuth } from "../contexts/AuthContext";
 import { useDrive } from "../contexts/DriveContext";
@@ -48,7 +47,7 @@ export default function DiagnosticoPacientePage() {
      * Carga de datos inicial y colocando el título de la página.
      */
     useEffect(() => {
-        document.title = "Diagnósticar paciente";
+        document.title = "Diagnosticar paciente";
 
         if (drive.datos != null && !drive.descargando) {
             drive.cargarDatos().then((res) => {
@@ -60,20 +59,18 @@ export default function DiagnosticoPacientePage() {
     }, []);
 
     const Wrapper = useCallback(() => {
-        return (<FormDiagnostico 
-                    datos={datos}
-                    esDiagPacientes={true} />);
+        return (<FormDiagnostico
+            datos={datos}
+            esDiagPacientes={true} />);
     }, [datos]);
 
     return (
         <MenuLayout>
-            <TabHeader
-                activarBtnAtras={false}
-                titulo="Diagnóstico paciente"
-                pestanas={listadoPestanas} />
-                <FormDiagnostico 
-                    pacientes={datos}
-                    esDiagPacientes={true} />
+            <FormDiagnostico
+                tituloHeader="Diagnóstico paciente"
+                listadoPestanas={listadoPestanas}
+                pacientes={datos}
+                esDiagPacientes={true} />
             <ModalSimple
                 abrir={modal}
                 titulo="Error"

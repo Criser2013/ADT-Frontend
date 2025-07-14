@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import TabHeader from "../components/tabs/TabHeader";
 import FormDiagnostico from "../components/tabs/FormDiagnostico";
 import MenuLayout from "../components/layout/MenuLayout";
 
@@ -17,11 +16,9 @@ export default function DiagnosticoAnonimoPage() {
 
     return (
         <MenuLayout>
-            <TabHeader
-                activarBtnAtras={false}
-                titulo="Diagnóstico anónimo"
-                pestanas={listadoPestanas} />
-            <FormDiagnostico />
+            <FormDiagnostico 
+                listadoPestanas={listadoPestanas}
+                tituloHeader="Diagnóstico anónimo" />
         </MenuLayout>
     );
 }; 

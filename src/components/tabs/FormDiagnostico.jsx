@@ -23,14 +23,17 @@ import { useNavigate } from "react-router";
 import { v6 } from "uuid";
 import { Timestamp } from "firebase/firestore";
 import { useCredenciales } from "../../contexts/CredencialesContext";
+import TabHeader from "../tabs/TabHeader";
 
 /**
  * Formulario para realizar un diagnostico de TEP.
+ * @param {Array} listadoPestanas - Lista de pestañas para el encabezado.
+ * @param {Array} tituloHeader - Título del encabezado.
  * @param {Array} pacientes - Lista de pacientes registrados.
  * @param {Boolean} esDiagPacientes - Indica si el formulario es para diagnosticar pacientes.
  * @returns JSX.Element
  */
-export default function FormDiagnostico({ pacientes = [], esDiagPacientes = false }) {
+export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacientes = [], esDiagPacientes = false }) {
     const auth = useAuth();
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
@@ -273,15 +276,16 @@ export default function FormDiagnostico({ pacientes = [], esDiagPacientes = fals
      * Manejador del botón de guardar.
      */
     const manejadorBtnDiagnosticar = () => {
-        const camposEval = ["paciente", "presionSis", "presionDias", "frecRes",
+        const camposEval = ["presionSis", "presionDias", "frecRes",
             "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"
         ];
 
+        camposEval.unshift("sexo", "edad");
+        camposEval.push("comorbilidades");
+
+
         if (esDiagPacientes) {
-            camposEval.unshift("paciente");
-        } else {
-            camposEval.unshift("sexo", "edad");
-            camposEval.push("comorbilidades");
+            camposEval.push("paciente");
         }
 
         if (diagnostico.diagnosticado) {
@@ -318,7 +322,7 @@ export default function FormDiagnostico({ pacientes = [], esDiagPacientes = fals
         if (!success) {
             setModal({ mostrar: true, titulo: "Error", mensaje: res.error });
         } else if (success && esDiagPacientes) {
-            guardarDiagnostico(oneHotComor, data);
+            await guardarDiagnostico(oneHotComor, data);
         } else {
             setDesactivarCampos(true);
             setDiagnostico({ resultado: data.prediccion, probabilidad: data.probabilidad * 100, diagnosticado: true });
@@ -335,23 +339,30 @@ export default function FormDiagnostico({ pacientes = [], esDiagPacientes = fals
      */
     const guardarDiagnostico = async (oneHotComor, resultado) => {
         const auxBin = { ...datosBin };
+        const auxTxt = { ...datosTxt };
 
+        // Convirtiendo los booleanos a 0 y 1
         for (const i in datosBin) {
             auxBin[i] = procBool(datosBin[i]);
         }
 
-        const datos = {
-            id: v6(), medico: auth.authInfo.correo, ...datosTxt, ...auxBin, ...oneHotComor,
-            probabilidad: resultado.probabilidad, diagnostico: resultado.prediccion,
-            fecha: Timestamp.now()
-        };
+        // Transformando los datos de texto a números
+        for (const i in datosTxt) {
+            if (typeof datosTxt[i] == "string") {
+                auxTxt[i] = parseFloat(datosTxt[i].replace(",", "."));
+            }
+        }
 
-        console.log(datos)
+        const datos = {
+            id: v6(), medico: auth.authInfo.correo, ...auxTxt, ...auxBin, ...oneHotComor,
+            probabilidad: resultado.probabilidad, diagnostico: procBool(resultado.prediccion),
+            fecha: Timestamp.now(), validado: 2
+        };
 
         const res = await cambiarDiagnostico(datos, credenciales.obtenerInstanciaDB());
 
         if (res.success) {
-            navigate(`/diagnosticos/ver-diagnostico?id=${res.data.id}`, { replace: true, state: datos });
+            navigate(`/diagnosticos/ver-diagnostico?id=${datos.id}`, { replace: true, state: datos });
         } else {
             setModal({
                 mostrar: true,
@@ -368,229 +379,235 @@ export default function FormDiagnostico({ pacientes = [], esDiagPacientes = fals
                     <CircularProgress />
                 </Box>
             ) : (
-                <Grid container columns={numCols} spacing={2} sx={{ marginTop: "3vh", width: width }}>
-                    <Grid size={numCols}>
-                        <Typography variant="h6">
-                            <b>Datos personales</b>
-                        </Typography>
-                    </Grid>
-                    {esDiagPacientes ? (
+                <>
+                    <TabHeader
+                        activarBtnAtras={false}
+                        titulo={tituloHeader}
+                        pestanas={listadoPestanas} />
+                    <Grid container columns={numCols} spacing={2} sx={{ marginTop: "3vh", width: width }}>
+                        <Grid size={numCols}>
+                            <Typography variant="h6">
+                                <b>Datos personales</b>
+                            </Typography>
+                        </Grid>
+                        {esDiagPacientes ? (
+                            <Grid size={1}>
+                                <TextField
+                                    select
+                                    label="Paciente"
+                                    name="paciente"
+                                    value={paciente.cedula}
+                                    onChange={manejadorCambiosPaciente}
+                                    error={errores[11].error}
+                                    helperText={errores[11].txt}
+                                    fullWidth>
+                                    {pacientes.map((x) => (
+                                        <MenuItem key={x.cedula} value={x.cedula}>
+                                            {x.nombre}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+                            </Grid>
+                        ) : null}
                         <Grid size={1}>
                             <TextField
                                 select
-                                label="Paciente"
-                                name="paciente"
-                                value={paciente.cedula}
-                                onChange={manejadorCambiosPaciente}
-                                error={errores[0].error}
-                                helperText={errores[0].txt}
+                                label="Sexo"
+                                name="sexo"
+                                value={datosTxt.sexo}
+                                onChange={manejadorCambiosDatosTxt}
+                                error={errores[0].error && !esDiagPacientes}
+                                helperText={!esDiagPacientes ? errores[0].txt : ""}
+                                disabled={desactivarCampos || esDiagPacientes}
                                 fullWidth>
-                                {pacientes.map((x) => (
-                                    <MenuItem key={x.cedula} value={x.cedula}>
-                                        {x.nombre}
+                                {SEXOS.map((x) => (
+                                    <MenuItem key={x.val} value={x.val}>
+                                        {x.texto}
                                     </MenuItem>
                                 ))}
                             </TextField>
                         </Grid>
-                    ) : null}
-                    <Grid size={1}>
-                        <TextField
-                            select
-                            label="Sexo"
-                            name="sexo"
-                            value={datosTxt.sexo}
-                            onChange={manejadorCambiosDatosTxt}
-                            error={errores[0].error}
-                            helperText={errores[0].txt}
-                            disabled={desactivarCampos || esDiagPacientes}
-                            fullWidth>
-                            {SEXOS.map((x) => (
-                                <MenuItem key={x.val} value={x.val}>
-                                    {x.texto}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                    </Grid>
-                    <Grid size={1}>
-                        <TextField
-                            label="Edad"
-                            name="edad"
-                            value={datosTxt.edad}
-                            onChange={manejadorCambiosDatosTxt}
-                            error={errores[1].error}
-                            disabled={desactivarCampos || esDiagPacientes}
-                            helperText={errores[1].txt}
-                            fullWidth />
-                    </Grid>
-                    <Grid size={numCols}>
-                        <Typography variant="h6">
-                            <b>Síntomas clínicos</b>
-                        </Typography>
-                    </Grid>
-                    <Grid container size={numCols} columns={numCols} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
-                        {sintomas.map((x) => (
-                            <Grid size={1} key={x.nombre}>
-                                <Check
-                                    nombre={x.nombre}
-                                    etiqueta={x.texto}
-                                    desactivado={desactivarCampos}
-                                    checked={datosBin[x.nombre]}
-                                    manejadorCambios={manejadorCambiosDatosBin} />
-                            </Grid>
-                        ))}
-                    </Grid>
-                    <Grid size={numCols}>
-                        <Typography variant="h6">
-                            <b>Signos vitales</b>
-                        </Typography>
-                    </Grid>
-                    <Grid size={1}>
-                        <TextField
-                            label="Presión sistólica (mmHg)"
-                            name="presionSis"
-                            value={datosTxt.presionSis}
-                            onChange={manejadorCambiosDatosTxt}
-                            error={errores[2].error}
-                            disabled={desactivarCampos}
-                            helperText={errores[2].txt}
-                            fullWidth />
-                    </Grid>
-                    <Grid size={1}>
-                        <TextField
-                            label="Presión diastólica (mmHg)"
-                            name="presionDias"
-                            value={datosTxt.presionDias}
-                            onChange={manejadorCambiosDatosTxt}
-                            error={errores[3].error}
-                            disabled={desactivarCampos}
-                            helperText={errores[3].txt}
-                            fullWidth />
-                    </Grid>
-                    <Grid size={1}>
-                        <TextField
-                            label="Frecuencia respiratoria"
-                            name="frecRes"
-                            value={datosTxt.frecRes}
-                            onChange={manejadorCambiosDatosTxt}
-                            error={errores[4].error}
-                            disabled={desactivarCampos}
-                            helperText={errores[4].txt}
-                            fullWidth />
-                    </Grid>
-                    <Grid size={1}>
-                        <TextField
-                            label="Frecuencia cardíaca"
-                            name="frecCard"
-                            value={datosTxt.frecCard}
-                            onChange={manejadorCambiosDatosTxt}
-                            error={errores[5].error}
-                            disabled={desactivarCampos}
-                            helperText={errores[5].txt}
-                            fullWidth />
-                    </Grid>
-                    <Grid size={1}>
-                        <TextField
-                            label="Saturación de la sangre"
-                            name="so2"
-                            value={datosTxt.so2}
-                            onChange={manejadorCambiosDatosTxt}
-                            error={errores[6].error}
-                            disabled={desactivarCampos}
-                            helperText={errores[6].txt}
-                            fullWidth />
-                    </Grid>
-                    <Grid size={numCols}>
-                        <Typography variant="h6">
-                            <b>Exámenes de laboratorio</b>
-                        </Typography>
-                    </Grid>
-                    <Grid size={1}>
-                        <TextField
-                            label="Conteo de plaquetas"
-                            name="plaquetas"
-                            value={datosTxt.plaquetas}
-                            onChange={manejadorCambiosDatosTxt}
-                            error={errores[7].error}
-                            disabled={desactivarCampos}
-                            helperText={errores[7].txt}
-                            fullWidth />
-                    </Grid>
-                    <Grid size={1}>
-                        <TextField
-                            label="Hemoglobina"
-                            name="hemoglobina"
-                            value={datosTxt.hemoglobina}
-                            onChange={manejadorCambiosDatosTxt}
-                            error={errores[8].error}
-                            disabled={desactivarCampos}
-                            helperText={errores[8].txt}
-                            fullWidth />
-                    </Grid>
-                    <Grid size={1}>
-                        <TextField
-                            label="Conteo de glóbulos blancos"
-                            name="wbc"
-                            value={datosTxt.wbc}
-                            onChange={manejadorCambiosDatosTxt}
-                            error={errores[9].error}
-                            disabled={desactivarCampos}
-                            helperText={errores[9].txt}
-                            fullWidth />
-                    </Grid>
-                    <Grid size={numCols}>
-                        <Typography variant="h6">
-                            <b>Condiciones médicas preexistentes</b>
-                        </Typography>
-                    </Grid>
-                    <Grid size={numCols}>
-                        <Check
-                            nombre="otraEnfermedad"
-                            etiqueta="El paciente padece otra enfermedad."
-                            checked={datosBin.otraEnfermedad}
-                            desactivado={desactivarCampos || esDiagPacientes}
-                            manejadorCambios={manejadorCambiosDatosBin} />
-                    </Grid>
-                    {datosBin.otraEnfermedad ? (
-                        <Grid size={numCols}>
-                            <SelectChip
-                                valor={otrasEnfermedades}
-                                listaValores={COMORBILIDADES}
-                                manejadorCambios={manejadorCambiosComor}
-                                nombre="comorbilidades"
-                                error={errores[10].error}
-                                txtError={errores[10].txt}
-                                desactivado={desactivarCampos || esDiagPacientes}
-                                etiqueta="Padecimiento(s) del paciente"
-                            />
+                        <Grid size={1}>
+                            <TextField
+                                label="Edad"
+                                name="edad"
+                                value={datosTxt.edad}
+                                onChange={manejadorCambiosDatosTxt}
+                                error={errores[1].error && !esDiagPacientes}
+                                disabled={desactivarCampos || esDiagPacientes}
+                                helperText={!esDiagPacientes ? errores[1].txt : ""}
+                                fullWidth />
                         </Grid>
-                    ) : null}
-                    <Grid display="flex" justifyContent="center" size={numCols}>
-                        <Stack direction="row" spacing={2}>
-                            <Tooltip title={diagnostico.diagnosticado ? "Ver resultados del diagnóstico" : "Genera el diagnóstico de TEP."}>
-                                <Button
-                                    startIcon={diagnostico.diagnosticado ? <PersonSearchIcon /> : <DiagnosticoIcono />}
-                                    variant="contained"
-                                    onClick={manejadorBtnDiagnosticar}
-                                    sx={{
-                                        textTransform: "none"
-                                    }}>
-                                    <b>{diagnostico.diagnosticado ? "Ver diagnóstico" : "Diagnosticar"}</b>
-                                </Button>
-                            </Tooltip>
-                            <Tooltip title={diagnostico.diagnosticado ? "Vaciar los campos para realizar otro diagnóstico." : "Vaciar el contenido de los campos."}>
-                                <Button
-                                    startIcon={<CloseIcon />}
-                                    variant="contained"
-                                    onClick={manejadorBtnVaciar}
-                                    sx={{
-                                        textTransform: "none"
-                                    }}>
-                                    <b>Vaciar campos</b>
-                                </Button>
-                            </Tooltip>
-                        </Stack>
+                        <Grid size={numCols}>
+                            <Typography variant="h6">
+                                <b>Síntomas clínicos</b>
+                            </Typography>
+                        </Grid>
+                        <Grid container size={numCols} columns={numCols} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
+                            {sintomas.map((x) => (
+                                <Grid size={1} key={x.nombre}>
+                                    <Check
+                                        nombre={x.nombre}
+                                        etiqueta={x.texto}
+                                        desactivado={desactivarCampos}
+                                        checked={datosBin[x.nombre]}
+                                        manejadorCambios={manejadorCambiosDatosBin} />
+                                </Grid>
+                            ))}
+                        </Grid>
+                        <Grid size={numCols}>
+                            <Typography variant="h6">
+                                <b>Signos vitales</b>
+                            </Typography>
+                        </Grid>
+                        <Grid size={1}>
+                            <TextField
+                                label="Presión sistólica (mmHg)"
+                                name="presionSis"
+                                value={datosTxt.presionSis}
+                                onChange={manejadorCambiosDatosTxt}
+                                error={errores[2].error}
+                                disabled={desactivarCampos}
+                                helperText={errores[2].txt}
+                                fullWidth />
+                        </Grid>
+                        <Grid size={1}>
+                            <TextField
+                                label="Presión diastólica (mmHg)"
+                                name="presionDias"
+                                value={datosTxt.presionDias}
+                                onChange={manejadorCambiosDatosTxt}
+                                error={errores[3].error}
+                                disabled={desactivarCampos}
+                                helperText={errores[3].txt}
+                                fullWidth />
+                        </Grid>
+                        <Grid size={1}>
+                            <TextField
+                                label="Frecuencia respiratoria"
+                                name="frecRes"
+                                value={datosTxt.frecRes}
+                                onChange={manejadorCambiosDatosTxt}
+                                error={errores[4].error}
+                                disabled={desactivarCampos}
+                                helperText={errores[4].txt}
+                                fullWidth />
+                        </Grid>
+                        <Grid size={1}>
+                            <TextField
+                                label="Frecuencia cardíaca"
+                                name="frecCard"
+                                value={datosTxt.frecCard}
+                                onChange={manejadorCambiosDatosTxt}
+                                error={errores[5].error}
+                                disabled={desactivarCampos}
+                                helperText={errores[5].txt}
+                                fullWidth />
+                        </Grid>
+                        <Grid size={1}>
+                            <TextField
+                                label="Saturación de la sangre"
+                                name="so2"
+                                value={datosTxt.so2}
+                                onChange={manejadorCambiosDatosTxt}
+                                error={errores[6].error}
+                                disabled={desactivarCampos}
+                                helperText={errores[6].txt}
+                                fullWidth />
+                        </Grid>
+                        <Grid size={numCols}>
+                            <Typography variant="h6">
+                                <b>Exámenes de laboratorio</b>
+                            </Typography>
+                        </Grid>
+                        <Grid size={1}>
+                            <TextField
+                                label="Conteo de plaquetas"
+                                name="plaquetas"
+                                value={datosTxt.plaquetas}
+                                onChange={manejadorCambiosDatosTxt}
+                                error={errores[7].error}
+                                disabled={desactivarCampos}
+                                helperText={errores[7].txt}
+                                fullWidth />
+                        </Grid>
+                        <Grid size={1}>
+                            <TextField
+                                label="Hemoglobina"
+                                name="hemoglobina"
+                                value={datosTxt.hemoglobina}
+                                onChange={manejadorCambiosDatosTxt}
+                                error={errores[8].error}
+                                disabled={desactivarCampos}
+                                helperText={errores[8].txt}
+                                fullWidth />
+                        </Grid>
+                        <Grid size={1}>
+                            <TextField
+                                label="Conteo de glóbulos blancos"
+                                name="wbc"
+                                value={datosTxt.wbc}
+                                onChange={manejadorCambiosDatosTxt}
+                                error={errores[9].error}
+                                disabled={desactivarCampos}
+                                helperText={errores[9].txt}
+                                fullWidth />
+                        </Grid>
+                        <Grid size={numCols}>
+                            <Typography variant="h6">
+                                <b>Condiciones médicas preexistentes</b>
+                            </Typography>
+                        </Grid>
+                        <Grid size={numCols}>
+                            <Check
+                                nombre="otraEnfermedad"
+                                etiqueta="El paciente padece otra enfermedad."
+                                checked={datosBin.otraEnfermedad}
+                                desactivado={desactivarCampos || esDiagPacientes}
+                                manejadorCambios={manejadorCambiosDatosBin} />
+                        </Grid>
+                        {datosBin.otraEnfermedad ? (
+                            <Grid size={numCols}>
+                                <SelectChip
+                                    valor={otrasEnfermedades}
+                                    listaValores={COMORBILIDADES}
+                                    manejadorCambios={manejadorCambiosComor}
+                                    nombre="comorbilidades"
+                                    error={errores[10].error}
+                                    txtError={!esDiagPacientes ? errores[10].txt : ""}
+                                    desactivado={desactivarCampos || esDiagPacientes}
+                                    etiqueta="Padecimiento(s) del paciente"
+                                />
+                            </Grid>
+                        ) : null}
+                        <Grid display="flex" justifyContent="center" size={numCols}>
+                            <Stack direction="row" spacing={2}>
+                                <Tooltip title={diagnostico.diagnosticado ? "Ver resultados del diagnóstico" : "Genera el diagnóstico de TEP."}>
+                                    <Button
+                                        startIcon={diagnostico.diagnosticado ? <PersonSearchIcon /> : <DiagnosticoIcono />}
+                                        variant="contained"
+                                        onClick={manejadorBtnDiagnosticar}
+                                        sx={{
+                                            textTransform: "none"
+                                        }}>
+                                        <b>{diagnostico.diagnosticado ? "Ver diagnóstico" : "Diagnosticar"}</b>
+                                    </Button>
+                                </Tooltip>
+                                <Tooltip title={diagnostico.diagnosticado ? "Vaciar los campos para realizar otro diagnóstico." : "Vaciar el contenido de los campos."}>
+                                    <Button
+                                        startIcon={<CloseIcon />}
+                                        variant="contained"
+                                        onClick={manejadorBtnVaciar}
+                                        sx={{
+                                            textTransform: "none"
+                                        }}>
+                                        <b>Vaciar campos</b>
+                                    </Button>
+                                </Tooltip>
+                            </Stack>
+                        </Grid>
                     </Grid>
-                </Grid>)}
+                </>)}
             <ModalSimple
                 abrir={modal.mostrar}
                 titulo={modal.titulo}
