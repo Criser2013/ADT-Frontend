@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals';
-import { validarNombre, validarTelefono, validarNumero, validarFecha, validarFloatPos } from '../../../src/utils/Validadores';
+import { validarNombre, validarTelefono, validarNumero, validarFecha, validarFloatPos, validarId } from '../../../src/utils/Validadores';
 
 describe("Validar número ", () => {
    test("CP - 1", () => {
@@ -93,5 +93,17 @@ describe("Validar un número real positivo", () => {
     test("CP - 69", () => {
         const res = validarFloatPos("111");
         expect(res).toBe(true);
+    });
+});
+
+describe("Validar un id de diagnóstico", () => {
+    test("CP - 74", () => {
+        const res = validarId("1f0619a9-8fe0-6ed0-b203-f50d2557fd26");
+        expect(res).toBe(true);
+    });
+
+    test("CP - 75", () => {
+        const res = validarId("1f061#a9-8$e0-6ed0-b203-f50d2557fd26");
+        expect(res).toBe(false);
     });
 });
