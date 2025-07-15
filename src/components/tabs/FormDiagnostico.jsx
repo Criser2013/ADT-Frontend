@@ -356,7 +356,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         const datos = {
             id: v6(), medico: auth.authInfo.correo, ...auxTxt, ...auxBin, ...oneHotComor,
             probabilidad: resultado.probabilidad, diagnostico: procBool(resultado.prediccion),
-            fecha: Timestamp.now(), validado: 2
+            fecha: Timestamp.now(), validado: 2, paciente: paciente.cedula
         };
 
         const res = await cambiarDiagnostico(datos, credenciales.obtenerInstanciaDB());
