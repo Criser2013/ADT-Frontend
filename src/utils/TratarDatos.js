@@ -352,3 +352,19 @@ export function procEdad(valor) {
         [61, 81, 3], [81, null, 4]
     ]);
 };
+
+/**
+ * Determina el texto del diagnóstico según su valor.
+ * @param {Integer} diagnostico 
+ * @returns {String}
+ */
+export function detTxtDiagnostico(diagnostico) {
+    switch (diagnostico) {
+        case 0:
+            return "Negativo";
+        case 1:
+            return "Positivo";
+        case 2:
+            return "No validado";
+    }
+};

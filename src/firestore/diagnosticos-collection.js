@@ -28,9 +28,9 @@ export const verDiagnostico = async (id, db) => {
         const docRef = doc(db, "diagnosticos", id);
         const docSnap = await getDoc(docRef);
 
-        return { success: 1, data: docSnap.data() };
+        return { success: true, data: docSnap.data() };
     } catch (error) {
-        return { success: 0, data: error };
+        return { success: false, data: error };
     }
 };
 

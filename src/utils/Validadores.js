@@ -51,3 +51,13 @@ export function validarFloatPos(val) {
 
     return exp.test(val) || validarNumero(val);
 };
+
+/**
+ * Valida que un texto es un UUID.
+ * @param {String} val - Texto
+ * @returns Boolean
+ */
+export function validarId(val) {
+    const exp = /^\d{8}-\d{4}-\d{4}-\d{4}-\d{12}$/;
+    return exp.test(val);
+}
