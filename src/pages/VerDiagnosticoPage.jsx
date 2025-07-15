@@ -12,7 +12,6 @@ import { detTamCarga } from "../utils/Responsividad";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { validarId } from "../utils/Validadores";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -22,10 +21,10 @@ import { oneHotInversoOtraEnfermedad, detTxtDiagnostico } from "../utils/TratarD
 import { COMORBILIDADES } from "../../constants";
 import { useCredenciales } from "../contexts/CredencialesContext";
 import Check from "../components/tabs/Check";
-import { Timestamp } from "firebase/firestore";
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 /**
- * Página para ver los datos de un paciente.
+ * Página para ver los datos de un diagnóstico.
  * @returns JSX.Element
  */
 export default function VerDiagnosticoPage() {
@@ -63,27 +62,28 @@ export default function VerDiagnosticoPage() {
         personales: { cedula: "", nombre: "" }, existe: false
     });
     const numCols = useMemo(() => {
-            return navegacion.dispositivoMovil || (!navegacion.dispositivoMovil && (navegacion.ancho < 500)) ? 12 : 4;
-        }, [navegacion.dispositivoMovil, navegacion.ancho]);
+        return (navegacion.dispositivoMovil && navegacion.orientacion == "vertical") || (!navegacion.dispositivoMovil && (navegacion.ancho < 500)) ? 12 : 4;
+    }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
     const camposPersonales = useMemo(() => [
         { titulo: "Nombre", valor: paciente.personales.nombre },
         { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" },
         { titulo: "Edad", valor: `${datos.personales.edad} años` },
         { titulo: "Fecha de diagnóstico", valor: datos.personales.fecha },
         { titulo: "Diagnóstico modelo", valor: detTxtDiagnostico(datos.personales.diagnostico) },
+        { titulo: "Probabilidad", valor: `${(datos.personales.probabilidad*100).toFixed(2)}%` },
         { titulo: "Diagnóstico médico", valor: detTxtDiagnostico(datos.personales.validado) },
     ], [datos.personales]);
     const camposVitales = useMemo(() => [
-        { titulo: "Presión sistólica", valor: datos.personales.presionSis },
-        { titulo: "Presión diastólica", valor: datos.personales.presionDias },
-        { titulo: "Frecuencia cardíaca", valor: datos.personales.frecCard },
-        { titulo: "Frecuencia respiratoria", valor: datos.personales.frecRes },
-        { titulo: "Saturación de la sangre (SO2)", valor: datos.personales.so2 },
+        { titulo: "Presión sistólica", valor: `${datos.personales.presionSis} mmHg.` },
+        { titulo: "Presión diastólica", valor: `${datos.personales.presionDias} mmHg.` },
+        { titulo: "Frecuencia cardíaca", valor: `${datos.personales.frecCard} lpm.` },
+        { titulo: "Frecuencia respiratoria", valor: `${datos.personales.frecRes} rpm.` },
+        { titulo: "Saturación de la sangre (SO2)", valor: `${datos.personales.so2} %` },
     ], [datos.personales]);
     const camposExamenes = useMemo(() => [
-        { titulo: "Conteo de plaquetas", valor: datos.personales.plaquetas },
-        { titulo: "Hemoglobina", valor: datos.personales.hemoglobina },
-        { titulo: "Conteo glóbulos blancos", valor: datos.personales.wbc },
+        { titulo: "Conteo de plaquetas", valor: `${datos.personales.plaquetas} /µL.` },
+        { titulo: "Hemoglobina", valor: `${datos.personales.hemoglobina} g/dL.` },
+        { titulo: "Conteo glóbulos blancos", valor: `${datos.personales.wbc} /µL.` },
     ], [datos.personales]);
     const listadoPestanas = [
         { texto: "Historial de diagnósticos", url: "/diagnosticos" },
@@ -110,7 +110,7 @@ export default function VerDiagnosticoPage() {
         { texto: "TEP - TVP previo", nombre: "tepPrevio" },
         { texto: "Soplos", nombre: "soplos" }
     ];
-    //const rol = auth.authInfo.rol;
+    const rol = auth.authInfo.rol;
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -143,7 +143,7 @@ export default function VerDiagnosticoPage() {
      * Coloca el título de la página.
      */
     useEffect(() => {
-        document.title = `${id != "" ? `Diagnóstico — ${id}` : "Ver diagnóstico"}`;
+        document.title = `${paciente.personales.nombre != "" ? `Diagnóstico — ${paciente.personales.nombre}` : "Ver diagnóstico"}`;
         const res = (id != null && id != undefined) ? validarId(id) : false;
 
         if (!res) {
@@ -151,7 +151,7 @@ export default function VerDiagnosticoPage() {
         }
 
         navegacion.setPaginaAnterior("/diagnosticos");
-    }, [paciente.nombre]);
+    }, [paciente.personales.nombre]);
 
     /**
      * Carga los datos del diagnóstico.
@@ -217,8 +217,8 @@ export default function VerDiagnosticoPage() {
      * Manejador del botón de editar paciente.
      */
     const manejadorBtnEditar = () => {
-        navegacion.setPaginaAnterior(`/pacientes/ver-paciente?cedula=${datos.personales.cedula}`);
-        navigate(`/pacientes/editar?cedula=${datos.personales.cedula}`, { replace: true });
+        /*navegacion.setPaginaAnterior(`/pacientes/ver-paciente?cedula=${datos.personales.cedula}`);
+        navigate(`/pacientes/editar?cedula=${datos.personales.cedula}`, { replace: true });*/
     };
 
     /*const eliminarDiagnostico = async () => {
@@ -264,6 +264,12 @@ export default function VerDiagnosticoPage() {
         setPopOver(null);
     };
 
+    /**
+     * Componente para mostrar los campos de texto.
+     * @param {JSON} campos - Datos del campo.
+     * @param {Int} indice - Índice del campo.
+     * @returns JSX.Element
+     */
     const CamposTexto = ({ campo, indice }) => {
         return (
             <Grid size={detVisualizacion(indice)}>
@@ -299,36 +305,37 @@ export default function VerDiagnosticoPage() {
                             paddingLeft={!navegacion.dispositivoMovil ? "3vh" : "0vh"}
                             paddingRight={!navegacion.dispositivoMovil ? "3vh" : "0vh"}
                             marginTop="3vh">
-                            <Grid size={12} display="flex" justifyContent="end">
-                                <Tooltip title="Ver más opciones.">
-                                    <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
-                                        <MoreVertIcon />
-                                    </IconButton>
-                                </Tooltip>
-                                <Popover
-                                    id={elem}
-                                    open={open}
-                                    anchorEl={popOver}
-                                    onClose={cerrarPopover}
-                                    anchorOrigin={{
-                                        vertical: "bottom",
-                                        horizontal: "left",
-                                    }}
-                                    transformOrigin={{
-                                        vertical: "top",
-                                        horizontal: "center",
-                                    }}>
-                                    <Tooltip title="Eliminar paciente">
-                                        <Button
-                                            color="error"
-                                            startIcon={<DeleteIcon />}
-                                            onClick={manejadorBtnEliminar}
-                                            sx={{ textTransform: "none", padding: 2 }}>
-                                            Eliminar
-                                        </Button>
+                            {rol == 1001 ? (
+                                <Grid size={12} display="flex" justifyContent="end">
+                                    <Tooltip title="Ver más opciones.">
+                                        <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
+                                            <MoreVertIcon />
+                                        </IconButton>
                                     </Tooltip>
-                                </Popover>
-                            </Grid>
+                                    <Popover
+                                        id={elem}
+                                        open={open}
+                                        anchorEl={popOver}
+                                        onClose={cerrarPopover}
+                                        anchorOrigin={{
+                                            vertical: "bottom",
+                                            horizontal: "left",
+                                        }}
+                                        transformOrigin={{
+                                            vertical: "top",
+                                            horizontal: "center",
+                                        }}>
+                                        <Tooltip title="Eliminar paciente">
+                                            <Button
+                                                color="error"
+                                                startIcon={<DeleteIcon />}
+                                                onClick={manejadorBtnEliminar}
+                                                sx={{ textTransform: "none", padding: 2 }}>
+                                                Eliminar
+                                            </Button>
+                                        </Tooltip>
+                                    </Popover>
+                                </Grid>) : null}
                             <Grid size={12}>
                                 <Typography variant="h5">
                                     Datos personales
@@ -337,7 +344,7 @@ export default function VerDiagnosticoPage() {
                             {camposPersonales.map((campo, index) => (
                                 <CamposTexto key={index} campo={campo} indice={index} />
                             ))}
-                            <Grid size={12}>
+                            <Grid size={12} paddingTop="3vh">
                                 <Divider />
                             </Grid>
                             <Grid size={12}>
@@ -357,10 +364,10 @@ export default function VerDiagnosticoPage() {
                                     </Grid>
                                 ))}
                             </Grid>
-                            <Grid size={12}>
+                            <Grid size={12} paddingTop="3vh">
                                 <Divider />
                             </Grid>
-                            <Grid size={12}>
+                            <Grid size={12} paddingBottom="2vh">
                                 <Typography variant="h5">
                                     Signos vitales
                                 </Typography>
@@ -368,7 +375,7 @@ export default function VerDiagnosticoPage() {
                             {camposVitales.map((campo, index) => (
                                 <CamposTexto key={index} campo={campo} indice={index} />
                             ))}
-                            <Grid size={12}>
+                            <Grid size={12} paddingTop="3vh">
                                 <Divider />
                             </Grid>
                             <Grid size={12}>
@@ -379,11 +386,11 @@ export default function VerDiagnosticoPage() {
                             {camposExamenes.map((campo, index) => (
                                 <CamposTexto key={index} campo={campo} indice={index} />
                             ))}
-                            <Grid size={12}>
+                            <Grid size={12} paddingTop="3vh">
                                 <Divider />
                             </Grid>
                             <Grid size={12}>
-                                <Typography variant="h5">
+                                <Typography variant="h5" paddingBottom="1vh">
                                     Condiciones médicas preexistentes
                                 </Typography>
                             </Grid>
@@ -414,15 +421,16 @@ export default function VerDiagnosticoPage() {
                                 </Grid>
                             )}
                         </Grid>
-                        <Tooltip title="Ve al formulario para editar los datos del paciente">
-                            <Fab onClick={manejadorBtnEditar}
-                                color="primary"
-                                variant="extended"
-                                sx={{ textTransform: "none", display: "flex", position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
-                                <EditIcon sx={{ mr: 1 }} />
-                                <b>Editar</b>
-                            </Fab>
-                        </Tooltip>
+                        {datos.personales.validado == 2 ? (
+                            <Tooltip title="Valida el diagnóstico del paciente.">
+                                <Fab onClick={manejadorBtnEditar}
+                                    color="primary"
+                                    variant="extended"
+                                    sx={{ textTransform: "none", display: "flex", position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
+                                    <CheckCircleOutlineIcon sx={{ mr: 1 }} />
+                                    <b>Validar</b>
+                                </Fab>
+                            </Tooltip>) : null}
                     </>
                 )
                 }
