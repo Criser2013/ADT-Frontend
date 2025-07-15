@@ -58,6 +58,6 @@ export function validarFloatPos(val) {
  * @returns Boolean
  */
 export function validarId(val) {
-    const exp = /^\d{8}-\d{4}-\d{4}-\d{4}-\d{12}$/;
+    const exp = /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;
     return exp.test(val);
-}
+};

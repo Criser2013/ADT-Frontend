@@ -70,9 +70,9 @@ export default function VerDiagnosticoPage() {
         { titulo: "Edad", valor: `${datos.personales.edad} años` },
         { titulo: "Fecha de diagnóstico", valor: datos.personales.fecha },
         { titulo: "Diagnóstico modelo", valor: detTxtDiagnostico(datos.personales.diagnostico) },
-        { titulo: "Probabilidad", valor: `${(datos.personales.probabilidad*100).toFixed(2)}%` },
+        { titulo: "Probabilidad", valor: `${(datos.personales.probabilidad * 100).toFixed(2)}%` },
         { titulo: "Diagnóstico médico", valor: detTxtDiagnostico(datos.personales.validado) },
-    ], [datos.personales]);
+    ], [datos.personales, paciente.personales.nombre]);
     const camposVitales = useMemo(() => [
         { titulo: "Presión sistólica", valor: `${datos.personales.presionSis} mmHg.` },
         { titulo: "Presión diastólica", valor: `${datos.personales.presionDias} mmHg.` },
@@ -133,7 +133,7 @@ export default function VerDiagnosticoPage() {
             cargarDatosDiagnostico();
         } else if (datos != null) {
             cargarDatosPaciente(datos.paciente);
-            setDatos(preprocesarDiag(datos));
+            preprocesarDiag(datos);
         }
 
         setCargando(drive.descargando);
@@ -146,8 +146,9 @@ export default function VerDiagnosticoPage() {
         document.title = `${paciente.personales.nombre != "" ? `Diagnóstico — ${paciente.personales.nombre}` : "Ver diagnóstico"}`;
         const res = (id != null && id != undefined) ? validarId(id) : false;
 
+
         if (!res) {
-            //navigate("/diagnosticos", { replace: true });
+            navigate("/diagnosticos", { replace: true });
         }
 
         navegacion.setPaginaAnterior("/diagnosticos");
@@ -161,12 +162,10 @@ export default function VerDiagnosticoPage() {
         const datos = await verDiagnostico(id, DB);
 
         if (datos.success && datos.data != []) {
-            dayjs.extend(customParseFormat);
-            datos.data.fecha = dayjs(datos.data.fecha.toDate()).format("DD [de] MMMM [de] YYYY");
             cargarDatosPaciente(datos.data.paciente);
             preprocesarDiag(datos.data);
-        } else {
-            //navigate("/diagnosticos", { replace: true });
+        } else if (DB != null && !datos.success) {
+            navigate("/diagnosticos", { replace: true });
         }
     };
 
@@ -179,7 +178,7 @@ export default function VerDiagnosticoPage() {
         if (res.success) {
             setPaciente({ ...res.data, existe: true });
         } else {
-            setPaciente({ cedula: cedula, nombre: "", existe: false });
+            setPaciente({ personales: { cedula: cedula, nombre: "" }, existe: false });
         }
     };
 
@@ -188,13 +187,16 @@ export default function VerDiagnosticoPage() {
      * @param {JSON} datos - Datos del diagnóstico.
      */
     const preprocesarDiag = (datos) => {
-        const res = oneHotInversoOtraEnfermedad(datos);
+        const aux = { ...datos };
+        const res = oneHotInversoOtraEnfermedad(aux);
 
         for (const i of COMORBILIDADES) {
-            delete datos[i];
+            delete aux[i];
         }
+        dayjs.extend(customParseFormat);
 
-        setDatos({ personales: datos, comorbilidades: res });
+        aux.fecha = dayjs(new Date(datos.fecha.seconds * 1000)).format("DD [de] MMMM [de] YYYY");
+        setDatos({ personales: aux, comorbilidades: res });
     };
 
     /**
