@@ -14,12 +14,12 @@ import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Typography }
  * @returns 
  */
 export default function ModalAccion({ abrir, mensaje, titulo, manejadorBtnPrimario, manejadorBtnSecundario, 
-    mostrarBtnSecundario, txtBtnSimple, txtBtnSecundario, txtBtnSimpleAlt }) {
+    mostrarBtnSecundario, txtBtnSimple, txtBtnSecundario, txtBtnSimpleAlt, children }) {
     return (
         <Dialog open={abrir}>
             <DialogTitle>{titulo}</DialogTitle>
             <DialogContent>
-                <Typography>{mensaje}</Typography>
+                {mensaje != "" ? <Typography>{mensaje}</Typography> : (children)}
             </DialogContent>
             <DialogActions>
                 {mostrarBtnSecundario ? (
