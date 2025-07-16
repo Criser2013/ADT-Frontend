@@ -1,6 +1,6 @@
 import {
     Box, Chip, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
-    Button, Popover, IconButton
+    Button, Popover, IconButton, TextField, MenuItem
 } from "@mui/material";
 import { useDrive } from "../contexts/DriveContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -16,7 +16,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ModalAccion from "../components/modals/ModalAccion";
-import { verDiagnostico } from "../firestore/diagnosticos-collection";
+import { cambiarDiagnostico, verDiagnostico } from "../firestore/diagnosticos-collection";
 import { oneHotInversoOtraEnfermedad, detTxtDiagnostico } from "../utils/TratarDatos";
 import { COMORBILIDADES } from "../../constants";
 import { useCredenciales } from "../contexts/CredencialesContext";
@@ -36,7 +36,7 @@ export default function VerDiagnosticoPage() {
     const location = useLocation();
     const [params] = useSearchParams();
     const [cargando, setCargando] = useState(true);
-    const [modoEliminar, setModoEliminar] = useState(false);
+    const [mostrarBtnSecundario, setMostrarBtnSecundario] = useState(true);
     const [popOver, setPopOver] = useState(null);
     const open = Boolean(popOver);
     const elem = open ? "simple-popover" : undefined;
@@ -61,6 +61,9 @@ export default function VerDiagnosticoPage() {
     const [paciente, setPaciente] = useState({
         personales: { cedula: "", nombre: "" }, existe: false
     });
+    const [errorDiagnostico, setErrorDiagnostico] = useState(false);
+    const [diagnostico, setDiagnostico] = useState(datos.personales.validado);
+    const [diagOriginal, setDiagOriginal] = useState({});
     const numCols = useMemo(() => {
         return (navegacion.dispositivoMovil && navegacion.orientacion == "vertical") || (!navegacion.dispositivoMovil && (navegacion.ancho < 500)) ? 12 : 4;
     }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
@@ -72,7 +75,7 @@ export default function VerDiagnosticoPage() {
         { titulo: "Diagnóstico modelo", valor: detTxtDiagnostico(datos.personales.diagnostico) },
         { titulo: "Probabilidad", valor: `${(datos.personales.probabilidad * 100).toFixed(2)}%` },
         { titulo: "Diagnóstico médico", valor: detTxtDiagnostico(datos.personales.validado) },
-    ], [datos.personales, paciente.personales.nombre]);
+    ], [datos.personales.validado, paciente.personales.nombre]);
     const camposVitales = useMemo(() => [
         { titulo: "Presión sistólica", valor: `${datos.personales.presionSis} mmHg.` },
         { titulo: "Presión diastólica", valor: `${datos.personales.presionDias} mmHg.` },
@@ -162,6 +165,7 @@ export default function VerDiagnosticoPage() {
         const datos = await verDiagnostico(id, DB);
 
         if (datos.success && datos.data != []) {
+            setDiagOriginal({ ...datos.data });
             cargarDatosPaciente(datos.data.paciente);
             preprocesarDiag(datos.data);
         } else if (DB != null && !datos.success) {
@@ -219,6 +223,8 @@ export default function VerDiagnosticoPage() {
      * Manejador del botón de editar paciente.
      */
     const manejadorBtnEditar = () => {
+        setMostrarBtnSecundario(true);
+        setModal({ titulo: "Validar diagnóstico", mensaje: "", mostrar: true });
         /*navegacion.setPaginaAnterior(`/pacientes/ver-paciente?cedula=${datos.personales.cedula}`);
         navigate(`/pacientes/editar?cedula=${datos.personales.cedula}`, { replace: true });*/
     };
@@ -228,14 +234,41 @@ export default function VerDiagnosticoPage() {
     };*/
 
     /**
+     * Valida el diagnóstico del paciente.
+     */
+    const validarDiagnostico = async () => {
+        setCargando(true);
+        const DB = credenciales.obtenerInstanciaDB();
+        const res = await cambiarDiagnostico({...diagOriginal, validado: diagnostico}, DB);
+
+        if (res.success) {
+            setDatos((x) => {
+                x.personales.validado = diagnostico;
+                return {...x};
+            });
+        } else {
+            setMostrarBtnSecundario(false);
+            setModal({
+                mostrar: true, titulo: "Error",
+                mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
+            });
+        }
+        setCargando(false);
+    };
+
+    /**
      * Manejador del botón de cerrar el modal.
      */
     const manejadorBtnModal = () => {
-        if (modoEliminar) {
+        if (mostrarBtnSecundario && diagnostico != 2) {
+            validarDiagnostico();
             //eliminarPaciente();
+        } else if (mostrarBtnSecundario && diagnostico == 2) {
+            setErrorDiagnostico(true);
+            return;
         }
 
-        setModoEliminar(false);
+        setMostrarBtnSecundario(false);
         setModal({ ...modal, mostrar: false });
     };
 
@@ -244,7 +277,7 @@ export default function VerDiagnosticoPage() {
      */
     const manejadorBtnEliminar = () => {
         cerrarPopover();
-        setModoEliminar(true);
+        setMostrarBtnSecundario(true);
         setModal({
             mostrar: true, titulo: "Alerta",
             mensaje: "¿Estás seguro de que deseas eliminar este paciente?"
@@ -284,6 +317,37 @@ export default function VerDiagnosticoPage() {
                     </Typography>
                 </Stack>
             </Grid>
+        );
+    };
+
+    /**
+     * Componente del cuerpo del modal para seleccionar el diagnóstico del paciente.
+     * @returns JSX.Element
+     */
+    const CuerpoModal = () => {
+        return (
+            <Stack orientation="column" spacing={2} width="100%">
+                <Typography variant="body1">
+                    Selecciona el diagnóstico de TEP del paciente:
+                </Typography>
+                <TextField
+                    select
+                    value={diagnostico}
+                    onChange={(e) => setDiagnostico(e.target.value)}
+                    error={errorDiagnostico}
+                    helperText={errorDiagnostico ? "Selecciona el diagnóstico definitivo del paciente" : ""}
+                    fullWidth>
+                    <MenuItem value={2}>
+                        Seleccione el diagnóstico
+                    </MenuItem>
+                    <MenuItem value={0}>
+                        Negativo
+                    </MenuItem>
+                    <MenuItem value={1}>
+                        Positivo
+                    </MenuItem>
+                </TextField>
+            </Stack>
         );
     };
 
@@ -423,7 +487,7 @@ export default function VerDiagnosticoPage() {
                                 </Grid>
                             )}
                         </Grid>
-                        {datos.personales.validado == 2 ? (
+                        {(datos.personales.validado == 2 && rol == 0) ? (
                             <Tooltip title="Valida el diagnóstico del paciente.">
                                 <Fab onClick={manejadorBtnEditar}
                                     color="primary"
@@ -442,10 +506,12 @@ export default function VerDiagnosticoPage() {
                     mensaje={modal.mensaje}
                     manejadorBtnPrimario={manejadorBtnModal}
                     manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
-                    mostrarBtnSecundario={modoEliminar}
-                    txtBtnSimple="Eliminar"
+                    mostrarBtnSecundario={mostrarBtnSecundario}
+                    txtBtnSimple="Validar"
                     txtBtnSecundario="Cancelar"
-                    txtBtnSimpleAlt="Cerrar" />
+                    txtBtnSimpleAlt="Cerrar">
+                        <CuerpoModal />
+                </ModalAccion>
             </MenuLayout>
         </>
     );
