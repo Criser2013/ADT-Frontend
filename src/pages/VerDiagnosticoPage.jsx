@@ -22,6 +22,7 @@ import { COMORBILIDADES } from "../../constants";
 import { useCredenciales } from "../contexts/CredencialesContext";
 import Check from "../components/tabs/Check";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import FormValidarDiag from "../components/tabs/FormValidarDiag";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -320,37 +321,6 @@ export default function VerDiagnosticoPage() {
         );
     };
 
-    /**
-     * Componente del cuerpo del modal para seleccionar el diagnóstico del paciente.
-     * @returns JSX.Element
-     */
-    const CuerpoModal = () => {
-        return (
-            <Stack orientation="column" spacing={2} width="100%">
-                <Typography variant="body1">
-                    Selecciona el diagnóstico de TEP del paciente:
-                </Typography>
-                <TextField
-                    select
-                    value={diagnostico}
-                    onChange={(e) => setDiagnostico(e.target.value)}
-                    error={errorDiagnostico}
-                    helperText={errorDiagnostico ? "Selecciona el diagnóstico definitivo del paciente" : ""}
-                    fullWidth>
-                    <MenuItem value={2}>
-                        Seleccione el diagnóstico
-                    </MenuItem>
-                    <MenuItem value={0}>
-                        Negativo
-                    </MenuItem>
-                    <MenuItem value={1}>
-                        Positivo
-                    </MenuItem>
-                </TextField>
-            </Stack>
-        );
-    };
-
     return (
         <>
             <MenuLayout>
@@ -510,7 +480,11 @@ export default function VerDiagnosticoPage() {
                     txtBtnSimple="Validar"
                     txtBtnSecundario="Cancelar"
                     txtBtnSimpleAlt="Cerrar">
-                        <CuerpoModal />
+                        <FormValidarDiag
+                            onChange={setDiagnostico}
+                            diagnostico={diagnostico}
+                            error={errorDiagnostico}
+                        />
                 </ModalAccion>
             </MenuLayout>
         </>

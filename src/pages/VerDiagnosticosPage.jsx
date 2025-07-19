@@ -1,4 +1,4 @@
-import { Grid, Box, CircularProgress } from "@mui/material";
+import { Grid, Box, CircularProgress, Tooltip, IconButton } from "@mui/material";
 import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
@@ -12,9 +12,11 @@ import { useDrive } from "../contexts/DriveContext";
 import dayjs from "dayjs";
 import ModalAccion from "../components/modals/ModalAccion";
 import { useCredenciales } from "../contexts/CredencialesContext";
-import { verDiagnosticos, verDiagnosticosPorMedico } from "../firestore/diagnosticos-collection";
-import { verUsuario, verUsuarios } from "../firestore/usuarios-collection";
+import { cambiarDiagnostico, verDiagnosticos, verDiagnosticosPorMedico, eliminarDiagnosticos } from "../firestore/diagnosticos-collection";
+import { verUsuarios } from "../firestore/usuarios-collection";
 import { detTxtDiagnostico } from "../utils/TratarDatos";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import FormValidarDiag from "../components/tabs/FormValidarDiag";
 
 export default function VerDiagnosticosPage() {
     const auth = useAuth();
@@ -29,11 +31,15 @@ export default function VerDiagnosticosPage() {
     const [modal, setModal] = useState({
         mostrar: false, titulo: "", mensaje: ""
     });
-    const [eliminar, setEliminar] = useState(false);
+    const [activar2Btn, setActivar2Btn] = useState(false);
     const [datos, setDatos] = useState([]);
     const [diagnosticos, setDiagnosticos] = useState(null);
     const [personas, setPersonas] = useState(null);
     const [seleccionados, setSeleccionados] = useState([]);
+    const [validar, setValidar] = useState(2);
+    const [instancia, setInstancia] = useState(null);
+    const [modoModal, setModoModal] = useState(0);
+    const [errorDiagnostico, setErrorDiagnostico] = useState(false);
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
@@ -63,28 +69,15 @@ export default function VerDiagnosticosPage() {
         }
     }, [auth.tokenDrive]);
 
-    useEffect(() => {
-
-        if (drive.datos != null && diagnosticos != null && (typeof diagnosticos[0].fecha != "string")) {
-            setDatos(formatearCeldas(drive.datos, diagnosticos));
-            console.log("diagnosticos", diagnosticos);
-            console.log("personas", personas);
-            setCargando(false);
-        }
-    }, [drive.datos]);
-
     /**
      * Carga los diagnósticos y los pacientes dependiendo del rol del usuario.
      */
     useEffect(() => {
         document.title = rol == 0 ? "Historial de diagnósticos" : "Lista de diagnósticos";
         const { correo } = auth.authInfo;
-        
+
         if (rol != null && correo != null && DB != null) {
             cargarDiagnosticos(correo, rol, DB);
-        }
-
-        if (rol == 0) {
             cargarPacientes();
         }
     }, [auth.authInfo.correo, rol, DB]);
@@ -93,20 +86,32 @@ export default function VerDiagnosticosPage() {
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
      */
     useEffect(() => {
-        if (diagnosticos != null && personas != null) {
+        if (diagnosticos != null && personas != null && (typeof diagnosticos[0].fecha != "string")) {
+            setDatos(formatearCeldas(personas, diagnosticos.map((x) => ({...x}))));
             setCargando(false);
-        } else {
+        } else if (diagnosticos == null && personas == null) {
             setDatos([]);
         }
     }, [diagnosticos, personas]);
 
     /**
+     * Si el usuario es médico, se carga la lista de pacientes desde Drive.
+     */
+    useEffect(() => {
+        if (rol == 0) {
+            setPersonas(drive.datos);
+        }
+    }, [drive.datos]);
+
+    /**
      * Carga los datos de los pacientes desde Drive y luego los diagnósticos.
      */
     const cargarPacientes = async () => {
-        const res = await drive.cargarDatos();
-        if (res.success) {
-            setPersonas(drive.datos);
+        const res = (rol == 0) ? await drive.cargarDatos() : await verUsuarios(DB);
+        if (res.success && rol == 1001) {
+            setPersonas(res.data);
+        } else if (res.success && rol == 0) {
+            return;
         } else {
             setModal({
                 titulo: "Error al cargar los datos de los pacientes",
@@ -138,27 +143,28 @@ export default function VerDiagnosticosPage() {
      * Calcula la edad de los pacientes y añade los nombres de los pacientes o
      * el nombre del médico según el rol del usuario.
      * @param {Array} personas - Lista de pacientes (para usuarios) o médicos (para administradores).
-     * @param {Array} diagnosticos - Lista de diagnósticos.
+     * @param {Array} diags - Lista de diagnósticos.
      * @returns Array
      */
-    const formatearCeldas = (personas, diagnosticos) => {
+    const formatearCeldas = (personas, diags) => {
         const aux = {};
-        const auxDiag = [ ...diagnosticos];
+        const auxDiag = diags.map((d) => d );
 
         for (const i of personas) {
             aux[i.cedula] = i.nombre;
         }
 
-        for (const i of auxDiag) {
-            i.sexo = i.sexo == 0 ? "Masculino" : "Femenino";
+        for (let i = 0; i < diags.length; i++) {
+            auxDiag[i].sexo = auxDiag[i].sexo == 0 ? "Masculino" : "Femenino";
 
-            const paciente = aux[i.paciente];
-            i.nombre = (paciente != undefined) ? paciente : "N/A";
-            i.diagnostico = detTxtDiagnostico(i.diagnostico);
-            i.fecha = dayjs(i.fecha.toDate()).format("DD/MM/YYYY");
-            i.validado = detTxtDiagnostico(i.validado);
+            const paciente = aux[auxDiag[i].paciente];
+            auxDiag[i].nombre = (paciente != undefined) ? paciente : "N/A";
+            auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico);
+            auxDiag[i].fecha = dayjs(auxDiag[i].fecha.toDate()).format("DD/MM/YYYY");
+            auxDiag[i].accion = auxDiag[i].validado == 2 ? <BtnValidar diagnostico={i} /> : null;
+            auxDiag[i].validado = detTxtDiagnostico(auxDiag[i].validado);
 
-            delete i.medico;
+            delete auxDiag[i].medico;
         }
 
         return auxDiag;
@@ -170,7 +176,8 @@ export default function VerDiagnosticosPage() {
      */
     const manejadorEliminar = (seleccionados) => {
         setSeleccionados(seleccionados);
-        setEliminar(true);
+        setActivar2Btn(true);
+        setModoModal(1);
         setModal({
             mostrar: true, titulo: "Alerta",
             mensaje: "¿Estás seguro de querer eliminar los diagnósticos seleccionados?"
@@ -182,38 +189,149 @@ export default function VerDiagnosticosPage() {
      * @param {JSON} dato - Instancia
      */
     const manejadorClicCelda = (dato) => {
-        navegacion.setPaginaAnterior("/diagnosticos");
-        navigate(`/diagnosticos/ver-diagnostico?id=${dato.id}`, { replace: true });
+        const ejecutar = sessionStorage.getItem("ejecutar-callback");
+        if (ejecutar == "true" || ejecutar == null) {
+            navegacion.setPaginaAnterior("/diagnosticos");
+            sessionStorage.removeItem("ejecutar-callback");
+            navigate(`/diagnosticos/ver-diagnostico?id=${dato.id}`, { replace: true });
+        }
     };
 
     /**
      * Manejador del botón derecho del modal.
      */
     const manejadorBtnModal = async () => {
-        if (eliminar) {
+        if (activar2Btn && modoModal == 1) {
             setCargando(true);
-            eliminarDiagnosticos(seleccionados);
+            borrarDiagnosticos(seleccionados);
+            setModal({ ...modal, mostrar: false });
+            setActivar2Btn(false);
+            setModoModal(0);
+            setErrorDiagnostico(false);
+            setValidar(2);
+            sessionStorage.setItem("ejecutar-callback", "true");
+            setInstancia(null);
+        } else if (activar2Btn && modoModal == 2) {
+            validarCambio();
+        } else {
+            setModal({ ...modal, mostrar: false });
+            setActivar2Btn(false);
+            setModoModal(0);
+            setErrorDiagnostico(false);
+            setValidar(2);
+            sessionStorage.setItem("ejecutar-callback", "true");
+            setInstancia(null);
         }
-
-        setModal({ ...modal, mostrar: false });
-        setEliminar(false);
     };
 
     /**
      * Eliminar los pacientes seleccionados de Drive y maneja la respuesta.
      * @param {Array} pacientes - Lista de pacientes a eliminar.
      */
-    const eliminarDiagnosticos = async (diagnosticos) => {
-        const res = await drive.eliminarDiagnostico(diagnosticos, true);
+    const borrarDiagnosticos = async (diagnosticos) => {
+        const res = await eliminarDiagnosticos(diagnosticos, DB);
         if (!res.success) {
+            setModoModal(0);
+            setActivar2Btn(false);
             setModal({
                 mostrar: true,
                 titulo: "Error al eliminar los diagnósticos.",
                 mensaje: res.error
             });
+            setCargando(false);
+        } else {
+            cargarDiagnosticos(auth.authInfo.correo, rol, DB);
+            cargarPacientes();
+            
+        }
+    };
+
+    /**
+     * Revisa que el valor de validación sea vàlido (0 o 1).
+     * Si es válido actualiza el diagnóstico.
+     */
+    const validarCambio = () => {
+        setErrorDiagnostico(validar == 2);
+
+        if (validar != 2) {
+            validarDiagnostico(instancia);
+            sessionStorage.setItem("ejecutar-callback", "true");
+            setModal((x) => ({ ...x, mostrar: false }));
+        }
+    };
+
+    /**
+     * Cambia el estado de validación de un diagnóstico.
+     * @param {JSON} indice - Diagnóstico a validar.
+     */
+    const validarDiagnostico = async (indice) => {
+        setCargando(true);
+        const res = await cambiarDiagnostico({ ...diagnosticos[indice.diagnostico], validado: validar }, DB);
+
+        if (res.success) {
+            setDatos((x) => {
+                x[indice.diagnostico].validado = detTxtDiagnostico(validar);
+                delete x[indice.diagnostico].accion;
+                return x;
+            });
+        } else {
+            setActivar2Btn(false);
+            setModal({
+                mostrar: true, titulo: "Error",
+                mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
+            });
         }
         setCargando(false);
     };
+
+    /**
+     * Botón para validar diagnóstico
+     * @param {JSON} diagnostico - Diagnóstico a validar.
+     * @returns JSX.Element
+     */
+    const BtnValidar = (diagnostico) => {
+        const func = (x) => {
+            sessionStorage.setItem("ejecutar-callback", "false");
+            setInstancia(x);
+            setActivar2Btn(true);
+            setModoModal(2);
+            setModal({
+                mostrar: true, titulo: "Validar diagnóstico", mensaje: ""
+            });
+        };
+
+        return (
+            <Tooltip title="Validar diagnóstico">
+                <IconButton onClick={() => func(diagnostico)}>
+                    <CheckCircleOutlineIcon />
+                </IconButton>
+            </Tooltip>
+        );
+    };
+
+    /**
+     * Determina el texto del botón primario del modal según el modo.
+     * @returns {String}
+     */
+    const detTxtBtnPrimarioModal = () => {
+        if (modoModal == 1) {
+            return "Eliminar";
+        } else if (modoModal == 2) {
+            return "Validar";
+        }
+    };
+
+    /**
+     * Manejador del botón cancelar del modal.
+     */
+    const manejadorBtnCancelar = () => {
+        setModal({ ...modal, mostrar: false });
+        setErrorDiagnostico(false);
+        setValidar(2);
+        sessionStorage.setItem("ejecutar-callback", "true");
+        setInstancia(null);
+    };
+
 
     return (
         <MenuLayout>
@@ -229,7 +347,7 @@ export default function VerDiagnosticosPage() {
                         pestanas={listadoPestanas} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
                         <Datatable
-                            campos={camposFijos}
+                            campos={rol == 1001 ? camposFijos : camposFijos.concat([{ id: "accion", label: "Acción" }])}
                             datos={datos}
                             lblBusq={rol == 0 ? "Buscar diagnóstico por nombre o número de cédula del paciente" : "Buscar diagnóstico por médico"}
                             activarBusqueda={true}
@@ -250,11 +368,18 @@ export default function VerDiagnosticosPage() {
                 titulo={modal.titulo}
                 mensaje={modal.mensaje}
                 manejadorBtnPrimario={manejadorBtnModal}
-                manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
-                mostrarBtnSecundario={eliminar}
-                txtBtnSimple="Eliminar"
+                manejadorBtnSecundario={manejadorBtnCancelar}
+                mostrarBtnSecundario={activar2Btn}
+                txtBtnSimple={detTxtBtnPrimarioModal()}
                 txtBtnSecundario="Cancelar"
-                txtBtnSimpleAlt="Cerrar" />
+                txtBtnSimpleAlt="Cerrar">
+                {modoModal == 2 ? (
+                    <FormValidarDiag
+                        onChange={setValidar}
+                        diagnostico={validar}
+                        error={errorDiagnostico}
+                    />) : null}
+            </ModalAccion>
         </MenuLayout>
     );
 };

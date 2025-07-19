@@ -2,14 +2,14 @@ import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 
 /**
  * Edita el contenido de un documento. Sino existe lo crea.
- * @param {JSON} datos - Datos del usuario a modificar o crear.
+ * @param {JSON} json - Datos del usuario a modificar o crear.
  * @param {Object} db - Instancia de Firestore.
  * @returns JSON
  */
-export const cambiarUsuario = async (datos, db) => {
+export const cambiarUsuario = async (json, db) => {
     try {
-        const docRef = doc(db, "usuarios", datos.correo);
-        const datos = await setDoc(docRef, datos);
+        const docRef = doc(db, "usuarios", json.correo);
+        const datos = await setDoc(docRef, json);
 
         return { success: true, data: datos };
     } catch (error) {

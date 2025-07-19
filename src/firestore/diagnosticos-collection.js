@@ -2,14 +2,14 @@ import { collection, doc, getDoc, getDocs, setDoc, where, query, deleteDoc } fro
 
 /**
  * Edita el contenido de un documento. Sino existe lo crea.
- * @param {JSON} datos - Datos del diagnóstico a modificar o crear.
+ * @param {JSON} json - Datos del diagnóstico a modificar o crear.
  * @param {Object} db - Instancia de Firestore.
  * @returns JSON
  */
-export const cambiarDiagnostico = async (datos, db) => {
+export const cambiarDiagnostico = async (json, db) => {
     try {
-        const docRef = doc(db, "diagnosticos", datos.id);
-        const datos = await setDoc(docRef, datos);
+        const docRef = doc(db, "diagnosticos", json.id);
+        const datos = await setDoc(docRef, json);
 
         return { success: true, data: datos };
     } catch (error) {
@@ -75,7 +75,6 @@ export const verDiagnosticosPorMedico = async (id, db) => {
 
         return { success: true, data: diagnosticos };
     } catch (error) {
-        console.log(error)
         return { success: false, data: error };
     }
 };
@@ -88,11 +87,9 @@ export const verDiagnosticosPorMedico = async (id, db) => {
  */
 export const eliminarDiagnosticos = async (ids, db) => {
     try {
-        const coleccion = collection(db, "diagnosticos");
-
         for (const id of ids) {
             await deleteDoc(
-                doc(coleccion, id)
+                doc(db, "diagnosticos", id)
             );
         }
 
