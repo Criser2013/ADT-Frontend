@@ -75,7 +75,7 @@ export const verDiagnosticosPorMedico = async (id, db) => {
 
         return { success: true, data: diagnosticos };
     } catch (error) {
-        console.log(error);
+        console.log(error)
         return { success: false, data: error };
     }
 };

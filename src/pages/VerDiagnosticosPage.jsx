@@ -63,6 +63,16 @@ export default function VerDiagnosticosPage() {
         }
     }, [auth.tokenDrive]);
 
+    useEffect(() => {
+
+        if (drive.datos != null && diagnosticos != null && (typeof diagnosticos[0].fecha != "string")) {
+            setDatos(formatearCeldas(drive.datos, diagnosticos));
+            console.log("diagnosticos", diagnosticos);
+            console.log("personas", personas);
+            setCargando(false);
+        }
+    }, [drive.datos]);
+
     /**
      * Carga los diagnósticos y los pacientes dependiendo del rol del usuario.
      */
@@ -84,9 +94,7 @@ export default function VerDiagnosticosPage() {
      */
     useEffect(() => {
         if (diagnosticos != null && personas != null) {
-            setDatos(formatearCeldas(personas, diagnosticos));
             setCargando(false);
-            console.log("xddd")
         } else {
             setDatos([]);
         }
@@ -135,14 +143,13 @@ export default function VerDiagnosticosPage() {
      */
     const formatearCeldas = (personas, diagnosticos) => {
         const aux = {};
+        const auxDiag = [ ...diagnosticos];
 
         for (const i of personas) {
             aux[i.cedula] = i.nombre;
         }
-        for (const i of diagnosticos) {
-            i.edad = dayjs().diff(dayjs(
-                i.fechaNacimiento, "DD-MM-YYYY"), "year", false
-            );
+
+        for (const i of auxDiag) {
             i.sexo = i.sexo == 0 ? "Masculino" : "Femenino";
 
             const paciente = aux[i.paciente];
@@ -154,7 +161,7 @@ export default function VerDiagnosticosPage() {
             delete i.medico;
         }
 
-        return diagnosticos;
+        return auxDiag;
     };
 
     /**
@@ -230,7 +237,7 @@ export default function VerDiagnosticosPage() {
                             campoId="id"
                             terminoBusqueda={""}
                             lblSeleccion="diagnosticos seleccionados"
-                            camposBusq={rol == 0 ? ["nombre", "cedula"] : ["medico"]}
+                            camposBusq={rol == 0 ? ["nombre", "paciente"] : ["medico"]}
                             cbClicCelda={manejadorClicCelda}
                             cbAccion={manejadorEliminar}
                             tooltipAccion="Eliminar diagnósticos seleccionados"
