@@ -28,6 +28,7 @@ import { buscar } from "../../utils/Busqueda";
  * @param {String} campoId - Nombre del campo que se usará como identificador único de cada fila.
  * @param {String} lblBusq - Texto del placeholder del campo de búsqueda.
  * @param {Boolean} activarBusqueda - Si se muestra el campo de búsqueda.
+ * @param {Boolean} activarSeleccion - Si se activa el modo de selección de filas.
  * @param {String} terminoBusqueda - Valor inicial del campo de búsqueda.
  * @param {Array[String]} camposBusq - Lista de campos en los que se buscará el término ingresado.
  * @param {Function} cbClicCelda - Callback para manejar el clic en una
@@ -36,8 +37,8 @@ import { buscar } from "../../utils/Busqueda";
  * @param {String} tooltipAccion - Texto del tooltip del botón de acción de selección de filas.
  * @returns JSX.Element
  */
-export default function Datatable({ campos, datos, lblSeleccion, campoId = "id", lblBusq = "", activarBusqueda = false, 
-    terminoBusqueda = "", camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "" }) {
+export default function Datatable({ campos, datos, lblSeleccion, campoId = "id", lblBusq = "", activarBusqueda = false,
+    activarSeleccion = true, terminoBusqueda = "", camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "" }) {
     const [orden, setOrden] = useState("desc");
     const [campoOrden, setCampoOrden] = useState(campos[0].id);
     const [numSeleccionados, setNumSeleccionados] = useState(0);
@@ -230,14 +231,16 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                         size="medium">
                         <TableHead>
                             <TableRow>
-                                <TableCell padding="checkbox">
-                                    <Checkbox
-                                        color="primary"
-                                        indeterminate={numSeleccionados > 0 && (numSeleccionados < numFilas || numSeleccionados < datos.length)}
-                                        checked={numFilas > 0 && (numSeleccionados === numFilas || numSeleccionados === datos.length)}
-                                        onChange={seleccionarTodo}
-                                    />
-                                </TableCell>
+                                {activarSeleccion ? (
+                                    <TableCell padding="checkbox">
+                                        <Checkbox
+                                            color="primary"
+                                            indeterminate={numSeleccionados > 0 && (numSeleccionados < numFilas || numSeleccionados < datos.length)}
+                                            checked={numFilas > 0 && (numSeleccionados === numFilas || numSeleccionados === datos.length)}
+                                            onChange={seleccionarTodo}
+                                        />
+                                    </TableCell>
+                                ) : null}
                                 {campos.map((headCell) => (
                                     <TableCell
                                         key={headCell.id}
@@ -277,21 +280,22 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                 return (
                                     <TableRow
                                         hover
-                                        onClick={(e) => manejadorClicCelda(e,x)}
+                                        onClick={(e) => manejadorClicCelda(e, x)}
                                         tabIndex={-1}
                                         key={x[campoId]}
                                         selected={estaSeleccionada}
                                         sx={{ cursor: cbClicCelda != null ? "pointer" : "default" }}>
-                                        <TableCell padding="checkbox">
-                                            <Checkbox
-                                                color="primary"
-                                                checked={estaSeleccionada}
-                                                onClick={(e) => seleccionarFila(e, x[campoId])}
-                                                inputProps={{
-                                                    "aria-labelledby": labelId,
-                                                }}
-                                            />
-                                        </TableCell>
+                                        {activarSeleccion ? (
+                                            <TableCell padding="checkbox">
+                                                <Checkbox
+                                                    color="primary"
+                                                    checked={estaSeleccionada}
+                                                    onClick={(e) => seleccionarFila(e, x[campoId])}
+                                                    inputProps={{
+                                                        "aria-labelledby": labelId,
+                                                    }}
+                                                />
+                                            </TableCell>) : null}
                                         {nombresCampos.map((y) => {
                                             return (
                                                 <TableCell key={`${x.id}-${y}`}>

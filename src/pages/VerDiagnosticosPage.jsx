@@ -14,6 +14,7 @@ import ModalAccion from "../components/modals/ModalAccion";
 import { useCredenciales } from "../contexts/CredencialesContext";
 import { verDiagnosticos, verDiagnosticosPorMedico } from "../firestore/diagnosticos-collection";
 import { verUsuario, verUsuarios } from "../firestore/usuarios-collection";
+import { detTxtDiagnostico } from "../utils/TratarDatos";
 
 export default function VerDiagnosticosPage() {
     const auth = useAuth();
@@ -30,18 +31,25 @@ export default function VerDiagnosticosPage() {
     });
     const [eliminar, setEliminar] = useState(false);
     const [datos, setDatos] = useState([]);
+    const [diagnosticos, setDiagnosticos] = useState(null);
+    const [personas, setPersonas] = useState(null);
     const [seleccionados, setSeleccionados] = useState([]);
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
-    const campos = [
-        { id: "nombre", label: "Nombre" },
-        { id: "cedula", label: "Cédula" },
-        { id: "telefono", label: "Teléfono" },
-        { id: "sexo", label: "Sexo" },
-        { id: "edad", label: "Edad" }
-    ];
     const { rol } = auth.authInfo;
+    const DB = credenciales.obtenerInstanciaDB();
+    const camposVariables = (rol == 0) ? [
+        { id: "nombre", label: "Paciente" },
+        { id: "paciente", label: "Cédula" }
+    ] : [{ id: "nombre", label: "Médico" }];
+    const camposFijos = camposVariables.concat([
+        { id: "fecha", label: "Fecha" },
+        { id: "edad", label: "Edad" },
+        { id: "sexo", label: "Sexo" },
+        { id: "diagnostico", label: "Diagnóstico modelo" },
+        { id: "validado", label: "Diagnóstico médico" }
+    ]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -56,64 +64,79 @@ export default function VerDiagnosticosPage() {
     }, [auth.tokenDrive]);
 
     /**
-     * Coloca el título de la página.
+     * Carga los diagnósticos y los pacientes dependiendo del rol del usuario.
      */
     useEffect(() => {
         document.title = rol == 0 ? "Historial de diagnósticos" : "Lista de diagnósticos";
-
-        if (rol != 0 && drive.datos != null && !drive.descargando) {
-            cargarPacientes();
-        } else {
-            cargarDiagnosticos();
+        const { correo } = auth.authInfo;
+        
+        if (rol != null && correo != null && DB != null) {
+            cargarDiagnosticos(correo, rol, DB);
         }
-    }, []);
+
+        if (rol == 0) {
+            cargarPacientes();
+        }
+    }, [auth.authInfo.correo, rol, DB]);
+
+    /**
+     * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
+     */
+    useEffect(() => {
+        if (diagnosticos != null && personas != null) {
+            setDatos(formatearCeldas(personas, diagnosticos));
+            setCargando(false);
+            console.log("xddd")
+        } else {
+            setDatos([]);
+        }
+    }, [diagnosticos, personas]);
 
     /**
      * Carga los datos de los pacientes desde Drive y luego los diagnósticos.
      */
     const cargarPacientes = async () => {
         const res = await drive.cargarDatos();
-        if (!res.success) {
+        if (res.success) {
+            setPersonas(drive.datos);
+        } else {
             setModal({
-                titulo: "Error al cargar los datos",
+                titulo: "Error al cargar los datos de los pacientes",
                 mensaje: res.error
             });
-        } else {
-            cargarDiagnosticos();
         }
     };
 
     /**
      * Carga los datos de los diagnósticos y dependiendo del rol, de los médicos.
+     * @param {String} correo - Correo del médico.
+     * @param {Number} rol - Rol del usuario (0: médico, 1001: administrador).
+     * @param {Object} DB - Instancia de Firestore.
      */
-    const cargarDiagnosticos = async () => {
-        const DB = credenciales.obtenerInstanciaBD();
-        const { correo } = auth.authInfo;
-        const resDiagnosticos = (rol == 0) ? await verDiagnosticosPorMedico(correo, DB) : await verDiagnosticos(DB);
-        const resUsuarios = (rol != 0) ? await verUsuarios(DB) : { success: true, data: drive.datos };
-
-        if (resDiagnosticos.success && resUsuarios.success) {
-            setDatos(formatearCeldas(resUsuarios.data, resDiagnosticos.data));
-            setCargando(false);
+    const cargarDiagnosticos = async (correo, rol, DB) => {
+        const res = (rol == 0) ? await verDiagnosticosPorMedico(correo, DB) : await verDiagnosticos(DB);
+        if (res.success) {
+            setDiagnosticos(res.data);
         } else {
             setModal({
-                mostrar: true, titulo: "Error al cargar diagnósticos",
+                mostrar: true, titulo: "Error al cargar los diagnósticos",
                 mensaje: "Ha ocurrido un error al cargar los diagnósticos. Por favor, inténtalo de nuevo más tarde."
             });
+            setCargando(false);
         }
     };
 
     /**
      * Calcula la edad de los pacientes y añade los nombres de los pacientes o
      * el nombre del médico según el rol del usuario.
-     * @param {Array} pacientes - Lista de pacientes.
+     * @param {Array} personas - Lista de pacientes (para usuarios) o médicos (para administradores).
      * @param {Array} diagnosticos - Lista de diagnósticos.
      * @returns Array
      */
-    const formatearCeldas = (pacientes, diagnosticos) => {
+    const formatearCeldas = (personas, diagnosticos) => {
         const aux = {};
 
-        for (const i of pacientes) {
+        for (const i of personas) {
             aux[i.cedula] = i.nombre;
         }
         for (const i of diagnosticos) {
@@ -124,6 +147,11 @@ export default function VerDiagnosticosPage() {
 
             const paciente = aux[i.paciente];
             i.nombre = (paciente != undefined) ? paciente : "N/A";
+            i.diagnostico = detTxtDiagnostico(i.diagnostico);
+            i.fecha = dayjs(i.fecha.toDate()).format("DD/MM/YYYY");
+            i.validado = detTxtDiagnostico(i.validado);
+
+            delete i.medico;
         }
 
         return diagnosticos;
@@ -194,17 +222,18 @@ export default function VerDiagnosticosPage() {
                         pestanas={listadoPestanas} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
                         <Datatable
-                            campos={campos}
+                            campos={camposFijos}
                             datos={datos}
                             lblBusq={rol == 0 ? "Buscar diagnóstico por nombre o número de cédula del paciente" : "Buscar diagnóstico por médico"}
-                            activarBusqueda={rol == 0}
+                            activarBusqueda={true}
+                            activarSeleccion={rol == 1001}
                             campoId="id"
                             terminoBusqueda={""}
                             lblSeleccion="diagnosticos seleccionados"
                             camposBusq={rol == 0 ? ["nombre", "cedula"] : ["medico"]}
                             cbClicCelda={manejadorClicCelda}
                             cbAccion={manejadorEliminar}
-                            tooltipAccion="Eliminar diagnosticos seleccionados"
+                            tooltipAccion="Eliminar diagnósticos seleccionados"
                             icono={<DeleteIcon />}
                         />
                     </Grid>
