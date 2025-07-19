@@ -9,9 +9,9 @@ import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 export const cambiarUsuario = async (datos, db) => {
     try {
         const docRef = doc(db, "usuarios", datos.correo);
-        const datosUsuario = await setDoc(docRef, datos);
+        const datos = await setDoc(docRef, datos);
 
-        return { success: true, data: datosUsuario };
+        return { success: true, data: datos };
     } catch (error) {
         return { success: false, data: error };
     }
@@ -26,9 +26,9 @@ export const cambiarUsuario = async (datos, db) => {
 export const verSiEstaRegistrado = async (correo, db) => {
     try {
         const docRef = doc(db, "usuarios", correo);
-        const docSnap = await getDoc(docRef);
+        const datos = await getDoc(docRef);
 
-        return { success: true, data: docSnap.exists() };
+        return { success: true, data: datos.exists() };
     } catch {
         return { success: false, data: false };
     }
@@ -43,9 +43,9 @@ export const verSiEstaRegistrado = async (correo, db) => {
 export const verUsuario = async (correo, db) => {
     try {
         const docRef = doc(db, "usuarios", correo);
-        const docSnap = await getDoc(docRef);
+        const datos = await getDoc(docRef);
 
-        return docSnap.exists() ? { success: 1, data: docSnap.data() }
+        return datos.exists() ? { success: 1, data: datos.data() }
             : { success: 2, data: "El usuario no está registrado." };
 
     } catch (error) {
@@ -60,15 +60,15 @@ export const verUsuario = async (correo, db) => {
  */
 export const verUsuarios = async (db) => {
     try {
-        const usuariosCollection = collection(db, "usuarios");
-        const querySnapshot = await getDocs(usuariosCollection);
+        const coleccion = collection(db, "usuarios");
+        const datos = await getDocs(coleccion);
 
-        const users = [];
-        querySnapshot.forEach((doc) => {
-            users.push({ id: doc.id, ...doc.data() });
+        const usuarios = [];
+        datos.forEach((doc) => {
+            usuarios.push({ id: doc.id, ...doc.data() });
         });
 
-        return { success: true, data: users };
+        return { success: true, data: usuarios };
     } catch (error) {
         return { success: false, data: error };
     }
