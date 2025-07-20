@@ -55,7 +55,7 @@ export default function Sidebar() {
                 break;
             case 4:
                 navegacion.setPaginaAnterior(window.location.pathname);
-                navigate("/historial-diagnosticos", { replace: true });
+                navigate("/diagnosticos", { replace: true });
                 break;
         }
     };

@@ -44,12 +44,13 @@ export default function VerPacientePage() {
         },
         comorbilidades: []
     });
-    const campos = [{ titulo: "Nombre", valor: datos.personales.nombre },
-    { titulo: "Cédula", valor: datos.personales.cedula },
-    { titulo: "Fecha de nacimiento", valor: datos.personales.fechaNacimiento },
-    { titulo: "Edad", valor: `${datos.personales.edad} años` },
-    { titulo: "Teléfono", valor: datos.personales.telefono },
-    { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" }
+    const campos = [
+        { titulo: "Nombre", valor: datos.personales.nombre },
+        { titulo: "Cédula", valor: datos.personales.cedula },
+        { titulo: "Fecha de nacimiento", valor: datos.personales.fechaNacimiento },
+        { titulo: "Edad", valor: `${datos.personales.edad} años` },
+        { titulo: "Teléfono", valor: datos.personales.telefono },
+        { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" }
     ];
     const listadoPestanas = [
         { texto: "Lista de pacientes", url: "/pacientes" },

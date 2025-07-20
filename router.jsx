@@ -9,6 +9,7 @@ import ListaPacientesPage from "./src/pages/ListaPacientesPage";
 import DiagnosticoAnonimoPage from "./src/pages/DiagnosticoAnonimoPage";
 import DiagnosticoPacientePage from "./src/pages/DiagnosticoPacientePage";
 import VerDiagnosticoPage from "./src/pages/VerDiagnosticoPage";
+import VerDiagnosticosPage from "./src/pages/VerDiagnosticosPage";
 
 /**
  * Enrutador principal de la aplicación que define las rutas y páginas.
@@ -48,6 +49,11 @@ export default function Router() {
                 <Route path="/diagnosticos/ver-diagnostico" element={
                     <DriveProvider>
                         <VerDiagnosticoPage />
+                    </DriveProvider>
+                } />
+                <Route path="/diagnosticos" element={
+                    <DriveProvider>
+                        <VerDiagnosticosPage />
                     </DriveProvider>
                 } />
             </Routes>
