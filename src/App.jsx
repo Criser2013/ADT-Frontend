@@ -107,7 +107,7 @@ export default function App() {
                 abrir={modal2Btn.mostrar}
                 mensaje={modal2Btn.mensaje}
                 titulo="Aviso"
-                manejadorBtnPrimario={auth.permisos ? manejadorBtnPermisos : manejadorBtnReautenticar}
+                manejadorBtnPrimario={!auth.requiereRefresco ? manejadorBtnPermisos : manejadorBtnReautenticar}
                 manejadorBtnSecundario={manejadorBtnCerrarSesion}
                 mostrarBtnSecundario={true}
                 txtBtnSimple={modal2Btn.txtBtn}

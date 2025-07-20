@@ -12,6 +12,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useDrive } from "../contexts/DriveContext";
 import dayjs from "dayjs";
 import ModalAccion from "../components/modals/ModalAccion";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 
 /**
  * Página para ver la lista de pacientes.
@@ -62,14 +63,7 @@ export default function ListaPacientesPage() {
         document.title = "Lista de pacientes";
 
         if (drive.datos != null && !drive.descargando) {
-            drive.cargarDatos().then((res) => {
-                if (!res.success) {
-                    setModal({
-                        titulo: "Error al cargar los datos",
-                        mensaje: res.error
-                    });
-                }
-            });
+            cargarDatos();
         }
     }, []);
 
@@ -84,8 +78,26 @@ export default function ListaPacientesPage() {
      * Actualiza los datos de la tabla cuando cambian los datos de Drive.
      */
     useEffect(() => {
-        setDatos(formatearCeldas(drive.datos));
+        setDatos(
+            drive.datos != null ?
+            formatearCeldas(
+                drive.datos.map((x) => ({ ...x }))
+            ) : []
+        );
     }, [drive.datos]);
+
+    /**
+     * Carga los datos de los pacientes desde Drive.
+     */
+    const cargarDatos = async () => {
+        const res = await drive.cargarDatos();
+        if (!res.success) {
+            setModal({
+                titulo: "Error al cargar los datos",
+                mensaje: res.error
+            });
+        }
+    };
 
     /**
      * Añade el campo edad y formatea el campo sexo.
@@ -93,14 +105,15 @@ export default function ListaPacientesPage() {
      * @returns Array
      */
     const formatearCeldas = (datos) => {
-        return datos != null ? datos.map((dato,) => ({
+        dayjs.extend(customParseFormat);
+        return datos.map((dato,) => ({
             nombre: dato.nombre, cedula: dato.cedula,
             telefono: dato.telefono,
             edad: dayjs().diff(dayjs(
                 dato.fechaNacimiento, "DD-MM-YYYY"), "year", false
             ),
             sexo: dato.sexo == 0 ? "Masculino" : "Femenino",
-        })) : [];
+        }));
     };
 
     /**
