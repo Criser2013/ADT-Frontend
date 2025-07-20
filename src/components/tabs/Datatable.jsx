@@ -333,6 +333,8 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                     page={pagina}
                     onPageChange={cambiarPagina}
                     onRowsPerPageChange={cambiarFilasPorPagina}
+                    labelRowsPerPage="Filas por página"
+                    labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count !== -1 ? count : `más de ${to}`}`}
                 />
             </Paper>
         </Box>
