@@ -159,12 +159,15 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
 
     /**
      * Manejador de clic en una celda de la tabla.
-     *  @param {Event} e - Evento de clic.
+     * @param {Event} e - Evento de clic.
      * @param {JSON} instancia - Instancia de fila de datos.
      */
     const manejadorClicCelda = (e, instancia) => {
         if (cbClicCelda != null && !modoSeleccion && e.target.checked == undefined) {
             cbClicCelda(instancia);
+        } else if (modoSeleccion && e.target.checked == undefined) {
+            const id = !seleccionados.includes(instancia[campoId]);
+            seleccionarFila({ target: { checked: id }}, instancia[campoId]);
         }
     };
 
@@ -208,9 +211,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                 placeholder={lblBusq}
                                 value={busqueda}
                                 onChange={manejadorBusqueda}
-                                sx={{
-                                    backgroundColor: "white",
-                                }}
+                                sx={{ backgroundColor: "white" }}
                                 slotProps={{
                                     input: {
                                         startAdornment: (

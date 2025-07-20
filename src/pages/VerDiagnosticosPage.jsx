@@ -161,7 +161,7 @@ export default function VerDiagnosticosPage() {
             auxDiag[i].nombre = (paciente != undefined) ? paciente : "N/A";
             auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico);
             auxDiag[i].fecha = dayjs(auxDiag[i].fecha.toDate()).format("DD/MM/YYYY");
-            auxDiag[i].accion = auxDiag[i].validado == 2 ? <BtnValidar diagnostico={i} /> : null;
+            auxDiag[i].accion = auxDiag[i].validado == 2 ? <BtnValidar diagnostico={i} /> : "N/A";
             auxDiag[i].validado = detTxtDiagnostico(auxDiag[i].validado);
 
             delete auxDiag[i].medico;
@@ -271,7 +271,7 @@ export default function VerDiagnosticosPage() {
         if (res.success) {
             setDatos((x) => {
                 x[indice.diagnostico].validado = detTxtDiagnostico(validar);
-                delete x[indice.diagnostico].accion;
+                x[indice.diagnostico].accion = "N/A";
                 return x;
             });
         } else {
@@ -302,7 +302,7 @@ export default function VerDiagnosticosPage() {
 
         return (
             <Tooltip title="Validar diagnóstico">
-                <IconButton onClick={() => func(diagnostico)}>
+                <IconButton onClick={() => func(diagnostico)} color="primary">
                     <CheckCircleOutlineIcon />
                 </IconButton>
             </Tooltip>
@@ -355,7 +355,7 @@ export default function VerDiagnosticosPage() {
                             campoId="id"
                             terminoBusqueda={""}
                             lblSeleccion="diagnosticos seleccionados"
-                            camposBusq={rol == 0 ? ["nombre", "paciente"] : ["medico"]}
+                            camposBusq={rol == 0 ? ["nombre", "paciente"] : ["nombre"]}
                             cbClicCelda={manejadorClicCelda}
                             cbAccion={manejadorEliminar}
                             tooltipAccion="Eliminar diagnósticos seleccionados"
