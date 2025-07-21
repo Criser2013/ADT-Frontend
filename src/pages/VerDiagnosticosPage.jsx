@@ -236,20 +236,31 @@ export default function VerDiagnosticosPage() {
      * @param {Array} pacientes - Lista de pacientes a eliminar.
      */
     const borrarDiagnosticos = async (diagnosticos) => {
-        const res = await eliminarDiagnosticos(diagnosticos, DB);
-        if (!res.success) {
+        const peticiones = [];
+
+        for (let i = 0; i < diagnosticos.length; i++) {
+            peticiones[i] = null;
+        }
+
+        diagnosticos.forEach((x, i) => {
+            peticiones[i] = eliminarDiagnosticos(x, DB);
+        });
+
+        for (let i = 0; i < peticiones.length; i++) {
+            peticiones[i] = await peticiones[i];
+        }
+
+        if (peticiones.every((x) => x.success)) {
+            cargarDiagnosticos(auth.authInfo.correo, rol, DB);
+            cargarPacientes();
+        } else {
             setModoModal(0);
             setActivar2Btn(false);
             setModal({
-                mostrar: true,
-                titulo: "Error al eliminar los diagnósticos.",
-                mensaje: res.error
+                mostrar: true, titulo: "Error al eliminar los diagnósticos.",
+                mensaje: "Se ha producido un error al eliminar los diagnósticos seleccionados. Por favor, inténtalo de nuevo más tarde."
             });
             setCargando(false);
-        } else {
-            cargarDiagnosticos(auth.authInfo.correo, rol, DB);
-            cargarPacientes();
-
         }
     };
 

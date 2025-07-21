@@ -81,20 +81,18 @@ export const verDiagnosticosPorMedico = async (id, db) => {
 
 /**
  * Elimina los diagnósticos seleccionados de la BD.
- * @param {Array[String]} ids - Lista de IDs de diagnósticos a eliminar.
+ * @param {String} ids - Lista de IDs de diagnósticos a eliminar.
  * @param {Object} db - Instancia de Firestore.
  * @returns JSON
  */
-export const eliminarDiagnosticos = async (ids, db) => {
+export const eliminarDiagnosticos = async (id, db) => {
     try {
-        for (const id of ids) {
-            await deleteDoc(
-                doc(db, "diagnosticos", id)
-            );
-        }
+        await deleteDoc(
+            doc(db, "diagnosticos", id)
+        );
 
-        return { success: true, data: null };
+        return { success: true, data: null, error: null };
     } catch (error) {
-        return { success: false, data: error };
+        return { success: false, data: null, error: error };
     }
 };
