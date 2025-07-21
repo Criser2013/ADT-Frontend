@@ -396,7 +396,7 @@ export default function VerDiagnosticoPage() {
                                             nombre={x.nombre}
                                             etiqueta={x.texto}
                                             desactivado={true}
-                                            checked={datos.personales[x.nombre]}
+                                            activado={datos.personales[x.nombre]}
                                             manejadorCambios={null} />
                                     </Grid>
                                 ))}

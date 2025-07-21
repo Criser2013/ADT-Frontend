@@ -217,6 +217,10 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      */
     const evaluarErrores = (cod) => {
         let res = { campo: cod, error: false, txt: "" };
+        const numCampos = ["presionSis", "presionDias", "frecRes", "frecCard",
+            "so2", "plaquetas", "hemoglobina", "wbc"
+        ];
+
         switch (true) {
             case (cod == "paciente" && paciente.cedula == -1):
                 res = { error: true, txt: "Debes seleccionar un paciente" };
@@ -227,28 +231,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             case (cod == "edad" && !validarNumero(datosTxt.edad)):
                 res = { error: true, txt: "Edad inválida" };
                 break;
-            case (cod == "presionSis" && !validarFloatPos(datosTxt.presionSis)):
-                res = { error: true, txt: "Solo debes ingresar números positivos" };
-                break;
-            case (cod == "presionDias" && !validarFloatPos(datosTxt.presionDias)):
-                res = { error: true, txt: "Solo debes ingresar números positivos" };
-                break;
-            case (cod == "frecRes" && !validarFloatPos(datosTxt.frecRes)):
-                res = { error: true, txt: "Solo debes ingresar números positivos" };
-                break;
-            case (cod == "frecCard" && !validarFloatPos(datosTxt.frecCard)):
-                res = { error: true, txt: "Solo debes ingresar números positivos" };
-                break;
-            case (cod == "so2" && !validarFloatPos(datosTxt.so2)):
-                res = { error: true, txt: "Solo debes ingresar números positivos" };
-                break;
-            case (cod == "plaquetas" && !validarFloatPos(datosTxt.plaquetas)):
-                res = { error: true, txt: "Solo debes ingresar números positivos" };
-                break;
-            case (cod == "hemoglobina" && !validarFloatPos(datosTxt.hemoglobina)):
-                res = { error: true, txt: "Solo debes ingresar números positivos" };
-                break;
-            case (cod == "wbc" && !validarFloatPos(datosTxt.wbc)):
+            case numCampos.includes(cod) && !validarFloatPos(datosTxt[cod]):
                 res = { error: true, txt: "Solo debes ingresar números positivos" };
                 break;
             case (cod == "comorbilidades" && (datosBin.otraEnfermedad && otrasEnfermedades.length == 0)):
@@ -450,7 +433,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         nombre={x.nombre}
                                         etiqueta={x.texto}
                                         desactivado={desactivarCampos}
-                                        checked={datosBin[x.nombre]}
+                                        activado={datosBin[x.nombre]}
                                         manejadorCambios={manejadorCambiosDatosBin} />
                                 </Grid>
                             ))}
@@ -562,7 +545,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                             <Check
                                 nombre="otraEnfermedad"
                                 etiqueta="El paciente padece otra enfermedad."
-                                checked={datosBin.otraEnfermedad}
+                                activado={datosBin.otraEnfermedad}
                                 desactivado={desactivarCampos || esDiagPacientes}
                                 manejadorCambios={manejadorCambiosDatosBin} />
                         </Grid>
