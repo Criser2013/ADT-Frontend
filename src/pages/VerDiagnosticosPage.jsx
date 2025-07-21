@@ -112,10 +112,10 @@ export default function VerDiagnosticosPage() {
      * Carga los datos de los pacientes desde Drive y luego los diagnósticos.
      */
     const cargarPacientes = async () => {
-        const res = (rol == 0) ? await drive.cargarDatos() : await verUsuarios(DB);
+        const res = (rol != CODIGO_ADMIN) ? await drive.cargarDatos() : await verUsuarios(DB);
         if (res.success && rol == CODIGO_ADMIN) {
             setPersonas(res.data);
-        } else if (res.success && rol == 0) {
+        } else if (res.success && rol != CODIGO_ADMIN) {
             return;
         } else {
             setModal({
@@ -156,14 +156,21 @@ export default function VerDiagnosticosPage() {
         const auxDiag = diags.map((d) => d);
 
         for (const i of personas) {
-            aux[i.cedula] = i.nombre;
+            let clave = i.cedula;
+
+            if (rol == CODIGO_ADMIN) {
+                clave = i.correo;
+            }
+
+            aux[clave] = i.nombre;
         }
 
         for (let i = 0; i < diags.length; i++) {
             auxDiag[i].sexo = auxDiag[i].sexo == 0 ? "Masculino" : "Femenino";
+            const campos = (rol != CODIGO_ADMIN) ? "paciente" : "medico";
+            const persona = aux[auxDiag[i][campos]];
 
-            const paciente = aux[auxDiag[i].paciente];
-            auxDiag[i].nombre = (paciente != undefined) ? paciente : "N/A";
+            auxDiag[i].nombre = (persona != undefined) ? persona : "N/A";
             auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico);
             auxDiag[i].fecha = dayjs(auxDiag[i].fecha.toDate()).format("DD/MM/YYYY");
             auxDiag[i].accion = auxDiag[i].validado == 2 ? <BtnValidar diagnostico={i} /> : "N/A";
