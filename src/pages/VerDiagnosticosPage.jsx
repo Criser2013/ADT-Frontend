@@ -1,4 +1,4 @@
-import { Grid, Box, CircularProgress, Tooltip, IconButton } from "@mui/material";
+import { Grid, Box, CircularProgress, Tooltip, IconButton, Button } from "@mui/material";
 import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
@@ -16,7 +16,10 @@ import { cambiarDiagnostico, verDiagnosticos, verDiagnosticosPorMedico, eliminar
 import { verUsuarios } from "../firestore/usuarios-collection";
 import { detTxtDiagnostico } from "../utils/TratarDatos";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import FormValidarDiag from "../components/tabs/FormValidarDiag";
+import { descargarArchivoXlsx } from "../utils/XlsxFiles";
+import { EXPORT_FILENAME } from "../../constants";
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import FormSeleccionar from "../components/tabs/FormSeleccionar";
 
 export default function VerDiagnosticosPage() {
     const auth = useAuth();
@@ -39,6 +42,7 @@ export default function VerDiagnosticosPage() {
     const [validar, setValidar] = useState(2);
     const [instancia, setInstancia] = useState(null);
     const [modoModal, setModoModal] = useState(0);
+    const [tipoArchivo, setTipoArchivo] = useState("xlsx");
     const [errorDiagnostico, setErrorDiagnostico] = useState(false);
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
@@ -87,7 +91,7 @@ export default function VerDiagnosticosPage() {
      */
     useEffect(() => {
         if (diagnosticos != null && personas != null && (typeof diagnosticos[0].fecha != "string")) {
-            setDatos(formatearCeldas(personas, diagnosticos.map((x) => ({...x}))));
+            setDatos(formatearCeldas(personas, diagnosticos.map((x) => ({ ...x }))));
             setCargando(false);
         } else if (diagnosticos == null && personas == null) {
             setDatos([]);
@@ -148,7 +152,7 @@ export default function VerDiagnosticosPage() {
      */
     const formatearCeldas = (personas, diags) => {
         const aux = {};
-        const auxDiag = diags.map((d) => d );
+        const auxDiag = diags.map((d) => d);
 
         for (const i of personas) {
             aux[i.cedula] = i.nombre;
@@ -213,6 +217,8 @@ export default function VerDiagnosticosPage() {
             setInstancia(null);
         } else if (activar2Btn && modoModal == 2) {
             validarCambio();
+        } else if (modoModal == 3) {
+            exportarDiagnosticos();
         } else {
             setModal({ ...modal, mostrar: false });
             setActivar2Btn(false);
@@ -242,7 +248,7 @@ export default function VerDiagnosticosPage() {
         } else {
             cargarDiagnosticos(auth.authInfo.correo, rol, DB);
             cargarPacientes();
-            
+
         }
     };
 
@@ -314,10 +320,15 @@ export default function VerDiagnosticosPage() {
      * @returns {String}
      */
     const detTxtBtnPrimarioModal = () => {
-        if (modoModal == 1) {
-            return "Eliminar";
-        } else if (modoModal == 2) {
-            return "Validar";
+        switch (modoModal) {
+            case 1:
+                return "Eliminar";
+            case 2:
+                return "Validar";
+            case 3:
+                return "Exportar";
+            default:
+                return "Aceptar";
         }
     };
 
@@ -330,6 +341,94 @@ export default function VerDiagnosticosPage() {
         setValidar(2);
         sessionStorage.setItem("ejecutar-callback", "true");
         setInstancia(null);
+    };
+
+    /**
+     * Manejador del botón para exportar los diagnósticos.
+     */
+    const exportarDiagnosticos = () => {
+        const aux = diagnosticos.map((x) => ({ ...x }));
+
+        aux.forEach((x) => {
+            x.diagnostico_medico = x.validado;
+            x.diagnostico_modelo = x.diagnostico;
+
+            delete x.medico;
+            delete x.diagnostico;
+            delete x.validado;
+            delete x.probabilidad;
+        });
+
+        setModal({ ...modal, mostrar: false });
+        setActivar2Btn(false);
+        setModoModal(0);
+        setValidar(2);
+
+        const res = descargarArchivoXlsx(aux, EXPORT_FILENAME, tipoArchivo);
+
+        if (!res.success) {
+            setModal({
+                mostrar: true, titulo: "Error",
+                mensaje: `No se pudo exportar el archivo. Inténtalo de nuevo más tarde: ${res.error}.`
+            });
+        }
+    };
+
+    /**
+     * Manejador del botón de exportar diagnósticos.
+     */
+    const manejadorBtnExportar = () => {
+        setActivar2Btn(true);
+        setModoModal(3);
+        setModal({
+            mostrar: true, titulo: "Exportar diagnósticos",
+            mensaje: ""
+        });
+    };
+
+    const CuerpoModal = () => {
+        let txt = "";
+        let func = null;
+        let error = false;
+        let txtError = "";
+        let valor = null;
+        let valores = [];
+
+        if (modoModal == 3) {
+            txt = "Selecciona el tipo de archivo a exportar:";
+            func = setTipoArchivo;
+            valor = tipoArchivo;
+            valores = [
+                { valor: "xlsx", texto: "Hoja de cálculo de Excel (xlsx)" },
+                { valor: "csv", texto: "Archivo separado por comas (csv)" }
+            ];
+        } else if (modoModal == 2) {
+            txt = "Selecciona el diagnóstico de TEP del paciente:";
+            func = setValidar;
+            error = errorDiagnostico;
+            txtError = "Selecciona el diagnóstico definitivo del paciente";
+            valor = validar;
+            valores = [
+                { valor: 2, texto: "Seleccione el diagnóstico" },
+                { valor: 0, texto: "Negativo" },
+                { valor: 1, texto: "Positivo" }
+            ];
+        }
+
+        if (modoModal > 1 && modoModal < 4) {
+            return (
+                <FormSeleccionar
+                    texto={txt}
+                    onChange={func}
+                    error={error}
+                    txtError={txtError}
+                    valor={valor}
+                    valores={valores}
+                />
+            );
+        } else {
+            return null;
+        }
     };
 
 
@@ -346,6 +445,16 @@ export default function VerDiagnosticosPage() {
                         titulo={rol == 0 ? "Historial de diagnósticos" : "Lista de diagnósticos"}
                         pestanas={listadoPestanas} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
+                        <Grid size={1} display="flex" justifyContent="end">
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={manejadorBtnExportar}
+                                sx={{ textTransform: "none" }}
+                                startIcon={<FileDownloadIcon />}>
+                                <b>Exportar diagnósticos</b>
+                            </Button>
+                        </Grid>
                         <Datatable
                             campos={rol == 1001 ? camposFijos : camposFijos.concat([{ id: "accion", label: "Acción" }])}
                             datos={datos}
@@ -373,12 +482,7 @@ export default function VerDiagnosticosPage() {
                 txtBtnSimple={detTxtBtnPrimarioModal()}
                 txtBtnSecundario="Cancelar"
                 txtBtnSimpleAlt="Cerrar">
-                {modoModal == 2 ? (
-                    <FormValidarDiag
-                        onChange={setValidar}
-                        diagnostico={validar}
-                        error={errorDiagnostico}
-                    />) : null}
+                <CuerpoModal />
             </ModalAccion>
         </MenuLayout>
     );

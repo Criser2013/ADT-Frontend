@@ -1,4 +1,4 @@
-import { utils, writeXLSX, writeFileAsync, read } from "xlsx";
+import { utils, writeXLSX, read, writeFile } from "xlsx";
 import { COMORBILIDADES, EXPORT_FILENAME } from "../../constants";
 import { validarFecha, validarNombre, validarNumero, validarTelefono } from "./Validadores";
 
@@ -26,17 +26,19 @@ export function crearArchivoXlsx (datos) {
  * Crea un archivo XLSX a partir de un Array de JSON y lo descarga
  * @param {Array} datos - Datos como un Array de JSON.
  * @param {String} nombreArchivo - Nombre de archivo a sobreescribir. De forma predeterminada es "HADT - Diagnósticos.xlsx".
+ * @param {String} tipo - Tipo de archivo. Predeterminadamente es "xlsx", pero puede ser "csv".
  * se coloca el nombre del archivo en la constante EXPORT_FILENAME.
  * @returns JSON
  */
-export function descargarArchivoXlsx (datos, nombreArchivo = EXPORT_FILENAME) {
+export function descargarArchivoXlsx (datos, nombreArchivo = EXPORT_FILENAME, tipo = "xlsx") {
     try {
         const ws = utils.json_to_sheet(datos);
         const wb = utils.book_new(ws, "Diagnósticos");
-        
-        writeFileAsync(nombreArchivo, wb, {
-            bookType: "xlsx", type: "file", cellDates: true
+
+        writeFile(wb, `${nombreArchivo}.${tipo}`, {
+            bookType: tipo, cellDates: true, compression: true
         });
+
         return { success: true, data: null, error: null };
     } catch (error) {
         return { success: false, data: null, error: error };
