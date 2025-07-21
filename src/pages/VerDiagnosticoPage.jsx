@@ -22,7 +22,8 @@ import { COMORBILIDADES } from "../../constants";
 import { useCredenciales } from "../contexts/CredencialesContext";
 import Check from "../components/tabs/Check";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import FormValidarDiag from "../components/tabs/FormValidarDiag";
+import FormSeleccionar from "../components/tabs/FormSeleccionar";
+import { CODIGO_ADMIN } from "../../constants";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -240,12 +241,12 @@ export default function VerDiagnosticoPage() {
     const validarDiagnostico = async () => {
         setCargando(true);
         const DB = credenciales.obtenerInstanciaDB();
-        const res = await cambiarDiagnostico({...diagOriginal, validado: diagnostico}, DB);
+        const res = await cambiarDiagnostico({ ...diagOriginal, validado: diagnostico }, DB);
 
         if (res.success) {
             setDatos((x) => {
                 x.personales.validado = diagnostico;
-                return {...x};
+                return { ...x };
             });
         } else {
             setMostrarBtnSecundario(false);
@@ -341,7 +342,7 @@ export default function VerDiagnosticoPage() {
                             paddingLeft={!navegacion.dispositivoMovil ? "3vh" : "0vh"}
                             paddingRight={!navegacion.dispositivoMovil ? "3vh" : "0vh"}
                             marginTop="3vh">
-                            {rol == 1001 ? (
+                            {rol == CODIGO_ADMIN ? (
                                 <Grid size={12} display="flex" justifyContent="end">
                                     <Tooltip title="Ver más opciones.">
                                         <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
@@ -395,7 +396,7 @@ export default function VerDiagnosticoPage() {
                                             nombre={x.nombre}
                                             etiqueta={x.texto}
                                             desactivado={true}
-                                            checked={datos.personales[x.nombre]}
+                                            activado={datos.personales[x.nombre]}
                                             manejadorCambios={null} />
                                     </Grid>
                                 ))}
@@ -480,11 +481,17 @@ export default function VerDiagnosticoPage() {
                     txtBtnSimple="Validar"
                     txtBtnSecundario="Cancelar"
                     txtBtnSimpleAlt="Cerrar">
-                        <FormValidarDiag
-                            onChange={setDiagnostico}
-                            diagnostico={diagnostico}
-                            error={errorDiagnostico}
-                        />
+                    <FormSeleccionar
+                        onChange={setDiagnostico}
+                        texto="Selecciona el diagnóstico médico del paciente:"
+                        error={errorDiagnostico}
+                        txtError="Selecciona el diagnóstico definitivo del paciente"
+                        valor={diagnostico}
+                        valores={[
+                            { valor: 2, texto: "Seleccione el diagnóstico" },
+                            { valor: 0, texto: "Negativo" },
+                            { valor: 1, texto: "Positivo" }
+                        ]} />
                 </ModalAccion>
             </MenuLayout>
         </>

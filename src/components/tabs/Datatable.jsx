@@ -193,13 +193,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                         <b>{numSeleccionados} {lblSeleccion}</b>
                                     </Typography>
                                     <Tooltip title={tooltipAccion}>
-                                        <IconButton onClick={(e) => {
-                                            cbAccion(seleccionados, e);
-                                            setSeleccionados([]);
-                                            setNumSeleccionados(0);
-                                            setModoSeleccion(false);
-                                            setPagina(0);
-                                        }}>
+                                        <IconButton onClick={(e) => cbAccion(seleccionados, e)}>
                                             {icono ? icono : null}
                                         </IconButton>
                                     </Tooltip>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import MenuLayout from "../components/layout/MenuLayout";
 import FormDiagnostico from "../components/tabs/FormDiagnostico";
 import { useAuth } from "../contexts/AuthContext";
@@ -37,7 +37,8 @@ export default function DiagnosticoPacientePage() {
      */
     useEffect(() => {
         if (drive.datos != null && drive.datos.length > 0) {
-            const aux = drive.datos;
+            const aux = drive.datos.map((x) => ({ ...x }));
+
             aux.unshift({ cedula: -1, nombre: "Seleccionar paciente" });
             setDatos(aux);
         }
@@ -57,12 +58,6 @@ export default function DiagnosticoPacientePage() {
             });
         }
     }, []);
-
-    const Wrapper = useCallback(() => {
-        return (<FormDiagnostico
-            datos={datos}
-            esDiagPacientes={true} />);
-    }, [datos]);
 
     return (
         <MenuLayout>

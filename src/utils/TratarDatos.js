@@ -368,3 +368,70 @@ export function detTxtDiagnostico(diagnostico) {
             return "No validado";
     }
 };
+
+/**
+ * Transforma una instancia de la base de datos al formato de campos de Excel.
+ * @param {JSON} instancia - Instancia de diagnóstico.
+ * @param {Boolean} esAdmin - Indica si el usuario es administrador.
+ * @returns {JSON}
+ */
+export function nombresCampos(instancia, esAdmin) {
+    const datos = {
+        "ID": instancia.id,
+        "Edad": instancia.edad,
+        "Género": instancia.sexo,
+        "Bebedor": instancia.bebedor,
+        "Fumador": instancia.fumador,
+        "Cirugía reciente": instancia.cirugiaReciente,
+        "Inmovilidad de M inferiores": instancia.inmovilidad,
+        "Viaje prolongado": instancia.viajeProlongado,
+        "TEP - TVP Previo": instancia.tepPrevio,
+        "Malignidad": instancia.malignidad,
+        "Disnea": instancia.disnea,
+        "Dolor toracico": instancia.dolorToracico,
+        "Tos": instancia.tos,
+        "Hemoptisis": instancia.hemoptisis,
+        "Síntomas disautonomicos": instancia.disautonomicos,
+        "Edema de M inferiores": instancia.edema,
+        "Frecuencia respiratoria": instancia.frecRes,
+        "Saturación de la sangre": instancia.so2,
+        "Frecuencia cardíaca": instancia.frecCard,
+        "Presión sistólica": instancia.presionSis,
+        "Presión diastólica": instancia.presionDias,
+        "Fiebre": instancia.fiebre,
+        "Crepitaciones": instancia.crepitaciones,
+        "Sibilancias": instancia.sibilancias,
+        "Soplos": instancia.soplos,
+        "WBC": instancia.wbc,
+        "HB": instancia.hemoglobina,
+        "PLT": instancia.plaquetas,
+        "Derrame": instancia.derrame,
+        "Otra Enfermedad": instancia.otraEnfermedad,
+        "Hematologica": instancia["Enfermedad hematológica"],
+        "Cardíaca": instancia["Enfermedad cardíaca"],
+        "Enfermedad coronaria": instancia["Enfermedad coronaria"],
+        "Diabetes Mellitus": instancia["Diabetes"],
+        "Endocrina": instancia["Enfermedad endocrina"],
+        "Gastrointestinal": instancia["Enfermedad gastrointestinal"],
+        "Hepatopatía crónica": instancia["Hepatopatía crónica"],
+        "Hipertensión arterial": instancia["Hipertensión arterial"],
+        "Neurológica": instancia["Enfermedad neurológica"],
+        "Pulmonar": instancia["Enfermedad pulmonar"],
+        "Renal": instancia["Enfermedad renal"],
+        "Trombofilia": instancia["Trombofilia"],
+        "Urológica": instancia["Enfermedad urológica"],
+        "Vascular": instancia["Enfermedad vascular"],
+        "VIH": instancia["VIH"],
+        "TEP": (instancia.validado != 2 && !esAdmin) ? instancia.validado : "N/A",
+    };
+
+    if (!esAdmin) {
+        datos["Paciente"] = instancia.paciente;
+        datos["Fecha"] = instancia.fecha.toDate().toLocaleDateString("es-CO");
+    } else {
+        datos["Diagnóstico modelo"] = instancia.diagnostico;
+        datos["Probabilidad"] = instancia.probabilidad;
+    }
+
+    return datos;
+}

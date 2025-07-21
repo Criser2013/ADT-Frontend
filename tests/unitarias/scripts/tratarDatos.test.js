@@ -1,5 +1,5 @@
-import { expect, describe, test } from '@jest/globals';
-import { detTxtDiagnostico, evaluarIntervalo, oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, quitarDatosPersonales, transformarDatos } from "../../../src/utils/TratarDatos";
+import { expect, describe, test, jest } from '@jest/globals';
+import { detTxtDiagnostico, evaluarIntervalo, nombresCampos, oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, quitarDatosPersonales, transformarDatos } from "../../../src/utils/TratarDatos";
 
 describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
     test("CP - 15", () => {
@@ -172,5 +172,108 @@ describe("Validar la función 'detTxtDiagnostico'", () => {
     test("CP - 78", () => {
         const res = detTxtDiagnostico(2);
         expect(res).toEqual("No validado");
+    });
+});
+
+describe("Validar que las función 'nombresCampos' retorne correctamente la instancia", () => {
+    test("CP - 79", () => {
+        const mockFecha = {
+            toDate: () => new Date("2023-10-01T00:00:00Z")
+        };
+
+        const instancia = {
+            sexo: 0, bebedor: 0, fumador: 0,
+            cirugiaReciente: 0, viajeProlongado: 0,
+            tos: 0, fiebre: 0, crepitaciones: 0,
+            dolorToracico: 0, malignidad: 0, hemoptisis: 0,
+            disnea: 1, sibilancias: 0, derrame: 0,
+            tepPrevio: 0, edema: 0, disautonomicos: 0,
+            inmovilidad: 0, otraEnfermedad: 0, soplos: 0,
+            edad: 60, presionSis: 129, presionDias: 93, frecRes: 26,
+            frecCard: 128, so2: 80, plaquetas: 211100, hemoglobina: 13.8, wbc: 12300,
+            "Enfermedad hematológica": 1, "Enfermedad vascular": 0,
+            "Enfermedad pulmonar": 0, "Enfermedad renal": 0,
+            "Enfermedad cardíaca": 0, "Enfermedad coronaria": 0,
+            "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
+            "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
+            "Enfermedad hepática": 0, "Trombofilia": 0, "VIH": 0,
+            "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
+            diagnostico: 1, validado: 0, probabilidad: 0.5, fecha: mockFecha,
+            paciente: "Paciente Test"
+        }
+
+        const res = nombresCampos(instancia, false);
+
+        const campos = ['Edad', 'Género', 'Bebedor', 'Fumador', 'Cirugía reciente',
+            'Inmovilidad de M inferiores', 'Viaje prolongado', 'TEP - TVP Previo',
+            'Malignidad', 'Disnea', 'Dolor toracico', 'Tos', 'Hemoptisis',
+            'Síntomas disautonomicos', 'Edema de M inferiores',
+            'Frecuencia respiratoria', 'Saturación de la sangre',
+            'Frecuencia cardíaca', 'Presión sistólica', 'Presión diastólica',
+            'Fiebre', 'Crepitaciones', 'Sibilancias', 'Soplos', 'WBC', 'HB', 'PLT',
+            'Derrame', 'Otra Enfermedad', 'Hematologica', 'Cardíaca',
+            'Enfermedad coronaria', 'Diabetes Mellitus', 'Endocrina',
+            'Gastrointestinal', 'Hepatopatía crónica', 'Hipertensión arterial',
+            'Neurológica', 'Pulmonar', 'Renal', 'Trombofilia', 'Urológica',
+            'Vascular', 'VIH', 'Paciente', 'Fecha'
+        ];
+
+        for (const i of campos) {
+            expect(res).toHaveProperty(i);
+        }
+
+        expect(res).not.toHaveProperty("Diagnóstico modelo");
+        expect(res).not.toHaveProperty("Probabilidad");
+    });
+
+    test("CP - 80", () => {
+        const mockFecha = {
+            toDate: () => new Date("2023-10-01T00:00:00Z")
+        };
+
+        const instancia = {
+            sexo: 0, bebedor: 0, fumador: 0,
+            cirugiaReciente: 0, viajeProlongado: 0,
+            tos: 0, fiebre: 0, crepitaciones: 0,
+            dolorToracico: 0, malignidad: 0, hemoptisis: 0,
+            disnea: 1, sibilancias: 0, derrame: 0,
+            tepPrevio: 0, edema: 0, disautonomicos: 0,
+            inmovilidad: 0, otraEnfermedad: 0, soplos: 0,
+            edad: 60, presionSis: 129, presionDias: 93, frecRes: 26,
+            frecCard: 128, so2: 80, plaquetas: 211100, hemoglobina: 13.8, wbc: 12300,
+            "Enfermedad hematológica": 1, "Enfermedad vascular": 0,
+            "Enfermedad pulmonar": 0, "Enfermedad renal": 0,
+            "Enfermedad cardíaca": 0, "Enfermedad coronaria": 0,
+            "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
+            "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
+            "Enfermedad hepática": 0, "Trombofilia": 0, "VIH": 0,
+            "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
+            diagnostico: 1, validado: 0, probabilidad: 0.5, fecha: mockFecha,
+            paciente: "Paciente Test"
+        }
+
+        const res = nombresCampos(instancia, true);
+
+        const campos = ['Edad', 'Género', 'Bebedor', 'Fumador', 'Cirugía reciente',
+            'Inmovilidad de M inferiores', 'Viaje prolongado', 'TEP - TVP Previo',
+            'Malignidad', 'Disnea', 'Dolor toracico', 'Tos', 'Hemoptisis',
+            'Síntomas disautonomicos', 'Edema de M inferiores',
+            'Frecuencia respiratoria', 'Saturación de la sangre',
+            'Frecuencia cardíaca', 'Presión sistólica', 'Presión diastólica',
+            'Fiebre', 'Crepitaciones', 'Sibilancias', 'Soplos', 'WBC', 'HB', 'PLT',
+            'Derrame', 'Otra Enfermedad', 'Hematologica', 'Cardíaca',
+            'Enfermedad coronaria', 'Diabetes Mellitus', 'Endocrina',
+            'Gastrointestinal', 'Hepatopatía crónica', 'Hipertensión arterial',
+            'Neurológica', 'Pulmonar', 'Renal', 'Trombofilia', 'Urológica',
+            'Vascular', 'VIH', 'Diagnóstico modelo', 'Probabilidad'
+        ];
+
+        for (const i of campos) {
+            expect(res).toHaveProperty(i);
+        }
+
+        expect(res).not.toHaveProperty("Paciente");
+        expect(res).not.toHaveProperty("Fecha");
+        expect(res).not.toHaveProperty("medico");
     });
 });
