@@ -136,6 +136,8 @@ export default function VerDiagnosticosPage() {
         if (res.success) {
             setDiagnosticos(res.data);
         } else {
+            setModoModal(0);
+            setActivar2Btn(false);
             setModal({
                 mostrar: true, titulo: "Error al cargar los diagnósticos",
                 mensaje: "Ha ocurrido un error al cargar los diagnósticos. Por favor, inténtalo de nuevo más tarde."
@@ -217,8 +219,6 @@ export default function VerDiagnosticosPage() {
             setCargando(true);
             borrarDiagnosticos(seleccionados);
             setModal({ ...modal, mostrar: false });
-            setActivar2Btn(false);
-            setModoModal(0);
             setErrorDiagnostico(false);
             setValidar(2);
             sessionStorage.setItem("ejecutar-callback", "true");
@@ -229,8 +229,6 @@ export default function VerDiagnosticosPage() {
             exportarDiagnosticos();
         } else {
             setModal({ ...modal, mostrar: false });
-            setActivar2Btn(false);
-            setModoModal(0);
             setErrorDiagnostico(false);
             setValidar(2);
             sessionStorage.setItem("ejecutar-callback", "true");
@@ -301,6 +299,7 @@ export default function VerDiagnosticosPage() {
             });
         } else {
             setActivar2Btn(false);
+            setModoModal(0);
             setModal({
                 mostrar: true, titulo: "Error",
                 mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
@@ -375,18 +374,17 @@ export default function VerDiagnosticosPage() {
         });
 
         setModal((x) => ({ ...x, mostrar: false }));
+        setTipoArchivo("xlsx");
 
         const res = descargarArchivoXlsx(aux, EXPORT_FILENAME, tipoArchivo);
 
         if (!res.success) {
+            setModoModal(0);
+            setActivar2Btn(false);
             setModal({
                 mostrar: true, titulo: "Error",
                 mensaje: `No se pudo exportar el archivo. Inténtalo de nuevo más tarde: ${res.error}.`
             });
-        } else {
-            setTipoArchivo("xlsx");
-            setModoModal(0);
-            setActivar2Btn(false);
         }
     };
 
