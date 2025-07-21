@@ -23,6 +23,7 @@ import { useCredenciales } from "../contexts/CredencialesContext";
 import Check from "../components/tabs/Check";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import FormSeleccionar from "../components/tabs/FormSeleccionar";
+import { CODIGO_ADMIN } from "../../constants";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -341,7 +342,7 @@ export default function VerDiagnosticoPage() {
                             paddingLeft={!navegacion.dispositivoMovil ? "3vh" : "0vh"}
                             paddingRight={!navegacion.dispositivoMovil ? "3vh" : "0vh"}
                             marginTop="3vh">
-                            {rol == 1001 ? (
+                            {rol == CODIGO_ADMIN ? (
                                 <Grid size={12} display="flex" justifyContent="end">
                                     <Tooltip title="Ver más opciones.">
                                         <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>

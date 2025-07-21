@@ -14,12 +14,13 @@ import ModalAccion from "../components/modals/ModalAccion";
 import { useCredenciales } from "../contexts/CredencialesContext";
 import { cambiarDiagnostico, verDiagnosticos, verDiagnosticosPorMedico, eliminarDiagnosticos } from "../firestore/diagnosticos-collection";
 import { verUsuarios } from "../firestore/usuarios-collection";
-import { detTxtDiagnostico } from "../utils/TratarDatos";
+import { detTxtDiagnostico, nombresCampos } from "../utils/TratarDatos";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { descargarArchivoXlsx } from "../utils/XlsxFiles";
 import { EXPORT_FILENAME } from "../../constants";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FormSeleccionar from "../components/tabs/FormSeleccionar";
+import { CODIGO_ADMIN } from "../../constants";
 
 export default function VerDiagnosticosPage() {
     const auth = useAuth();
@@ -112,7 +113,7 @@ export default function VerDiagnosticosPage() {
      */
     const cargarPacientes = async () => {
         const res = (rol == 0) ? await drive.cargarDatos() : await verUsuarios(DB);
-        if (res.success && rol == 1001) {
+        if (res.success && rol == CODIGO_ADMIN) {
             setPersonas(res.data);
         } else if (res.success && rol == 0) {
             return;
@@ -347,22 +348,15 @@ export default function VerDiagnosticosPage() {
      * Manejador del botón para exportar los diagnósticos.
      */
     const exportarDiagnosticos = () => {
-        const aux = diagnosticos.map((x) => ({ ...x }));
+        let aux = diagnosticos.map((x) => ({ ...x }));
 
-        aux.forEach((x) => {
-            x.diagnostico_medico = x.validado;
-            x.diagnostico_modelo = x.diagnostico;
-
-            delete x.medico;
-            delete x.diagnostico;
-            delete x.validado;
-            delete x.probabilidad;
+        aux = aux.map((x, i) => {
+            x.paciente = datos[i].nombre;
+            x = nombresCampos(x, rol == CODIGO_ADMIN);
+            return x;
         });
 
-        setModal({ ...modal, mostrar: false });
-        setActivar2Btn(false);
-        setModoModal(0);
-        setValidar(2);
+        setModal((x) => ({ ...x, mostrar: false }));
 
         const res = descargarArchivoXlsx(aux, EXPORT_FILENAME, tipoArchivo);
 
@@ -371,6 +365,10 @@ export default function VerDiagnosticosPage() {
                 mostrar: true, titulo: "Error",
                 mensaje: `No se pudo exportar el archivo. Inténtalo de nuevo más tarde: ${res.error}.`
             });
+        } else {
+            setTipoArchivo("xlsx");
+            setModoModal(0);
+            setActivar2Btn(false);
         }
     };
 
@@ -456,11 +454,11 @@ export default function VerDiagnosticosPage() {
                             </Button>
                         </Grid>
                         <Datatable
-                            campos={rol == 1001 ? camposFijos : camposFijos.concat([{ id: "accion", label: "Acción" }])}
+                            campos={rol == CODIGO_ADMIN ? camposFijos : camposFijos.concat([{ id: "accion", label: "Acción" }])}
                             datos={datos}
                             lblBusq={rol == 0 ? "Buscar diagnóstico por nombre o número de cédula del paciente" : "Buscar diagnóstico por médico"}
                             activarBusqueda={true}
-                            activarSeleccion={rol == 1001}
+                            activarSeleccion={rol == CODIGO_ADMIN}
                             campoId="id"
                             terminoBusqueda={""}
                             lblSeleccion="diagnosticos seleccionados"

@@ -16,3 +16,4 @@ export const SEXOS = [
     { texto: "Masculino", val: 0 },
     { texto: "Femenino", val: 1 }
 ];
+export const CODIGO_ADMIN = 1001;
