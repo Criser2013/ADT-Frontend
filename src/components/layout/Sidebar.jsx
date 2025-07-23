@@ -2,8 +2,12 @@ import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useNavigate } from "react-router-dom";
 import HomeIcon from "@mui/icons-material/Home";
-import { DiagnosticoIcono, DiagAnonimoIcono, HistDiagnosticoIcono, ListPacienteIcono } from "../icons/IconosSidebar";
+import { DiagnosticoIcono, DiagAnonimoIcono, HistDiagnosticoIcono, ListPacienteIcono, DatosIcono } from "../icons/IconosSidebar";
 import { detAbrirMenu } from "../../utils/Responsividad";
+import { useAuth } from "../../contexts/AuthContext";
+import PeopleIcon from '@mui/icons-material/People';
+import { useMemo } from "react";
+import { CODIGO_ADMIN } from "../../../constants";
 
 /**
  * Menú de navegación lateral de la aplicación.
@@ -12,6 +16,28 @@ import { detAbrirMenu } from "../../utils/Responsividad";
 export default function Sidebar() {
     const navegacion = useNavegacion();
     const navigate = useNavigate();
+    const auth = useAuth();
+    const filas = useMemo(() => {
+        const { rol } = auth.authInfo;
+        const usuario = [
+            { txt: "Menú principal", icono: <HomeIcon />, ruta: "/menu-principal" },
+            { txt: "Pacientes", icono: <ListPacienteIcono />, ruta: "/pacientes" },
+            { txt: "Diagnosticar paciente", icono: <DiagnosticoIcono />, ruta: "/diagnostico-paciente" },
+            { txt: "Diagnóstico anónimo", icono: <DiagAnonimoIcono />, ruta: "/diagnostico-anonimo" },
+            { txt: "Historial de diagnósticos", icono: <HistDiagnosticoIcono />, ruta: "/diagnosticos" },
+        ];
+        const admin = [
+            { txt: "Menú principal", icono: <HomeIcon />, ruta: "/menu-principal" },
+            { txt: "Datos recolectados", icono: <DatosIcono />, ruta: "/diagnosticos" },
+            { txt: "Usuarios", icono: <PeopleIcon />, ruta: "/usuarios" },
+        ];
+
+        return rol == CODIGO_ADMIN ? admin : usuario;
+    }, [auth.authInfo.rol]);
+    const mostrarMenu = useMemo(() => {
+        return detAbrirMenu(navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion) ? "none" : "block";
+    }, [navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion]);
+
 
     /**
      * Manejador de cierre del menú lateral. Se utiliza en
@@ -33,31 +59,11 @@ export default function Sidebar() {
     /**
      * Manejador de clic en los elementos del menú lateral.
      * Redirecciona al usuario a la ruta correspondiente.
-     * @param {int} id - ID de la ruta
+     * @param {String} url - Ruta a la que se redirige al usuario.
      */
-    const manejadorClicMenu = (id) => {
-        switch (id) {
-            case 0:
-                navegacion.setPaginaAnterior(window.location.pathname);
-                navigate("/menu-principal", { replace: true });
-                break;
-            case 1:
-                navegacion.setPaginaAnterior(window.location.pathname);
-                navigate("/pacientes", { replace: true });
-                break;
-            case 2:
-                navegacion.setPaginaAnterior(window.location.pathname);
-                navigate("/diagnostico-paciente", { replace: true });
-                break;
-            case 3:
-                navegacion.setPaginaAnterior(window.location.pathname);
-                navigate("/diagnostico-anonimo", { replace: true });
-                break;
-            case 4:
-                navegacion.setPaginaAnterior(window.location.pathname);
-                navigate("/diagnosticos", { replace: true });
-                break;
-        }
+    const manejadorClicMenu = (url) => {
+        navegacion.setPaginaAnterior(window.location.pathname);
+        navigate(url, { replace: true });
     };
 
     return (
@@ -68,55 +74,25 @@ export default function Sidebar() {
             onTransitionEnd={manejadorTranscionCerrar}
             sx={{
                 // Se encarga de cerrar el menú en tablets o computadores. No se usa en móviles.
-                display: (detAbrirMenu(navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion)) ? "none" : "block",
-                width: 240,
-                flexShrink: 0,
+                display: mostrarMenu, width: 240, flexShrink: 0,
                 [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
             }}
             anchor="left">
             <Toolbar />
             <Box sx={{ overflow: "auto" }}>
                 <List>
-                    <ListItem disablePadding>
-                        <ListItemButton onClick={() => manejadorClicMenu(0)}>
-                            <ListItemIcon>
-                                <HomeIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="Menú principal" />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding>
-                        <ListItemButton onClick={() => manejadorClicMenu(1)}>
-                            <ListItemIcon>
-                                <ListPacienteIcono />
-                            </ListItemIcon>
-                            <ListItemText primary="Pacientes" />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding>
-                        <ListItemButton onClick={() => manejadorClicMenu(2)}>
-                            <ListItemIcon>
-                                <DiagnosticoIcono />
-                            </ListItemIcon>
-                            <ListItemText primary="Diagnosticar paciente" />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding>
-                        <ListItemButton onClick={() => manejadorClicMenu(3)}>
-                            <ListItemIcon>
-                                <DiagAnonimoIcono />
-                            </ListItemIcon>
-                            <ListItemText primary="Diagnóstico anónimo" />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding>
-                        <ListItemButton onClick={() => manejadorClicMenu(4)}>
-                            <ListItemIcon>
-                                <HistDiagnosticoIcono />
-                            </ListItemIcon>
-                            <ListItemText primary="Historial de diagnósticos" />
-                        </ListItemButton>
-                    </ListItem>
+                    {filas.map((x) => {
+                        return (
+                            <ListItem key={x.txt} disablePadding>
+                                <ListItemButton onClick={() => manejadorClicMenu(x.ruta)}>
+                                    <ListItemIcon>
+                                        {x.icono}
+                                    </ListItemIcon>
+                                    <ListItemText primary={x.txt} />
+                                </ListItemButton>
+                            </ListItem>
+                        );
+                    })}
                 </List>
             </Box>
         </Drawer>

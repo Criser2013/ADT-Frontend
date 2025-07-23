@@ -1,4 +1,4 @@
-import { Grid, Box, CircularProgress, Tooltip, IconButton, Button } from "@mui/material";
+import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Stack, Typography, Alert } from "@mui/material";
 import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
@@ -28,9 +28,6 @@ export default function VerDiagnosticosPage() {
     const navigate = useNavigate();
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
-    const listadoPestanas = [{
-        texto: "Historial diagnósticos", url: "/diagnosticos"
-    }];
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({
         mostrar: false, titulo: "", mensaje: ""
@@ -50,7 +47,7 @@ export default function VerDiagnosticosPage() {
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const { rol } = auth.authInfo;
     const DB = credenciales.obtenerInstanciaDB();
-    const camposVariables = (rol == 0) ? [
+    const camposVariables = (rol != CODIGO_ADMIN) ? [
         { id: "nombre", label: "Paciente" },
         { id: "paciente", label: "Cédula" }
     ] : [{ id: "nombre", label: "Médico" }];
@@ -61,6 +58,40 @@ export default function VerDiagnosticosPage() {
         { id: "diagnostico", label: "Diagnóstico modelo" },
         { id: "validado", label: "Diagnóstico médico" }
     ]);
+    const camposTabla = useMemo(() => {
+        return camposFijos.concat([{ id: "accion", label: "Acción" }]);
+    }, [rol]);
+    const camposBusq = useMemo(() => {
+        return (rol != CODIGO_ADMIN) ? ["nombre", "paciente"] : ["nombre"];
+    }, [rol]);
+    const activarSeleccion = useMemo(() => {
+        return rol == CODIGO_ADMIN;
+    }, [rol]);
+    const titulo = useMemo(() => {
+        return (rol != CODIGO_ADMIN) ? "Historial de diagnósticos" : "Datos recolectados";
+    },[rol]);
+    const lblBusq = useMemo(() => {
+        return (rol != CODIGO_ADMIN) ? "Buscar diagnóstico por nombre o número de cédula del paciente" : "Buscar diagnóstico por nombre del médico";
+    }, [rol]);
+    const listadoPestanas = useMemo(() => {
+        const txt = (rol == CODIGO_ADMIN) ? "Datos recolectados" : "Historial diagnósticos";
+        return [{ texto: txt, url: "/diagnosticos" }];
+    }, [rol]);
+    const desactivarBtns = useMemo(() => {
+        return datos.length == 0;
+    }, [datos.length]);
+    const lblBtnPrimarioModal = useMemo(() => {
+         switch (modoModal) {
+            case 1:
+                return "Eliminar";
+            case 2:
+                return "Validar";
+            case 3:
+                return "Exportar";
+            default:
+                return "Aceptar";
+        }
+    },[modoModal]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -78,7 +109,7 @@ export default function VerDiagnosticosPage() {
      * Carga los diagnósticos y los pacientes dependiendo del rol del usuario.
      */
     useEffect(() => {
-        document.title = rol == 0 ? "Historial de diagnósticos" : "Lista de diagnósticos";
+        document.title = rol != CODIGO_ADMIN ? "Historial de diagnósticos" : "Datos recolectados";
         const { correo } = auth.authInfo;
 
         if (rol != null && correo != null && DB != null) {
@@ -103,7 +134,7 @@ export default function VerDiagnosticosPage() {
      * Si el usuario es médico, se carga la lista de pacientes desde Drive.
      */
     useEffect(() => {
-        if (rol == 0) {
+        if (rol != CODIGO_ADMIN) {
             setPersonas(drive.datos);
         }
     }, [drive.datos]);
@@ -132,7 +163,7 @@ export default function VerDiagnosticosPage() {
      * @param {Object} DB - Instancia de Firestore.
      */
     const cargarDiagnosticos = async (correo, rol, DB) => {
-        const res = (rol == 0) ? await verDiagnosticosPorMedico(correo, DB) : await verDiagnosticos(DB);
+        const res = (rol != CODIGO_ADMIN) ? await verDiagnosticosPorMedico(correo, DB) : await verDiagnosticos(DB);
         if (res.success) {
             setDiagnosticos(res.data);
         } else {
@@ -334,23 +365,6 @@ export default function VerDiagnosticosPage() {
     };
 
     /**
-     * Determina el texto del botón primario del modal según el modo.
-     * @returns {String}
-     */
-    const detTxtBtnPrimarioModal = () => {
-        switch (modoModal) {
-            case 1:
-                return "Eliminar";
-            case 2:
-                return "Validar";
-            case 3:
-                return "Exportar";
-            default:
-                return "Aceptar";
-        }
-    };
-
-    /**
      * Manejador del botón cancelar del modal.
      */
     const manejadorBtnCancelar = () => {
@@ -400,6 +414,10 @@ export default function VerDiagnosticosPage() {
         });
     };
 
+    /**
+     * Cuerpo del modal de confirmación.
+     * @returns JSX.Element
+     */
     const CuerpoModal = () => {
         let txt = "";
         let func = null;
@@ -437,14 +455,27 @@ export default function VerDiagnosticosPage() {
                     error={error}
                     txtError={txtError}
                     valor={valor}
-                    valores={valores}
-                />
+                    valores={valores} />
             );
         } else {
             return null;
         }
     };
 
+    /**
+     * Alerta de espacio de almacenamiento.
+     * @returns JSX.Element
+     */
+    const AlertaEspacio = () => {
+        return (
+            ((rol == CODIGO_ADMIN) && (diagnosticos.length >= 1500)) ? (
+                <Grid size={1}>
+                    <Alert severity="warning">
+                        Tu almacenamiento está por agotarse. Para evitar pérdidas, se recomienda respaldar o exportar la información y eliminar diagnósticos antiguos.
+                    </Alert>
+                </Grid>) : null
+        );
+    };
 
     return (
         <MenuLayout>
@@ -456,29 +487,31 @@ export default function VerDiagnosticosPage() {
                 <>
                     <TabHeader
                         activarBtnAtras={false}
-                        titulo={rol == 0 ? "Historial de diagnósticos" : "Lista de diagnósticos"}
+                        titulo={titulo}
                         pestanas={listadoPestanas} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
+                        <AlertaEspacio />
                         <Grid size={1} display="flex" justifyContent="end">
                             <Button
                                 variant="contained"
                                 color="primary"
                                 onClick={manejadorBtnExportar}
+                                disabled={desactivarBtns}
                                 sx={{ textTransform: "none" }}
                                 startIcon={<FileDownloadIcon />}>
                                 <b>Exportar diagnósticos</b>
                             </Button>
                         </Grid>
                         <Datatable
-                            campos={rol == CODIGO_ADMIN ? camposFijos : camposFijos.concat([{ id: "accion", label: "Acción" }])}
+                            campos={camposTabla}
                             datos={datos}
-                            lblBusq={rol == 0 ? "Buscar diagnóstico por nombre o número de cédula del paciente" : "Buscar diagnóstico por médico"}
+                            lblBusq={lblBusq}
                             activarBusqueda={true}
-                            activarSeleccion={rol == CODIGO_ADMIN}
+                            activarSeleccion={activarSeleccion}
                             campoId="id"
                             terminoBusqueda={""}
                             lblSeleccion="diagnosticos seleccionados"
-                            camposBusq={rol == 0 ? ["nombre", "paciente"] : ["nombre"]}
+                            camposBusq={camposBusq}
                             cbClicCelda={manejadorClicCelda}
                             cbAccion={manejadorEliminar}
                             tooltipAccion="Eliminar diagnósticos seleccionados"
@@ -493,7 +526,7 @@ export default function VerDiagnosticosPage() {
                 manejadorBtnPrimario={manejadorBtnModal}
                 manejadorBtnSecundario={manejadorBtnCancelar}
                 mostrarBtnSecundario={activar2Btn}
-                txtBtnSimple={detTxtBtnPrimarioModal()}
+                txtBtnSimple={lblBtnPrimarioModal}
                 txtBtnSecundario="Cancelar"
                 txtBtnSimpleAlt="Cerrar">
                 <CuerpoModal />
