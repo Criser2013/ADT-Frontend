@@ -16,7 +16,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ModalAccion from "../components/modals/ModalAccion";
-import { cambiarDiagnostico, verDiagnostico } from "../firestore/diagnosticos-collection";
+import { cambiarDiagnostico, eliminarDiagnosticos, verDiagnostico } from "../firestore/diagnosticos-collection";
 import { oneHotInversoOtraEnfermedad, detTxtDiagnostico } from "../utils/TratarDatos";
 import { COMORBILIDADES, DIAGNOSTICOS } from "../../constants";
 import { useCredenciales } from "../contexts/CredencialesContext";
@@ -42,11 +42,12 @@ export default function VerDiagnosticoPage() {
     const [params] = useSearchParams();
     const [cargando, setCargando] = useState(true);
     const [mostrarBtnSecundario, setMostrarBtnSecundario] = useState(true);
+    const [modoEliminar, setModoEliminar] = useState(false);
     const [popOver, setPopOver] = useState(null);
     const open = Boolean(popOver);
     const elem = open ? "simple-popover" : undefined;
     const [modal, setModal] = useState({
-        mostrar: false, mensaje: "", titulo: ""
+        mostrar: false, mensaje: "", titulo: "", txtBtn: "Validar"
     });
     const [datos, setDatos] = useState({
         personales: {
@@ -81,14 +82,12 @@ export default function VerDiagnosticoPage() {
             { titulo: "Edad", valor: `${datos.personales.edad} años` },
             { titulo: "Fecha de diagnóstico", valor: datos.personales.fecha },
             { titulo: "Diagnóstico modelo", valor: detTxtDiagnostico(datos.personales.diagnostico) },
+            { titulo: "Probabilidad", valor: `${(datos.personales.probabilidad * 100).toFixed(2)}%` },
             { titulo: "Diagnóstico médico", valor: detTxtDiagnostico(datos.personales.validado) },
         ];
 
         if (rol == CODIGO_ADMIN) {
             campos.unshift({ titulo: "ID", valor: datos.personales.id });
-        }
-        if (datos.personales.validado != 2){
-            campos.push({ titulo: "Probabilidad", valor: `${(datos.personales.probabilidad * 100).toFixed(2)}%` });
         }
 
         return campos;
@@ -263,14 +262,27 @@ export default function VerDiagnosticoPage() {
      */
     const manejadorBtnEditar = () => {
         setMostrarBtnSecundario(true);
-        setModal({ titulo: "Validar diagnóstico", mensaje: "", mostrar: true });
-        /*navegacion.setPaginaAnterior(`/pacientes/ver-paciente?cedula=${datos.personales.cedula}`);
-        navigate(`/pacientes/editar?cedula=${datos.personales.cedula}`, { replace: true });*/
+        setModal({ titulo: "Validar diagnóstico", mensaje: "", mostrar: true, txtBtn: "Validar" });
     };
 
-    /*const eliminarDiagnostico = async () => {
+    /**
+     * Realiza la petición para eliminar el diagnóstico del paciente.
+     */
+    const eliminarDiagnostico = async () => {
+        const res = await eliminarDiagnosticos(id, DB);
 
-    };*/
+        if (res.success) {
+            navegacion.setPaginaAnterior("/diagnosticos");
+            navigate("/diagnosticos", { replace: true });
+        } else {
+            setCargando(false);
+            setMostrarBtnSecundario(false);
+            setModal({
+                mostrar: true, titulo: "Error",
+                mensaje: "No se pudo eliminar el diagnóstico. Inténtalo de nuevo más tarde."
+            });
+        }
+    };
 
     /**
      * Valida el diagnóstico del paciente.
@@ -288,7 +300,7 @@ export default function VerDiagnosticoPage() {
         } else {
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: "Error",
+                mostrar: true, titulo: "Error", txtBtn: "Validar",
                 mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
             });
         }
@@ -299,26 +311,29 @@ export default function VerDiagnosticoPage() {
      * Manejador del botón de cerrar el modal.
      */
     const manejadorBtnModal = () => {
-        if (mostrarBtnSecundario && diagnostico != 2) {
+        if (!modoEliminar && mostrarBtnSecundario && diagnostico != 2) {
             validarDiagnostico();
-            //eliminarPaciente();
-        } else if (mostrarBtnSecundario && diagnostico == 2) {
+        } else if (!modoEliminar && mostrarBtnSecundario && diagnostico == 2) {
             setErrorDiagnostico(true);
             return;
+        } else if (modoEliminar) {
+            setCargando(true);
+            eliminarDiagnostico();
         }
-        
+
         setModal({ ...modal, mostrar: false });
     };
 
     /**
-     * Manejador del botón de eliminar paciente.
+     * Manejador del botón de eliminar diagnóstico.
      */
     const manejadorBtnEliminar = () => {
+        setModoEliminar(true);
         cerrarPopover();
         setMostrarBtnSecundario(true);
         setModal({
-            mostrar: true, titulo: "Alerta",
-            mensaje: "¿Estás seguro de que deseas eliminar este paciente?"
+            mostrar: true, titulo: "Alerta", txtBtn: "Eliminar",
+            mensaje: "¿Estás seguro de que deseas eliminar este diagnóstico?"
         });
     };
 
@@ -327,6 +342,7 @@ export default function VerDiagnosticoPage() {
      * @param {Event} event 
      */
     const manejadorBtnMas = (event) => {
+        console.log(event.currentTarget);
         setPopOver(event.currentTarget);
     };
 
@@ -376,11 +392,59 @@ export default function VerDiagnosticoPage() {
     };
 
     /**
-     * Componente para mostrar el botón de más opciones.
+     * Check para mostrar los síntomas clínicos del diagnóstico.
+     * @param {JSON} instancia - Datos del síntoma. 
      * @returns JSX.Element
      */
-    const BtnMasOpciones = () => {
-        return ((rol == CODIGO_ADMIN) ? (
+    const CheckSintoma = ({ instancia }) => {
+        return (
+            <Grid size={numCols}>
+                <Check
+                    nombre={instancia.nombre}
+                    etiqueta={instancia.texto}
+                    desactivado={true}
+                    activado={datos.personales[instancia.nombre]}
+                    manejadorCambios={null} />
+            </Grid>);
+    };
+
+    /**
+     * Componente para el cuerpo del modal.
+     * @returns {JSX.Element}
+     */
+    const CuerpoModal = () => {
+        return ((rol != CODIGO_ADMIN) ? (
+            <FormSeleccionar
+                onChange={setDiagnostico}
+                texto="Selecciona el diagnóstico médico del paciente:"
+                error={errorDiagnostico}
+                txtError="Selecciona el diagnóstico definitivo del paciente"
+                valor={diagnostico}
+                valores={DIAGNOSTICOS} />) : null
+        );
+    };
+
+    return (
+        <>
+            <MenuLayout>
+                {cargando ? (
+                    <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
+                        <CircularProgress />
+                    </Box>
+                ) : (
+                    <>
+                        <TabHeader
+                            urlPredet="/diagnosticos"
+                            titulo="Datos del diagnóstico"
+                            pestanas={listadoPestanas}
+                            tooltip="Volver a la pestaña de diagnósticos." />
+                        <Grid container
+                            columns={12}
+                            spacing={1}
+                            paddingLeft={padding}
+                            paddingRight={padding}
+                            marginTop="3vh">
+                            {(rol == CODIGO_ADMIN) ? (
             <Grid size={12} display="flex" justifyContent="end">
                 <Tooltip title="Ver más opciones.">
                     <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
@@ -410,47 +474,7 @@ export default function VerDiagnosticoPage() {
                         </Button>
                     </Tooltip>
                 </Popover>
-            </Grid>) : null);
-    };
-
-    /**
-     * Check para mostrar los síntomas clínicos del diagnóstico.
-     * @param {JSON} instancia - Datos del síntoma. 
-     * @returns JSX.Element
-     */
-    const CheckSintoma = ({ instancia }) => {
-        return (
-            <Grid size={numCols}>
-                <Check
-                    nombre={instancia.nombre}
-                    etiqueta={instancia.texto}
-                    desactivado={true}
-                    activado={datos.personales[instancia.nombre]}
-                    manejadorCambios={null} />
-            </Grid>);
-    };
-
-    return (
-        <>
-            <MenuLayout>
-                {cargando ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
-                        <CircularProgress />
-                    </Box>
-                ) : (
-                    <>
-                        <TabHeader
-                            urlPredet="/diagnosticos"
-                            titulo="Datos del diagnóstico"
-                            pestanas={listadoPestanas}
-                            tooltip="Volver a la pestaña de diagnósticos." />
-                        <Grid container
-                            columns={12}
-                            spacing={1}
-                            paddingLeft={padding}
-                            paddingRight={padding}
-                            marginTop="3vh">
-                            <BtnMasOpciones />
+            </Grid>) : null}
                             <Grid size={12}>
                                 <Typography variant="h5">
                                     Datos personales
@@ -469,7 +493,7 @@ export default function VerDiagnosticoPage() {
                             </Grid>
                             <Grid container size={12} columns={12} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
                                 {SINTOMAS.map((x) => (
-                                    <CheckSintoma instancia={x} key={x.nombre}/>
+                                    <CheckSintoma instancia={x} key={x.nombre} />
                                 ))}
                             </Grid>
                             <Grid size={12} paddingTop="3vh">
@@ -524,16 +548,10 @@ export default function VerDiagnosticoPage() {
                     manejadorBtnPrimario={manejadorBtnModal}
                     manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
                     mostrarBtnSecundario={mostrarBtnSecundario}
-                    txtBtnSimple="Validar"
+                    txtBtnSimple={modal.txtBtn}
                     txtBtnSecundario="Cancelar"
                     txtBtnSimpleAlt="Cerrar">
-                    <FormSeleccionar
-                        onChange={setDiagnostico}
-                        texto="Selecciona el diagnóstico médico del paciente:"
-                        error={errorDiagnostico}
-                        txtError="Selecciona el diagnóstico definitivo del paciente"
-                        valor={diagnostico}
-                        valores={DIAGNOSTICOS} />
+                        <CuerpoModal />
                 </ModalAccion>
             </MenuLayout>
         </>

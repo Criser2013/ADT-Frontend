@@ -45,7 +45,9 @@ export default function VerDiagnosticosPage() {
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
-    const { rol } = auth.authInfo;
+    const rol = useMemo(() => {
+        return auth.authInfo.rol;
+    }, [auth.authInfo.rol]);
     const DB = credenciales.obtenerInstanciaDB();
     const camposVariables = (rol != CODIGO_ADMIN) ? [
         { id: "nombre", label: "Paciente" },
@@ -164,6 +166,7 @@ export default function VerDiagnosticosPage() {
      */
     const cargarDiagnosticos = async (correo, rol, DB) => {
         const res = (rol != CODIGO_ADMIN) ? await verDiagnosticosPorMedico(correo, DB) : await verDiagnosticos(DB);
+        console.log(res)
         if (res.success) {
             setDiagnosticos(res.data);
         } else {
@@ -468,7 +471,7 @@ export default function VerDiagnosticosPage() {
      */
     const AlertaEspacio = () => {
         return (
-            ((rol == CODIGO_ADMIN) && (diagnosticos.length >= 1500)) ? (
+            ((rol == CODIGO_ADMIN) && (diagnosticos != null) && (diagnosticos.length >= 1500)) ? (
                 <Grid size={1}>
                     <Alert severity="warning">
                         Tu almacenamiento está por agotarse. Para evitar pérdidas, se recomienda respaldar o exportar la información y eliminar diagnósticos antiguos.
