@@ -157,8 +157,6 @@ export default function VerDiagnosticoPage() {
             cargarDatosPaciente(datos.paciente);
             preprocesarDiag(datos);
         }
-
-        setCargando(drive.descargando);
     }, [drive.descargando, rol, DB]);
 
     /**
@@ -239,6 +237,7 @@ export default function VerDiagnosticoPage() {
 
         aux.fecha = dayjs(new Date(datos.fecha.seconds * 1000)).format("DD [de] MMMM [de] YYYY");
         setDatos({ personales: aux, comorbilidades: res });
+        setCargando(false);
     };
 
     /**
