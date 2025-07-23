@@ -1,4 +1,4 @@
-import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Stack, Typography, Alert } from "@mui/material";
+import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography, Alert } from "@mui/material";
 import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
@@ -21,6 +21,7 @@ import { EXPORT_FILENAME } from "../../constants";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FormSeleccionar from "../components/tabs/FormSeleccionar";
 import { CODIGO_ADMIN } from "../../constants";
+import Check from "../components/tabs/Check";
 
 export default function VerDiagnosticosPage() {
     const auth = useAuth();
@@ -42,6 +43,7 @@ export default function VerDiagnosticosPage() {
     const [modoModal, setModoModal] = useState(0);
     const [tipoArchivo, setTipoArchivo] = useState("xlsx");
     const [errorDiagnostico, setErrorDiagnostico] = useState(false);
+    const [preprocesar, setPreprocesar] = useState(false);
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
@@ -325,11 +327,8 @@ export default function VerDiagnosticosPage() {
         const res = await cambiarDiagnostico({ ...diagnosticos[indice.diagnostico], validado: validar }, DB);
 
         if (res.success) {
-            setDatos((x) => {
-                x[indice.diagnostico].validado = detTxtDiagnostico(validar);
-                x[indice.diagnostico].accion = "N/A";
-                return x;
-            });
+            cargarDiagnosticos(auth.authInfo.correo, rol, DB);
+            cargarPacientes();
         } else {
             setActivar2Btn(false);
             setModoModal(0);
@@ -337,8 +336,8 @@ export default function VerDiagnosticosPage() {
                 mostrar: true, titulo: "Error",
                 mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
             });
+            setCargando(false);
         }
-        setCargando(false);
     };
 
     /**
@@ -427,6 +426,7 @@ export default function VerDiagnosticosPage() {
         let txtError = "";
         let valor = null;
         let valores = [];
+        const cantNoConfirmados = diagnosticos.filter((x) => x.validado == 2);
 
         if (modoModal == 3) {
             txt = "Selecciona el tipo de archivo a exportar:";
@@ -457,7 +457,21 @@ export default function VerDiagnosticosPage() {
                     error={error}
                     txtError={txtError}
                     valor={valor}
-                    valores={valores} />
+                    valores={valores}>
+                        {(rol == CODIGO_ADMIN) ? (
+                            <Check
+                                activado={preprocesar}
+                                manejadorCambios={setPreprocesar}
+                                etiqueta="Descargar los diagnósticos preprocesados"
+                                tamano="small"
+                            />
+                        ) : null}
+                        {((cantNoConfirmados > 0) && rol == CODIGO_ADMIN) ? (
+                            <Typography variant="body1" color="error">
+                                <b>Atención, hay {cantNoConfirmados} diagnósticos sin validar.</b>
+                            </Typography>
+                        ) : null}
+                </FormSeleccionar>
             );
         } else {
             return null;
