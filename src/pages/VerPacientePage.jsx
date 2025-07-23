@@ -78,8 +78,6 @@ export default function VerPacientePage() {
         if (!drive.descargando) {
             cargarDatosPaciente();
         }
-
-        setCargando(drive.descargando);
     }, [drive.descargando]);
 
     /**
@@ -110,6 +108,7 @@ export default function VerPacientePage() {
                 res.data.personales.fechaNacimiento, "DD-MM-YYYY"
             ).format("DD [de] MMMM [de] YYYY");
             setDatos(res.data);
+            setCargando(false);
         } else {
             navigate("/pacientes", { replace: true });
         }

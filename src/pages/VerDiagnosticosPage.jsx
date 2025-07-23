@@ -45,7 +45,9 @@ export default function VerDiagnosticosPage() {
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
-    const { rol } = auth.authInfo;
+    const rol = useMemo(() => {
+        return auth.authInfo.rol;
+    }, [auth.authInfo.rol]);
     const DB = credenciales.obtenerInstanciaDB();
     const camposVariables = (rol != CODIGO_ADMIN) ? [
         { id: "nombre", label: "Paciente" },
@@ -122,11 +124,11 @@ export default function VerDiagnosticosPage() {
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
      */
     useEffect(() => {
-        if (diagnosticos != null && personas != null && (typeof diagnosticos[0].fecha != "string")) {
+        if (diagnosticos != null && personas != null && (diagnosticos.length > 0 && typeof diagnosticos[0].fecha != "string")) {
             setDatos(formatearCeldas(personas, diagnosticos.map((x) => ({ ...x }))));
             setCargando(false);
-        } else if (diagnosticos == null && personas == null) {
-            setDatos([]);
+        } else if (diagnosticos != null && personas != null && diagnosticos.length == 0 ) {
+            setCargando(false);
         }
     }, [diagnosticos, personas]);
 
@@ -206,7 +208,7 @@ export default function VerDiagnosticosPage() {
             auxDiag[i].nombre = (persona != undefined) ? persona : "N/A";
             auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico);
             auxDiag[i].fecha = dayjs(auxDiag[i].fecha.toDate()).format("DD/MM/YYYY");
-            auxDiag[i].accion = auxDiag[i].validado == 2 ? <BtnValidar diagnostico={i} /> : "N/A";
+            auxDiag[i].accion = (auxDiag[i].validado == 2 && rol != CODIGO_ADMIN) ? <BtnValidar diagnostico={i} /> : "N/A";
             auxDiag[i].validado = detTxtDiagnostico(auxDiag[i].validado);
 
             delete auxDiag[i].medico;
@@ -468,7 +470,7 @@ export default function VerDiagnosticosPage() {
      */
     const AlertaEspacio = () => {
         return (
-            ((rol == CODIGO_ADMIN) && (diagnosticos.length >= 1500)) ? (
+            ((rol == CODIGO_ADMIN) && (diagnosticos != null) && (diagnosticos.length >= 1500)) ? (
                 <Grid size={1}>
                     <Alert severity="warning">
                         Tu almacenamiento está por agotarse. Para evitar pérdidas, se recomienda respaldar o exportar la información y eliminar diagnósticos antiguos.
