@@ -458,7 +458,7 @@ export default function VerDiagnosticoPage() {
                                 </Grid>
                             )}
                         </Grid>
-                        {(datos.personales.validado == 2 && rol == 0) ? (
+                        {(datos.personales.validado == 2 && rol != CODIGO_ADMIN) ? (
                             <Tooltip title="Valida el diagnóstico del paciente.">
                                 <Fab onClick={manejadorBtnEditar}
                                     color="primary"
