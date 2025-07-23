@@ -124,11 +124,11 @@ export default function VerDiagnosticosPage() {
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
      */
     useEffect(() => {
-        if (diagnosticos != null && personas != null && (typeof diagnosticos[0].fecha != "string")) {
+        if (diagnosticos != null && personas != null && (diagnosticos.length > 0 && typeof diagnosticos[0].fecha != "string")) {
             setDatos(formatearCeldas(personas, diagnosticos.map((x) => ({ ...x }))));
             setCargando(false);
-        } else if (diagnosticos == null && personas == null) {
-            setDatos([]);
+        } else if (diagnosticos != null && personas != null && diagnosticos.length == 0 ) {
+            setCargando(false);
         }
     }, [diagnosticos, personas]);
 
@@ -166,7 +166,6 @@ export default function VerDiagnosticosPage() {
      */
     const cargarDiagnosticos = async (correo, rol, DB) => {
         const res = (rol != CODIGO_ADMIN) ? await verDiagnosticosPorMedico(correo, DB) : await verDiagnosticos(DB);
-        console.log(res)
         if (res.success) {
             setDiagnosticos(res.data);
         } else {
@@ -209,7 +208,7 @@ export default function VerDiagnosticosPage() {
             auxDiag[i].nombre = (persona != undefined) ? persona : "N/A";
             auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico);
             auxDiag[i].fecha = dayjs(auxDiag[i].fecha.toDate()).format("DD/MM/YYYY");
-            auxDiag[i].accion = auxDiag[i].validado == 2 ? <BtnValidar diagnostico={i} /> : "N/A";
+            auxDiag[i].accion = (auxDiag[i].validado == 2 && rol != CODIGO_ADMIN) ? <BtnValidar diagnostico={i} /> : "N/A";
             auxDiag[i].validado = detTxtDiagnostico(auxDiag[i].validado);
 
             delete auxDiag[i].medico;
