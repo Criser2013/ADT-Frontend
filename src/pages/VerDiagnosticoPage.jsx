@@ -74,15 +74,25 @@ export default function VerDiagnosticoPage() {
         const exp = (navegacion.dispositivoMovil && navegacion.orientacion == "vertical") || (!navegacion.dispositivoMovil && (navegacion.ancho < 500));
         return exp ? 12 : 4;
     }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
-    const camposPersonales = useMemo(() => [
-        { titulo: (rol == CODIGO_ADMIN) ? "Médico" : "Nombre", valor: persona.nombre },
-        { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" },
-        { titulo: "Edad", valor: `${datos.personales.edad} años` },
-        { titulo: "Fecha de diagnóstico", valor: datos.personales.fecha },
-        { titulo: "Diagnóstico modelo", valor: detTxtDiagnostico(datos.personales.diagnostico) },
-        { titulo: "Probabilidad", valor: `${(datos.personales.probabilidad * 100).toFixed(2)}%` },
-        { titulo: "Diagnóstico médico", valor: detTxtDiagnostico(datos.personales.validado) },
-    ], [datos.personales.validado, persona.nombre]);
+    const camposPersonales = useMemo(() => {
+        const campos = [
+            { titulo: (rol == CODIGO_ADMIN) ? "Médico" : "Nombre", valor: persona.nombre },
+            { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" },
+            { titulo: "Edad", valor: `${datos.personales.edad} años` },
+            { titulo: "Fecha de diagnóstico", valor: datos.personales.fecha },
+            { titulo: "Diagnóstico modelo", valor: detTxtDiagnostico(datos.personales.diagnostico) },
+            { titulo: "Diagnóstico médico", valor: detTxtDiagnostico(datos.personales.validado) },
+        ];
+
+        if (rol == CODIGO_ADMIN) {
+            campos.unshift({ titulo: "ID", valor: datos.personales.id });
+        }
+        if (datos.personales.validado != 2){
+            campos.push({ titulo: "Probabilidad", valor: `${(datos.personales.probabilidad * 100).toFixed(2)}%` });
+        }
+
+        return campos;
+    }, [rol, datos.personales.validado, persona.nombre]);
     const camposVitales = useMemo(() => [
         { titulo: "Presión sistólica", valor: `${datos.personales.presionSis} mmHg.` },
         { titulo: "Presión diastólica", valor: `${datos.personales.presionDias} mmHg.` },
@@ -102,9 +112,17 @@ export default function VerDiagnosticoPage() {
         return !navegacion.dispositivoMovil ? "3vh" : "0vh";
     }, [navegacion.dispositivoMovil]);
     const listadoPestanas = useMemo(() => {
+        let tit1 = "Histotrial de diagnósticos";
+        let tit2 = `Diagnóstico-${persona.nombre}-${datos.personales.fecha}`;
+
+        if (rol == CODIGO_ADMIN) {
+            tit1 = "Datos recolectados";
+            tit2 = `Diagnóstico-${datos.personales.id}`;
+        }
+
         return [
-            { texto: (rol == CODIGO_ADMIN) ? "Datos recolectados" : "Historial de diagnósticos", url: "/diagnosticos" },
-            { texto: `Diagnóstico-${persona.nombre}-${datos.personales.fecha}`, url: `/diagnosticos/ver-diagnostico${location.search}` }
+            { texto: tit1, url: "/diagnosticos" },
+            { texto: tit2, url: `/diagnosticos/ver-diagnostico${location.search}` }
         ];
     }, [persona.nombre, datos.personales.fecha, location.search, rol]);
     const titulo = useMemo(() => {
@@ -288,8 +306,7 @@ export default function VerDiagnosticoPage() {
             setErrorDiagnostico(true);
             return;
         }
-
-        setMostrarBtnSecundario(false);
+        
         setModal({ ...modal, mostrar: false });
     };
 
@@ -341,6 +358,10 @@ export default function VerDiagnosticoPage() {
         );
     };
 
+    /**
+     * Botón para validar el diagnóstico del paciente.
+     * @returns JSX.Element
+     */
     const BtnValidar = () => {
         return ((datos.personales.validado == 2 && rol != CODIGO_ADMIN) ? (
             <Tooltip title="Valida el diagnóstico del paciente.">
@@ -353,6 +374,11 @@ export default function VerDiagnosticoPage() {
                 </Fab>
             </Tooltip>) : null);
     };
+
+    /**
+     * Componente para mostrar el botón de más opciones.
+     * @returns JSX.Element
+     */
     const BtnMasOpciones = () => {
         return ((rol == CODIGO_ADMIN) ? (
             <Grid size={12} display="flex" justifyContent="end">
@@ -394,7 +420,7 @@ export default function VerDiagnosticoPage() {
      */
     const CheckSintoma = ({ instancia }) => {
         return (
-            <Grid size={numCols} key={instancia.nombre}>
+            <Grid size={numCols}>
                 <Check
                     nombre={instancia.nombre}
                     etiqueta={instancia.texto}
@@ -443,7 +469,7 @@ export default function VerDiagnosticoPage() {
                             </Grid>
                             <Grid container size={12} columns={12} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
                                 {SINTOMAS.map((x) => (
-                                    <CheckSintoma instancia={x} />
+                                    <CheckSintoma instancia={x} key={x.nombre}/>
                                 ))}
                             </Grid>
                             <Grid size={12} paddingTop="3vh">

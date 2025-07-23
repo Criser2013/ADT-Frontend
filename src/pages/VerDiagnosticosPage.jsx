@@ -468,7 +468,7 @@ export default function VerDiagnosticosPage() {
      */
     const AlertaEspacio = () => {
         return (
-            ((rol == CODIGO_ADMIN) && (diagnosticos.length >= 1)) ? (
+            ((rol == CODIGO_ADMIN) && (diagnosticos.length >= 1500)) ? (
                 <Grid size={1}>
                     <Alert severity="warning">
                         Tu almacenamiento está por agotarse. Para evitar pérdidas, se recomienda respaldar o exportar la información y eliminar diagnósticos antiguos.
