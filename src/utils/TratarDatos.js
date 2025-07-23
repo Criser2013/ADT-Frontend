@@ -422,7 +422,7 @@ export function nombresCampos(instancia, esAdmin, preprocesar = false) {
         "Urológica": instancia["Enfermedad urológica"],
         "Vascular": instancia["Enfermedad vascular"],
         "VIH": instancia["VIH"],
-        "TEP": (instancia.validado != 2 && !esAdmin) ? instancia.validado : "N/A",
+        "TEP": (instancia.validado != 2) ? instancia.validado : "N/A",
     };
 
     if (!esAdmin) {

@@ -63,7 +63,7 @@ export default function VerDiagnosticosPage() {
         { id: "validado", label: "Diagnóstico médico" }
     ]);
     const camposTabla = useMemo(() => {
-        return camposFijos.concat([{ id: "accion", label: "Acción" }]);
+        return (rol != CODIGO_ADMIN) ? camposFijos.concat([{ id: "accion", label: "Acción" }]) : camposFijos;
     }, [rol]);
     const camposBusq = useMemo(() => {
         return (rol != CODIGO_ADMIN) ? ["nombre", "paciente"] : ["nombre"];
@@ -134,6 +134,7 @@ export default function VerDiagnosticosPage() {
             setDatos(formatearCeldas(personas, diagnosticos.map((x) => ({ ...x }))));
             setCargando(false);
         } else if (diagnosticos != null && personas != null && diagnosticos.length == 0) {
+            setDatos([]);
             setCargando(false);
         }
     }, [diagnosticos, personas]);
@@ -220,6 +221,7 @@ export default function VerDiagnosticosPage() {
             delete auxDiag[i].medico;
         }
 
+        console.log(auxDiag);
         return auxDiag;
     };
 
@@ -259,7 +261,6 @@ export default function VerDiagnosticosPage() {
             borrarDiagnosticos(seleccionados);
             setModal({ ...modal, mostrar: false });
             setErrorDiagnostico(false);
-            setValidar(2);
             sessionStorage.setItem("ejecutar-callback", "true");
             setInstancia(null);
         } else if (activar2Btn && modoModal == 2) {
@@ -269,7 +270,6 @@ export default function VerDiagnosticosPage() {
         } else {
             setModal({ ...modal, mostrar: false });
             setErrorDiagnostico(false);
-            setValidar(2);
             sessionStorage.setItem("ejecutar-callback", "true");
             setInstancia(null);
         }
@@ -295,6 +295,7 @@ export default function VerDiagnosticosPage() {
         }
 
         if (peticiones.every((x) => x.success)) {
+            setCargando(true);
             cargarDiagnosticos(auth.authInfo.correo, rol, DB);
             cargarPacientes();
         } else {
@@ -375,7 +376,6 @@ export default function VerDiagnosticosPage() {
     const manejadorBtnCancelar = () => {
         setModal({ ...modal, mostrar: false });
         setErrorDiagnostico(false);
-        setValidar(2);
         sessionStorage.setItem("ejecutar-callback", "true");
         setInstancia(null);
     };
@@ -389,10 +389,9 @@ export default function VerDiagnosticosPage() {
         const nombreArchivo = preprocesar ? `${EXPORT_FILENAME}-Preprocesados` : EXPORT_FILENAME;
 
         for (let i = 0; i < aux.length; i++) {
-            aux[i].paciente = datos[i].nombre;
-            aux[i] = nombresCampos(aux[i], rol == CODIGO_ADMIN, preprocesar);
-
-            if (!preprocesar || (preprocesar && aux[i].validado != 2)) {
+            if (!preprocesar || (preprocesar && aux[i].validado != 2) || (rol != CODIGO_ADMIN)) {
+                aux[i].paciente = datos[i].nombre;
+                aux[i] = nombresCampos(aux[i], rol == CODIGO_ADMIN, preprocesar);
                 auxArr.push(aux[i]);
             }
         }
@@ -553,7 +552,7 @@ export default function VerDiagnosticosPage() {
                 txtBtnSimple={lblBtnPrimarioModal}
                 txtBtnSecundario="Cancelar"
                 txtBtnSimpleAlt="Cerrar"
-                desactivarBtnPrimario={cantNoConfirmados != 0 && modoModal == 3 && preprocesar}>
+                desactivarBtnPrimario={(diagnosticos != null && cantNoConfirmados == diagnosticos.length) && modoModal == 3 && preprocesar}>
                 <CuerpoModal />
             </ModalAccion>
         </MenuLayout>
