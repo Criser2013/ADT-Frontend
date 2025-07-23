@@ -1,4 +1,4 @@
-import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Stack, Typography, Alert } from "@mui/material";
+import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography, Alert } from "@mui/material";
 import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
@@ -21,6 +21,7 @@ import { EXPORT_FILENAME } from "../../constants";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FormSeleccionar from "../components/tabs/FormSeleccionar";
 import { CODIGO_ADMIN } from "../../constants";
+import Check from "../components/tabs/Check";
 
 export default function VerDiagnosticosPage() {
     const auth = useAuth();
@@ -42,6 +43,7 @@ export default function VerDiagnosticosPage() {
     const [modoModal, setModoModal] = useState(0);
     const [tipoArchivo, setTipoArchivo] = useState("xlsx");
     const [errorDiagnostico, setErrorDiagnostico] = useState(false);
+    const [preprocesar, setPreprocesar] = useState(false);
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
@@ -61,7 +63,7 @@ export default function VerDiagnosticosPage() {
         { id: "validado", label: "Diagnóstico médico" }
     ]);
     const camposTabla = useMemo(() => {
-        return camposFijos.concat([{ id: "accion", label: "Acción" }]);
+        return (rol != CODIGO_ADMIN) ? camposFijos.concat([{ id: "accion", label: "Acción" }]) : camposFijos;
     }, [rol]);
     const camposBusq = useMemo(() => {
         return (rol != CODIGO_ADMIN) ? ["nombre", "paciente"] : ["nombre"];
@@ -71,7 +73,7 @@ export default function VerDiagnosticosPage() {
     }, [rol]);
     const titulo = useMemo(() => {
         return (rol != CODIGO_ADMIN) ? "Historial de diagnósticos" : "Datos recolectados";
-    },[rol]);
+    }, [rol]);
     const lblBusq = useMemo(() => {
         return (rol != CODIGO_ADMIN) ? "Buscar diagnóstico por nombre o número de cédula del paciente" : "Buscar diagnóstico por nombre del médico";
     }, [rol]);
@@ -83,7 +85,7 @@ export default function VerDiagnosticosPage() {
         return datos.length == 0;
     }, [datos.length]);
     const lblBtnPrimarioModal = useMemo(() => {
-         switch (modoModal) {
+        switch (modoModal) {
             case 1:
                 return "Eliminar";
             case 2:
@@ -93,7 +95,11 @@ export default function VerDiagnosticosPage() {
             default:
                 return "Aceptar";
         }
-    },[modoModal]);
+    }, [modoModal]);
+    const cantNoConfirmados = useMemo(() => {
+        const aux = diagnosticos != null ? diagnosticos.filter((x) => x.validado == 2) : [];
+        return aux.length;
+    }, [diagnosticos]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -127,7 +133,8 @@ export default function VerDiagnosticosPage() {
         if (diagnosticos != null && personas != null && (diagnosticos.length > 0 && typeof diagnosticos[0].fecha != "string")) {
             setDatos(formatearCeldas(personas, diagnosticos.map((x) => ({ ...x }))));
             setCargando(false);
-        } else if (diagnosticos != null && personas != null && diagnosticos.length == 0 ) {
+        } else if (diagnosticos != null && personas != null && diagnosticos.length == 0) {
+            setDatos([]);
             setCargando(false);
         }
     }, [diagnosticos, personas]);
@@ -214,6 +221,7 @@ export default function VerDiagnosticosPage() {
             delete auxDiag[i].medico;
         }
 
+        console.log(auxDiag);
         return auxDiag;
     };
 
@@ -253,7 +261,6 @@ export default function VerDiagnosticosPage() {
             borrarDiagnosticos(seleccionados);
             setModal({ ...modal, mostrar: false });
             setErrorDiagnostico(false);
-            setValidar(2);
             sessionStorage.setItem("ejecutar-callback", "true");
             setInstancia(null);
         } else if (activar2Btn && modoModal == 2) {
@@ -263,7 +270,6 @@ export default function VerDiagnosticosPage() {
         } else {
             setModal({ ...modal, mostrar: false });
             setErrorDiagnostico(false);
-            setValidar(2);
             sessionStorage.setItem("ejecutar-callback", "true");
             setInstancia(null);
         }
@@ -289,6 +295,7 @@ export default function VerDiagnosticosPage() {
         }
 
         if (peticiones.every((x) => x.success)) {
+            setCargando(true);
             cargarDiagnosticos(auth.authInfo.correo, rol, DB);
             cargarPacientes();
         } else {
@@ -325,11 +332,8 @@ export default function VerDiagnosticosPage() {
         const res = await cambiarDiagnostico({ ...diagnosticos[indice.diagnostico], validado: validar }, DB);
 
         if (res.success) {
-            setDatos((x) => {
-                x[indice.diagnostico].validado = detTxtDiagnostico(validar);
-                x[indice.diagnostico].accion = "N/A";
-                return x;
-            });
+            cargarDiagnosticos(auth.authInfo.correo, rol, DB);
+            cargarPacientes();
         } else {
             setActivar2Btn(false);
             setModoModal(0);
@@ -337,8 +341,8 @@ export default function VerDiagnosticosPage() {
                 mostrar: true, titulo: "Error",
                 mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
             });
+            setCargando(false);
         }
-        setCargando(false);
     };
 
     /**
@@ -372,7 +376,6 @@ export default function VerDiagnosticosPage() {
     const manejadorBtnCancelar = () => {
         setModal({ ...modal, mostrar: false });
         setErrorDiagnostico(false);
-        setValidar(2);
         sessionStorage.setItem("ejecutar-callback", "true");
         setInstancia(null);
     };
@@ -381,18 +384,22 @@ export default function VerDiagnosticosPage() {
      * Manejador del botón para exportar los diagnósticos.
      */
     const exportarDiagnosticos = () => {
-        let aux = diagnosticos.map((x) => ({ ...x }));
+        const aux = diagnosticos.map((x) => ({ ...x }));
+        const auxArr = [];
+        const nombreArchivo = preprocesar ? `${EXPORT_FILENAME}-Preprocesados` : EXPORT_FILENAME;
 
-        aux = aux.map((x, i) => {
-            x.paciente = datos[i].nombre;
-            x = nombresCampos(x, rol == CODIGO_ADMIN);
-            return x;
-        });
+        for (let i = 0; i < aux.length; i++) {
+            if (!preprocesar || (preprocesar && aux[i].validado != 2) || (rol != CODIGO_ADMIN)) {
+                aux[i].paciente = datos[i].nombre;
+                aux[i] = nombresCampos(aux[i], rol == CODIGO_ADMIN, preprocesar);
+                auxArr.push(aux[i]);
+            }
+        }
 
         setModal((x) => ({ ...x, mostrar: false }));
         setTipoArchivo("xlsx");
 
-        const res = descargarArchivoXlsx(aux, EXPORT_FILENAME, tipoArchivo);
+        const res = descargarArchivoXlsx(auxArr, nombreArchivo, tipoArchivo);
 
         if (!res.success) {
             setModoModal(0);
@@ -457,7 +464,21 @@ export default function VerDiagnosticosPage() {
                     error={error}
                     txtError={txtError}
                     valor={valor}
-                    valores={valores} />
+                    valores={valores}>
+                    {((modoModal == 3 && cantNoConfirmados > 0) && (rol == CODIGO_ADMIN) && preprocesar) ? (
+                        <Typography variant="body2" color="error">
+                            <b>¡Atención! Hay {cantNoConfirmados} diagnóstico(s) sin validar.</b>
+                        </Typography>
+                    ) : null}
+                    {(modoModal == 3 && rol == CODIGO_ADMIN) ? (
+                        <Check
+                            activado={preprocesar}
+                            manejadorCambios={(e) => setPreprocesar(e.target.checked)}
+                            etiqueta="Preprocesar (no se exportan diagnósticos sin validar)"
+                            tamano="small"
+                        />
+                    ) : null}
+                </FormSeleccionar>
             );
         } else {
             return null;
@@ -530,7 +551,8 @@ export default function VerDiagnosticosPage() {
                 mostrarBtnSecundario={activar2Btn}
                 txtBtnSimple={lblBtnPrimarioModal}
                 txtBtnSecundario="Cancelar"
-                txtBtnSimpleAlt="Cerrar">
+                txtBtnSimpleAlt="Cerrar"
+                desactivarBtnPrimario={(diagnosticos != null && cantNoConfirmados == diagnosticos.length) && modoModal == 3 && preprocesar}>
                 <CuerpoModal />
             </ModalAccion>
         </MenuLayout>

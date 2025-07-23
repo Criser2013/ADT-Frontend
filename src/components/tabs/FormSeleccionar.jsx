@@ -10,7 +10,7 @@ import { Stack, Typography, TextField, MenuItem } from "@mui/material";
  * @param {Array} valores - Lista de objetos con las opciones a mostrar en el campo
  * @returns {JSX.Element}
  */
-export default function FormSeleccionar({ texto, onChange, error, txtError, valor, valores }) {
+export default function FormSeleccionar({ texto, onChange, error, txtError, valor, valores, children }) {
     return (
         <Stack orientation="column" spacing={2} width="100%">
             <Typography variant="body1">
@@ -31,6 +31,7 @@ export default function FormSeleccionar({ texto, onChange, error, txtError, valo
                     );
                 })}
             </TextField>
+            { children }
         </Stack>
     );
 };

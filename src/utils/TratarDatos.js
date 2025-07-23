@@ -375,11 +375,11 @@ export function detTxtDiagnostico(diagnostico) {
  * @param {Boolean} esAdmin - Indica si el usuario es administrador.
  * @returns {JSON}
  */
-export function nombresCampos(instancia, esAdmin) {
+export function nombresCampos(instancia, esAdmin, preprocesar = false) {
     const datos = {
         "ID": instancia.id,
-        "Edad": instancia.edad,
-        "Género": instancia.sexo,
+        "Edad": preprocesar ? procEdad(instancia.edad) : instancia.edad,
+        "Género": preprocesar ? instancia.sexo: (instancia.sexo == 0 ? "M" : "F"),
         "Bebedor": instancia.bebedor,
         "Fumador": instancia.fumador,
         "Cirugía reciente": instancia.cirugiaReciente,
@@ -393,18 +393,18 @@ export function nombresCampos(instancia, esAdmin) {
         "Hemoptisis": instancia.hemoptisis,
         "Síntomas disautonomicos": instancia.disautonomicos,
         "Edema de M inferiores": instancia.edema,
-        "Frecuencia respiratoria": instancia.frecRes,
-        "Saturación de la sangre": instancia.so2,
-        "Frecuencia cardíaca": instancia.frecCard,
-        "Presión sistólica": instancia.presionSis,
-        "Presión diastólica": instancia.presionDias,
+        "Frecuencia respiratoria": preprocesar ? procFrecRes(instancia.frecRes) : instancia.frecRes,
+        "Saturación de la sangre": preprocesar ? procSo2(instancia.so2) : instancia.so2,
+        "Frecuencia cardíaca": preprocesar ? procFrecCard(instancia.frecCard) : instancia.frecCard,
+        "Presión sistólica": preprocesar ? procPresionSist(instancia.presionSis) : instancia.presionSis,
+        "Presión diastólica": preprocesar ? procPresionDiast(instancia.presionDias) : instancia.presionDias,
         "Fiebre": instancia.fiebre,
         "Crepitaciones": instancia.crepitaciones,
         "Sibilancias": instancia.sibilancias,
         "Soplos": instancia.soplos,
-        "WBC": instancia.wbc,
-        "HB": instancia.hemoglobina,
-        "PLT": instancia.plaquetas,
+        "WBC": preprocesar ? procWbc(instancia.wbc) : instancia.wbc,
+        "HB": preprocesar ? procHb(instancia.hemoglobina) : instancia.hemoglobina,
+        "PLT": preprocesar ? procPlt(instancia.plaquetas) : instancia.plaquetas,
         "Derrame": instancia.derrame,
         "Otra Enfermedad": instancia.otraEnfermedad,
         "Hematologica": instancia["Enfermedad hematológica"],
@@ -422,16 +422,15 @@ export function nombresCampos(instancia, esAdmin) {
         "Urológica": instancia["Enfermedad urológica"],
         "Vascular": instancia["Enfermedad vascular"],
         "VIH": instancia["VIH"],
-        "TEP": (instancia.validado != 2 && !esAdmin) ? instancia.validado : "N/A",
+        "TEP": (instancia.validado != 2) ? instancia.validado : "N/A",
     };
 
     if (!esAdmin) {
         datos["Paciente"] = instancia.paciente;
         datos["Fecha"] = instancia.fecha.toDate().toLocaleDateString("es-CO");
-    } else {
         datos["Diagnóstico modelo"] = instancia.diagnostico;
         datos["Probabilidad"] = instancia.probabilidad;
     }
 
     return datos;
-}
+};
