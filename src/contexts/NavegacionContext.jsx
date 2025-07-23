@@ -90,7 +90,10 @@ export function NavegacionProvider({ children }) {
     };
 
     return (
-        <navegacionContext.Provider value={{ paginaAnterior, setPaginaAnterior, callbackError, setCallbackError, mostrarMenu, setMostrarMenu, cerrandoMenu, variantSidebar, setCerrandoMenu, dispositivoMovil, orientacion, ancho, alto}}>
+        <navegacionContext.Provider value={{
+            paginaAnterior, setPaginaAnterior, callbackError, setCallbackError, mostrarMenu, setMostrarMenu, cerrandoMenu,
+            variantSidebar, setCerrandoMenu, dispositivoMovil, orientacion, ancho, alto
+        }}>
             {children}
         </navegacionContext.Provider>
     );

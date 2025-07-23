@@ -2,8 +2,9 @@ import Router from "../router";
 import { useAuth } from "./contexts/AuthContext";
 import { useCredenciales } from "./contexts/CredencialesContext";
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogActions, DialogTitle, Button, Typography } from "@mui/material";
 import { useNavegacion } from "./contexts/NavegacionContext";
+import ModalSimple from "./components/modals/ModalSimple";
+import ModalAccion from "./components/modals/ModalAccion";
 
 /**
  * Componente principal que provee las credenciales de autenticación y muestra los 
@@ -52,7 +53,7 @@ export default function App() {
         if (!auth.cargando && auth.authError.res) {
             setModal({ mostrar: true, mensaje: auth.authError.error });
         } else {
-            setModal({ ...modal, mostrar: false });
+            setModal((x) => ({ ...x, mostrar: false }));
         }
     }, [auth.cargando, auth.authError.res, auth.authError.error]);
 
@@ -60,7 +61,7 @@ export default function App() {
      * Manejador de eventos del botón de cerrar el modal de error.
      */
     const manejadorBtnModal = () => {
-        setModal({ mostrar: false, mensaje: "" });
+        setModal((x) => ({ ...x, mostrar: false }));
 
         if ((navegacion.callbackError.fn != null) && (typeof (navegacion.callbackError.fn) == "function")) {
             navegacion.callbackError.fn();
@@ -84,7 +85,7 @@ export default function App() {
      * Solo está presente cuando el usuario no ha otorgado los permisos.
      */
     const manejadorBtnCerrarSesion = () => {
-        setModal2Btn({ ...modal2Btn, mostrar: false });
+        setModal2Btn((x) => ({ ...x, mostrar: false }));
         navegacion.setPaginaAnterior(window.location.pathname);
 
         location.replace("/cerrar-sesion");
@@ -95,50 +96,31 @@ export default function App() {
      */
     const manejadorBtnReautenticar = () => {
         const { user } = auth.authInfo;
-        setModal2Btn({ ...modal2Btn, mostrar: false });
+        setModal2Btn((x) => ({ ...x, mostrar: false }));
         auth.reautenticarUsuario(user);
     };
 
     return (
         <>
             <Router />
-            <Dialog open={modal2Btn.mostrar}>
-                <DialogTitle>Aviso</DialogTitle>
-                <DialogContent>
-                    <Typography>{modal2Btn.mensaje}</Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        onClick={manejadorBtnCerrarSesion}
-                        sx={{ textTransform: "none" }}>
-                        <b>Cerrar sesión</b>
-                    </Button>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        onClick={auth.permisos ? manejadorBtnPermisos : manejadorBtnReautenticar}
-                        sx={{ textTransform: "none" }}>
-                        <b>{modal2Btn.txtBtn}</b>
-                    </Button>
-                </DialogActions>
-            </Dialog>
-            <Dialog open={modal.mostrar}>
-                <DialogTitle>Error</DialogTitle>
-                <DialogContent>
-                    <Typography>{modal.mensaje}</Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        onClick={manejadorBtnModal}
-                        sx={{ textTransform: "none" }}>
-                        <b>Cerrar</b>
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <ModalAccion
+                abrir={modal2Btn.mostrar}
+                mensaje={modal2Btn.mensaje}
+                titulo="Aviso"
+                manejadorBtnPrimario={!auth.requiereRefresco ? manejadorBtnPermisos : manejadorBtnReautenticar}
+                manejadorBtnSecundario={manejadorBtnCerrarSesion}
+                mostrarBtnSecundario={true}
+                txtBtnSimple={modal2Btn.txtBtn}
+                txtBtnSecundario="Cerrar sesión"
+                txtBtnSimpleAlt={modal2Btn.txtBtn}
+            />
+            <ModalSimple
+                abrir={modal.mostrar}
+                titulo="Error"
+                mensaje={modal.mensaje}
+                manejadorBtnModal={manejadorBtnModal}
+                txtBtn="Cerrar"
+            />
         </>
     );
 };

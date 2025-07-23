@@ -14,7 +14,7 @@ export default function EditarPacientePage() {
     const auth = useAuth();
     const drive = useDrive();
     const navigate = useNavigate();
-    const [params, setParams] = useSearchParams();
+    const [params] = useSearchParams();
     const listadoPestanas = [
         { texto: "Lista de pacientes", url: "/pacientes" },
         { texto: "Editar paciente", url: `/pacientes/editar${location.search}` }

@@ -1,6 +1,6 @@
 import { reauthenticateWithPopup, signOut } from "firebase/auth";
 import { createContext, useState, useContext, useEffect } from "react";
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, reauthenticateWithCredential } from "firebase/auth";
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { verUsuario } from "../firestore/usuarios-collection";
 import { cambiarUsuario, verSiEstaRegistrado } from "../firestore/usuarios-collection";
 import { FirebaseError } from "firebase/app";
@@ -156,7 +156,7 @@ export function AuthProvider({ children }) {
             // Se abre el popup de Google para iniciar sesión
             const res = await signInWithPopup(auth, provider);
             // Se verifica si el usuario ya está registrado en la base de datos y esté activado
-            const reg = await verRegistrado(res.user.email);
+            const reg = await verRegistrado(res.user.email, res.user.displayName);
             const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
             oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
 
@@ -180,7 +180,7 @@ export function AuthProvider({ children }) {
             }
             setAuthError(resultado);
         } catch (error) {
-            manejadorErroresAuth(error, 0);
+            manejadorErroresAuth(error, 0, null);
         }
 
         setCargando(false);
@@ -221,7 +221,7 @@ export function AuthProvider({ children }) {
                     // Necesario por si cierra el popup de Google antes de reautenticarse cuando el token caduca
                     setRequiereRefresco(true);
                 }
-                manejadorErroresAuth(error, 2);
+                manejadorErroresAuth(error, 2, usuario);
             }
 
             setCargando(false);
@@ -273,13 +273,14 @@ export function AuthProvider({ children }) {
     /**
      * Registra un nuevo usuario en la base de datos.
      * @param {String} correo - Correo del usuario a registrar.
+     * @param {String} nombre - Nombre del usuario a registrar.
      * @returns JSON
      */
-    const registrarUsuario = async (correo) => {
+    const registrarUsuario = async (correo, nombre) => {
         /* rol = 0 - Usuario normal
            rol = 1001 - Administrador */
         if (correo != null) {
-            const res = await cambiarUsuario({ correo: correo, rol: 0 }, db);
+            const res = await cambiarUsuario({ correo: correo, rol: 0, nombre: nombre }, db);
 
             return { success: res.success };
         }
@@ -288,14 +289,15 @@ export function AuthProvider({ children }) {
     /**
      * Verifica si un usuario está registrado en la base de datos.
      * @param {String} correo - Correo del usuario a verificar.
+     * @param {String} nombre - Nombre del usuario a registrar si no está registrado.
      */
-    const verRegistrado = async (correo) => {
+    const verRegistrado = async (correo, nombre) => {
         if (correo != null) {
             const res = await verSiEstaRegistrado(correo, db);
 
             if (res.success && !res.data) {
                 // El usuario no está registrado, se procede a registrarlo
-                return await registrarUsuario(correo);
+                return await registrarUsuario(correo, nombre);
             } else if (res.success && res.data) {
                 // El usuario está registrado
                 return { success: true, data: 1 };
@@ -343,7 +345,7 @@ export function AuthProvider({ children }) {
      * @param {FirebaseError} error - Error de Firebase Auth.
      * @param {Int} codigo - Código de la operación que produjo el error.
      */
-    const manejadorErroresAuth = (error, codigo) => {
+    const manejadorErroresAuth = (error, codigo, usuario) => {
         switch (error.code) {
             case "auth/popup-closed-by-user":
                 // Esto es cuando el usuario cierra el popup de Google antes de iniciar sesión
@@ -357,7 +359,10 @@ export function AuthProvider({ children }) {
                 break;
             case "auth/user-mismatch":
                 // Esto es cuando el usuario que intenta iniciar sesión no coincide con el usuario actual
-                setAuthError({ res: true, operacion: codigo, error: `Ya tienes una sesión iniciada con el usuario: "${authInfo.user.displayName}" (${authInfo.user.email}).` });
+                setAuthError({
+                    res: true, operacion: codigo,
+                    error: `Ya tienes una sesión iniciada con el usuario: "${usuario.displayName}" (${usuario.email}).`
+                });
                 break;
             default:
                 console.error("Error de autenticación:", error);

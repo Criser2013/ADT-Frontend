@@ -6,6 +6,10 @@ import { DriveProvider } from "./src/contexts/DriveContext";
 import EditarPacientePage from "./src/pages/EditarPacientePage";
 import VerPacientePage from "./src/pages/VerPacientePage";
 import ListaPacientesPage from "./src/pages/ListaPacientesPage";
+import DiagnosticoAnonimoPage from "./src/pages/DiagnosticoAnonimoPage";
+import DiagnosticoPacientePage from "./src/pages/DiagnosticoPacientePage";
+import VerDiagnosticoPage from "./src/pages/VerDiagnosticoPage";
+import VerDiagnosticosPage from "./src/pages/VerDiagnosticosPage";
 
 /**
  * Enrutador principal de la aplicación que define las rutas y páginas.
@@ -17,6 +21,7 @@ export default function Router() {
             <Routes>
                 <Route path="/" element={<IniciarSesionPage />} />
                 <Route path="/cerrar-sesion" element={<CerrarSesionPage />} />
+                <Route path="/diagnostico-anonimo" element={<DiagnosticoAnonimoPage />} />
                 <Route path="/pacientes/anadir" element={
                     <DriveProvider>
                         <AnadirPacientePage />
@@ -34,6 +39,21 @@ export default function Router() {
                 <Route path="/pacientes" element={
                     <DriveProvider>
                         <ListaPacientesPage />
+                    </DriveProvider>
+                } />
+                <Route path="/diagnostico-paciente" element={
+                    <DriveProvider>
+                        <DiagnosticoPacientePage />
+                    </DriveProvider>
+                } />
+                <Route path="/diagnosticos/ver-diagnostico" element={
+                    <DriveProvider>
+                        <VerDiagnosticoPage />
+                    </DriveProvider>
+                } />
+                <Route path="/diagnosticos" element={
+                    <DriveProvider>
+                        <VerDiagnosticosPage />
                     </DriveProvider>
                 } />
             </Routes>

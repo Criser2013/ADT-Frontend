@@ -1,6 +1,6 @@
 import {
-    Box, Chip, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip, Dialog, DialogActions,
-    DialogContent, Button, DialogTitle, Popover, IconButton
+    Box, Chip, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
+    Button, Popover, IconButton
 } from "@mui/material";
 import { useDrive } from "../contexts/DriveContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -16,6 +16,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import ModalAccion from "../components/modals/ModalAccion";
 
 /**
  * Página para ver los datos de un paciente.
@@ -26,11 +27,11 @@ export default function VerPacientePage() {
     const drive = useDrive();
     const navegacion = useNavegacion();
     const navigate = useNavigate();
-    const [params, setParams] = useSearchParams();
+    const [params] = useSearchParams();
     const [cargando, setCargando] = useState(true);
     const [modoEliminar, setModoEliminar] = useState(false);
     const [popOver, setPopOver] = useState(null);
-    const open = Boolean(popOver)
+    const open = Boolean(popOver);
     const elem = open ? "simple-popover" : undefined;
     const [modal, setModal] = useState({
         mostrar: false, mensaje: "", titulo: ""
@@ -43,12 +44,13 @@ export default function VerPacientePage() {
         },
         comorbilidades: []
     });
-    const campos = [{ titulo: "Nombre", valor: datos.personales.nombre },
-    { titulo: "Cédula", valor: datos.personales.cedula },
-    { titulo: "Fecha de nacimiento", valor: datos.personales.fechaNacimiento },
-    { titulo: "Edad", valor: `${datos.personales.edad} años` },
-    { titulo: "Teléfono", valor: datos.personales.telefono },
-    { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" }
+    const campos = [
+        { titulo: "Nombre", valor: datos.personales.nombre },
+        { titulo: "Cédula", valor: datos.personales.cedula },
+        { titulo: "Fecha de nacimiento", valor: datos.personales.fechaNacimiento },
+        { titulo: "Edad", valor: `${datos.personales.edad} años` },
+        { titulo: "Teléfono", valor: datos.personales.telefono },
+        { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" }
     ];
     const listadoPestanas = [
         { texto: "Lista de pacientes", url: "/pacientes" },
@@ -169,7 +171,7 @@ export default function VerPacientePage() {
         cerrarPopover();
         setModoEliminar(true);
         setModal({
-            mostrar:true, titulo: "Alerta",
+            mostrar: true, titulo: "Alerta",
             mensaje: "¿Estás seguro de que deseas eliminar este paciente?"
         });
     };
@@ -192,7 +194,7 @@ export default function VerPacientePage() {
     return (
         <>
             <MenuLayout>
-                {(cargando || auth.cargando) ? (
+                {cargando ? (
                     <Box display="flex" justifyContent="center" alignItems="center" width={detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho)} height="85vh">
                         <CircularProgress />
                     </Box>
@@ -298,29 +300,16 @@ export default function VerPacientePage() {
                     </>
                 )
                 }
-                <Dialog open={modal.mostrar}>
-                    <DialogTitle>{modal.titulo}</DialogTitle>
-                    <DialogContent>
-                        <Typography>{modal.mensaje}</Typography>
-                    </DialogContent>
-                    <DialogActions>
-                        {modoEliminar ? (
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                onClick={() => setModal({ mostrar: false, titulo: "", mensaje: "" })}
-                                sx={{ textTransform: "none" }}>
-                                <b>Cancelar</b>
-                            </Button>) : null}
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            onClick={manejadorBtnModal}
-                            sx={{ textTransform: "none" }}>
-                            <b>{modoEliminar ? "Eliminar" : "Cerrar"}</b>
-                        </Button>
-                    </DialogActions>
-                </Dialog>
+                <ModalAccion
+                    abrir={modal.mostrar}
+                    titulo={modal.titulo}
+                    mensaje={modal.mensaje}
+                    manejadorBtnPrimario={manejadorBtnModal}
+                    manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
+                    mostrarBtnSecundario={modoEliminar}
+                    txtBtnSimple="Eliminar"
+                    txtBtnSecundario="Cancelar"
+                    txtBtnSimpleAlt="Cerrar" />
             </MenuLayout>
         </>
     );
