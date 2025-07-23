@@ -215,15 +215,12 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             'Enfermedad coronaria', 'Diabetes Mellitus', 'Endocrina',
             'Gastrointestinal', 'Hepatopatía crónica', 'Hipertensión arterial',
             'Neurológica', 'Pulmonar', 'Renal', 'Trombofilia', 'Urológica',
-            'Vascular', 'VIH', 'Paciente', 'Fecha'
+            'Vascular', 'VIH', 'Paciente', 'Fecha', 'Diagnóstico modelo', 'Probabilidad'
         ];
 
         for (const i of campos) {
             expect(res).toHaveProperty(i);
         }
-
-        expect(res).not.toHaveProperty("Diagnóstico modelo");
-        expect(res).not.toHaveProperty("Probabilidad");
     });
 
     test("CP - 80", () => {
@@ -265,7 +262,7 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             'Enfermedad coronaria', 'Diabetes Mellitus', 'Endocrina',
             'Gastrointestinal', 'Hepatopatía crónica', 'Hipertensión arterial',
             'Neurológica', 'Pulmonar', 'Renal', 'Trombofilia', 'Urológica',
-            'Vascular', 'VIH', 'Diagnóstico modelo', 'Probabilidad'
+            'Vascular', 'VIH'
         ];
 
         for (const i of campos) {
