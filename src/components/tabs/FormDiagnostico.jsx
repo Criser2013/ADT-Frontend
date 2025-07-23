@@ -8,7 +8,7 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
 import { detTamCarga } from "../../utils/Responsividad";
 import Check from "../tabs/Check";
 import SelectChip from "../tabs/SelectChip";
-import { COMORBILIDADES, SEXOS } from "../../../constants";
+import { COMORBILIDADES, SEXOS, SINTOMAS } from "../../../constants";
 import CloseIcon from "@mui/icons-material/Close";
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import { validarFloatPos, validarNumero } from "../../utils/Validadores";
@@ -79,26 +79,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
-    const sintomas = useMemo(() => ([
-        { texto: "Fumador", nombre: "fumador" },
-        { texto: "Bebedor", nombre: "bebedor" },
-        { texto: "Tos", nombre: "tos" },
-        { texto: "Fiebre", nombre: "fiebre" },
-        { texto: "Edema de miembros inferiores", nombre: "edema" },
-        { texto: "Inmovilidad de miembros inferiores", nombre: "inmovilidad" },
-        { texto: "Procedimiento quirúrgico reciente", nombre: "cirugiaReciente" },
-        { texto: "Síntomas disautonómicos", nombre: "disautonomicos" },
-        { texto: "Viaje prolongado", nombre: "viajeProlongado" },
-        { texto: "Disnea", nombre: "disnea" },
-        { texto: "Sibilancias", nombre: "sibilancias" },
-        { texto: "Crepitaciones", nombre: "crepitaciones" },
-        { texto: "Derrame", nombre: "derrame" },
-        { texto: "Malignidad", nombre: "malignidad" },
-        { texto: "Hemoptisis", nombre: "hemoptisis" },
-        { texto: "Dolor torácico", nombre: "dolorToracico" },
-        { texto: "TEP - TVP previo", nombre: "tepPrevio" },
-        { texto: "Soplos", nombre: "soplos" }
-    ]), []);
     const numCols = useMemo(() => {
         return navegacion.dispositivoMovil || (!navegacion.dispositivoMovil && (navegacion.ancho < 500)) ? 1 : 3;
     }, [navegacion.dispositivoMovil, navegacion.ancho]);
@@ -427,7 +407,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                             </Typography>
                         </Grid>
                         <Grid container size={numCols} columns={numCols} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
-                            {sintomas.map((x) => (
+                            {SINTOMAS.map((x) => (
                                 <Grid size={1} key={x.nombre}>
                                     <Check
                                         nombre={x.nombre}

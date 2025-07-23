@@ -1,5 +1,5 @@
 import {
-    Box, Chip, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
+    Box, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
     Button, Popover, IconButton
 } from "@mui/material";
 import { useDrive } from "../contexts/DriveContext";
@@ -17,6 +17,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ModalAccion from "../components/modals/ModalAccion";
+import ContComorbilidades from "../components/tabs/ContComorbilidades";
 
 /**
  * Página para ver los datos de un paciente.
@@ -263,22 +264,7 @@ export default function VerPacientePage() {
                             </Grid>
                             {(datos.comorbilidades.length > 0) ? (
                                 <Grid size={12}>
-                                    <Box
-                                        borderColor="blue"
-                                        borderRadius={3}
-                                        border={1}
-                                        padding="2vh"
-                                        style={{ borderColor: "#adadad" }}
-                                        sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                                        {datos.comorbilidades.map((comorbilidad) => (
-                                            <Chip
-                                                key={comorbilidad}
-                                                label={comorbilidad}
-                                                color="info"
-                                                variant="outlined"
-                                                size="medium" />
-                                        ))}
-                                    </Box>
+                                    <ContComorbilidades comorbilidades={datos.comorbilidades} />
                                 </Grid>
                             ) : (
                                 <Grid size={5}>
