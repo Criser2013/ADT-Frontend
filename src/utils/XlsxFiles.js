@@ -11,11 +11,19 @@ export function crearArchivoXlsx (datos, tipo = "xlsx") {
     try {
         const ws = utils.json_to_sheet(datos);
         const wb = utils.book_new(ws, "Datos");
-        const xlsxFile = writeXLSX(wb, {
+        let xlsxFile = null;
+        const options = {
             bookType: tipo,
             type: "buffer",
             cellDates: true
-        });
+        };
+
+        if (tipo === "csv") {
+            xlsxFile = utils.sheet_to_csv(ws, options);
+        } else {
+            xlsxFile = writeXLSX(wb, options);
+        }
+
         return { success: true, data: xlsxFile, error: null };
     } catch (error) {
         return { success: false, data: null, error: error };

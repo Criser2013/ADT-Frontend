@@ -132,15 +132,16 @@ export async function crearCargaResumible (idArchivo, token) {
  * @param {String} url - URL para la carga resumible.
  * @param {File|Blob|Uint8Array} contenido - Archivo a subir.
  * @param {String} token - Token OAuth de Google.
+ * @param {String} mimeType - Tipo MIME del archivo.
  * @returns JSON
  */
-export async function subirArchivoResumible(url, contenido, token) {
+export async function subirArchivoResumible(url, contenido, token, mimeType = "application/octet-stream") {
     try {
         const pet = await fetch(url, {
             method: "PUT",
             headers: {
                 "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/octet-stream",
+                "Content-Type": mimeType,
                 "Content-Length": contenido.length
             },
             body: contenido

@@ -483,12 +483,12 @@ export default function VerDiagnosticosPage() {
                             activado={preprocesar}
                             manejadorCambios={(e) => setPreprocesar(e.target.checked)}
                             etiqueta="Preprocesar (no se exportan diagnósticos sin validar)"
-                            tamano="small" />
+                            tamano="medium" />
                         <Check
                             activado={guardarDrive}
                             manejadorCambios={(e) => setGuardarDrive(e.target.checked)}
-                            etiqueta="Guardar en Google Drive"
-                            tamano="small" />
+                            etiqueta="Crear una copia en Google Drive"
+                            tamano="medium" />
                         </>
                     ) : null}
                 </FormSeleccionar>
@@ -525,7 +525,7 @@ export default function VerDiagnosticosPage() {
                         activarBtnAtras={false}
                         titulo={titulo}
                         pestanas={listadoPestanas} />
-                    <Grid container columns={2} spacing={3} sx={{ marginTop: "3vh", width: width }}>
+                    <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
                         <AlertaEspacio />
                         <Grid size={1} display="flex" justifyContent="end">
                             <Button
