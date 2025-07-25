@@ -25,7 +25,6 @@ export const useDrive = () => {
  */
 export function DriveProvider({ children }) {
     const [archivoId, setArchivoId] = useState(null);
-    const [carpetaId, setCarpetaId] = useState(null);
     const [datos, setDatos] = useState(null);
     const [token, setToken] = useState(null);
     const [descargando, setDescargando] = useState(true);
@@ -273,8 +272,6 @@ export function DriveProvider({ children }) {
         const petCrearCarp = await crearArchivoMeta(DRIVE_FOLDER_NAME, true);
         if (!petCrearCarp.success) {
             return { success: false, error: petCrearCarp.error };
-        } else {
-            setCarpetaId(petCrearCarp.data.id);
         }
         const petCrearArch = await crearArchivoMeta(DRIVE_FILENAME, false, petCrearCarp.data.id);
         if (!petCrearArch.success) {
@@ -296,7 +293,6 @@ export function DriveProvider({ children }) {
         const idCarpeta = (existeCarpeta.data != null) ? existeCarpeta.data.files[0].id : null;
 
         if (existeCarpeta.success) {
-            setCarpetaId(idCarpeta);
             const busquedaArchivo = await verificarExisteArchivo(DRIVE_FILENAME, false, idCarpeta);
             if (busquedaArchivo.success && busquedaArchivo.data.files.length > 0) {
                 setArchivoId(busquedaArchivo.data.files[0].id);

@@ -1,13 +1,3 @@
-const opciones = {
-  weekday: "long",
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-  hour: "numeric",
-  minute: "numeric"
-};
-const fecha = new Date().toLocaleDateString("es-CO", opciones).replaceAll(".", "").replaceAll(",", "").replace(":","_");
-
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export const ENTORNO = import.meta.env.VITE_ENTORNO || "0"; // 0: local, 1: production
 export const DRIVE_API_URL = import.meta.env.VITE_DRIVE_API_URL || "https://www.googleapis.com/drive/v3";
@@ -17,7 +7,7 @@ export const COMORBILIDADES = ["Enfermedad vascular", "Trombofilia", "Enfermedad
     "Diabetes", "Hipertensión arterial", "Hepatopatía crónica", "Enfermedad hematológica", "VIH", "Enfermedad cardíaca",
     "Enfermedad coronaria", "Enfermedad endocrina", "Enfermedad gastrointestinal", "Enfermedad urológica", "Enfermedad neurológica",
 ];
-export const EXPORT_FILENAME = `HADT Diagnósticos — ${fecha}`;
+export const EXPORT_FILENAME = `HADT Diagnósticos — `;
 export const DRIVE_FOLDER_NAME = import.meta.env.VITE_DRIVE_FOLDER_NAME || "HADT: Herramienta para apoyar el diagnóstico de TEP";
 export const SEXOS = [
     { texto: "Seleccione el sexo", val: 2 },

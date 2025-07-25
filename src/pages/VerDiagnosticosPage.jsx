@@ -386,8 +386,13 @@ export default function VerDiagnosticosPage() {
      */
     const exportarDiagnosticos = async () => {
         const aux = diagnosticos.map((x) => ({ ...x }));
+        const opciones = {
+            weekday: "long", year: "numeric", month: "long",
+            day: "numeric", hour: "numeric", minute: "numeric"
+        };
+        const fecha = new Date().toLocaleDateString("es-CO", opciones).replaceAll(".", "");
         const auxArr = [];
-        const nombreArchivo = preprocesar ? `${EXPORT_FILENAME}-Preprocesados` : EXPORT_FILENAME;
+        const nombreArchivo = preprocesar ? `${EXPORT_FILENAME}${fecha}-Preprocesados` : `${EXPORT_FILENAME}${fecha}`;
 
         for (let i = 0; i < aux.length; i++) {
             if (!preprocesar || (preprocesar && aux[i].validado != 2) || (rol != CODIGO_ADMIN)) {
@@ -398,7 +403,6 @@ export default function VerDiagnosticosPage() {
         }
 
         setModal((x) => ({ ...x, mostrar: false }));
-        setTipoArchivo("xlsx");
 
         let res = { success: false, data: [], error: "" };
 
@@ -479,16 +483,16 @@ export default function VerDiagnosticosPage() {
                     ) : null}
                     {(modoModal == 3 && rol == CODIGO_ADMIN) ? (
                         <>
-                        <Check
-                            activado={preprocesar}
-                            manejadorCambios={(e) => setPreprocesar(e.target.checked)}
-                            etiqueta="Preprocesar (no se exportan diagnósticos sin validar)"
-                            tamano="medium" />
-                        <Check
-                            activado={guardarDrive}
-                            manejadorCambios={(e) => setGuardarDrive(e.target.checked)}
-                            etiqueta="Crear una copia en Google Drive"
-                            tamano="medium" />
+                            <Check
+                                activado={preprocesar}
+                                manejadorCambios={(e) => setPreprocesar(e.target.checked)}
+                                etiqueta="Preprocesar (no se exportan diagnósticos sin validar)"
+                                tamano="medium" />
+                            <Check
+                                activado={guardarDrive}
+                                manejadorCambios={(e) => setGuardarDrive(e.target.checked)}
+                                etiqueta="Crear una copia en Google Drive"
+                                tamano="medium" />
                         </>
                     ) : null}
                 </FormSeleccionar>
@@ -534,7 +538,7 @@ export default function VerDiagnosticosPage() {
                                 onClick={manejadorBtnExportar}
                                 disabled={desactivarBtns}
                                 sx={{ textTransform: "none" }}
-                                startIcon={rol == CODIGO_ADMIN ? <AddToDriveIcon/> : <FileDownloadIcon />}>
+                                startIcon={rol == CODIGO_ADMIN ? <AddToDriveIcon /> : <FileDownloadIcon />}>
                                 <b>Exportar diagnósticos</b>
                             </Button>
                         </Grid>

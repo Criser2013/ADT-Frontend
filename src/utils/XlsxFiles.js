@@ -14,15 +14,11 @@ export function crearArchivoXlsx (datos, tipo = "xlsx") {
         let xlsxFile = null;
         const options = {
             bookType: tipo,
-            type: "buffer",
+            type: tipo == "csv" ? "string" : "buffer",
             cellDates: true
         };
 
-        if (tipo === "csv") {
-            xlsxFile = utils.sheet_to_csv(ws, options);
-        } else {
-            xlsxFile = writeXLSX(wb, options);
-        }
+        xlsxFile = (tipo == "csv") ? utils.sheet_to_csv(ws, options) : xlsxFile = writeXLSX(wb, options);
 
         return { success: true, data: xlsxFile, error: null };
     } catch (error) {
