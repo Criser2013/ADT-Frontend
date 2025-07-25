@@ -25,6 +25,7 @@ export const useDrive = () => {
  */
 export function DriveProvider({ children }) {
     const [archivoId, setArchivoId] = useState(null);
+    const [carpetaId, setCarpetaId] = useState(null);
     const [datos, setDatos] = useState(null);
     const [token, setToken] = useState(null);
     const [descargando, setDescargando] = useState(true);
@@ -85,15 +86,16 @@ export function DriveProvider({ children }) {
 
     /**
      * Sube el contenido del archivo a Google Drive.
-     * @param {Uint8Array|File|Blob} archivo - Contenido del archivo a subir.
+     * @param {String} archivoId - ID del archivo a subir.
+     * @param {Uint8Array|File|Blob} datos - Contenido del archivo a subir.
      * @returns JSON
      */
-    const subirArchivo = async (archivo) => {
+    const subirArchivo = async (archivoId, datos) => {
         const urlCarga = await crearCargaResumible(archivoId, token);
         if (urlCarga.success) {
             let reintentos = 3;
             while (reintentos > 0) {
-                const res = await subirArchivoResumible(urlCarga.data, archivo, token);
+                const res = await subirArchivoResumible(urlCarga.data, datos, token);
                 if (res.success) {
                     setArchivoId(res.data.id);
                     return res;
@@ -177,7 +179,7 @@ export function DriveProvider({ children }) {
         }
 
         const binario = crearArchivoXlsx(tabla);
-        const res = await subirArchivo(binario.data);
+        const res = await subirArchivo(archivoId, binario.data);
         if (res.success) {
             setDatos(tabla);
             return { success: true, data: "Archivo guardado correctamente" };
@@ -232,7 +234,7 @@ export function DriveProvider({ children }) {
         }
 
         const binario = crearArchivoXlsx(tabla);
-        const res = await subirArchivo(binario.data);
+        const res = await subirArchivo(archivoId, binario.data);
         if (res.success) {
             setDatos(tabla);
             return { success: true, data: "Archivo guardado correctamente" };
@@ -267,6 +269,8 @@ export function DriveProvider({ children }) {
         const petCrearCarp = await crearArchivoMeta(DRIVE_FOLDER_NAME, true);
         if (!petCrearCarp.success) {
             return { success: false, error: petCrearCarp.error };
+        } else {
+            setCarpetaId(petCrearCarp.data.id);
         }
         const petCrearArch = await crearArchivoMeta(DRIVE_FILENAME, false, petCrearCarp.data.id);
         if (!petCrearArch.success) {
@@ -288,6 +292,7 @@ export function DriveProvider({ children }) {
         const idCarpeta = (existeCarpeta.data != null) ? existeCarpeta.data.files[0].id : null;
 
         if (existeCarpeta.success) {
+            setCarpetaId(idCarpeta);
             const busquedaArchivo = await verificarExisteArchivo(DRIVE_FILENAME, false, idCarpeta);
             if (busquedaArchivo.success && busquedaArchivo.data.files.length > 0) {
                 setArchivoId(busquedaArchivo.data.files[0].id);
@@ -333,10 +338,55 @@ export function DriveProvider({ children }) {
         return respuesta;
     };
 
+    /**
+     * Crea una copia de los diagnósticos en Google Drive
+     * @param {String} nombreArchivo - Nombre del archivo a crear.
+     * @param {Array[JSON]} datos - Datos a guardar en el archivo.
+     * @param {String} tipo - Tipo de archivo a crear (xlsx o csv).
+     * @returns JSON
+     */
+    const crearCopiaDiagnosticos = async (nombreArchivo, datos, tipo) => {
+        let auxCarpeta = null;
+        const existe = await verificarExisteArchivo(DRIVE_FOLDER_NAME, true);
+
+        if (!existe.success) {
+            const res = await crearArchivoMeta(DRIVE_FOLDER_NAME, true);
+
+            if (!res.success) {
+                return { success: false, error: res.error };
+            }
+            auxCarpeta = res.data.id;
+        } else {
+            const id =  existe.success ? existe.data.files[0].id : auxCarpeta;
+            return await guardarArchivoDiagnostico(nombreArchivo, id, datos, tipo);
+        }
+    };
+
+    /**
+     * Guarda un archivo de diagnósticos en Google Drive.
+     * @param {String} nombreArchivo - Nombre del archivo a crear.
+     * @param {String} idCarpeta - ID de la carpeta donde se guardará el archivo.
+     * @param {Array[JSON]} datos - Datos a guardar en el archivo.
+     * @param {String} tipo - Tipo de archivo a crear (xlsx o csv).
+     * @returns 
+     */
+    const guardarArchivoDiagnostico = async (nombreArchivo, idCarpeta, datos, tipo) => {
+        let res = await crearArchivoMeta(nombreArchivo, true, idCarpeta);
+
+        if (!res.success) {
+            return { success: false, error: res.error };
+        }
+
+        const binario = crearArchivoXlsx(datos, tipo);
+        res = await subirArchivo(res.data.id, binario.data);
+
+        return res;
+    };
+
     return (
         <driveContext.Provider value={{
             anadirPaciente, descargarContArchivo, setToken, descargando, cargarDatosPaciente,
-            eliminarPaciente, cargarDatos, datos
+            eliminarPaciente, cargarDatos, datos, crearCopiaDiagnosticos
         }}>
             {children}
         </driveContext.Provider>

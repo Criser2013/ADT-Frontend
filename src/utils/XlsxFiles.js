@@ -7,12 +7,12 @@ import { validarFecha, validarNombre, validarNumero, validarTelefono } from "./V
  * @param {Array} datos - Datos como un Array de JSON.
  * @returns JSON[boolean, UInt8Array, Error|null]
  */
-export function crearArchivoXlsx (datos) {
+export function crearArchivoXlsx (datos, tipo = "xlsx") {
     try {
         const ws = utils.json_to_sheet(datos);
         const wb = utils.book_new(ws, "Datos");
         const xlsxFile = writeXLSX(wb, {
-            bookType: "xlsx",
+            bookType: tipo,
             type: "buffer",
             cellDates: true
         });

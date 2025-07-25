@@ -22,6 +22,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FormSeleccionar from "../components/tabs/FormSeleccionar";
 import { CODIGO_ADMIN } from "../../constants";
 import Check from "../components/tabs/Check";
+import AddToDriveIcon from '@mui/icons-material/AddToDrive';
 
 export default function VerDiagnosticosPage() {
     const auth = useAuth();
@@ -44,6 +45,7 @@ export default function VerDiagnosticosPage() {
     const [tipoArchivo, setTipoArchivo] = useState("xlsx");
     const [errorDiagnostico, setErrorDiagnostico] = useState(false);
     const [preprocesar, setPreprocesar] = useState(false);
+    const [guardarDrive, setGuardarDrive] = useState(false);
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
@@ -221,7 +223,6 @@ export default function VerDiagnosticosPage() {
             delete auxDiag[i].medico;
         }
 
-        console.log(auxDiag);
         return auxDiag;
     };
 
@@ -383,7 +384,7 @@ export default function VerDiagnosticosPage() {
     /**
      * Manejador del botón para exportar los diagnósticos.
      */
-    const exportarDiagnosticos = () => {
+    const exportarDiagnosticos = async () => {
         const aux = diagnosticos.map((x) => ({ ...x }));
         const auxArr = [];
         const nombreArchivo = preprocesar ? `${EXPORT_FILENAME}-Preprocesados` : EXPORT_FILENAME;
@@ -399,7 +400,13 @@ export default function VerDiagnosticosPage() {
         setModal((x) => ({ ...x, mostrar: false }));
         setTipoArchivo("xlsx");
 
-        const res = descargarArchivoXlsx(auxArr, nombreArchivo, tipoArchivo);
+        let res = { success: false, data: [], error: "" };
+
+        if (guardarDrive && rol == CODIGO_ADMIN) {
+            res = await drive.crearCopiaDiagnosticos(nombreArchivo, auxArr, tipoArchivo);
+        }
+
+        res = descargarArchivoXlsx(auxArr, nombreArchivo, tipoArchivo);
 
         if (!res.success) {
             setModoModal(0);
@@ -471,12 +478,18 @@ export default function VerDiagnosticosPage() {
                         </Typography>
                     ) : null}
                     {(modoModal == 3 && rol == CODIGO_ADMIN) ? (
+                        <>
                         <Check
                             activado={preprocesar}
                             manejadorCambios={(e) => setPreprocesar(e.target.checked)}
                             etiqueta="Preprocesar (no se exportan diagnósticos sin validar)"
-                            tamano="small"
-                        />
+                            tamano="small" />
+                        <Check
+                            activado={guardarDrive}
+                            manejadorCambios={(e) => setGuardarDrive(e.target.checked)}
+                            etiqueta="Guardar en Google Drive"
+                            tamano="small" />
+                        </>
                     ) : null}
                 </FormSeleccionar>
             );
@@ -512,7 +525,7 @@ export default function VerDiagnosticosPage() {
                         activarBtnAtras={false}
                         titulo={titulo}
                         pestanas={listadoPestanas} />
-                    <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
+                    <Grid container columns={2} spacing={3} sx={{ marginTop: "3vh", width: width }}>
                         <AlertaEspacio />
                         <Grid size={1} display="flex" justifyContent="end">
                             <Button
@@ -521,7 +534,7 @@ export default function VerDiagnosticosPage() {
                                 onClick={manejadorBtnExportar}
                                 disabled={desactivarBtns}
                                 sx={{ textTransform: "none" }}
-                                startIcon={<FileDownloadIcon />}>
+                                startIcon={rol == CODIGO_ADMIN ? <AddToDriveIcon/> : <FileDownloadIcon />}>
                                 <b>Exportar diagnósticos</b>
                             </Button>
                         </Grid>
