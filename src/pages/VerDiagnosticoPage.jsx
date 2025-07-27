@@ -1,5 +1,5 @@
 import {
-    Box, Chip, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
+    Box, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
     Button, Popover, IconButton
 } from "@mui/material";
 import { useDrive } from "../contexts/DriveContext";
@@ -24,9 +24,9 @@ import Check from "../components/tabs/Check";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import FormSeleccionar from "../components/tabs/FormSeleccionar";
 import { CODIGO_ADMIN } from "../../constants";
-import { verUsuario } from "../firestore/usuarios-collection";
 import { SINTOMAS } from "../../constants";
 import ContComorbilidades from "../components/tabs/ContComorbilidades";
+import { verUsuarios } from "../services/Api";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -152,12 +152,12 @@ export default function VerDiagnosticoPage() {
     useEffect(() => {
         const datos = location.state;
         if (datos == null && rol != null && DB != null) {
-            cargarDatosDiagnostico();
+            cargarDatosDiagnostico(auth.authInfo.user.accessToken);
         } else if (datos != null && rol != null && DB != null) {
             cargarDatosPaciente(datos.paciente);
             preprocesarDiag(datos);
         }
-    }, [drive.descargando, rol, DB]);
+    }, [drive.descargando, auth.authInfo.user, rol, DB]);
 
     /**
      * Coloca el título de la página.
@@ -176,14 +176,14 @@ export default function VerDiagnosticoPage() {
     /**
      * Carga los datos del diagnóstico.
      */
-    const cargarDatosDiagnostico = async () => {
+    const cargarDatosDiagnostico = async (token) => {
         const datos = await verDiagnostico(id, DB);
 
         if (datos.success && datos.data != []) {
             setDiagOriginal({ ...datos.data });
 
             if (rol == CODIGO_ADMIN) {
-                await cargarDatosMedico(datos.data.medico);
+                await cargarDatosMedico(token, datos.data.medico);
             } else {
                 cargarDatosPaciente(datos.data.paciente);
             }
@@ -212,11 +212,11 @@ export default function VerDiagnosticoPage() {
      * @param {String} correo - Correo del médico.
      * @returns {String|null}
      */
-    const cargarDatosMedico = async (correo) => {
-        const res = await verUsuario(correo, DB);
-
+    const cargarDatosMedico = async (token, correo) => {
+        const res = await verUsuarios(token);
         if (res.success) {
-            setPersona((x) => ({ ...x, nombre: res.data.nombre }));
+            const aux = res.data.find((x) => x.correo == correo);
+            setPersona((x) => ({ ...x, nombre: aux.nombre }));
         } else {
             setPersona((x) => ({ ...x, nombre: "N/A" }));
         }
@@ -341,7 +341,6 @@ export default function VerDiagnosticoPage() {
      * @param {Event} event 
      */
     const manejadorBtnMas = (event) => {
-        console.log(event.currentTarget);
         setPopOver(event.currentTarget);
     };
 
