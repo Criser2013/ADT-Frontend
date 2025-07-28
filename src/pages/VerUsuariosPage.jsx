@@ -43,7 +43,7 @@ export default function VerUsuariosPage() {
         { id: "correo", label: "Correo" },
         { id: "rol", label: "Rol" },
         { id: "ultimaConexion", label: "Última conexión" },
-        { id: "cantidad", label: "Cantidad de diagnósticos" },
+        { id: "cantidad", label: "Diagnósticos" },
         { id: "estado", label: "Estado" }
     ];
     const rol = useMemo(() => auth.authInfo.rol, [auth.authInfo.rol]);

@@ -26,7 +26,7 @@ import FormSeleccionar from "../components/tabs/FormSeleccionar";
 import { CODIGO_ADMIN } from "../../constants";
 import { SINTOMAS } from "../../constants";
 import ContComorbilidades from "../components/tabs/ContComorbilidades";
-import { verUsuarios } from "../services/Api";
+import { verUsuario } from "../services/Api";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -213,13 +213,9 @@ export default function VerDiagnosticoPage() {
      * @returns {String|null}
      */
     const cargarDatosMedico = async (token, correo) => {
-        const res = await verUsuarios(token);
-        if (res.success) {
-            const aux = res.data.find((x) => x.correo == correo);
-            setPersona((x) => ({ ...x, nombre: aux.nombre }));
-        } else {
-            setPersona((x) => ({ ...x, nombre: "N/A" }));
-        }
+        const res = await verUsuario(token, correo);
+
+        setPersona((x) => ({ ...x, nombre: res.success? res.data.nombre : "N/A" }));
     };
 
     /**
