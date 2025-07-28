@@ -10,7 +10,7 @@ import DiagnosticoAnonimoPage from "./src/pages/DiagnosticoAnonimoPage";
 import DiagnosticoPacientePage from "./src/pages/DiagnosticoPacientePage";
 import VerDiagnosticoPage from "./src/pages/VerDiagnosticoPage";
 import VerDiagnosticosPage from "./src/pages/VerDiagnosticosPage";
-import UsuariosPage from "./src/pages/UsuariosPage";
+import VerUsuariosPage from "./src/pages/VerUsuariosPage";
 
 /**
  * Enrutador principal de la aplicación que define las rutas y páginas.
@@ -23,7 +23,7 @@ export default function Router() {
                 <Route path="/" element={<IniciarSesionPage />} />
                 <Route path="/cerrar-sesion" element={<CerrarSesionPage />} />
                 <Route path="/diagnostico-anonimo" element={<DiagnosticoAnonimoPage />} />
-                <Route path="/usuarios" element={<UsuariosPage />} />
+                <Route path="/usuarios" element={<VerUsuariosPage />} />
                 <Route path="/pacientes/anadir" element={
                     <DriveProvider>
                         <AnadirPacientePage />

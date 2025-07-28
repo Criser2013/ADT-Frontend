@@ -3,22 +3,20 @@ import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
 import TabHeader from "../components/tabs/TabHeader";
-import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router";
 import { useNavegacion } from "../contexts/NavegacionContext";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import dayjs from "dayjs";
 import ModalAccion from "../components/modals/ModalAccion";
-import customParseFormat from "dayjs/plugin/customParseFormat";
 import { CODIGO_ADMIN } from "../../constants";
+import { verUsuarios } from "../services/Api";
 
 /**
  * Página que muestra la lista de usuarios.
  * @returns JSX.Element
  */
-export default function UsuariosPage() {
+export default function VerUsuariosPage() {
     const auth = useAuth();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
@@ -37,10 +35,10 @@ export default function UsuariosPage() {
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const campos = [
         { id: "nombre", label: "Nombre" },
-        { id: "cedula", label: "Cédula" },
-        { id: "telefono", label: "Teléfono" },
-        { id: "sexo", label: "Sexo" },
-        { id: "edad", label: "Edad" }
+        { id: "correo", label: "Correo" },
+        { id: "rol", label: "Rol" },
+        { id: "ultimaConexion", label: "Última conexión" },
+        { id: "estado", label: "Estado" }
     ];
     const rol = auth.authInfo.rol;
 
@@ -50,24 +48,29 @@ export default function UsuariosPage() {
     useEffect(() => {
         document.title = "Lista de usuarios";
 
-        if (rol == CODIGO_ADMIN) {
-            cargarDatos();
-        } else {
+        if (auth.authInfo.user != null) {
+            cargarDatos(auth.authInfo.user.accessToken);
+        }/* else {
             navigate("/menu", { replace: true });
-        }
-    }, [rol]);
+        }*/
+    }, [rol, auth.authInfo.user]);
 
 
     /**
      * Carga los datos de los pacientes desde Drive.
+     * @param {String} token - Token de acceso de Firebase del usuario.
      */
-    const cargarDatos = async () => {
-        //const res = await 
+    const cargarDatos = async (token) => {
+        const res = await verUsuarios(token);
         if (!res.success) {
             setModal({
                 titulo: "Error al cargar los datos",
                 mensaje: res.error
             });
+        } else {
+            console.log(res.data)
+            setDatos(formatearCeldas(res.data));
+            setCargando(false);
         }
     };
 
@@ -77,14 +80,11 @@ export default function UsuariosPage() {
      * @returns Array
      */
     const formatearCeldas = (datos) => {
-        dayjs.extend(customParseFormat);
-        return datos.map((dato,) => ({
-            nombre: dato.nombre, cedula: dato.cedula,
-            telefono: dato.telefono,
-            edad: dayjs().diff(dayjs(
-                dato.fechaNacimiento, "DD-MM-YYYY"), "year", false
-            ),
-            sexo: dato.sexo == 0 ? "Masculino" : "Femenino",
+        return datos.map((dato) => ({
+            nombre: dato.nombre, correo: dato.correo,
+            rol: dato.rol == CODIGO_ADMIN ? "Administrador" : "Usuario",
+            estado: dato.estado ? "Activo" : "Inactivo",
+            ultimaConexion: dato.ultima_conexion
         }));
     };
 
@@ -106,8 +106,8 @@ export default function UsuariosPage() {
      * @param {JSON} dato - Instancia
      */
     const manejadorClicCelda = (dato) => {
-        navegacion.setPaginaAnterior("/pacientes");
-        navigate(`/pacientes/ver-paciente?cedula=${dato.cedula}`, { replace: true });
+        /*navegacion.setPaginaAnterior("/pacientes");
+        navigate(`/pacientes/ver-paciente?cedula=${dato.cedula}`, { replace: true });*/
     };
 
     /**
@@ -128,7 +128,7 @@ export default function UsuariosPage() {
      * @param {Array} pacientes - Lista de pacientes a eliminar.
      */
     const eliminarPacientes = async (pacientes) => {
-        const res = await drive.eliminarPaciente(pacientes, true);
+        /*const res = await drive.eliminarPaciente(pacientes, true);
         if (!res.success) {
             setModal({
                 mostrar: true,
@@ -136,7 +136,7 @@ export default function UsuariosPage() {
                 mensaje: res.error
             });
         }
-        setCargando(false);
+        setCargando(false);*/
     };
 
     return (
