@@ -93,8 +93,8 @@ export default function ListaPacientesPage() {
         const res = await drive.cargarDatos();
         if (!res.success) {
             setModal({
+                mostrar: true, mensaje: res.error,
                 titulo: "Error al cargar los datos",
-                mensaje: res.error
             });
         }
     };

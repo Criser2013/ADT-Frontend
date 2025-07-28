@@ -52,24 +52,3 @@ export const verUsuario = async (correo, db) => {
         return { success: 0, data: error };
     }
 };
-
-/**
- * Obtiene la información de todos los usuarios.
- * @param {Object} db - Instancia de Firestore.
- * @returns JSON
- */
-export const verUsuarios = async (db) => {
-    try {
-        const coleccion = collection(db, "usuarios");
-        const datos = await getDocs(coleccion);
-
-        const usuarios = [];
-        datos.forEach((doc) => {
-            usuarios.push({ id: doc.id, ...doc.data() });
-        });
-
-        return { success: true, data: usuarios };
-    } catch (error) {
-        return { success: false, data: error };
-    }
-};

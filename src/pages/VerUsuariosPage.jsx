@@ -4,13 +4,15 @@ import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
 import TabHeader from "../components/tabs/TabHeader";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useNavigate } from "react-router";
+//import { useNavigate } from "react-router";
 import { useNavegacion } from "../contexts/NavegacionContext";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import ModalAccion from "../components/modals/ModalAccion";
 import { CODIGO_ADMIN } from "../../constants";
 import { verUsuarios } from "../services/Api";
+import { verDiagnosticos } from "../firestore/diagnosticos-collection";
+import { useCredenciales } from "../contexts/CredencialesContext";
 
 /**
  * Página que muestra la lista de usuarios.
@@ -18,7 +20,8 @@ import { verUsuarios } from "../services/Api";
  */
 export default function VerUsuariosPage() {
     const auth = useAuth();
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
+    const credenciales = useCredenciales();
     const navegacion = useNavegacion();
     const listadoPestanas = [{
         texto: "Lista de usuarios", url: "/usuarios"
@@ -28,7 +31,9 @@ export default function VerUsuariosPage() {
         mostrar: false, titulo: "", mensaje: ""
     });
     const [eliminar, setEliminar] = useState(false);
-    const [datos, setDatos] = useState([]);
+    const [datos, setDatos] = useState(null);
+    const [usuarios, setUsuarios] = useState(null);
+    const [diagnosticos, setDiagnosticos] = useState(null);
     const [seleccionados, setSeleccionados] = useState([]);
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
@@ -38,9 +43,11 @@ export default function VerUsuariosPage() {
         { id: "correo", label: "Correo" },
         { id: "rol", label: "Rol" },
         { id: "ultimaConexion", label: "Última conexión" },
+        { id: "cantidad", label: "Cantidad de diagnósticos" },
         { id: "estado", label: "Estado" }
     ];
-    const rol = auth.authInfo.rol;
+    const rol = useMemo(() => auth.authInfo.rol, [auth.authInfo.rol]);
+    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
 
     /**
      * Coloca el título de la página.
@@ -49,29 +56,80 @@ export default function VerUsuariosPage() {
         document.title = "Lista de usuarios";
 
         if (auth.authInfo.user != null) {
-            cargarDatos(auth.authInfo.user.accessToken);
+            cargarDatosUssuarios(auth.authInfo.user.accessToken);
+            cargarDiagnosticos();
         }/* else {
             navigate("/menu", { replace: true });
         }*/
     }, [rol, auth.authInfo.user]);
+
+    /**
+     * Cuando se cargan los médicos y diagnósticos, se cuentan los diagnósticos por médico
+     * y se formatean los datos.
+     */
+    useEffect(() => {
+        if (usuarios != null && diagnosticos != null && datos == null) {
+            contarDiagnosticos(diagnosticos, usuarios);
+            setCargando(false);
+        }
+    }, [usuarios, diagnosticos, datos]);
 
 
     /**
      * Carga los datos de los pacientes desde Drive.
      * @param {String} token - Token de acceso de Firebase del usuario.
      */
-    const cargarDatos = async (token) => {
+    const cargarDatosUssuarios = async (token) => {
         const res = await verUsuarios(token);
         if (!res.success) {
+            setUsuarios([]);
             setModal({
+                mostrar: true, mensaje: res.error,
                 titulo: "Error al cargar los datos",
-                mensaje: res.error
             });
         } else {
-            console.log(res.data)
-            setDatos(formatearCeldas(res.data));
-            setCargando(false);
+            setUsuarios(res.data);
         }
+    };
+
+    /**
+     * Carga los diagnósticos desde la base de datos.
+     */
+    const cargarDiagnosticos = async () => {
+        const res = await verDiagnosticos(DB);
+        if (!res.success) {
+            setUsuarios([]);
+            setModal({
+                mostrar: true, mensaje: res.error,
+                titulo: "Error al cargar los diagnósticos",
+            });
+        } else {
+            setDiagnosticos(res.data);
+        }
+    };
+
+    /**
+     * Cuenta la cantidad de diagnósticos por médico.
+     * @param {Array[JSON]} diagnosticos - Lista de diagnósticos.
+     * @param {Array[JSON]} medicos - Lista de médicos.
+     * @returns 
+     */
+    const contarDiagnosticos = (diagnosticos, medicos) => {
+        const aux = {};
+
+        for (const i of diagnosticos) {
+            if (aux[i.medico] == undefined) {
+                aux[i.medico] = 1;
+            } else {
+                aux[i.medico] += 1;
+            }
+        }
+
+        for (let i=0; i<medicos.length; i++) {
+            medicos[i].cantidad = aux[medicos[i].correo] || 0;
+        }
+
+        setDatos(formatearCeldas(medicos));
     };
 
     /**
@@ -84,7 +142,7 @@ export default function VerUsuariosPage() {
             nombre: dato.nombre, correo: dato.correo,
             rol: dato.rol == CODIGO_ADMIN ? "Administrador" : "Usuario",
             estado: dato.estado ? "Activo" : "Inactivo",
-            ultimaConexion: dato.ultima_conexion
+            cantidad: dato.cantidad, ultimaConexion: dato.ultima_conexion
         }));
     };
 
@@ -106,6 +164,7 @@ export default function VerUsuariosPage() {
      * @param {JSON} dato - Instancia
      */
     const manejadorClicCelda = (dato) => {
+        console.log(dato);
         /*navegacion.setPaginaAnterior("/pacientes");
         navigate(`/pacientes/ver-paciente?cedula=${dato.cedula}`, { replace: true });*/
     };
@@ -128,6 +187,7 @@ export default function VerUsuariosPage() {
      * @param {Array} pacientes - Lista de pacientes a eliminar.
      */
     const eliminarPacientes = async (pacientes) => {
+        console.log(pacientes);
         /*const res = await drive.eliminarPaciente(pacientes, true);
         if (!res.success) {
             setModal({
