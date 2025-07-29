@@ -210,6 +210,7 @@ export function AuthProvider({ children }) {
                 setIdTareaRefresco(
                     setTimeout(refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000)
                 );
+                console.log(res)
 
                 verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
                 setTokenDrive(oauth.accessToken);

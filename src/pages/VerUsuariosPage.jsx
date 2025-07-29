@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import ModalAccion from "../components/modals/ModalAccion";
 import { CODIGO_ADMIN } from "../../constants";
-import { verUsuarios } from "../services/Api";
+import { peticionApi } from "../services/Api";
 import { verDiagnosticos } from "../firestore/diagnosticos-collection";
 import { useCredenciales } from "../contexts/CredencialesContext";
 
@@ -56,7 +56,7 @@ export default function VerUsuariosPage() {
         document.title = "Lista de usuarios";
 
         if (auth.authInfo.user != null) {
-            cargarDatosUssuarios(auth.authInfo.user.accessToken);
+            cargarDatosUsuarios(auth.authInfo.user.accessToken);
             cargarDiagnosticos();
         }/* else {
             navigate("/menu", { replace: true });
@@ -79,8 +79,10 @@ export default function VerUsuariosPage() {
      * Carga los datos de los pacientes desde Drive.
      * @param {String} token - Token de acceso de Firebase del usuario.
      */
-    const cargarDatosUssuarios = async (token) => {
-        const res = await verUsuarios(token);
+    const cargarDatosUsuarios = async (token) => {
+        const res = await peticionApi(token, "admin/usuarios", "GET", null, 
+            "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
+        );
         if (!res.success) {
             setUsuarios([]);
             setModal({
@@ -88,7 +90,7 @@ export default function VerUsuariosPage() {
                 titulo: "Error al cargar los datos",
             });
         } else {
-            setUsuarios(res.data);
+            setUsuarios(res.data.usuarios);
         }
     };
 

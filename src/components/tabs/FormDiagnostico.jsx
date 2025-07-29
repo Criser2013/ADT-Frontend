@@ -279,7 +279,10 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         const oneHotComor = oneHotEncondingOtraEnfermedad(datosBin.otraEnfermedad ? otrasEnfermedades : []);
         const datos = transformarDatos({ ...datosTxt, ...datosBin }, oneHotComor);
 
-        const res = await generarDiagnostico(datos, auth.authInfo.user.accessToken);
+        //const res = await generarDiagnostico(datos, auth.authInfo.user.accessToken);
+        const res = await generarDiagnostico(auth.authInfo.user.accessToken, "diagnosticar", "POST", datos, 
+            "Ha ocurrido un error al generar el diagnóstico. Por favor reintenta nuevamente."
+        );
         const { success, data } = res;
 
         if (!success) {

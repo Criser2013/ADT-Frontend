@@ -1,20 +1,25 @@
 import { API_URL } from "../../constants";
 
 /**
- * Llama al API para generar un diagnóstico.
- * @param {JSON} datos - Datos del formulario para generar el diagnóstico
+ * Llamadas al API.
  * @param {String} token - Access token de Firebase del usuario.
+ * @param {String} metodo - Método HTTP a utilizar (GET, POST, PUT, DELETE).
+ * @param {String} ruta - Ruta del API a consultar.
+ * @param {JSON} cuerpo - Cuerpo de la petición (opcional).
+ * @param {String} txtError - Mensaje de error a mostrar en caso de fallo
  * @returns JSON
  */
-export async function generarDiagnostico(datos, token) {
+export async function peticionApi(token, ruta, metodo, cuerpo = null, txtError = "") {
     try {
-        const res = await fetch(`${API_URL}/diagnosticar`, {
-            method: "POST",
+        cuerpo = cuerpo ? JSON.stringify(cuerpo) : null;
+        
+        const res = await fetch(`${API_URL}/${ruta}`, {
+            method: metodo,
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
             },
-            body: JSON.stringify(datos)
+            body: cuerpo
         });
 
         const json = await res.json();
@@ -27,71 +32,7 @@ export async function generarDiagnostico(datos, token) {
     } catch {
         return {
             success: false, data: null,
-            error: "Ha ocurrido un error al generar el diagnóstico. Por favor reintenta nuevamente."
+            error: txtError != "" ? txtError : "Ha ocurrido un error. Por favor reintenta nuevamente."
         };
     }
 };
-
-/**
- * Obtiene la lista de usuarios del sistema.
- * @param {String} token - Token de acceso de Firebase del usuario.
- * @returns JSON
- */
-export async function verUsuarios(token) {
-    try {
-        const res = await fetch(`${API_URL}/admin/usuarios`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-
-        const json = await res.json();
-
-        if (!res.ok && res.status != 200) {
-            return { success: false, data: null, error: json.error };
-        }
-        
-        return { success: true, data: json.usuarios, error: null };
-    } catch {
-        return {
-            success: false, data: null,
-            error: "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
-        };
-    }
-}
-
-/**
- * Obtiene los datos de un usuario específico.
- * @param {String} token - Token de acceso de Firebase del usuario.
- * @param {String} correo - Correo electrónico del usuario a consultar.
- * @returns JSON
- */
-export async function verUsuario(token, correo) {
-    try {
-        correo = encodeURIComponent(correo);
-        correo = correo.replaceAll(".","%2E");
-
-        const res = await fetch(`${API_URL}/admin/usuarios/${correo}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-
-        const json = await res.json();
-
-        if (!res.ok && res.status != 200) {
-            return { success: false, data: null, error: json.error };
-        }
-        
-        return { success: true, data: json, error: null };
-    } catch {
-        return {
-            success: false, data: null,
-            error: "Ha ocurrido un error al cargar los datos del usuario. Por favor reintenta nuevamente."
-        };
-    }
-}
