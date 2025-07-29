@@ -7,15 +7,19 @@ import { validarFecha, validarNombre, validarNumero, validarTelefono } from "./V
  * @param {Array} datos - Datos como un Array de JSON.
  * @returns JSON[boolean, UInt8Array, Error|null]
  */
-export function crearArchivoXlsx (datos) {
+export function crearArchivoXlsx (datos, tipo = "xlsx") {
     try {
         const ws = utils.json_to_sheet(datos);
         const wb = utils.book_new(ws, "Datos");
-        const xlsxFile = writeXLSX(wb, {
-            bookType: "xlsx",
-            type: "buffer",
+        let xlsxFile = null;
+        const options = {
+            bookType: tipo,
+            type: tipo == "csv" ? "string" : "buffer",
             cellDates: true
-        });
+        };
+
+        xlsxFile = (tipo == "csv") ? utils.sheet_to_csv(ws, options) : xlsxFile = writeXLSX(wb, options);
+
         return { success: true, data: xlsxFile, error: null };
     } catch (error) {
         return { success: false, data: null, error: error };
