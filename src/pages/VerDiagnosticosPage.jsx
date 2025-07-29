@@ -13,7 +13,7 @@ import dayjs from "dayjs";
 import ModalAccion from "../components/modals/ModalAccion";
 import { useCredenciales } from "../contexts/CredencialesContext";
 import { cambiarDiagnostico, verDiagnosticos, verDiagnosticosPorMedico, eliminarDiagnosticos } from "../firestore/diagnosticos-collection";
-import { verUsuarios } from "../firestore/usuarios-collection";
+import { verUsuarios } from "../services/Api";
 import { detTxtDiagnostico, nombresCampos } from "../utils/TratarDatos";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { descargarArchivoXlsx } from "../utils/XlsxFiles";
@@ -124,9 +124,9 @@ export default function VerDiagnosticosPage() {
 
         if (rol != null && correo != null && DB != null) {
             cargarDiagnosticos(correo, rol, DB);
-            cargarPacientes();
+            cargarPacientes(auth.authInfo.user.accessToken);
         }
-    }, [auth.authInfo.correo, rol, DB]);
+    }, [auth.authInfo.correo, auth.authInfo.user, rol, DB]);
 
     /**
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
@@ -152,17 +152,18 @@ export default function VerDiagnosticosPage() {
 
     /**
      * Carga los datos de los pacientes desde Drive y luego los diagnósticos.
+     * @param {String} token - Token de acceso de Firebase del usuario.
      */
-    const cargarPacientes = async () => {
-        const res = (rol != CODIGO_ADMIN) ? await drive.cargarDatos() : await verUsuarios(DB);
+    const cargarPacientes = async (token = "") => {
+        const res = (rol != CODIGO_ADMIN) ? await drive.cargarDatos() : await verUsuarios(token);
         if (res.success && rol == CODIGO_ADMIN) {
             setPersonas(res.data);
         } else if (res.success && rol != CODIGO_ADMIN) {
             return;
         } else {
             setModal({
+                mostrar: true, mensaje: res.error,
                 titulo: "Error al cargar los datos de los pacientes",
-                mensaje: res.error
             });
         }
     };
@@ -298,7 +299,7 @@ export default function VerDiagnosticosPage() {
         if (peticiones.every((x) => x.success)) {
             setCargando(true);
             cargarDiagnosticos(auth.authInfo.correo, rol, DB);
-            cargarPacientes();
+            cargarPacientes(auth.authInfo.user.accessToken);
         } else {
             setModoModal(0);
             setActivar2Btn(false);
@@ -334,7 +335,7 @@ export default function VerDiagnosticosPage() {
 
         if (res.success) {
             cargarDiagnosticos(auth.authInfo.correo, rol, DB);
-            cargarPacientes();
+            cargarPacientes(auth.authInfo.user.accessToken);
         } else {
             setActivar2Btn(false);
             setModoModal(0);

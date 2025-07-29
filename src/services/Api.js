@@ -20,11 +20,7 @@ export async function generarDiagnostico(datos, token) {
         const json = await res.json();
 
         if (!res.ok && res.status != 200) {
-            return {
-                success: false,
-                data: null,
-                error: json.error
-            };
+            return { success: false, data: null, error: json.error};
         }
 
         return { success: true, data: json, error: null };
@@ -35,3 +31,67 @@ export async function generarDiagnostico(datos, token) {
         };
     }
 };
+
+/**
+ * Obtiene la lista de usuarios del sistema.
+ * @param {String} token - Token de acceso de Firebase del usuario.
+ * @returns JSON
+ */
+export async function verUsuarios(token) {
+    try {
+        const res = await fetch(`${API_URL}/admin/usuarios`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const json = await res.json();
+
+        if (!res.ok && res.status != 200) {
+            return { success: false, data: null, error: json.error };
+        }
+        
+        return { success: true, data: json.usuarios, error: null };
+    } catch {
+        return {
+            success: false, data: null,
+            error: "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
+        };
+    }
+}
+
+/**
+ * Obtiene los datos de un usuario específico.
+ * @param {String} token - Token de acceso de Firebase del usuario.
+ * @param {String} correo - Correo electrónico del usuario a consultar.
+ * @returns JSON
+ */
+export async function verUsuario(token, correo) {
+    try {
+        correo = encodeURIComponent(correo);
+        correo = correo.replaceAll(".","%2E");
+
+        const res = await fetch(`${API_URL}/admin/usuarios/${correo}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const json = await res.json();
+
+        if (!res.ok && res.status != 200) {
+            return { success: false, data: null, error: json.error };
+        }
+        
+        return { success: true, data: json, error: null };
+    } catch {
+        return {
+            success: false, data: null,
+            error: "Ha ocurrido un error al cargar los datos del usuario. Por favor reintenta nuevamente."
+        };
+    }
+}
