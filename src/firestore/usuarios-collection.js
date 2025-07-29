@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 /**
  * Edita el contenido de un documento. Sino existe lo crea.
