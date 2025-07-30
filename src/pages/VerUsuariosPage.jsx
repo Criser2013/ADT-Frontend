@@ -72,8 +72,6 @@ export default function VerUsuariosPage() {
      */
     useEffect(() => {
         if (usuarios != null && diagnosticos != null && datos == null) {
-            console.log(usuarios)
-            console.log(diagnosticos);
             contarDiagnosticos(diagnosticos, usuarios);
             setCargando(false);
         }
@@ -200,12 +198,36 @@ export default function VerUsuariosPage() {
                 break;
             case 1:
                 setCargando(true);
-                eliminarUsuarios(seleccionados);
+                if (!verificarAutoeliminacion(seleccionados)) {
+                    eliminarUsuarios(seleccionados);
+                }
                 break;
         }
 
         sessionStorage.setItem("ejecutar-callback", "true");
         setModal({ ...modal, mostrar: false });
+    };
+
+    /**
+     * Verifica si el usuario está intentando autoeliminarse.
+     * @param {Array[String]} usuarios - Lista de correos de usuarios seleccionados.
+     * @returns Boolean
+     */
+    const verificarAutoeliminacion = (usuarios) => {
+        const res = usuarios.includes(auth.authInfo.correo);
+
+        if (res) {
+            setTimeout(() => {
+                setModoModal(2);
+                setModal({
+                    mostrar: true, titulo: "Alerta",
+                    mensaje: "No puedes eliminarte a ti mismo. Por favor, selecciona otros usuarios."
+                });
+                setCargando(false);
+            }, 500);
+        }
+
+        return res;
     };
 
     /**
@@ -305,7 +327,7 @@ export default function VerUsuariosPage() {
         setModoModal(0);
         setModal({
             mostrar: true, titulo: "Alerta",
-            mensaje: `¿Estás seguro de querer eliminar al usuario ${instancia.nombre} — ${rol} (${instancia.correo})?`
+            mensaje: `¿Estás seguro de querer eliminar al usuario ${instancia.nombre} (${instancia.correo}) — ${rol}?`
         });
     };
 
