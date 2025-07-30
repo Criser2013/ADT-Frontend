@@ -11,21 +11,25 @@ import { API_URL } from "../../constants";
  */
 export async function peticionApi(token, ruta, metodo, cuerpo = null, txtError = "") {
     try {
-        cuerpo = cuerpo ? JSON.stringify(cuerpo) : null;
-        
-        const res = await fetch(`${API_URL}/${ruta}`, {
+        let opciones = {
             method: metodo,
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
             },
-            body: cuerpo
-        });
+        };
 
+        cuerpo = cuerpo ? JSON.stringify(cuerpo) : null;
+
+        if (cuerpo != null) {
+            opciones.body = cuerpo;
+        }
+
+        const res = await fetch(`${API_URL}/${ruta}`, opciones);
         const json = await res.json();
 
         if (!res.ok && res.status != 200) {
-            return { success: false, data: null, error: json.error};
+            return { success: false, data: null, error: json.error };
         }
 
         return { success: true, data: json, error: null };
