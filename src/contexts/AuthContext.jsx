@@ -210,7 +210,6 @@ export function AuthProvider({ children }) {
                 setIdTareaRefresco(
                     setTimeout(refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000)
                 );
-                console.log(res)
 
                 verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
                 setTokenDrive(oauth.accessToken);
@@ -361,6 +360,12 @@ export function AuthProvider({ children }) {
                 setAuthError({
                     res: true, operacion: codigo,
                     error: `Ya tienes una sesión iniciada con el usuario: "${usuario.displayName}" (${usuario.email}).`
+                });
+                break;
+            case "auth/user-disabled":
+                setAuthError({
+                    res: true, operacion: codigo,
+                    error: `Este usuario ha sido deshabilitado. Para más información, contacta al administrador de la aplicación.`
                 });
                 break;
             default:
