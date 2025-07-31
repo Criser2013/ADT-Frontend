@@ -6,7 +6,7 @@ import TabHeader from "../components/tabs/TabHeader";
 import DeleteIcon from "@mui/icons-material/Delete";
 //import { useNavigate } from "react-router";
 import { useNavegacion } from "../contexts/NavegacionContext";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import ModalAccion from "../components/modals/ModalAccion";
 import { CODIGO_ADMIN } from "../../constants";
@@ -65,18 +65,17 @@ export default function VerUsuariosPage() {
         }
     }, [auth.authInfo.correo, seleccionado]);
     const mostrarTxtAdvertencia = useMemo(() => {
-        return seleccionado != null && (seleccionado.estado == "Activo" && !nuevosDatos.estado);
+        return seleccionado != null && (seleccionado.estado && !nuevosDatos.estado);
     }, [seleccionado, nuevosDatos]);
     const usuario = useMemo(() => {
+        const datos = seleccionado != null ? seleccionado : { nombre: "", correo: "", rol: 0, estado: true, ultimaConexion: "", cantidad: 0 };
         return [
-            { nombre: "Nombre", valor: seleccionado.nombre },
-            { nombre: "Norreo", valor: seleccionado.correo },
-            { nombre: "Rol", valor: seleccionado.rol == CODIGO_ADMIN ? "Administrador" : "Usuario" },
-            { nombre: "Estado", valor: seleccionado.estado ? "Inactivo" : "Activo" },
-            { nombre: "Última conexión", valor: seleccionado.ultimaConexion },
-            { nombre: "Cantidad de diagnósticos aportada", valor: seleccionado.cantidad },
-            { id: "estado", label: "Estado" },
-            { id: "accion", label: "Acción" }
+            { nombre: "Nombre", valor: datos.nombre },
+            { nombre: "Correo", valor: datos.correo },
+            { nombre: "Rol", valor: datos.rol == CODIGO_ADMIN ? "Administrador" : "Usuario" },
+            { nombre: "Estado", valor: datos.estado ? "Inactivo" : "Activo" },
+            { nombre: "Última conexión", valor: datos.ultimaConexion },
+            { nombre: "Cantidad de diagnósticos aportada", valor: datos.cantidad },
         ];
     }, [seleccionado]);
     const rol = useMemo(() => auth.authInfo.rol, [auth.authInfo.rol]);
@@ -149,7 +148,6 @@ export default function VerUsuariosPage() {
      * Cuenta la cantidad de diagnósticos por médico.
      * @param {Array[JSON]} diagnosticos - Lista de diagnósticos.
      * @param {Array[JSON]} medicos - Lista de médicos.
-     * @returns 
      */
     const contarDiagnosticos = (diagnosticos, medicos) => {
         const aux = {};
@@ -185,7 +183,7 @@ export default function VerUsuariosPage() {
                     rol: datos[i].rol == CODIGO_ADMIN ? "Administrador" : "Usuario",
                     estado: datos[i].estado ? "Activo" : "Inactivo",
                     cantidad: datos[i].cantidad, ultimaConexion: datos[i].ultima_conexion,
-                    accion: datos[i].correo == correo ? "N/A" : <Botonera instancia={i} />
+                    accion: datos[i].correo == correo ? "N/A" : <Botonera instancia={datos[i]} />
                 });
             }
         }
@@ -213,9 +211,10 @@ export default function VerUsuariosPage() {
     const manejadorClicCelda = (dato) => {
         const ejecutar = sessionStorage.getItem("ejecutar-callback");
         if (ejecutar == "true" || ejecutar == null) {
-            setSeleccionado(dato);
-            setModoModal((dato.correo != auth.authInfo.correo) ? 3 : 2);
-            setNuevosDatos({ correo: dato.correo, nombre: dato.nombre, rol: dato.rol, estado: dato.estado });
+            const aux = { ...dato };
+            aux.estado = aux.estado == "Activo" ? false : true;
+            setSeleccionado(aux);
+            setModoModal(4);
             setModal({
                 mostrar: true, titulo: "Detalles del usuario", mensaje: ""
             });
@@ -249,16 +248,19 @@ export default function VerUsuariosPage() {
     const actualizarUsuario = async () => {
         const peticiones = [null, null];
         let res = true;
+
         if (seleccionado.estado != nuevosDatos.estado) {
-            peticiones[0] = desactivarUsuarios([seleccionado.correo], nuevosDatos.estado == "Inactivo");
+            peticiones[0] = desactivarUsuarios([seleccionado.correo], !nuevosDatos.estado);
         }
 
-        peticiones[1] = cambiarUsuario({ correo: nuevosDatos.correo, rol: (nuevosDatos.rol != "Administrador") ? 0 : CODIGO_ADMIN }, DB);
+        if (nuevosDatos.rol != seleccionado.rol) {
+            peticiones[1] = cambiarUsuario({ correo: nuevosDatos.correo, rol: nuevosDatos.rol }, DB);
+        }
 
         for (let i = 0; i < 2; i++) {
             if (peticiones[i] != null) {
                 peticiones[i] = await peticiones[i];
-                res &= peticiones[i].success;
+                res &= (i == 0) ? peticiones[i][0].success : peticiones[i].success;
             }
         }
 
@@ -397,15 +399,28 @@ export default function VerUsuariosPage() {
      * Manejador del botón de eliminar en cada registro de la tabla.
      * @param {Object} instancia - Instancia del usuario.
      */
-    const manejadorBtnEliminar = (indice) => {
+    const manejadorBtnEliminar = (instancia) => {
         sessionStorage.setItem("ejecutar-callback", "false");
-        let instancia = datos[indice];
-        const rol = instancia.rol.toLowerCase();
+        const rol = instancia.rol == CODIGO_ADMIN ? "administrador" : "usuario";
         setSeleccionado(instancia);
         setModoModal(0);
         setModal({
             mostrar: true, titulo: "Alerta",
             mensaje: `¿Estás seguro de querer eliminar al usuario ${instancia.nombre} (${instancia.correo}) — ${rol}?`
+        });
+    };
+
+    /**
+     * Manejador del botón de editar en cada registro de la tabla.
+     * @param {Object} instancia - Instancia del usuario.
+     */
+    const manejadorBtnEditar = (instancia) => {
+        sessionStorage.setItem("ejecutar-callback", "false");
+        setSeleccionado(instancia);
+        setNuevosDatos({ correo: instancia.correo, nombre: instancia.nombre, rol: instancia.rol, estado: instancia.estado });
+        setModoModal(3);
+        setModal({
+            mostrar: true, titulo: "Editar usuario", mensaje: ""
         });
     };
 
@@ -456,7 +471,7 @@ export default function VerUsuariosPage() {
                     variant="outlined"
                     color="primary"
                     size="small"
-                    onClick={() => manejadorClicCelda(instancia)}>
+                    onClick={() => manejadorBtnEditar(instancia)}>
                     <EditIcon />
                 </Button>
             </Tooltip>
@@ -517,18 +532,16 @@ export default function VerUsuariosPage() {
                     onChange={manejadorCambiosEditar}
                     disabled={desactivarCampos}
                     value={nuevosDatos.estado}>
-                    <MenuItem value={true}>
+                    <MenuItem value={false}>
                         Inactivo
                     </MenuItem>
-                    <MenuItem value={false}>
+                    <MenuItem value={true}>
                         Activo
                     </MenuItem>
                 </TextField>
-                {mostrarTxtAdvertencia ? (
-                    <Typography variant="body2" color="error">
-                        <b>¡Atención! El usuario no podrá ingresar en la aplicación.</b>
-                    </Typography>
-                ) : null}
+                <Typography variant="body2" color="error">
+                    <b>{mostrarTxtAdvertencia ? "¡Atención! El usuario no podrá ingresar en la aplicación." : ""}</b>
+                </Typography>
             </Stack>
         );
     };
@@ -542,9 +555,9 @@ export default function VerUsuariosPage() {
             <Grid container columns={1} spacing={2} marginTop={1}>
                 {usuario.map((x, i) => {
                     return (
-                        <Grid item size={1} key={i}>
-                            <Stack direction="row" spacing={2} alignItems="left">
-                                <Typography variant="h6" fontWeight="bold">
+                        <Grid size={1} key={i}>
+                            <Stack direction="row" spacing={1} alignItems="center">
+                                <Typography variant="body1" fontWeight="bold">
                                     {x.nombre}:
                                 </Typography>
                                 <Typography variant="body1">
@@ -558,6 +571,10 @@ export default function VerUsuariosPage() {
         );
     };
 
+    /**
+     * Cuerpo del modal que se muestra al hacer clic en un usuario o en el botón de editar.
+     * @returns {JSX.Element}
+     */
     const CuerpoModal = () => {
         switch (modoModal) {
             case 3:
@@ -604,7 +621,7 @@ export default function VerUsuariosPage() {
                 mensaje={modal.mensaje}
                 manejadorBtnPrimario={manejadorBtnModal}
                 manejadorBtnSecundario={manejadorBtnCancelar}
-                mostrarBtnSecundario={modoModal != 2}
+                mostrarBtnSecundario={modoModal != 2 && modoModal != 4}
                 txtBtnSimple={txtBtnModal}
                 txtBtnSecundario="Cancelar"
                 txtBtnSimpleAlt="Cerrar">
