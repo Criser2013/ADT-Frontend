@@ -15,6 +15,8 @@ import { verDiagnosticos } from "../firestore/diagnosticos-collection";
 import { useCredenciales } from "../contexts/CredencialesContext";
 import { cambiarUsuario, eliminarUsuario } from "../firestore/usuarios-collection";
 import EditIcon from '@mui/icons-material/Edit';
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 
 /**
  * Página que muestra la lista de usuarios.
@@ -78,6 +80,16 @@ export default function VerUsuariosPage() {
             { nombre: "Cantidad de diagnósticos aportada", valor: datos.cantidad },
         ];
     }, [seleccionado]);
+    const tamForm = useMemo(() => {
+        const { dispositivoMovil, orientacion } = navegacion;
+        if (!dispositivoMovil) {
+            return "47vh";
+        } else if (dispositivoMovil && orientacion == "horizontal") {
+            return "70vh";
+        } else {
+            return "30vh";
+        }
+    }, [navegacion.dispositivoMovil, navegacion.orientacion]);
     const rol = useMemo(() => auth.authInfo.rol, [auth.authInfo.rol]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
 
@@ -406,7 +418,12 @@ export default function VerUsuariosPage() {
         setModoModal(0);
         setModal({
             mostrar: true, titulo: "Alerta",
-            mensaje: `¿Estás seguro de querer eliminar al usuario ${instancia.nombre} (${instancia.correo}) — ${rol}?`
+            mensaje: (<>
+                ¿Estás seguro de querer eliminar al usuario {instancia.nombre} ({instancia.correo}) — {rol}?
+                <br />
+                <br />
+                <b>ADVERTENCIA:</b> Se bloqueará su acceso a la aplicación <b>permanentemente</b>
+            </>)
         });
     };
 
@@ -494,7 +511,7 @@ export default function VerUsuariosPage() {
 
     const FormActualizarUsuario = () => {
         return (
-            <Stack spacing={2} marginTop={1}>
+            <Stack spacing={2} width={tamForm}>
                 <TextField
                     label="Nombre"
                     variant="outlined"
@@ -539,18 +556,19 @@ export default function VerUsuariosPage() {
                         Activo
                     </MenuItem>
                 </TextField>
-                <Typography variant="body2" color="error">
-                    <b>{mostrarTxtAdvertencia ? "¡Atención! El usuario no podrá ingresar en la aplicación." : ""}</b>
-                </Typography>
+                {mostrarTxtAdvertencia ?<Typography variant="body2" color="error">
+                    <b>Atención! El usuario no podrá ingresar en la aplicación.</b>
+                </Typography> : null}
             </Stack>
         );
     };
 
     /**
      * Componente que muestra los detalles del usuario seleccionado.
-     * @returns {import("react").JSX.Element}
+     * @returns {JSX.Element}
      */
     const VerUsuario = () => {
+        dayjs.extend(customParseFormat);
         return (
             <Grid container columns={1} spacing={2} marginTop={1}>
                 {usuario.map((x, i) => {
@@ -561,7 +579,7 @@ export default function VerUsuariosPage() {
                                     {x.nombre}:
                                 </Typography>
                                 <Typography variant="body1">
-                                    {x.valor}
+                                    {i == 4 ? dayjs(x.valor, "DD/MM/YYYY hh:mm A").format(`DD [de] MMMM [de] YYYY [a las] hh:mm A`) : x.valor}.
                                 </Typography>
                             </Stack>
                         </Grid>
