@@ -13,7 +13,7 @@ import dayjs from "dayjs";
 import ModalAccion from "../components/modals/ModalAccion";
 import { useCredenciales } from "../contexts/CredencialesContext";
 import { cambiarDiagnostico, verDiagnosticos, verDiagnosticosPorMedico, eliminarDiagnosticos } from "../firestore/diagnosticos-collection";
-import { verUsuarios } from "../services/Api";
+import { peticionApi } from "../services/Api";
 import { detTxtDiagnostico, nombresCampos } from "../utils/TratarDatos";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { descargarArchivoXlsx } from "../utils/XlsxFiles";
@@ -155,9 +155,12 @@ export default function VerDiagnosticosPage() {
      * @param {String} token - Token de acceso de Firebase del usuario.
      */
     const cargarPacientes = async (token = "") => {
-        const res = (rol != CODIGO_ADMIN) ? await drive.cargarDatos() : await verUsuarios(token);
+        const res = (rol != CODIGO_ADMIN) ? await drive.cargarDatos() :
+            await peticionApi(token, "admin/usuarios", "GET", null,
+                "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
+            );
         if (res.success && rol == CODIGO_ADMIN) {
-            setPersonas(res.data);
+            setPersonas(res.data.usuarios);
         } else if (res.success && rol != CODIGO_ADMIN) {
             return;
         } else {

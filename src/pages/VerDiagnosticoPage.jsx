@@ -26,7 +26,7 @@ import FormSeleccionar from "../components/tabs/FormSeleccionar";
 import { CODIGO_ADMIN } from "../../constants";
 import { SINTOMAS } from "../../constants";
 import ContComorbilidades from "../components/tabs/ContComorbilidades";
-import { verUsuario } from "../services/Api";
+import { peticionApi } from "../services/Api";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -213,7 +213,11 @@ export default function VerDiagnosticoPage() {
      * @returns {String|null}
      */
     const cargarDatosMedico = async (token, correo) => {
-        const res = await verUsuario(token, correo);
+        correo = encodeURIComponent(correo);
+        correo = correo.replaceAll(".","%2E");
+        const res = await peticionApi(token, `admin/usuarios/${correo}`, "GET", null, 
+            "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
+        );
 
         setPersona((x) => ({ ...x, nombre: res.success? res.data.nombre : "N/A" }));
     };

@@ -14,7 +14,7 @@ import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import { validarFloatPos, validarNumero } from "../../utils/Validadores";
 import { oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, transformarDatos, validarArray } from "../../utils/TratarDatos";
 import ModalSimple from "../modals/ModalSimple";
-import { generarDiagnostico } from "../../services/Api";
+import { peticionApi } from "../../services/Api";
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -278,8 +278,9 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const diagnosticar = async () => {
         const oneHotComor = oneHotEncondingOtraEnfermedad(datosBin.otraEnfermedad ? otrasEnfermedades : []);
         const datos = transformarDatos({ ...datosTxt, ...datosBin }, oneHotComor);
-
-        const res = await generarDiagnostico(datos, auth.authInfo.user.accessToken);
+        const res = await peticionApi(auth.authInfo.user.accessToken, "diagnosticar", "POST", datos, 
+            "Ha ocurrido un error al generar el diagnóstico. Por favor reintenta nuevamente."
+        );
         const { success, data } = res;
 
         if (!success) {

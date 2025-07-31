@@ -362,6 +362,12 @@ export function AuthProvider({ children }) {
                     error: `Ya tienes una sesión iniciada con el usuario: "${usuario.displayName}" (${usuario.email}).`
                 });
                 break;
+            case "auth/user-disabled":
+                setAuthError({
+                    res: true, operacion: codigo,
+                    error: `Este usuario ha sido deshabilitado. Para más información, contacta al administrador de la aplicación.`
+                });
+                break;
             default:
                 console.error("Error de autenticación:", error);
                 setAuthError({ res: true, operacion: codigo, error: "Error al iniciar sesión. Reintenta nuevamente." });

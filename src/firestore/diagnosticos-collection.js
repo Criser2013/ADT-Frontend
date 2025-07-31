@@ -80,8 +80,8 @@ export const verDiagnosticosPorMedico = async (id, db) => {
 };
 
 /**
- * Elimina los diagnósticos seleccionados de la BD.
- * @param {String} ids - Lista de IDs de diagnósticos a eliminar.
+ * Elimina el diagnóstico de la BD.
+ * @param {String} id - ID del diagnóstico a eliminar.
  * @param {Object} db - Instancia de Firestore.
  * @returns JSON
  */
