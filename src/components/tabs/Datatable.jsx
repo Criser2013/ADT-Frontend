@@ -58,7 +58,6 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     const numFilas = useMemo(() => auxDatos.length, [auxDatos]);
     const nombresCampos = useMemo(() => campos.map((campo) => campo.id), [campos]);
     const tamCampoBusq = useMemo(() => {
-        console.log(navegacion.orientacion, navegacion.dispositivoMovil);
         return (navegacion.dispositivoMovil && navegacion.orientacion != "horizontal") ? "90%" : "100%";
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
     const filasVacias = pagina > 0 ? Math.max(0, (1 + pagina) * filasEnPagina - datos.length) : 0;

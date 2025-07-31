@@ -1,4 +1,4 @@
-import { Button, Grid, Box, CircularProgress, Tooltip, Stack, TextField, MenuItem, Typography } from "@mui/material";
+import { Button, Grid, Box, CircularProgress, Tooltip, Stack, TextField, MenuItem, Typography, IconButton } from "@mui/material";
 import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
@@ -6,7 +6,7 @@ import TabHeader from "../components/tabs/TabHeader";
 import DeleteIcon from "@mui/icons-material/Delete";
 //import { useNavigate } from "react-router";
 import { useNavegacion } from "../contexts/NavegacionContext";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import ModalAccion from "../components/modals/ModalAccion";
 import { CODIGO_ADMIN } from "../../constants";
@@ -17,6 +17,7 @@ import { cambiarUsuario, eliminarUsuario } from "../firestore/usuarios-collectio
 import EditIcon from '@mui/icons-material/Edit';
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 /**
  * Página que muestra la lista de usuarios.
@@ -100,8 +101,7 @@ export default function VerUsuariosPage() {
         document.title = "Lista de usuarios";
 
         if (auth.authInfo.user != null) {
-            cargarUsuarios(auth.authInfo.user.accessToken);
-            cargarDiagnosticos();
+            manejadorRecargar(auth.authInfo.user.accessToken);
         }/* else {
             navigate("/menu", { replace: true });
         }*/
@@ -257,6 +257,28 @@ export default function VerUsuariosPage() {
         setModal({ ...modal, mostrar: false });
     };
 
+    /**
+     * Recarga los datos de la página.
+     */
+    const manejadorRecargar = (token = null) => {
+        const credencial = (token == null) ? auth.authInfo.user.accessToken : token;
+
+        if (!cargando) {
+            setCargando(true);
+        }
+
+        setDatos(null);
+        setUsuarios(null);
+        setDiagnosticos(null);
+        setSeleccionado(null);
+        setSeleccionados([]);
+        cargarUsuarios(credencial);
+        cargarDiagnosticos();
+    };
+
+    /**
+     * Actualiza los datos del usuario seleccionado.
+     */
     const actualizarUsuario = async () => {
         const peticiones = [null, null];
         let res = true;
@@ -277,17 +299,12 @@ export default function VerUsuariosPage() {
         }
 
         if (res) {
-            setDatos(null);
-            setUsuarios(null);
-            setDiagnosticos(null);
             setSeleccionado(null);
-
-            cargarUsuarios(auth.authInfo.user.accessToken);
-            cargarDiagnosticos();
-
             setNuevosDatos({
                 correo: "", nombre: "", rol: 0, estado: true
             });
+
+            manejadorRecargar();
         } else {
             setModoModal(2);
             setModal({
@@ -383,12 +400,7 @@ export default function VerUsuariosPage() {
         }
 
         if (exitoAlgunas) {
-            setDatos(null);
-            setUsuarios(null);
-            setDiagnosticos(null);
-
-            cargarUsuarios(auth.authInfo.user.accessToken, usuarios);
-            cargarDiagnosticos();
+            manejadorRecargar();
 
             if (!exitoTodas) {
                 setModoModal(2);
@@ -556,8 +568,8 @@ export default function VerUsuariosPage() {
                         Activo
                     </MenuItem>
                 </TextField>
-                {mostrarTxtAdvertencia ?<Typography variant="body2" color="error">
-                    <b>Atención! El usuario no podrá ingresar en la aplicación.</b>
+                {mostrarTxtAdvertencia ? <Typography variant="body2" color="error">
+                    <b>¡Atención! El usuario no podrá ingresar en la aplicación.</b>
                 </Typography> : null}
             </Stack>
         );
@@ -615,6 +627,13 @@ export default function VerUsuariosPage() {
                         titulo="Lista de usuarios"
                         pestanas={listadoPestanas} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
+                        <Grid display="flex" size={1} justifyContent="end">
+                            <Tooltip title="Recargar datos">
+                                <IconButton onClick={() => manejadorRecargar()}>
+                                    <RefreshIcon />
+                                </IconButton>
+                            </Tooltip>
+                        </Grid>
                         <Grid size={1}>
                             <Datatable
                                 campos={campos}

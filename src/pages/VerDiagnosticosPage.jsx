@@ -1,4 +1,4 @@
-import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography, Alert } from "@mui/material";
+import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography, Alert, Stack } from "@mui/material";
 import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
@@ -102,6 +102,9 @@ export default function VerDiagnosticosPage() {
         const aux = diagnosticos != null ? diagnosticos.filter((x) => x.validado == 2) : [];
         return aux.length;
     }, [diagnosticos]);
+    const desactivarBtnModal = useMemo(() => {
+        return (diagnosticos != null && cantNoConfirmados == diagnosticos.length) && modoModal == 3 && preprocesar;
+    }, [diagnosticos, cantNoConfirmados, modoModal, preprocesar]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -168,6 +171,7 @@ export default function VerDiagnosticosPage() {
                 mostrar: true, mensaje: res.error,
                 titulo: "Error al cargar los datos de los pacientes",
             });
+            setCargando(false);
         }
     };
 
@@ -573,7 +577,7 @@ export default function VerDiagnosticosPage() {
                 txtBtnSimple={lblBtnPrimarioModal}
                 txtBtnSecundario="Cancelar"
                 txtBtnSimpleAlt="Cerrar"
-                desactivarBtnPrimario={(diagnosticos != null && cantNoConfirmados == diagnosticos.length) && modoModal == 3 && preprocesar}>
+                desactivarBtnPrimario={desactivarBtnModal}>
                 <CuerpoModal />
             </ModalAccion>
         </MenuLayout>
