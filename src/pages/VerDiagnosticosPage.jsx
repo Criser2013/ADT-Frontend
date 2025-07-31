@@ -1,4 +1,4 @@
-import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography, Alert, Stack } from "@mui/material";
+import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography, Alert } from "@mui/material";
 import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
