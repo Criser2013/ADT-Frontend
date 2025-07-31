@@ -9,6 +9,7 @@ import { useState, useMemo, useEffect } from "react";
 import { visuallyHidden } from "@mui/utils";
 import { obtenerComparadorStrNum } from "../../utils/Ordenamiento";
 import { buscar } from "../../utils/Busqueda";
+import { useNavegacion } from "../../contexts/NavegacionContext";
 
 /**
  * Datatable con paginación, ordenamiento y selección de filas.
@@ -39,6 +40,7 @@ import { buscar } from "../../utils/Busqueda";
  */
 export default function Datatable({ campos, datos, lblSeleccion, campoId = "id", lblBusq = "", activarBusqueda = false,
     activarSeleccion = true, terminoBusqueda = "", camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "" }) {
+    const navegacion = useNavegacion();
     const [orden, setOrden] = useState("desc");
     const [campoOrden, setCampoOrden] = useState(campos[0].id);
     const [numSeleccionados, setNumSeleccionados] = useState(0);
@@ -55,6 +57,9 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
         [auxDatos, orden, campoOrden, pagina, filasEnPagina]);
     const numFilas = useMemo(() => auxDatos.length, [auxDatos]);
     const nombresCampos = useMemo(() => campos.map((campo) => campo.id), [campos]);
+    const tamCampoBusq = useMemo(() => {
+        return (navegacion.dispositivoMovil && navegacion.orientacion != "horizontal") ? "90%" : "100%";
+    }, [navegacion.dispositivoMovil, navegacion.orientacion]);
     const filasVacias = pagina > 0 ? Math.max(0, (1 + pagina) * filasEnPagina - datos.length) : 0;
 
     /**
@@ -201,11 +206,10 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                             ) : null}
                             <TextField
                                 name="busq"
-                                fullWidth
                                 placeholder={lblBusq}
                                 value={busqueda}
                                 onChange={manejadorBusqueda}
-                                sx={{ backgroundColor: "white" }}
+                                sx={{ backgroundColor: "white", width: tamCampoBusq, paddingTop: "1vh" }}
                                 slotProps={{
                                     input: {
                                         startAdornment: (

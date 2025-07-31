@@ -1,4 +1,4 @@
-import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Typography } from "@mui/material";
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Typography, Divider } from "@mui/material";
 
 /**
  * Modal que muestra puede mostrar 1 o 2 botones.
@@ -19,9 +19,11 @@ export default function ModalAccion({ abrir, mensaje, titulo, manejadorBtnPrimar
     return (
         <Dialog open={abrir}>
             <DialogTitle>{titulo}</DialogTitle>
+            <Divider orientation="horizontal" />
             <DialogContent>
                 {mensaje != "" ? <Typography>{mensaje}</Typography> : (children)}
             </DialogContent>
+            <Divider orientation="horizontal" />
             <DialogActions>
                 {mostrarBtnSecundario ? (
                     <Button
