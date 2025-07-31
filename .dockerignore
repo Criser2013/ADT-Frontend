@@ -1,0 +1,11 @@
+.env
+.env.example
+jest.config.jest
+test-report.xml
+README.md
+.gitignore
+.github
+node_modules
+tests
+ejecutar-tests.sh
+babel.config.js

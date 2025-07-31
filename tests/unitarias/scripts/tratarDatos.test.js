@@ -185,7 +185,7 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             sexo: 0, bebedor: 0, fumador: 0,
             cirugiaReciente: 0, viajeProlongado: 0,
             tos: 0, fiebre: 0, crepitaciones: 0,
-            dolorToracico: 0, malignidad: 0, hemoptisis: 0,
+            dolorToracico: 1, malignidad: 0, hemoptisis: 0,
             disnea: 1, sibilancias: 0, derrame: 0,
             tepPrevio: 0, edema: 0, disautonomicos: 0,
             inmovilidad: 0, otraEnfermedad: 0, soplos: 0,
@@ -199,31 +199,32 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             "Enfermedad hepática": 0, "Trombofilia": 0, "VIH": 0,
             "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
             diagnostico: 1, validado: 0, probabilidad: 0.5, fecha: mockFecha,
-            paciente: "Paciente Test"
+            paciente: "Paciente Test", id: "ID"
         }
 
-        const res = nombresCampos(instancia, false);
+        const respuesta = {
+            "Edad": 60, "Género": "M", "Bebedor": 0, "Fumador": 0,
+            "Cirugía reciente": 0, "Viaje prolongado": 0,
+            "Tos": 0, "Fiebre": 0, "Crepitaciones": 0,
+            "Dolor toracico": 1, "Malignidad": 0, "Hemoptisis": 0,
+            "Disnea": 1, "Sibilancias": 0, "Derrame": 0,
+            "TEP - TVP Previo": 0, "Edema de M inferiores": 0, "Síntomas disautonomicos": 0,
+            "Inmovilidad de M inferiores": 0, "Otra Enfermedad": 0, "Soplos": 0,
+            "Presión sistólica": 129, "Presión diastólica": 93, "Frecuencia respiratoria": 26,
+            "Frecuencia cardíaca": 128, "Saturación de la sangre": 80, "PLT": 211100, "HB": 13.8, "WBC": 12300,
+            "Hematologica": 1, "Vascular": 0,
+            "Pulmonar": 0, "Renal": 0,
+            "Cardíaca": 0, "Enfermedad coronaria": 0,
+            "Endocrina": 0, "Gastrointestinal": 0,
+            "Urológica": 0, "Neurológica": 0,
+            "Trombofilia": 0, "VIH": 0, "Paciente": "Paciente Test", "Probabilidad": 0.5,
+            "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
+            "TEP": 0, "ID": "ID", "Fecha": "1/10/2023", "Diagnóstico modelo": 1
+        };
 
-        const campos = ['Edad', 'Género', 'Bebedor', 'Fumador', 'Cirugía reciente',
-            'Inmovilidad de M inferiores', 'Viaje prolongado', 'TEP - TVP Previo',
-            'Malignidad', 'Disnea', 'Dolor toracico', 'Tos', 'Hemoptisis',
-            'Síntomas disautonomicos', 'Edema de M inferiores',
-            'Frecuencia respiratoria', 'Saturación de la sangre',
-            'Frecuencia cardíaca', 'Presión sistólica', 'Presión diastólica',
-            'Fiebre', 'Crepitaciones', 'Sibilancias', 'Soplos', 'WBC', 'HB', 'PLT',
-            'Derrame', 'Otra Enfermedad', 'Hematologica', 'Cardíaca',
-            'Enfermedad coronaria', 'Diabetes Mellitus', 'Endocrina',
-            'Gastrointestinal', 'Hepatopatía crónica', 'Hipertensión arterial',
-            'Neurológica', 'Pulmonar', 'Renal', 'Trombofilia', 'Urológica',
-            'Vascular', 'VIH', 'Paciente', 'Fecha'
-        ];
+        const res = nombresCampos(instancia, false, false);
 
-        for (const i of campos) {
-            expect(res).toHaveProperty(i);
-        }
-
-        expect(res).not.toHaveProperty("Diagnóstico modelo");
-        expect(res).not.toHaveProperty("Probabilidad");
+        expect(res).toEqual(respuesta);
     });
 
     test("CP - 80", () => {
@@ -235,7 +236,7 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             sexo: 0, bebedor: 0, fumador: 0,
             cirugiaReciente: 0, viajeProlongado: 0,
             tos: 0, fiebre: 0, crepitaciones: 0,
-            dolorToracico: 0, malignidad: 0, hemoptisis: 0,
+            dolorToracico: 1, malignidad: 0, hemoptisis: 0,
             disnea: 1, sibilancias: 0, derrame: 0,
             tepPrevio: 0, edema: 0, disautonomicos: 0,
             inmovilidad: 0, otraEnfermedad: 0, soplos: 0,
@@ -249,31 +250,31 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             "Enfermedad hepática": 0, "Trombofilia": 0, "VIH": 0,
             "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
             diagnostico: 1, validado: 0, probabilidad: 0.5, fecha: mockFecha,
-            paciente: "Paciente Test"
+            paciente: "Paciente Test", id: "ID"
         }
 
-        const res = nombresCampos(instancia, true);
+        const respuesta = {
+            "Edad": 2, "Género": 0, "Bebedor": 0, "Fumador": 0,
+            "Cirugía reciente": 0, "Viaje prolongado": 0,
+            "Tos": 0, "Fiebre": 0, "Crepitaciones": 0,
+            "Dolor toracico": 1, "Malignidad": 0, "Hemoptisis": 0,
+            "Disnea": 1, "Sibilancias": 0, "Derrame": 0,
+            "TEP - TVP Previo": 0, "Edema de M inferiores": 0, "Síntomas disautonomicos": 0,
+            "Inmovilidad de M inferiores": 0, "Otra Enfermedad": 0, "Soplos": 0,
+            "Presión sistólica": 4, "Presión diastólica": 6, "Frecuencia respiratoria": 3,
+            "Frecuencia cardíaca": 4, "Saturación de la sangre": 7, "PLT": 4, "HB": 4, "WBC": 3,
+            "Hematologica": 1, "Vascular": 0,
+            "Pulmonar": 0, "Renal": 0,
+            "Cardíaca": 0, "Enfermedad coronaria": 0,
+            "Endocrina": 0, "Gastrointestinal": 0,
+            "Urológica": 0, "Neurológica": 0,
+            "Trombofilia": 0, "VIH": 0,
+            "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
+            "TEP": 0, "ID": "ID"
+        };
 
-        const campos = ['Edad', 'Género', 'Bebedor', 'Fumador', 'Cirugía reciente',
-            'Inmovilidad de M inferiores', 'Viaje prolongado', 'TEP - TVP Previo',
-            'Malignidad', 'Disnea', 'Dolor toracico', 'Tos', 'Hemoptisis',
-            'Síntomas disautonomicos', 'Edema de M inferiores',
-            'Frecuencia respiratoria', 'Saturación de la sangre',
-            'Frecuencia cardíaca', 'Presión sistólica', 'Presión diastólica',
-            'Fiebre', 'Crepitaciones', 'Sibilancias', 'Soplos', 'WBC', 'HB', 'PLT',
-            'Derrame', 'Otra Enfermedad', 'Hematologica', 'Cardíaca',
-            'Enfermedad coronaria', 'Diabetes Mellitus', 'Endocrina',
-            'Gastrointestinal', 'Hepatopatía crónica', 'Hipertensión arterial',
-            'Neurológica', 'Pulmonar', 'Renal', 'Trombofilia', 'Urológica',
-            'Vascular', 'VIH', 'Diagnóstico modelo', 'Probabilidad'
-        ];
+        const res = nombresCampos(instancia, true, true);
 
-        for (const i of campos) {
-            expect(res).toHaveProperty(i);
-        }
-
-        expect(res).not.toHaveProperty("Paciente");
-        expect(res).not.toHaveProperty("Fecha");
-        expect(res).not.toHaveProperty("medico");
+        expect(res).toEqual(respuesta);
     });
 });

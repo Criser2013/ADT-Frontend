@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testExecutions version="1">
   <file path="/usr/app/tests/unitarias/scripts/tratarDatos.test.js">
-    <testCase name="Validar oneHotEncoder de &apos;otra enfermedad&apos; CP - 15" duration="124"/>
-    <testCase name="Validar oneHotEncoder de &apos;otra enfermedad&apos; CP - 16" duration="1"/>
+    <testCase name="Validar oneHotEncoder de &apos;otra enfermedad&apos; CP - 15" duration="79"/>
+    <testCase name="Validar oneHotEncoder de &apos;otra enfermedad&apos; CP - 16" duration="0"/>
     <testCase name="Validar la función &apos;oneHotInversoOtraEnfermedad&apos; CP - 51" duration="0"/>
     <testCase name="Validar la función &apos;oneHotInversoOtraEnfermedad&apos; CP - 52" duration="1"/>
     <testCase name="Validar la función &apos;quitarDatosPersonales&apos; CP - 53" duration="1"/>
@@ -11,82 +11,95 @@
     <testCase name="Validar la función &apos;evaluarIntervalo&apos; CP - 63" duration="0"/>
     <testCase name="Validar la función &apos;evaluarIntervalo&apos; CP - 64" duration="1"/>
     <testCase name="Validar la función &apos;procBool&apos; CP - 65" duration="0"/>
-    <testCase name="Validar la función &apos;procBool&apos; CP - 66" duration="0"/>
+    <testCase name="Validar la función &apos;procBool&apos; CP - 66" duration="1"/>
     <testCase name="Validar la función &apos;tratarDatos&apos; CP - 73" duration="1"/>
+    <testCase name="Validar la función &apos;detTxtDiagnostico&apos; CP - 76" duration="0"/>
+    <testCase name="Validar la función &apos;detTxtDiagnostico&apos; CP - 77" duration="0"/>
+    <testCase name="Validar la función &apos;detTxtDiagnostico&apos; CP - 78" duration="1"/>
+    <testCase name="Validar que las función &apos;nombresCampos&apos; retorne correctamente la instancia CP - 79" duration="1"/>
+    <testCase name="Validar que las función &apos;nombresCampos&apos; retorne correctamente la instancia CP - 80" duration="1"/>
   </file>
   <file path="/usr/app/tests/unitarias/scripts/xlsxFiles.test.js">
-    <testCase name="Validar la funcion &apos;validarXlsx CP - 25" duration="104"/>
+    <testCase name="Validar la funcion &apos;validarXlsx CP - 25" duration="97"/>
     <testCase name="Validar la funcion &apos;validarXlsx CP - 26" duration="1"/>
-    <testCase name="Validar la funcion &apos;validarFilas CP - 27" duration="1"/>
+    <testCase name="Validar la funcion &apos;validarFilas CP - 27" duration="2"/>
     <testCase name="Validar la funcion &apos;validarFilas CP - 28" duration="1"/>
     <testCase name="Validar la funcion &apos;validarFilas CP - 29" duration="1"/>
     <testCase name="Validar la funcion &apos;validarFilas CP - 30" duration="0"/>
-    <testCase name="Validar la funcion &apos;validarFilas CP - 31" duration="1"/>
+    <testCase name="Validar la funcion &apos;validarFilas CP - 31" duration="0"/>
     <testCase name="Validar la funcion &apos;validarFilas CP - 32" duration="1"/>
     <testCase name="Validar la funcion &apos;validarFilas CP - 33" duration="1"/>
   </file>
-  <file path="/usr/app/tests/unitarias/scripts/validadores.test.js">
-    <testCase name="Validar número  CP - 1" duration="2"/>
-    <testCase name="Validar número  CP - 2" duration="0"/>
-    <testCase name="Validar número  CP - 3" duration="1"/>
-    <testCase name="Validar nombre CP - 4" duration="0"/>
-    <testCase name="Validar nombre CP - 5" duration="1"/>
-    <testCase name="Validar nombre CP - 6" duration="0"/>
-    <testCase name="Validar teléfono CP - 7" duration="1"/>
-    <testCase name="Validar teléfono CP - 8" duration="0"/>
-    <testCase name="Validar teléfono CP - 9" duration="1"/>
-    <testCase name="Validar fecha CP - 10" duration="0"/>
-    <testCase name="Validar fecha CP - 11" duration="1"/>
-    <testCase name="Validar fecha CP - 12" duration="0"/>
-    <testCase name="Validar fecha CP - 13" duration="0"/>
-    <testCase name="Validar fecha CP - 14" duration="1"/>
-    <testCase name="Validar un número real positivo CP - 67" duration="0"/>
-    <testCase name="Validar un número real positivo CP - 68" duration="0"/>
-    <testCase name="Validar un número real positivo CP - 69" duration="1"/>
+  <file path="/usr/app/tests/unitarias/scripts/ordenamiento.test.js">
+    <testCase name="Validar la función &apos;comparadorStrNum&apos; CP - 55" duration="20"/>
+    <testCase name="Validar la función &apos;comparadorStrNum&apos; CP - 56" duration="1"/>
+    <testCase name="Validar la función &apos;comparadorStrNum&apos; CP - 57" duration="0"/>
+    <testCase name="Validar la función &apos;obtenerComparadorStrNum&apos; CP - 58" duration="0"/>
+    <testCase name="Validar la función &apos;obtenerComparadorStrNum&apos; CP - 59" duration="1"/>
   </file>
   <file path="/usr/app/tests/unitarias/scripts/drive.test.js">
-    <testCase name="Validar la función &apos;codificarParamsURL&apos; CP - 34" duration="2"/>
-    <testCase name="Validar la función &apos;codificarParamsURL&apos; CP - 35" duration="9"/>
-    <testCase name="Validar la funcion &apos;descargarArchivo&apos; CP - 36" duration="5"/>
-    <testCase name="Validar la funcion &apos;descargarArchivo&apos; CP - 37" duration="29"/>
+    <testCase name="Validar la función &apos;codificarParamsURL&apos; CP - 34" duration="5"/>
+    <testCase name="Validar la función &apos;codificarParamsURL&apos; CP - 35" duration="0"/>
+    <testCase name="Validar la funcion &apos;descargarArchivo&apos; CP - 36" duration="4"/>
+    <testCase name="Validar la funcion &apos;descargarArchivo&apos; CP - 37" duration="45"/>
     <testCase name="Validar la funcion &apos;descargarArchivo&apos; CP - 38" duration="1"/>
     <testCase name="Validar la funcion &apos;crearCargaResumible&apos; CP - 39" duration="1"/>
-    <testCase name="Validar la funcion &apos;crearCargaResumible&apos; CP - 40" duration="1"/>
+    <testCase name="Validar la funcion &apos;crearCargaResumible&apos; CP - 40" duration="2"/>
     <testCase name="Validar la funcion &apos;crearArchivo&apos; CP - 41" duration="1"/>
     <testCase name="Validar la funcion &apos;crearArchivo&apos; CP - 42" duration="1"/>
     <testCase name="Validar la funcion &apos;crearArchivo&apos; CP - 43" duration="1"/>
     <testCase name="Validar la funcion &apos;crearArchivo&apos; CP - 44" duration="1"/>
     <testCase name="Validar la funcion &apos;buscarArchivo&apos; CP - 45" duration="1"/>
-    <testCase name="Validar la funcion &apos;buscarArchivo&apos; CP - 46" duration="0"/>
-    <testCase name="Validar la funcion &apos;buscarArchivo&apos; CP - 47" duration="2"/>
-    <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 48" duration="2"/>
+    <testCase name="Validar la funcion &apos;buscarArchivo&apos; CP - 46" duration="1"/>
+    <testCase name="Validar la funcion &apos;buscarArchivo&apos; CP - 47" duration="1"/>
+    <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 48" duration="3"/>
     <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 49" duration="1"/>
-    <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 50" duration="1"/>
+    <testCase name="Validar la funcion &apos;subirArchivoResumible&apos; CP - 50" duration="2"/>
   </file>
   <file path="/usr/app/tests/unitarias/scripts/busqueda.test.js">
-    <testCase name="Validar la función &apos;buscar&apos; CP - 60" duration="7"/>
+    <testCase name="Validar la función &apos;buscar&apos; CP - 60" duration="4"/>
     <testCase name="Validar la función &apos;buscar&apos; CP - 61" duration="0"/>
   </file>
-  <file path="/usr/app/tests/unitarias/scripts/ordenamiento.test.js">
-    <testCase name="Validar la función &apos;comparadorStrNum&apos; CP - 55" duration="6"/>
-    <testCase name="Validar la función &apos;comparadorStrNum&apos; CP - 56" duration="1"/>
-    <testCase name="Validar la función &apos;comparadorStrNum&apos; CP - 57" duration="1"/>
-    <testCase name="Validar la función &apos;obtenerComparadorStrNum&apos; CP - 58" duration="1"/>
-    <testCase name="Validar la función &apos;obtenerComparadorStrNum&apos; CP - 59" duration="1"/>
-  </file>
   <file path="/usr/app/tests/unitarias/scripts/responsividad.test.js">
-    <testCase name="Validar la función &apos;detAbrirMenu&apos; CP - 17" duration="4"/>
-    <testCase name="Validar la función &apos;detAbrirMenu&apos; CP - 18" duration="0"/>
-    <testCase name="Validar la función &apos;detAbrirMenu&apos; CP - 19" duration="1"/>
-    <testCase name="Validar la función &apos;detAbrirMenu&apos; CP - 20" duration="0"/>
+    <testCase name="Validar la función &apos;detAbrirMenu&apos; CP - 17" duration="3"/>
+    <testCase name="Validar la función &apos;detAbrirMenu&apos; CP - 18" duration="2"/>
+    <testCase name="Validar la función &apos;detAbrirMenu&apos; CP - 19" duration="0"/>
+    <testCase name="Validar la función &apos;detAbrirMenu&apos; CP - 20" duration="1"/>
     <testCase name="Validar la función &apos;detTamCarga&apos; CP - 21" duration="1"/>
     <testCase name="Validar la función &apos;detTamCarga&apos; CP - 22" duration="0"/>
-    <testCase name="Validar la función &apos;detTamCarga&apos; CP - 23" duration="0"/>
-    <testCase name="Validar la función &apos;detTamCarga&apos; CP - 24" duration="0"/>
+    <testCase name="Validar la función &apos;detTamCarga&apos; CP - 23" duration="1"/>
+    <testCase name="Validar la función &apos;detTamCarga&apos; CP - 24" duration="1"/>
+  </file>
+  <file path="/usr/app/tests/unitarias/scripts/validadores.test.js">
+    <testCase name="Validar número  CP - 1" duration="5"/>
+    <testCase name="Validar número  CP - 2" duration="0"/>
+    <testCase name="Validar número  CP - 3" duration="1"/>
+    <testCase name="Validar nombre CP - 4" duration="0"/>
+    <testCase name="Validar nombre CP - 5" duration="0"/>
+    <testCase name="Validar nombre CP - 6" duration="1"/>
+    <testCase name="Validar teléfono CP - 7" duration="0"/>
+    <testCase name="Validar teléfono CP - 8" duration="1"/>
+    <testCase name="Validar teléfono CP - 9" duration="2"/>
+    <testCase name="Validar fecha CP - 10" duration="1"/>
+    <testCase name="Validar fecha CP - 11" duration="0"/>
+    <testCase name="Validar fecha CP - 12" duration="0"/>
+    <testCase name="Validar fecha CP - 13" duration="1"/>
+    <testCase name="Validar fecha CP - 14" duration="0"/>
+    <testCase name="Validar un número real positivo CP - 67" duration="0"/>
+    <testCase name="Validar un número real positivo CP - 68" duration="1"/>
+    <testCase name="Validar un número real positivo CP - 69" duration="0"/>
+    <testCase name="Validar un id de diagnóstico CP - 74" duration="1"/>
+    <testCase name="Validar un id de diagnóstico CP - 75" duration="0"/>
   </file>
   <file path="/usr/app/tests/unitarias/scripts/api.test.js">
-    <testCase name="Validar la funcion &apos;descargarArchivo&apos; CP - 70" duration="81"/>
-    <testCase name="Validar la funcion &apos;descargarArchivo&apos; CP - 71" duration="1"/>
-    <testCase name="Validar la funcion &apos;descargarArchivo&apos; CP - 72" duration="1"/>
+    <testCase name="Validar la funcion &apos;generarDiagnostico&apos; CP - 70" duration="84"/>
+    <testCase name="Validar la funcion &apos;generarDiagnostico&apos; CP - 71" duration="1"/>
+    <testCase name="Validar la funcion &apos;generarDiagnostico&apos; CP - 72" duration="1"/>
+    <testCase name="Validar la funcion &apos;verUsuarios&apos; CP - 81" duration="1"/>
+    <testCase name="Validar la funcion &apos;verUsuarios&apos; CP - 82" duration="1"/>
+    <testCase name="Validar la funcion &apos;verUsuarios&apos; CP - 83" duration="0"/>
+    <testCase name="Validar la funcion &apos;verUsuario&apos; CP - 84" duration="1"/>
+    <testCase name="Validar la funcion &apos;verUsuario&apos; CP - 85" duration="1"/>
+    <testCase name="Validar la funcion &apos;verUsuario&apos; CP - 86" duration="1"/>
   </file>
 </testExecutions>

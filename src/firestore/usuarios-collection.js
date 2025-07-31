@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 
 /**
  * Edita el contenido de un documento. Sino existe lo crea.
@@ -54,22 +54,19 @@ export const verUsuario = async (correo, db) => {
 };
 
 /**
- * Obtiene la información de todos los usuarios.
+ * Elimina el usuario proveído de la BD.
+ * @param {String} correo - Correo del usuario a eliminar.
  * @param {Object} db - Instancia de Firestore.
  * @returns JSON
  */
-export const verUsuarios = async (db) => {
+export const eliminarUsuario = async (correo, db) => {
     try {
-        const coleccion = collection(db, "usuarios");
-        const datos = await getDocs(coleccion);
+        await deleteDoc(
+            doc(db, "usuarios", correo)
+        );
 
-        const usuarios = [];
-        datos.forEach((doc) => {
-            usuarios.push({ id: doc.id, ...doc.data() });
-        });
-
-        return { success: true, data: usuarios };
+        return { success: true, data: null, error: null };
     } catch (error) {
-        return { success: false, data: error };
+        return { success: false, data: null, error: error };
     }
 };

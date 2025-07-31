@@ -1,6 +1,6 @@
 import {
-    Box, Chip, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
-    Button, Popover, IconButton, TextField, MenuItem
+    Box, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
+    Button, Popover, IconButton
 } from "@mui/material";
 import { useDrive } from "../contexts/DriveContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -16,14 +16,17 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ModalAccion from "../components/modals/ModalAccion";
-import { cambiarDiagnostico, verDiagnostico } from "../firestore/diagnosticos-collection";
+import { cambiarDiagnostico, eliminarDiagnosticos, verDiagnostico } from "../firestore/diagnosticos-collection";
 import { oneHotInversoOtraEnfermedad, detTxtDiagnostico } from "../utils/TratarDatos";
-import { COMORBILIDADES } from "../../constants";
+import { COMORBILIDADES, DIAGNOSTICOS } from "../../constants";
 import { useCredenciales } from "../contexts/CredencialesContext";
 import Check from "../components/tabs/Check";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import FormSeleccionar from "../components/tabs/FormSeleccionar";
 import { CODIGO_ADMIN } from "../../constants";
+import { SINTOMAS } from "../../constants";
+import ContComorbilidades from "../components/tabs/ContComorbilidades";
+import { peticionApi } from "../services/Api";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -39,11 +42,12 @@ export default function VerDiagnosticoPage() {
     const [params] = useSearchParams();
     const [cargando, setCargando] = useState(true);
     const [mostrarBtnSecundario, setMostrarBtnSecundario] = useState(true);
+    const [modoEliminar, setModoEliminar] = useState(false);
     const [popOver, setPopOver] = useState(null);
     const open = Boolean(popOver);
     const elem = open ? "simple-popover" : undefined;
     const [modal, setModal] = useState({
-        mostrar: false, mensaje: "", titulo: ""
+        mostrar: false, mensaje: "", titulo: "", txtBtn: "Validar"
     });
     const [datos, setDatos] = useState({
         personales: {
@@ -60,24 +64,34 @@ export default function VerDiagnosticoPage() {
         },
         comorbilidades: []
     });
-    const [paciente, setPaciente] = useState({
-        personales: { cedula: "", nombre: "" }, existe: false
+    const [persona, setPersona] = useState({
+        cedula: "", nombre: ""
     });
+    const rol = auth.authInfo.rol;
     const [errorDiagnostico, setErrorDiagnostico] = useState(false);
     const [diagnostico, setDiagnostico] = useState(datos.personales.validado);
     const [diagOriginal, setDiagOriginal] = useState({});
     const numCols = useMemo(() => {
-        return (navegacion.dispositivoMovil && navegacion.orientacion == "vertical") || (!navegacion.dispositivoMovil && (navegacion.ancho < 500)) ? 12 : 4;
+        const exp = (navegacion.dispositivoMovil && navegacion.orientacion == "vertical") || (!navegacion.dispositivoMovil && (navegacion.ancho < 500));
+        return exp ? 12 : 4;
     }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
-    const camposPersonales = useMemo(() => [
-        { titulo: "Nombre", valor: paciente.personales.nombre },
-        { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" },
-        { titulo: "Edad", valor: `${datos.personales.edad} años` },
-        { titulo: "Fecha de diagnóstico", valor: datos.personales.fecha },
-        { titulo: "Diagnóstico modelo", valor: detTxtDiagnostico(datos.personales.diagnostico) },
-        { titulo: "Probabilidad", valor: `${(datos.personales.probabilidad * 100).toFixed(2)}%` },
-        { titulo: "Diagnóstico médico", valor: detTxtDiagnostico(datos.personales.validado) },
-    ], [datos.personales.validado, paciente.personales.nombre]);
+    const camposPersonales = useMemo(() => {
+        const campos = [
+            { titulo: (rol == CODIGO_ADMIN) ? "Médico" : "Nombre", valor: persona.nombre },
+            { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" },
+            { titulo: "Edad", valor: `${datos.personales.edad} años` },
+            { titulo: "Fecha de diagnóstico", valor: datos.personales.fecha },
+            { titulo: "Diagnóstico modelo", valor: detTxtDiagnostico(datos.personales.diagnostico) },
+            { titulo: "Probabilidad", valor: `${(datos.personales.probabilidad * 100).toFixed(2)}%` },
+            { titulo: "Diagnóstico médico", valor: detTxtDiagnostico(datos.personales.validado) },
+        ];
+
+        if (rol == CODIGO_ADMIN) {
+            campos.unshift({ titulo: "ID", valor: datos.personales.id });
+        }
+
+        return campos;
+    }, [rol, datos.personales.validado, persona.nombre]);
     const camposVitales = useMemo(() => [
         { titulo: "Presión sistólica", valor: `${datos.personales.presionSis} mmHg.` },
         { titulo: "Presión diastólica", valor: `${datos.personales.presionDias} mmHg.` },
@@ -90,32 +104,35 @@ export default function VerDiagnosticoPage() {
         { titulo: "Hemoglobina", valor: `${datos.personales.hemoglobina} g/dL.` },
         { titulo: "Conteo glóbulos blancos", valor: `${datos.personales.wbc} /µL.` },
     ], [datos.personales]);
-    const listadoPestanas = [
-        { texto: "Historial de diagnósticos", url: "/diagnosticos" },
-        { texto: `Diagnóstico-${paciente.personales.nombre}-${datos.personales.fecha}`, url: `/diagnosticos/ver-diagnostico${location.search}` }
-    ];
+    const width = useMemo(() => {
+        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
+    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
+    const padding = useMemo(() => {
+        return !navegacion.dispositivoMovil ? "3vh" : "0vh";
+    }, [navegacion.dispositivoMovil]);
+    const listadoPestanas = useMemo(() => {
+        let tit1 = "Histotrial de diagnósticos";
+        let tit2 = `Diagnóstico-${persona.nombre}-${datos.personales.fecha}`;
+
+        if (rol == CODIGO_ADMIN) {
+            tit1 = "Datos recolectados";
+            tit2 = `Diagnóstico-${datos.personales.id}`;
+        }
+
+        return [
+            { texto: tit1, url: "/diagnosticos" },
+            { texto: tit2, url: `/diagnosticos/ver-diagnostico${location.search}` }
+        ];
+    }, [persona.nombre, datos.personales.fecha, location.search, rol]);
+    const titulo = useMemo(() => {
+        if (rol == CODIGO_ADMIN) {
+            return persona.nombre != "" ? `Diagnóstico — ${datos.personales.id}` : "Datos del diagnóstico";
+        } else {
+            return persona.nombre != "" ? `Diagnóstico — ${persona.nombre}` : "Ver diagnóstico";
+        }
+    }, [rol, persona.nombre, datos.personales.id]);
     const id = params.get("id");
-    const sintomas = [
-        { texto: "Fumador", nombre: "fumador" },
-        { texto: "Bebedor", nombre: "bebedor" },
-        { texto: "Tos", nombre: "tos" },
-        { texto: "Fiebre", nombre: "fiebre" },
-        { texto: "Edema de miembros inferiores", nombre: "edema" },
-        { texto: "Inmovilidad de miembros inferiores", nombre: "inmovilidad" },
-        { texto: "Procedimiento quirúrgico reciente", nombre: "cirugiaReciente" },
-        { texto: "Síntomas disautonómicos", nombre: "disautonomicos" },
-        { texto: "Viaje prolongado", nombre: "viajeProlongado" },
-        { texto: "Disnea", nombre: "disnea" },
-        { texto: "Sibilancias", nombre: "sibilancias" },
-        { texto: "Crepitaciones", nombre: "crepitaciones" },
-        { texto: "Derrame", nombre: "derrame" },
-        { texto: "Malignidad", nombre: "malignidad" },
-        { texto: "Hemoptisis", nombre: "hemoptisis" },
-        { texto: "Dolor torácico", nombre: "dolorToracico" },
-        { texto: "TEP - TVP previo", nombre: "tepPrevio" },
-        { texto: "Soplos", nombre: "soplos" }
-    ];
-    const rol = auth.authInfo.rol;
+    const DB = credenciales.obtenerInstanciaDB();
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -134,41 +151,43 @@ export default function VerDiagnosticoPage() {
      */
     useEffect(() => {
         const datos = location.state;
-        if (datos == null) {
-            cargarDatosDiagnostico();
-        } else if (datos != null) {
+        if (datos == null && rol != null && DB != null) {
+            cargarDatosDiagnostico(auth.authInfo.user.accessToken);
+        } else if (datos != null && rol != null && DB != null) {
             cargarDatosPaciente(datos.paciente);
             preprocesarDiag(datos);
         }
-
-        setCargando(drive.descargando);
-    }, [drive.descargando]);
+    }, [drive.descargando, auth.authInfo.user, rol, DB]);
 
     /**
      * Coloca el título de la página.
      */
     useEffect(() => {
-        document.title = `${paciente.personales.nombre != "" ? `Diagnóstico — ${paciente.personales.nombre}` : "Ver diagnóstico"}`;
+        document.title = titulo;
         const res = (id != null && id != undefined) ? validarId(id) : false;
-
 
         if (!res) {
             navigate("/diagnosticos", { replace: true });
         }
 
         navegacion.setPaginaAnterior("/diagnosticos");
-    }, [paciente.personales.nombre]);
+    }, [titulo]);
 
     /**
      * Carga los datos del diagnóstico.
      */
-    const cargarDatosDiagnostico = async () => {
-        const DB = credenciales.obtenerInstanciaDB();
+    const cargarDatosDiagnostico = async (token) => {
         const datos = await verDiagnostico(id, DB);
 
         if (datos.success && datos.data != []) {
             setDiagOriginal({ ...datos.data });
-            cargarDatosPaciente(datos.data.paciente);
+
+            if (rol == CODIGO_ADMIN) {
+                await cargarDatosMedico(token, datos.data.medico);
+            } else {
+                cargarDatosPaciente(datos.data.paciente);
+            }
+
             preprocesarDiag(datos.data);
         } else if (DB != null && !datos.success) {
             navigate("/diagnosticos", { replace: true });
@@ -182,10 +201,25 @@ export default function VerDiagnosticoPage() {
     const cargarDatosPaciente = (cedula) => {
         const res = drive.cargarDatosPaciente(cedula);
         if (res.success) {
-            setPaciente({ ...res.data, existe: true });
+            setPersona({ ...res.data.personales });
         } else {
-            setPaciente({ personales: { cedula: cedula, nombre: "" }, existe: false });
+            setPersona({ cedula: cedula, nombre: "N/A" });
         }
+    };
+
+    /**
+     * Carga el nombre del médico que realizó el diagnóstico.
+     * @param {String} correo - Correo del médico.
+     * @returns {String|null}
+     */
+    const cargarDatosMedico = async (token, correo) => {
+        correo = encodeURIComponent(correo);
+        correo = correo.replaceAll(".","%2E");
+        const res = await peticionApi(token, `admin/usuarios/${correo}`, "GET", null, 
+            "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
+        );
+
+        setPersona((x) => ({ ...x, nombre: res.success? res.data.nombre : "N/A" }));
     };
 
     /**
@@ -203,6 +237,7 @@ export default function VerDiagnosticoPage() {
 
         aux.fecha = dayjs(new Date(datos.fecha.seconds * 1000)).format("DD [de] MMMM [de] YYYY");
         setDatos({ personales: aux, comorbilidades: res });
+        setCargando(false);
     };
 
     /**
@@ -226,14 +261,27 @@ export default function VerDiagnosticoPage() {
      */
     const manejadorBtnEditar = () => {
         setMostrarBtnSecundario(true);
-        setModal({ titulo: "Validar diagnóstico", mensaje: "", mostrar: true });
-        /*navegacion.setPaginaAnterior(`/pacientes/ver-paciente?cedula=${datos.personales.cedula}`);
-        navigate(`/pacientes/editar?cedula=${datos.personales.cedula}`, { replace: true });*/
+        setModal({ titulo: "Validar diagnóstico", mensaje: "", mostrar: true, txtBtn: "Validar" });
     };
 
-    /*const eliminarDiagnostico = async () => {
+    /**
+     * Realiza la petición para eliminar el diagnóstico del paciente.
+     */
+    const eliminarDiagnostico = async () => {
+        const res = await eliminarDiagnosticos(id, DB);
 
-    };*/
+        if (res.success) {
+            navegacion.setPaginaAnterior("/diagnosticos");
+            navigate("/diagnosticos", { replace: true });
+        } else {
+            setCargando(false);
+            setMostrarBtnSecundario(false);
+            setModal({
+                mostrar: true, titulo: "Error",
+                mensaje: "No se pudo eliminar el diagnóstico. Inténtalo de nuevo más tarde."
+            });
+        }
+    };
 
     /**
      * Valida el diagnóstico del paciente.
@@ -251,7 +299,7 @@ export default function VerDiagnosticoPage() {
         } else {
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: "Error",
+                mostrar: true, titulo: "Error", txtBtn: "Validar",
                 mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
             });
         }
@@ -262,27 +310,29 @@ export default function VerDiagnosticoPage() {
      * Manejador del botón de cerrar el modal.
      */
     const manejadorBtnModal = () => {
-        if (mostrarBtnSecundario && diagnostico != 2) {
+        if (!modoEliminar && mostrarBtnSecundario && diagnostico != 2) {
             validarDiagnostico();
-            //eliminarPaciente();
-        } else if (mostrarBtnSecundario && diagnostico == 2) {
+        } else if (!modoEliminar && mostrarBtnSecundario && diagnostico == 2) {
             setErrorDiagnostico(true);
             return;
+        } else if (modoEliminar) {
+            setCargando(true);
+            eliminarDiagnostico();
         }
 
-        setMostrarBtnSecundario(false);
         setModal({ ...modal, mostrar: false });
     };
 
     /**
-     * Manejador del botón de eliminar paciente.
+     * Manejador del botón de eliminar diagnóstico.
      */
     const manejadorBtnEliminar = () => {
+        setModoEliminar(true);
         cerrarPopover();
         setMostrarBtnSecundario(true);
         setModal({
-            mostrar: true, titulo: "Alerta",
-            mensaje: "¿Estás seguro de que deseas eliminar este paciente?"
+            mostrar: true, titulo: "Alerta", txtBtn: "Eliminar",
+            mensaje: "¿Estás seguro de que deseas eliminar este diagnóstico?"
         });
     };
 
@@ -322,11 +372,61 @@ export default function VerDiagnosticoPage() {
         );
     };
 
+    /**
+     * Botón para validar el diagnóstico del paciente.
+     * @returns JSX.Element
+     */
+    const BtnValidar = () => {
+        return ((datos.personales.validado == 2 && rol != CODIGO_ADMIN) ? (
+            <Tooltip title="Valida el diagnóstico del paciente.">
+                <Fab onClick={manejadorBtnEditar}
+                    color="primary"
+                    variant="extended"
+                    sx={{ textTransform: "none", display: "flex", position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
+                    <CheckCircleOutlineIcon sx={{ mr: 1 }} />
+                    <b>Validar</b>
+                </Fab>
+            </Tooltip>) : null);
+    };
+
+    /**
+     * Check para mostrar los síntomas clínicos del diagnóstico.
+     * @param {JSON} instancia - Datos del síntoma. 
+     * @returns JSX.Element
+     */
+    const CheckSintoma = ({ instancia }) => {
+        return (
+            <Grid size={numCols}>
+                <Check
+                    nombre={instancia.nombre}
+                    etiqueta={instancia.texto}
+                    desactivado={true}
+                    activado={datos.personales[instancia.nombre]}
+                    manejadorCambios={null} />
+            </Grid>);
+    };
+
+    /**
+     * Componente para el cuerpo del modal.
+     * @returns {JSX.Element}
+     */
+    const CuerpoModal = () => {
+        return ((rol != CODIGO_ADMIN) ? (
+            <FormSeleccionar
+                onChange={setDiagnostico}
+                texto="Selecciona el diagnóstico médico del paciente:"
+                error={errorDiagnostico}
+                txtError="Selecciona el diagnóstico definitivo del paciente"
+                valor={diagnostico}
+                valores={DIAGNOSTICOS} />) : null
+        );
+    };
+
     return (
         <>
             <MenuLayout>
                 {cargando ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" width={detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho)} height="85vh">
+                    <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
                         <CircularProgress />
                     </Box>
                 ) : (
@@ -339,40 +439,40 @@ export default function VerDiagnosticoPage() {
                         <Grid container
                             columns={12}
                             spacing={1}
-                            paddingLeft={!navegacion.dispositivoMovil ? "3vh" : "0vh"}
-                            paddingRight={!navegacion.dispositivoMovil ? "3vh" : "0vh"}
+                            paddingLeft={padding}
+                            paddingRight={padding}
                             marginTop="3vh">
-                            {rol == CODIGO_ADMIN ? (
-                                <Grid size={12} display="flex" justifyContent="end">
-                                    <Tooltip title="Ver más opciones.">
-                                        <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
-                                            <MoreVertIcon />
-                                        </IconButton>
-                                    </Tooltip>
-                                    <Popover
-                                        id={elem}
-                                        open={open}
-                                        anchorEl={popOver}
-                                        onClose={cerrarPopover}
-                                        anchorOrigin={{
-                                            vertical: "bottom",
-                                            horizontal: "left",
-                                        }}
-                                        transformOrigin={{
-                                            vertical: "top",
-                                            horizontal: "center",
-                                        }}>
-                                        <Tooltip title="Eliminar paciente">
-                                            <Button
-                                                color="error"
-                                                startIcon={<DeleteIcon />}
-                                                onClick={manejadorBtnEliminar}
-                                                sx={{ textTransform: "none", padding: 2 }}>
-                                                Eliminar
-                                            </Button>
-                                        </Tooltip>
-                                    </Popover>
-                                </Grid>) : null}
+                            {(rol == CODIGO_ADMIN) ? (
+            <Grid size={12} display="flex" justifyContent="end">
+                <Tooltip title="Ver más opciones.">
+                    <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
+                        <MoreVertIcon />
+                    </IconButton>
+                </Tooltip>
+                <Popover
+                    id={elem}
+                    open={open}
+                    anchorEl={popOver}
+                    onClose={cerrarPopover}
+                    anchorOrigin={{
+                        vertical: "bottom",
+                        horizontal: "left",
+                    }}
+                    transformOrigin={{
+                        vertical: "top",
+                        horizontal: "center",
+                    }}>
+                    <Tooltip title="Eliminar paciente">
+                        <Button
+                            color="error"
+                            startIcon={<DeleteIcon />}
+                            onClick={manejadorBtnEliminar}
+                            sx={{ textTransform: "none", padding: 2 }}>
+                            Eliminar
+                        </Button>
+                    </Tooltip>
+                </Popover>
+            </Grid>) : null}
                             <Grid size={12}>
                                 <Typography variant="h5">
                                     Datos personales
@@ -390,15 +490,8 @@ export default function VerDiagnosticoPage() {
                                 </Typography>
                             </Grid>
                             <Grid container size={12} columns={12} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
-                                {sintomas.map((x) => (
-                                    <Grid size={numCols} key={x.nombre}>
-                                        <Check
-                                            nombre={x.nombre}
-                                            etiqueta={x.texto}
-                                            desactivado={true}
-                                            activado={datos.personales[x.nombre]}
-                                            manejadorCambios={null} />
-                                    </Grid>
+                                {SINTOMAS.map((x) => (
+                                    <CheckSintoma instancia={x} key={x.nombre} />
                                 ))}
                             </Grid>
                             <Grid size={12} paddingTop="3vh">
@@ -433,22 +526,7 @@ export default function VerDiagnosticoPage() {
                             </Grid>
                             {(datos.comorbilidades.length > 0) ? (
                                 <Grid size={12}>
-                                    <Box
-                                        borderColor="blue"
-                                        borderRadius={3}
-                                        border={1}
-                                        padding="2vh"
-                                        style={{ borderColor: "#adadad" }}
-                                        sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                                        {datos.comorbilidades.map((comorbilidad) => (
-                                            <Chip
-                                                key={comorbilidad}
-                                                label={comorbilidad}
-                                                color="info"
-                                                variant="outlined"
-                                                size="medium" />
-                                        ))}
-                                    </Box>
+                                    <ContComorbilidades comorbilidades={datos.comorbilidades} />
                                 </Grid>
                             ) : (
                                 <Grid size={5}>
@@ -458,19 +536,9 @@ export default function VerDiagnosticoPage() {
                                 </Grid>
                             )}
                         </Grid>
-                        {(datos.personales.validado == 2 && rol == 0) ? (
-                            <Tooltip title="Valida el diagnóstico del paciente.">
-                                <Fab onClick={manejadorBtnEditar}
-                                    color="primary"
-                                    variant="extended"
-                                    sx={{ textTransform: "none", display: "flex", position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
-                                    <CheckCircleOutlineIcon sx={{ mr: 1 }} />
-                                    <b>Validar</b>
-                                </Fab>
-                            </Tooltip>) : null}
+                        <BtnValidar />
                     </>
-                )
-                }
+                )}
                 <ModalAccion
                     abrir={modal.mostrar}
                     titulo={modal.titulo}
@@ -478,20 +546,10 @@ export default function VerDiagnosticoPage() {
                     manejadorBtnPrimario={manejadorBtnModal}
                     manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
                     mostrarBtnSecundario={mostrarBtnSecundario}
-                    txtBtnSimple="Validar"
+                    txtBtnSimple={modal.txtBtn}
                     txtBtnSecundario="Cancelar"
                     txtBtnSimpleAlt="Cerrar">
-                    <FormSeleccionar
-                        onChange={setDiagnostico}
-                        texto="Selecciona el diagnóstico médico del paciente:"
-                        error={errorDiagnostico}
-                        txtError="Selecciona el diagnóstico definitivo del paciente"
-                        valor={diagnostico}
-                        valores={[
-                            { valor: 2, texto: "Seleccione el diagnóstico" },
-                            { valor: 0, texto: "Negativo" },
-                            { valor: 1, texto: "Positivo" }
-                        ]} />
+                        <CuerpoModal />
                 </ModalAccion>
             </MenuLayout>
         </>

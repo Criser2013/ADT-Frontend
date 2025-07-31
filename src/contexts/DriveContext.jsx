@@ -66,11 +66,14 @@ export function DriveProvider({ children }) {
      * Crea un archivo o carpeta en Google Drive.
      * @param {String} nombre - Nombre del archivo o carpeta a crear.
      * @param {Boolean} esCarpeta - Indicador si el archivo es una carpeta.
-     * @returns 
+     * @param {String} carpeta - ID de la carpeta donde se creará el archivo (opcional).
+     * @param {String} mimeType - Tipo MIME del archivo (opcional). De forma predeterminada es un archivo de Excel.
+     * @returns JSON
      */
-    const crearArchivoMeta = async (nombre, esCarpeta = false, carpeta = "") => {
+    const crearArchivoMeta = async (nombre, esCarpeta = false, carpeta = "", mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") => {
         const res = await crearArchivo({
-            name: nombre, parents: !esCarpeta ? [carpeta] : []
+            name: nombre, parents: !esCarpeta ? [carpeta] : [],
+            mimeType: mimeType
         }, token, esCarpeta);
 
         if (res.success && !esCarpeta) {
@@ -85,15 +88,17 @@ export function DriveProvider({ children }) {
 
     /**
      * Sube el contenido del archivo a Google Drive.
-     * @param {Uint8Array|File|Blob} archivo - Contenido del archivo a subir.
+     * @param {String} archivoId - ID del archivo a subir.
+     * @param {Uint8Array|File|Blob} datos - Contenido del archivo a subir.
+     * @param {String} mimeType - Tipo MIME del archivo. Por defecto es binario.
      * @returns JSON
      */
-    const subirArchivo = async (archivo) => {
+    const subirArchivo = async (archivoId, datos, mimeType = "application/octet-stream") => {
         const urlCarga = await crearCargaResumible(archivoId, token);
         if (urlCarga.success) {
             let reintentos = 3;
             while (reintentos > 0) {
-                const res = await subirArchivoResumible(urlCarga.data, archivo, token);
+                const res = await subirArchivoResumible(urlCarga.data, datos, token, mimeType);
                 if (res.success) {
                     setArchivoId(res.data.id);
                     return res;
@@ -177,7 +182,7 @@ export function DriveProvider({ children }) {
         }
 
         const binario = crearArchivoXlsx(tabla);
-        const res = await subirArchivo(binario.data);
+        const res = await subirArchivo(archivoId, binario.data);
         if (res.success) {
             setDatos(tabla);
             return { success: true, data: "Archivo guardado correctamente" };
@@ -232,7 +237,7 @@ export function DriveProvider({ children }) {
         }
 
         const binario = crearArchivoXlsx(tabla);
-        const res = await subirArchivo(binario.data);
+        const res = await subirArchivo(archivoId, binario.data);
         if (res.success) {
             setDatos(tabla);
             return { success: true, data: "Archivo guardado correctamente" };
@@ -333,10 +338,57 @@ export function DriveProvider({ children }) {
         return respuesta;
     };
 
+    /**
+     * Crea una copia de los diagnósticos en Google Drive
+     * @param {String} nombreArchivo - Nombre del archivo a crear.
+     * @param {Array[JSON]} datos - Datos a guardar en el archivo.
+     * @param {String} tipo - Tipo de archivo a crear (xlsx o csv).
+     * @returns JSON
+     */
+    const crearCopiaDiagnosticos = async (nombreArchivo, datos, tipo) => {
+        let auxCarpeta = null;
+        const existe = await verificarExisteArchivo(DRIVE_FOLDER_NAME, true);
+
+        if (!existe.success) {
+            const res = await crearArchivoMeta(DRIVE_FOLDER_NAME, true);
+
+            if (!res.success) {
+                return { success: false, error: res.error };
+            }
+            auxCarpeta = res.data.id;
+        } else {
+            const id =  existe.success ? existe.data.files[0].id : auxCarpeta;
+            return await guardarArchivoDiagnostico(nombreArchivo, id, datos, tipo);
+        }
+    };
+
+    /**
+     * Guarda un archivo de diagnósticos en Google Drive.
+     * @param {String} nombreArchivo - Nombre del archivo a crear.
+     * @param {String} idCarpeta - ID de la carpeta donde se guardará el archivo.
+     * @param {Array[JSON]} datos - Datos a guardar en el archivo.
+     * @param {String} tipo - Tipo de archivo a crear (xlsx o csv).
+     * @returns JSON
+     */
+    const guardarArchivoDiagnostico = async (nombreArchivo, idCarpeta, datos, tipo) => {
+        let mimeType = (tipo == "csv") ? "text/csv" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+        let res = await crearArchivoMeta(nombreArchivo, false, idCarpeta, mimeType);
+
+        if (!res.success) {
+            return { success: false, error: res.error };
+        }
+
+        const binario = crearArchivoXlsx(datos, tipo);
+        res = await subirArchivo(res.data.id, binario.data, mimeType);
+
+        return res;
+    };
+
     return (
         <driveContext.Provider value={{
             anadirPaciente, descargarContArchivo, setToken, descargando, cargarDatosPaciente,
-            eliminarPaciente, cargarDatos, datos
+            eliminarPaciente, cargarDatos, datos, crearCopiaDiagnosticos
         }}>
             {children}
         </driveContext.Provider>

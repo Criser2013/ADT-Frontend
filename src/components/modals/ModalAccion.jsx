@@ -1,4 +1,4 @@
-import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Typography } from "@mui/material";
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Typography, Divider } from "@mui/material";
 
 /**
  * Modal que muestra puede mostrar 1 o 2 botones.
@@ -11,16 +11,19 @@ import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Typography }
  * @param {String} txtBtnSimple - Texto del botón primario.
  * @param {String} txtBtnSecundario - Texto del botón secundario.
  * @param {String} txtBtnSimpleAlt - Texto alternativo del botón primario si no se muestra el secundario.
- * @returns 
+ * @param {boolean} desactivarBtnPrimario - Indica si el botón primario debe estar desactivado.
+ * @returns JSX.Element
  */
 export default function ModalAccion({ abrir, mensaje, titulo, manejadorBtnPrimario, manejadorBtnSecundario, 
-    mostrarBtnSecundario, txtBtnSimple, txtBtnSecundario, txtBtnSimpleAlt, children }) {
+    mostrarBtnSecundario, txtBtnSimple, txtBtnSecundario, txtBtnSimpleAlt, children, desactivarBtnPrimario = false }) {
     return (
         <Dialog open={abrir}>
             <DialogTitle>{titulo}</DialogTitle>
+            <Divider orientation="horizontal" />
             <DialogContent>
                 {mensaje != "" ? <Typography>{mensaje}</Typography> : (children)}
             </DialogContent>
+            <Divider orientation="horizontal" />
             <DialogActions>
                 {mostrarBtnSecundario ? (
                     <Button
@@ -33,6 +36,7 @@ export default function ModalAccion({ abrir, mensaje, titulo, manejadorBtnPrimar
                 <Button
                     type="submit"
                     variant="contained"
+                    disabled={desactivarBtnPrimario}
                     onClick={manejadorBtnPrimario}
                     sx={{ textTransform: "none" }}>
                     <b>{mostrarBtnSecundario ? txtBtnSimple : txtBtnSimpleAlt}</b>

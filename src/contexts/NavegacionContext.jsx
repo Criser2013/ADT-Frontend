@@ -45,34 +45,18 @@ export function NavegacionProvider({ children }) {
         setVariantSidebar(variantSidebar);
         setDispositivoMovil(dispositivoMovil);
         setMostrarMenu(!dispositivoMovil || (dispositivoMovil && orientacion == "horizontal"));
+
+        detTamPantalla();
     }, [navigator.userAgent, orientacion]);
 
     /**
      * Añade un escucha cuando la ventana cambia de tamaño.
      */
     useEffect(() => {
-        const handleResize = () => {
-            const ancho = window.viewport.segments[0].width;
-            const alto = window.viewport.segments[0].height;
-
-            setAncho(ancho);
-            setAlto(alto);
-
-            if (ancho < 600 && !dispositivoMovil) {
-                setVariantSidebar("temporary");
-                setMostrarMenu(false);
-            } else if (ancho >= 600 && !dispositivoMovil) {
-                setVariantSidebar("permanent");
-                setMostrarMenu(true);
-            }
-
-            detecOrientacion(ancho, alto);
-        };
-
-        window.addEventListener('resize', handleResize);
+        window.addEventListener('resize', detTamPantalla);
 
         return () => {
-            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('resize', detTamPantalla);
         };
     }, []);
 
@@ -87,6 +71,27 @@ export function NavegacionProvider({ children }) {
         } else {
             setOrientacion("vertical");
         }
+    };
+
+    /**
+     * Detecta el tamaño de la pantalla y ajusta el estado del ancho, alto,
+     */
+    const detTamPantalla = () => {
+        const ancho = window.viewport.segments[0].width;
+        const alto = window.viewport.segments[0].height;
+
+        setAncho(ancho);
+        setAlto(alto);
+
+        if (ancho < 600 && !dispositivoMovil) {
+            setVariantSidebar("temporary");
+            setMostrarMenu(false);
+        } else if (ancho >= 600 && !dispositivoMovil) {
+            setVariantSidebar("permanent");
+            setMostrarMenu(true);
+        }
+
+        detecOrientacion(ancho, alto);
     };
 
     return (

@@ -156,7 +156,7 @@ export function AuthProvider({ children }) {
             // Se abre el popup de Google para iniciar sesión
             const res = await signInWithPopup(auth, provider);
             // Se verifica si el usuario ya está registrado en la base de datos y esté activado
-            const reg = await verRegistrado(res.user.email, res.user.displayName);
+            const reg = await verRegistrado(res.user.email);
             const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
             oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
 
@@ -273,14 +273,13 @@ export function AuthProvider({ children }) {
     /**
      * Registra un nuevo usuario en la base de datos.
      * @param {String} correo - Correo del usuario a registrar.
-     * @param {String} nombre - Nombre del usuario a registrar.
      * @returns JSON
      */
-    const registrarUsuario = async (correo, nombre) => {
+    const registrarUsuario = async (correo) => {
         /* rol = 0 - Usuario normal
            rol = 1001 - Administrador */
         if (correo != null) {
-            const res = await cambiarUsuario({ correo: correo, rol: 0, nombre: nombre }, db);
+            const res = await cambiarUsuario({ correo: correo, rol: 0 }, db);
 
             return { success: res.success };
         }
@@ -289,15 +288,14 @@ export function AuthProvider({ children }) {
     /**
      * Verifica si un usuario está registrado en la base de datos.
      * @param {String} correo - Correo del usuario a verificar.
-     * @param {String} nombre - Nombre del usuario a registrar si no está registrado.
      */
-    const verRegistrado = async (correo, nombre) => {
+    const verRegistrado = async (correo) => {
         if (correo != null) {
             const res = await verSiEstaRegistrado(correo, db);
 
             if (res.success && !res.data) {
                 // El usuario no está registrado, se procede a registrarlo
-                return await registrarUsuario(correo, nombre);
+                return await registrarUsuario(correo);
             } else if (res.success && res.data) {
                 // El usuario está registrado
                 return { success: true, data: 1 };
@@ -362,6 +360,12 @@ export function AuthProvider({ children }) {
                 setAuthError({
                     res: true, operacion: codigo,
                     error: `Ya tienes una sesión iniciada con el usuario: "${usuario.displayName}" (${usuario.email}).`
+                });
+                break;
+            case "auth/user-disabled":
+                setAuthError({
+                    res: true, operacion: codigo,
+                    error: `Este usuario ha sido deshabilitado. Para más información, contacta al administrador de la aplicación.`
                 });
                 break;
             default:

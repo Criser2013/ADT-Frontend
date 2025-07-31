@@ -1,7 +1,7 @@
 import { jest, expect, describe, test } from '@jest/globals';
-import { generarDiagnostico } from "../../../src/services/Api";
+import { peticionApi } from "../../../src/services/Api";
 
-describe("Validar la funcion 'descargarArchivo'", () => {
+describe("Validar la funcion 'peticionAPI'", () => {
     test("CP - 70", async () => {
         global.fetch = jest.fn();
         global.fetch.mockImplementation(() =>
@@ -10,7 +10,7 @@ describe("Validar la funcion 'descargarArchivo'", () => {
                 json: () => Promise.resolve({ prediccion: true, probabilidad: 0.90812 })
             })
         );
-        const res = await generarDiagnostico({ vih: 0, edad: 1, trombofilia: 2 }, "token");
+        const res = await peticionApi("token", "diagnosticar", "POST", { vih: 0, edad: 1, trombofilia: 2 });
         expect(res).toEqual({ success: true, data: { prediccion: true, probabilidad: 0.90812 }, error: null });
 
         expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -33,7 +33,7 @@ describe("Validar la funcion 'descargarArchivo'", () => {
                 json: () => Promise.resolve({ error: "Token inválido" })
             })
         );
-        const res = await generarDiagnostico({ vih: 0, edad: 1, trombofilia: 2 }, "token invalido");
+        const res = await peticionApi("token invalido", "diagnosticar", "POST", { vih: 0, edad: 1, trombofilia: 2 });
         expect(res).toEqual({ success: false, error: "Token inválido", data: null });
 
         expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -53,7 +53,7 @@ describe("Validar la funcion 'descargarArchivo'", () => {
         global.fetch.mockImplementation(() => {
             throw new Error("Error ocurrido.")
         });
-        const res = await generarDiagnostico({ vih: 0, edad: 1, trombofilia: 2 }, "token invalido");
+        const res = await peticionApi("token invalido", "diagnosticar", "POST", { vih: 0, edad: 1, trombofilia: 2 }, "Ha ocurrido un error al generar el diagnóstico. Por favor reintenta nuevamente.");
         expect(res).toEqual({ success: false, data: null, error: "Ha ocurrido un error al generar el diagnóstico. Por favor reintenta nuevamente." });
 
         expect(global.fetch).toHaveBeenCalledTimes(1);
