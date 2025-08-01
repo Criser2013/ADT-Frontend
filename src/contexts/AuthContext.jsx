@@ -160,6 +160,7 @@ export function AuthProvider({ children }) {
             const reg = await verRegistrado(res.user.email);
             const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
             oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
+            oauth.scopesDrive = JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes;
 
             verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
             clearTimeout(idTareaRefresco);
@@ -205,6 +206,7 @@ export function AuthProvider({ children }) {
             const res = await reauthenticateWithPopup(usuario, provider);
             const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
             oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
+            oauth.scopesDrive = JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes;
 
             clearTimeout(idTareaRefresco);
             setIdTareaRefresco(
@@ -307,6 +309,7 @@ export function AuthProvider({ children }) {
         if (valores != null) {
             const tokens = JSON.parse(valores);
             setTokenDrive(tokens.accessToken);
+            verificarPermisos(tokens.scopesDrive, scopes);
 
             return { success: true, expires: tokens.expires };
         }

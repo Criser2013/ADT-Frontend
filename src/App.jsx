@@ -33,8 +33,13 @@ export default function App() {
     }, [credenciales]);
 
     useEffect(() => {
+        if (auth.autenticado != null && !auth.autenticado) {
+            setModal2Btn(((x) => ({ ...x, mostrar: false })));
+            return;
+        }
+
         let compsModal = {
-            mostrar: !auth.permisos, mensaje: "Debes otorgar los permisos requeridos en tu cuenta de Google.",
+            mostrar: !auth.permisos, mensaje: "Debes otorgar los permisos requeridos en tu cuenta de Google para utilizar la aplicación.",
             titulo: "Permisos insuficientes", txtBtn: "Conceder permisos"
         };
         if (auth.requiereRefresco) {
@@ -44,7 +49,7 @@ export default function App() {
             };
         }
         setModal2Btn(compsModal);
-    }, [auth.permisos, auth.requiereRefresco]);
+    }, [auth.authInfo.user, auth.permisos, auth.requiereRefresco]);
 
     /** 
      * Escucha y muestra los errores de autenticación que se presenten.
@@ -74,7 +79,7 @@ export default function App() {
      * Manejador de eventos del botón de reintentar.
      */
     const manejadorBtnPermisos = async () => {
-        setModal2Btn(false);
+        setModal2Btn((x) => ({ ...x, mostrar: false }));
 
         const { user } = auth.authInfo;
 

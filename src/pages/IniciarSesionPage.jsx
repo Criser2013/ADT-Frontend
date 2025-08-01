@@ -61,6 +61,8 @@ export default function IniciarSesionPage() {
         } else {
             await auth.reautenticarUsuario(user);
         }
+
+        setDesactivarBtn(true);
     };
 
     /**

@@ -1,6 +1,6 @@
 import { Box, CircularProgress } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNavegacion } from '../contexts/NavegacionContext';
 import { useCredenciales } from '../contexts/CredencialesContext';
@@ -16,20 +16,22 @@ export default function CerrarSesionPage() {
     const navegacion = useNavegacion();
     const auth = useAuth();
     const credenciales = useCredenciales();
+    const height = useMemo(() => {
+        return navegacion.dispositivoMovil ? "96vh" : "97.5vh";
+    }, [navegacion.dispositivoMovil]);
 
     /**
      * Cierra la sesión del usuario y redirige a la página de inicio.
      */
     useEffect(() => {
-        const { user } = auth.authInfo;
-
-        if (user != null) {
+        if (auth.autenticado != null && auth.autenticado) {
             auth.cerrarSesion().then(() => {
-                credenciales.borrarCredsCookies();
                 navigate("/", { replace: true });
             });
+        } else if (auth.autenticado != null && !auth.autenticado) {
+            navigate("/", { replace: true });
         }
-    }, [auth.authInfo]);
+    }, [auth.autenticado]);
 
     /**
      * Manejador de eventos para redirigir al usuario a la página anterior
@@ -39,7 +41,7 @@ export default function CerrarSesionPage() {
         if (navegacion.paginaAnterior != null) {
             navigate(`/${navegacion.paginaAnterior}`, { replace: true });
             navegacion.setPaginaAnterior(null);
-        } else {
+        } else{
             navigate("/", { replace: true });
         }
     };
@@ -52,7 +54,7 @@ export default function CerrarSesionPage() {
     }, []);
 
     return (
-        <Box height="98vh" display="flex" justifyContent="center" alignItems="center">
+        <Box height={height} display="flex" justifyContent="center" alignItems="center">
             <CircularProgress />
         </Box>
     );

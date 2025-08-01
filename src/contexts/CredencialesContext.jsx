@@ -158,14 +158,6 @@ export function CredencialesProvider({ children }) {
     };
 
     /**
-     * Borra las cookies que almacenan las credenciales de la aplicación.
-     */
-    const borrarCredsCookies = () => {
-        Cookies.remove("session-credentials");
-        Cookies.remove("session-drive-scopes");
-    };
-
-    /**
      * Obtiene la instancia de Firestore.
      * @returns Object
      */
@@ -200,7 +192,7 @@ export function CredencialesProvider({ children }) {
     return (
         <credencialesContext.Provider value={{
             useCredenciales, obtenerInstanciaAuth, obtenerInstanciaDB,
-            verSiCredsFirebaseEstancargadas, scopesDrive, borrarCredsCookies, obtenerRecaptcha
+            verSiCredsFirebaseEstancargadas, scopesDrive, obtenerRecaptcha
         }}>
             {children}
         </credencialesContext.Provider>
