@@ -567,6 +567,17 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                         </Grid>) : null }
                         <Grid display="flex" justifyContent="center" size={numCols}>
                             <Stack direction="row" spacing={2}>
+                                <Tooltip title={diagnostico.diagnosticado ? "Vaciar los campos para realizar otro diagnóstico." : "Vaciar el contenido de los campos."}>
+                                    <Button
+                                        startIcon={<CloseIcon />}
+                                        variant="contained"
+                                        onClick={manejadorBtnVaciar}
+                                        sx={{
+                                            textTransform: "none"
+                                        }}>
+                                        <b>Vaciar campos</b>
+                                    </Button>
+                                </Tooltip>
                                 <Tooltip title={diagnostico.diagnosticado ? "Ver resultados del diagnóstico" : "Genera el diagnóstico de TEP."}>
                                     <span>
                                         <Button
@@ -580,17 +591,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                             <b>{diagnostico.diagnosticado ? "Ver diagnóstico" : "Diagnosticar"}</b>
                                         </Button>
                                     </span>
-                                </Tooltip>
-                                <Tooltip title={diagnostico.diagnosticado ? "Vaciar los campos para realizar otro diagnóstico." : "Vaciar el contenido de los campos."}>
-                                    <Button
-                                        startIcon={<CloseIcon />}
-                                        variant="contained"
-                                        onClick={manejadorBtnVaciar}
-                                        sx={{
-                                            textTransform: "none"
-                                        }}>
-                                        <b>Vaciar campos</b>
-                                    </Button>
                                 </Tooltip>
                             </Stack>
                         </Grid>

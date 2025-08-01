@@ -56,7 +56,8 @@ export function AuthProvider({ children }) {
      * Si el usuario ya está autenticado, obtiene sus datos.
      */
     useEffect(() => {
-        if (authInfo.user != null && authInfo.correo != null && authInfo.rol == null) {
+        const ruta = window.location.pathname != "/";
+        if (authInfo.user != null && authInfo.correo != null && authInfo.rol == null && ruta) {
             setCargando(true);
             verDatosUsuario(authInfo.user.email).then(() => {
                 setCargando(false);
@@ -69,7 +70,8 @@ export function AuthProvider({ children }) {
      * autenticación y permisos de Drive requeridos.
      */
     useEffect(() => {
-        if (auth != null && scopes != null && db != null) {
+        const ruta = window.location.pathname == "/";
+        if (auth != null && scopes != null && db != null && ruta) {
             setCargando(false);
         }
     }, [auth, db, scopes]);

@@ -28,7 +28,7 @@ export default function IniciarSesionPage() {
         } else if (dispositivoMovil && orientacion == "vertical") {
             return "100vh";
         } else {
-            return "90vh";
+            return "100vh";
         }
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
     const height = useMemo(() => {
@@ -75,7 +75,8 @@ export default function IniciarSesionPage() {
      * @param {String|null} token - Token de reCAPTCHA recibido al completar el desafío.
      */
     const manejadorReCAPTCHA = (token) => {
-        setDesactivarBtn(!(typeof token == "string"));
+        const res = (typeof token == "string");
+        setDesactivarBtn(!res);
     };
 
     return (
