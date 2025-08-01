@@ -1,11 +1,13 @@
 import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip } from "@mui/material";
 import GoogleIcon from '@mui/icons-material/Google';
 import ContrastIcon from '@mui/icons-material/Contrast';
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { useNavegacion } from "../contexts/NavegacionContext";
+import { useCredenciales } from "../contexts/CredencialesContext";
+import ReCAPTCHA from "react-google-recaptcha";
 
 /**
  * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.
@@ -16,6 +18,25 @@ export default function IniciarSesionPage() {
     const auth = useAuth();
     const navigation = useNavigate();
     const navegacion = useNavegacion();
+    const credenciales = useCredenciales();
+    const CAPTCHA = useRef(null);
+    const [desactivarBtn, setDesactivarBtn] = useState(true);
+    const width = useMemo(() => {
+        const { dispositivoMovil, orientacion } = navegacion;
+        if (!dispositivoMovil) {
+            return "60vh";
+        } else if (dispositivoMovil && orientacion == "vertical") {
+            return "100vh";
+        } else {
+            return "90vh";
+        }
+    }, [navegacion.dispositivoMovil, navegacion.orientacion]);
+    const height = useMemo(() => {
+        return navegacion.dispositivoMovil ? "96vh" : "97.5vh";
+    },[navegacion.dispositivoMovil]);
+    const reCAPTCHAApi = useMemo(() => {
+        return credenciales.obtenerRecaptcha();
+    }, [credenciales.obtenerRecaptcha()]);
 
     /**
      * Verifica la autenticación del usuario y redirige si ya está autenticado.
@@ -49,6 +70,14 @@ export default function IniciarSesionPage() {
         console.log("presionado");
     };
 
+    /**
+     * Activa o desactiva el botón de inicio de sesión basado en la respuesta de reCAPTCHA.
+     * @param {String|null} token - Token de reCAPTCHA recibido al completar el desafío.
+     */
+    const manejadorReCAPTCHA = (token) => {
+        setDesactivarBtn(!(typeof token == "string"));
+    };
+
     return (
         <>
             {auth.cargando ? (
@@ -56,8 +85,8 @@ export default function IniciarSesionPage() {
                     <CircularProgress />
                 </Box>
             ) : (
-                <Box display="flex" justifyContent="end" height="98vh" bgcolor="black">
-                    <Grid columns={12} spacing={1} container display="flex" alignItems="center" maxHeight="100%" maxWidth="60vh" bgcolor="white" paddingLeft="2vh" paddingRight="2vh" overflow="auto">
+                <Box display="flex" justifyContent="end" height={height} bgcolor="black">
+                    <Grid columns={12} spacing={1} container display="flex" alignItems="center" height="100%" width={width} bgcolor="white" padding="0vh 2vh" overflow="auto">
                         <Grid size={12} display="flex" justifyContent="end">
                             <Tooltip title="Cambiar tema">
                                 <IconButton aria-label="delete" onClick={manejadorBtnCambiarTema}>
@@ -86,16 +115,25 @@ export default function IniciarSesionPage() {
                                 mejores modelos. También puedes optar por realizar diagnósticos sin compartir los datos
                             </Typography>
                         </Grid>
+                        <Grid size={12} display="flex" justifyContent="center">
+                            <ReCAPTCHA
+                                onChange={manejadorReCAPTCHA}
+                                sitekey={reCAPTCHAApi}
+                                ref={CAPTCHA} />
+                        </Grid>
                         <Grid size={12} justifyContent="center" display="flex">
                             <Tooltip title="Ingresa a la aplicación con tu cuenta de Google">
-                                <Button
-                                    startIcon={<GoogleIcon />}
-                                    fullWidth
-                                    onClick={manejadorBtnIniciarSesion}
-                                    variant="contained"
-                                    sx={{ textTransform: "none" }}>
-                                    {auth.authInfo.user == null ? "Iniciar sesión" : "Ir a la aplicación"}
-                                </Button>
+                                <span style={{ width: "100%" }}>
+                                    <Button
+                                        startIcon={<GoogleIcon />}
+                                        fullWidth
+                                        onClick={manejadorBtnIniciarSesion}
+                                        variant="contained"
+                                        disabled={desactivarBtn}
+                                        sx={{ textTransform: "none" }}>
+                                        {auth.authInfo.user == null ? "Iniciar sesión" : "Ir a la aplicación"}
+                                    </Button>
+                                </span>
                             </Tooltip>
                         </Grid>
                         <Grid size={12}>
