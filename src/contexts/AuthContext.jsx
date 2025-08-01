@@ -120,7 +120,7 @@ export function AuthProvider({ children }) {
             const urlConds = ["/cerrar-sesion", "/"].includes(window.location.pathname);
 
             if (fecha != null && fecha > 180) {
-                clearTimeout(idTareaRefresco);              // Se refresca el token de acceso sino falta 3 minutos para que caduque el token - Cuando se recarga la página
+                clearTimeout(idTareaRefresco);              // Se refresca el token de acceso sino faltan mas de 3 minutos para que caduque el token - Cuando se recarga la página
                 setIdTareaRefresco(setTimeout(refrescarTokens, (fecha - 180) * 1000));
             } else if (fecha != null && (fecha <= 180 && fecha > 20)) {
                 refrescarTokens();                          // Si quedan menos de 3 minutos hasta 21 segs se refrescan los tokens - Cuando se recarga la página
@@ -139,7 +139,6 @@ export function AuthProvider({ children }) {
     /**
      * Inicia sesión con Google dentro de Firebase. Si la autenticación es exitosa 
      * almacena las credenciales del usuario.
-     * @param {boolean} ejecutar - Indica si se debe ejecutar el inicio de sesión. Por defecto es false.
      */
     const iniciarSesionGoogle = async () => {
         let resultado = { res: false, operacion: 0, error: "" };
@@ -191,41 +190,37 @@ export function AuthProvider({ children }) {
      * @param {User} usuario - Instancia del usuario de Firebase.
      */
     const reautenticarUsuario = async (usuario) => {
-        if (usuario != null && tokenDrive == null) {
-            setCargando(true);
-            try {
-                let provider = new GoogleAuthProvider();
+        setCargando(true);
+        try {
+            let provider = new GoogleAuthProvider();
 
-                // Se añaden los permisos necesarios para usar Drive
-                for (const i of scopes) {
-                    provider.addScope(i);
-                }
-
-                // Se vuelve a abrir el popup de Google para obtener el token de acceso a Drive
-                const res = await reauthenticateWithPopup(usuario, provider);
-                const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
-                oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
-
-                clearTimeout(idTareaRefresco);
-                setIdTareaRefresco(
-                    setTimeout(refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000)
-                );
-
-                verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
-                setTokenDrive(oauth.accessToken);
-                guardarAuthCredsSesion(oauth);
-                setAuthError({ res: false, operacion: 2, error: "" });
-                setRequiereRefresco(false);
-            } catch (error) {
-                if (requiereRefresco) {
-                    // Necesario por si cierra el popup de Google antes de reautenticarse cuando el token caduca
-                    setRequiereRefresco(true);
-                }
-                manejadorErroresAuth(error, 2, usuario);
+            // Se añaden los permisos necesarios para usar Drive
+            for (const i of scopes) {
+                provider.addScope(i);
             }
 
-            setCargando(false);
+            // Se vuelve a abrir el popup de Google para obtener el token de acceso a Drive
+            const res = await reauthenticateWithPopup(usuario, provider);
+            const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
+            oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
+
+            clearTimeout(idTareaRefresco);
+            setIdTareaRefresco(
+                setTimeout(refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000)
+            );
+
+            verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
+            setTokenDrive(oauth.accessToken);
+            guardarAuthCredsSesion(oauth);
+            setAuthError({ res: false, operacion: 2, error: "" });
+            setRequiereRefresco(false);
+        } catch (error) {
+            // Necesario por si cierra el popup de Google antes de reautenticarse cuando el token caduca
+            setRequiereRefresco(requiereRefresco);
+            manejadorErroresAuth(error, 2, usuario);
         }
+
+        setCargando(false);
     };
 
     /**
@@ -259,14 +254,12 @@ export function AuthProvider({ children }) {
      * @param {String} correo 
      */
     const verDatosUsuario = async (correo) => {
-        if (correo != null) {
-            const data = await verUsuario(correo, db);
+        const data = await verUsuario(correo, db);
 
-            if ((data.success == 1) && (data.data != undefined)) {
-                setAuthInfo((x) => ({
-                    user: x.user, correo: data.data.correo, rol: data.data.rol
-                }));
-            }
+        if ((data.success == 1) && (data.data != undefined)) {
+            setAuthInfo((x) => ({
+                user: x.user, correo: data.data.correo, rol: data.data.rol
+            }));
         }
     };
 
@@ -278,11 +271,9 @@ export function AuthProvider({ children }) {
     const registrarUsuario = async (correo) => {
         /* rol = 0 - Usuario normal
            rol = 1001 - Administrador */
-        if (correo != null) {
-            const res = await cambiarUsuario({ correo: correo, rol: 0 }, db);
+        const res = await cambiarUsuario({ correo: correo, rol: 0 }, db);
 
-            return { success: res.success };
-        }
+        return { success: res.success };
     };
 
     /**
@@ -290,19 +281,17 @@ export function AuthProvider({ children }) {
      * @param {String} correo - Correo del usuario a verificar.
      */
     const verRegistrado = async (correo) => {
-        if (correo != null) {
-            const res = await verSiEstaRegistrado(correo, db);
+        const res = await verSiEstaRegistrado(correo, db);
 
-            if (res.success && !res.data) {
-                // El usuario no está registrado, se procede a registrarlo
-                return await registrarUsuario(correo);
-            } else if (res.success && res.data) {
-                // El usuario está registrado
-                return { success: true, data: 1 };
-            } else if (!res.success) {
-                // Ha ocurrido un error al verificar si está registrado
-                return { success: false, data: 0 };
-            }
+        if (res.success && !res.data) {
+            // El usuario no está registrado, se procede a registrarlo
+            return await registrarUsuario(correo);
+        } else if (res.success && res.data) {
+            // El usuario está registrado
+            return { success: true, data: 1 };
+        } else if (!res.success) {
+            // Ha ocurrido un error al verificar si está registrado
+            return { success: false, data: 0 };
         }
     };
 
@@ -378,7 +367,7 @@ export function AuthProvider({ children }) {
     return (
         <authContext.Provider value={{
             useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive,
-            setScopes, cerrarSesion, iniciarSesionGoogle, verDatosUsuario, reautenticarUsuario, permisos, autenticado, requiereRefresco
+            setScopes, cerrarSesion, iniciarSesionGoogle, reautenticarUsuario, permisos, autenticado, requiereRefresco
         }}>
             {children}
         </authContext.Provider>

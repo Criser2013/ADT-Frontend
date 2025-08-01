@@ -77,7 +77,12 @@ export default function App() {
         setModal2Btn(false);
 
         const { user } = auth.authInfo;
-        await auth.reautenticarUsuario(user);
+
+        if (user != null) {
+            await auth.reautenticarUsuario(user);
+        } else {
+            await auth.iniciarSesionGoogle();
+        }
     };
 
     /**
@@ -94,10 +99,15 @@ export default function App() {
     /**
      * Manejador del botón para extender la sesión.
      */
-    const manejadorBtnReautenticar = () => {
+    const manejadorBtnReautenticar = async () => {
         const { user } = auth.authInfo;
         setModal2Btn((x) => ({ ...x, mostrar: false }));
-        auth.reautenticarUsuario(user);
+
+        if (user != null) {
+            await auth.reautenticarUsuario(user);
+        } else {
+            await auth.iniciarSesionGoogle();
+        }
     };
 
     return (
@@ -107,7 +117,7 @@ export default function App() {
                 abrir={modal2Btn.mostrar}
                 mensaje={modal2Btn.mensaje}
                 titulo="Aviso"
-                manejadorBtnPrimario={!auth.requiereRefresco ? manejadorBtnPermisos : manejadorBtnReautenticar}
+                manejadorBtnPrimario={auth.requiereRefresco ? manejadorBtnReautenticar : manejadorBtnPermisos}
                 manejadorBtnSecundario={manejadorBtnCerrarSesion}
                 mostrarBtnSecundario={true}
                 txtBtnSimple={modal2Btn.txtBtn}
