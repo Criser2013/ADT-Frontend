@@ -94,7 +94,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      * @param {Event} e 
      */
     const manejadorCambiosDatosTxt = (e) => {
-        setDatosTxt({ ...datosTxt, [e.target.name]: e.target.value });
+        setDatosTxt((x) => ({ ...x, [e.target.name]: e.target.value }));
     };
 
     /**
@@ -102,7 +102,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      * @param {Event} e 
      */
     const manejadorCambiosDatosBin = (e) => {
-        setDatosBin({ ...datosBin, [e.target.name]: e.target.checked });
+        setDatosBin((x) => ({ ...x, [e.target.name]: e.target.checked }));
     };
 
     /**

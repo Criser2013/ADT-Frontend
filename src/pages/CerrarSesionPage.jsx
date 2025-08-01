@@ -29,6 +29,7 @@ export default function CerrarSesionPage() {
                 navigate("/", { replace: true });
             });
         } else if (auth.autenticado != null && !auth.autenticado) {
+            auth.quitarPantallaCarga();
             navigate("/", { replace: true });
         }
     }, [auth.autenticado]);

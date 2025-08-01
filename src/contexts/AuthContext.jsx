@@ -369,10 +369,18 @@ export function AuthProvider({ children }) {
         }
     };
 
+    /**
+     * Quita el indicador de carga. Solo se usa cuando se ha cargado la información.
+     */
+    const quitarPantallaCarga = () => {
+        setCargando(false);
+    };
+
     return (
         <authContext.Provider value={{
             useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive,
-            setScopes, cerrarSesion, iniciarSesionGoogle, reautenticarUsuario, permisos, autenticado, requiereRefresco
+            setScopes, cerrarSesion, iniciarSesionGoogle, reautenticarUsuario, permisos, autenticado, 
+            requiereRefresco, quitarPantallaCarga
         }}>
             {children}
         </authContext.Provider>
