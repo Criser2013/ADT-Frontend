@@ -4,7 +4,7 @@ import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
 import TabHeader from "../components/tabs/TabHeader";
 import DeleteIcon from "@mui/icons-material/Delete";
-//import { useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { useNavegacion } from "../contexts/NavegacionContext";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
@@ -25,7 +25,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
  */
 export default function VerUsuariosPage() {
     const auth = useAuth();
-    //const navigate = useNavigate();
+    const navigate = useNavigate();
     const credenciales = useCredenciales();
     const navegacion = useNavegacion();
     const listadoPestanas = [{
@@ -100,11 +100,11 @@ export default function VerUsuariosPage() {
     useEffect(() => {
         document.title = "Lista de usuarios";
 
-        if (auth.authInfo.user != null) {
+        if (auth.authInfo.user != null && rol != null && rol == CODIGO_ADMIN) {
             manejadorRecargar(auth.authInfo.user.accessToken);
-        }/* else {
+        } else if (rol != null && rol != CODIGO_ADMIN) {
             navigate("/menu", { replace: true });
-        }*/
+        }
     }, [rol, auth.authInfo.user]);
 
     /**
