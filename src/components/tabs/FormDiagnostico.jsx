@@ -3,7 +3,7 @@ import {
     CircularProgress, MenuItem
 } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import { detTamCarga } from "../../utils/Responsividad";
 import Check from "../tabs/Check";
@@ -24,6 +24,7 @@ import { v6 } from "uuid";
 import { Timestamp } from "firebase/firestore";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import TabHeader from "../tabs/TabHeader";
+import ReCAPTCHA from "react-google-recaptcha";
 
 /**
  * Formulario para realizar un diagnostico de TEP.
@@ -60,6 +61,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const [diagnostico, setDiagnostico] = useState({
         resultado: false, probabilidad: 0, diagnosticado: false
     });
+    const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [desactivarCampos, setDesactivarCampos] = useState(false);
     const [otrasEnfermedades, setOtrasEnfermedades] = useState([]);
     const [errores, setErrores] = useState([
@@ -82,13 +84,17 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const numCols = useMemo(() => {
         return navegacion.dispositivoMovil || (!navegacion.dispositivoMovil && (navegacion.ancho < 500)) ? 1 : 3;
     }, [navegacion.dispositivoMovil, navegacion.ancho]);
+    const reCAPTCHAApi = useMemo(() => {
+        return credenciales.obtenerRecaptcha();
+    }, [credenciales.obtenerRecaptcha()]);
+    const CAPTCHA = useRef(null);
 
     /**
      * Manejador de cambios para los datos de texto.
      * @param {Event} e 
      */
     const manejadorCambiosDatosTxt = (e) => {
-        setDatosTxt({ ...datosTxt, [e.target.name]: e.target.value });
+        setDatosTxt((x) => ({ ...x, [e.target.name]: e.target.value }));
     };
 
     /**
@@ -96,7 +102,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      * @param {Event} e 
      */
     const manejadorCambiosDatosBin = (e) => {
-        setDatosBin({ ...datosBin, [e.target.name]: e.target.checked });
+        setDatosBin((x) => ({ ...x, [e.target.name]: e.target.checked }));
     };
 
     /**
@@ -148,6 +154,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      * Manejador del botón de vaciar campos.
      */
     const manejadorBtnVaciar = () => {
+        CAPTCHA.current.reset();
         setDesactivarCampos(false);
         setDiagnostico({ resultado: false, probabilidad: 0, diagnosticado: false });
         setDatosTxt({
@@ -278,7 +285,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const diagnosticar = async () => {
         const oneHotComor = oneHotEncondingOtraEnfermedad(datosBin.otraEnfermedad ? otrasEnfermedades : []);
         const datos = transformarDatos({ ...datosTxt, ...datosBin }, oneHotComor);
-        const res = await peticionApi(auth.authInfo.user.accessToken, "diagnosticar", "POST", datos, 
+        const res = await peticionApi(auth.authInfo.user.accessToken, "diagnosticar", "POST", datos,
             "Ha ocurrido un error al generar el diagnóstico. Por favor reintenta nuevamente."
         );
         const { success, data } = res;
@@ -334,6 +341,14 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 mensaje: `No se pudo guardar el diagnóstico: ${res.data}.`
             });
         }
+    };
+
+    /**
+     * Activa o desactiva el botón de inicio de sesión basado en la respuesta de reCAPTCHA.
+     * @param {String|null} token - Token de reCAPTCHA recibido al completar el desafío.
+     */
+    const manejadorReCAPTCHA = (token) => {
+        setDesactivarBtn(!(typeof token == "string"));
     };
 
     return (
@@ -544,19 +559,14 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 />
                             </Grid>
                         ) : null}
+                        {!diagnostico.diagnosticado ? (<Grid size={numCols} display="flex" justifyContent="center">
+                            <ReCAPTCHA
+                                onChange={manejadorReCAPTCHA}
+                                sitekey={reCAPTCHAApi}
+                                ref={CAPTCHA} />
+                        </Grid>) : null }
                         <Grid display="flex" justifyContent="center" size={numCols}>
                             <Stack direction="row" spacing={2}>
-                                <Tooltip title={diagnostico.diagnosticado ? "Ver resultados del diagnóstico" : "Genera el diagnóstico de TEP."}>
-                                    <Button
-                                        startIcon={diagnostico.diagnosticado ? <PersonSearchIcon /> : <DiagnosticoIcono />}
-                                        variant="contained"
-                                        onClick={manejadorBtnDiagnosticar}
-                                        sx={{
-                                            textTransform: "none"
-                                        }}>
-                                        <b>{diagnostico.diagnosticado ? "Ver diagnóstico" : "Diagnosticar"}</b>
-                                    </Button>
-                                </Tooltip>
                                 <Tooltip title={diagnostico.diagnosticado ? "Vaciar los campos para realizar otro diagnóstico." : "Vaciar el contenido de los campos."}>
                                     <Button
                                         startIcon={<CloseIcon />}
@@ -567,6 +577,20 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         }}>
                                         <b>Vaciar campos</b>
                                     </Button>
+                                </Tooltip>
+                                <Tooltip title={diagnostico.diagnosticado ? "Ver resultados del diagnóstico" : "Genera el diagnóstico de TEP."}>
+                                    <span>
+                                        <Button
+                                            startIcon={diagnostico.diagnosticado ? <PersonSearchIcon /> : <DiagnosticoIcono />}
+                                            variant="contained"
+                                            onClick={manejadorBtnDiagnosticar}
+                                            disabled={desactivarBtn}
+                                            sx={{
+                                                textTransform: "none"
+                                            }}>
+                                            <b>{diagnostico.diagnosticado ? "Ver diagnóstico" : "Diagnosticar"}</b>
+                                        </Button>
+                                    </span>
                                 </Tooltip>
                             </Stack>
                         </Grid>

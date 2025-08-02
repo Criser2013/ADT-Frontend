@@ -31,7 +31,7 @@ export function CredencialesProvider({ children }) {
         apiKey: null, authDomain: null, projectId: null,
         storeBucket: null, messagingSenderId: null,
         appId: null, measurementId: null, app: null,
-        db: null, auth: null
+        db: null, auth: null, reCAPTCHA: null
     });
 
     const [scopesDrive, setScopesDrive] = useState(null);
@@ -52,7 +52,8 @@ export function CredencialesProvider({ children }) {
                 messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
                 appId: import.meta.env.VITE_APP_ID,
                 measurementId: import.meta.env.VITE_MEASUREMENT_ID,
-                scopes: import.meta.env.VITE_DRIVE_SCOPES.split(",")
+                scopes: import.meta.env.VITE_DRIVE_SCOPES.split(","),
+                reCAPTCHA: import.meta.env.VITE_RECAPTCHA_SITE_KEY
             });
 
             setScopesDrive(import.meta.env.VITE_DRIVE_SCOPES.split(","));
@@ -157,14 +158,6 @@ export function CredencialesProvider({ children }) {
     };
 
     /**
-     * Borra las cookies que almacenan las credenciales de la aplicación.
-     */
-    const borrarCredsCookies = () => {
-        Cookies.remove("session-credentials");
-        Cookies.remove("session-drive-scopes");
-    };
-
-    /**
      * Obtiene la instancia de Firestore.
      * @returns Object
      */
@@ -188,8 +181,19 @@ export function CredencialesProvider({ children }) {
         return credsInfo.app != null && credsInfo.db != null && credsInfo.auth != null;
     };
 
+    /**
+     * Obtiene la clave de reCAPTCHA de las credenciales.
+     * @returns String
+     */
+    const obtenerRecaptcha = () => {
+        return credsInfo.reCAPTCHA;
+    };
+
     return (
-        <credencialesContext.Provider value={{ useCredentials: useCredenciales, obtenerInstanciaAuth, obtenerInstanciaDB, verSiCredsFirebaseEstancargadas, scopesDrive, borrarCredsCookies }}>
+        <credencialesContext.Provider value={{
+            useCredenciales, obtenerInstanciaAuth, obtenerInstanciaDB,
+            verSiCredsFirebaseEstancargadas, scopesDrive, obtenerRecaptcha
+        }}>
             {children}
         </credencialesContext.Provider>
     );

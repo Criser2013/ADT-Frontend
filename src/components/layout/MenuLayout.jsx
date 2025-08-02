@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router";
 import { useNavegacion } from "../../contexts/NavegacionContext";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 /**
  * Layout que contiene la sidebar y la barra de navegación superior.
@@ -15,6 +15,9 @@ export default function MenuLayout({ children }) {
     const auth = useAuth();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
+    const height = useMemo(() => {
+        return navegacion.dispositivoMovil ? "96vh" : "97.5vh";
+    }, [navegacion.dispositivoMovil]);
 
     /**
      * Si hay algún error de autenticación, muestra un modal con el mensaje de error y al cerrarlo
@@ -31,7 +34,7 @@ export default function MenuLayout({ children }) {
     return (
         <>
             {auth.cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" height="98vh">
+                <Box display="flex" justifyContent="center" alignItems="center" height={height}>
                     <CircularProgress />
                 </Box>
             ) : (
