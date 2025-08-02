@@ -80,7 +80,8 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
                 cedula: res.data.personales.cedula,
                 sexo: res.data.personales.sexo,
                 telefono: res.data.personales.telefono,
-                fechaNacimiento: dayjs(res.data.personales.fechaNacimiento, "DD-MM-YYYY")
+                fechaNacimiento: dayjs(res.data.personales.fechaNacimiento, "DD-MM-YYYY"),
+                fechaCreacion: res.data.personales.fechaCreacion
             });
             setComorActivadas(res.data.comorbilidades.length > 0);
             setComorbilidades(res.data.comorbilidades);
@@ -205,7 +206,9 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
         const oneHotComor = oneHotEncondingOtraEnfermedad(comorActivadas ? comorbilidades : []);
         const instancia = { ...datos, ...oneHotComor, otraEnfermedad: comorActivadas ? 1 : 0 };
 
+        dayjs.extend(customParseFormat);
         instancia.fechaNacimiento = datos.fechaNacimiento.format("DD-MM-YYYY");
+        instancia.fechaCreacion = dayjs().format("DD-MM-YYYY");
         manejadorResGuardado(instancia);
     };
 

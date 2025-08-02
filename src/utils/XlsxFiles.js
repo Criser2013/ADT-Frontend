@@ -80,7 +80,7 @@ export function leerArchivoXlsx (archivo) {
 export function validarXlsx (archivo, filas) {
     const hojas = archivo.SheetNames.length == 1 && archivo.SheetNames[0] == "Datos";
     const campos = Object.keys(filas[0]).sort();
-    const ord = COMORBILIDADES.concat(["cedula","nombre","sexo","telefono","fechaNacimiento","otraEnfermedad"]).sort();
+    const ord = COMORBILIDADES.concat(["cedula","nombre","sexo","telefono","fechaNacimiento","otraEnfermedad","fechaCreacion"]).sort();
     let igual = true;
 
     // comparar los arrays no funciona con el operador de igualdad
@@ -104,6 +104,7 @@ export function validarFilas (filas) {
         res &= validarTelefono(fila.telefono);
         res &= validarFecha(fila.fechaNacimiento);
         res &= fila.sexo == 0|| fila.sexo == 1;
+        res &= validarFecha(fila.fechaCreacion);
 
         for (const enfermedad of COMORBILIDADES) {
             res &= fila[enfermedad] == 0 || fila[enfermedad] == 1;
