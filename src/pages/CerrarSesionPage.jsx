@@ -3,7 +3,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNavegacion } from '../contexts/NavegacionContext';
-import { useCredenciales } from '../contexts/CredencialesContext';
 
 /**
  * Página dónde el usuario cierra sesión. Al acceder se cierra la sesión si el usuario
@@ -15,7 +14,6 @@ export default function CerrarSesionPage() {
     const navigate = useNavigate();
     const navegacion = useNavegacion();
     const auth = useAuth();
-    const credenciales = useCredenciales();
     const height = useMemo(() => {
         return navegacion.dispositivoMovil ? "96vh" : "97.5vh";
     }, [navegacion.dispositivoMovil]);
@@ -59,4 +57,5 @@ export default function CerrarSesionPage() {
             <CircularProgress />
         </Box>
     );
+
 };
