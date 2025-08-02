@@ -388,7 +388,7 @@ export function DriveProvider({ children }) {
     return (
         <driveContext.Provider value={{
             anadirPaciente, descargarContArchivo, setToken, descargando, cargarDatosPaciente,
-            eliminarPaciente, cargarDatos, datos, crearCopiaDiagnosticos
+            eliminarPaciente, cargarDatos, datos, crearCopiaDiagnosticos, token
         }}>
             {children}
         </driveContext.Provider>

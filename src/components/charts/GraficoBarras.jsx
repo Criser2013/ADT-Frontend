@@ -3,7 +3,15 @@ import {
     Title, Tooltip, Legend,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { useEffect } from 'react';
+
+ChartJS.register(
+            CategoryScale,
+            LinearScale,
+            BarElement,
+            Title,
+            Tooltip,
+            Legend
+        );
 
 /**
  * Gráfico de barras de Chart.js
@@ -21,31 +29,18 @@ import { useEffect } from 'react';
  * @param {String} modoActualizacion - Modo de actualización del gráfico (default, "none", "resize", etc).
  * @returns {JSX.Element}
  */
-export default function GraficoBarras({ titulo, datos, colores, modoActualizacion = "default" }) {
+export default function GraficoBarras({ titulo, datos, modoActualizacion = "default" }) {
     const opciones = {
         responsive: true,
-        color: colores,
         plugins: {
             legend: {
                 position: 'top',
             },
             title: {
-                display: true,
-                text: titulo,
+                display: true, text: titulo, color: "rgb(0, 0, 0)", font: { size: 13 },
             },
         },
     };
-
-    useEffect(() => {
-        ChartJS.register(
-            CategoryScale,
-            LinearScale,
-            BarElement,
-            Title,
-            Tooltip,
-            Legend
-        );
-    }, []);
 
     return (
         <Bar data={datos} options={opciones} updateMode={modoActualizacion} />
