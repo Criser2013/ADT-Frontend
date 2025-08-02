@@ -1,4 +1,4 @@
-import { Grid, Box, CircularProgress } from "@mui/material";
+import { Grid, Box, CircularProgress, Typography, Divider } from "@mui/material";
 import { useMemo, useState, useEffect } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useDrive } from "../../contexts/DriveContext";
@@ -10,7 +10,10 @@ import { obtenerDatosPorMes, obtenerDatosMesActual } from "../../utils/Fechas";
 import ModalSimple from "../modals/ModalSimple";
 import TarjetaMenuPrincipal from "./TarjetaMenuPrincipal";
 import GraficoBarras from "../charts/GraficoBarras";
-import { data } from "react-router";
+import GraficoPastel from "../charts/GraficoPastel";
+import { DiagnosticoIcono } from "../icons/IconosSidebar";
+import PersonIcon from '@mui/icons-material/Person';
+
 
 export default function MenuUsuario() {
     const auth = useAuth();
@@ -25,14 +28,39 @@ export default function MenuUsuario() {
     const [datosDiagnosticos, setDatosDiagnosticos] = useState(null);
     const [modal, setModal] = useState({ mostrar: false, mensaje: "", titulo: "" });
     const numCols = useMemo(() => {
-        return navegacion.dispositivoMovil || (!navegacion.dispositivoMovil && (navegacion.ancho < 500)) ? 1 : 2;
-    }, [navegacion.dispositivoMovil, navegacion.ancho]);
+        const { orientacion, dispositivoMovil } = navegacion;
+        return (dispositivoMovil && orientacion == "vertical") || (!dispositivoMovil && (navegacion.ancho < 500)) ? 1 : 2;
+    }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
     const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos), [datosDiagnosticos]);
     const pacientesMesActual = useMemo(() => obtenerDatosMesActual(datosPacientes), [datosPacientes]);
+    const propSexoPacientes = useMemo(() => {
+        const res = { Masculino: 0, Femenino: 0 };
+
+        if (pacientes != null) {
+            pacientes.forEach((x) => {
+                if (x.sexo == 0) {
+                    res.Masculino++;
+                } else {
+                    res.Femenino++;
+                }
+            });
+
+            res.Masculino = (res.Masculino / pacientes.length) * 100;
+            res.Femenino = (res.Femenino / pacientes.length) * 100;
+        }
+
+        return {
+            labels: ["Masculino", "Femenino"], datasets: [{
+                label: "Porcentaje de pacientes", data: [res.Masculino, res.Femenino], backgroundColor: [
+                    'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)'
+                ]
+            }]
+        };
+    }, [pacientes]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -147,14 +175,29 @@ export default function MenuUsuario() {
                 </Box>
             ) : (
                 <Grid columns={numCols} container spacing={2}>
-                    <Grid size={1}>
-                        <TarjetaMenuPrincipal titulo="Diagnósticos realizados este mes" valor={diagnosticosMesActual} />
-                    </Grid>
-                    <Grid size={1}>
-                        <TarjetaMenuPrincipal titulo="Pacientes registrados este mes" valor={pacientesMesActual} />
-                    </Grid>
                     <Grid size={2}>
-                        <GraficoBarras titulo="Número de diagnósticos y pacientes registrados en los últimos 5 meses" datos={datos} />
+                        <Typography variant="h4" align="left">
+                            Bienvenido, {auth.authInfo.user.displayName}
+                        </Typography>
+                        <Divider sx={{ padding: "1vh 0vh" }} />
+                    </Grid>
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="4vh 1.5vh">
+                        <TarjetaMenuPrincipal
+                            titulo="Diagnósticos realizados este mes"
+                            valor={diagnosticosMesActual}
+                            icono={<DiagnosticoIcono />} />
+                    </Grid>
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="4vh 1.5vh">
+                        <TarjetaMenuPrincipal
+                            titulo="Pacientes registrados este mes"
+                            valor={pacientesMesActual}
+                            icono={<PersonIcon />} />
+                    </Grid>
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vh">
+                        <GraficoBarras titulo="Cifras de los últimos 5 meses" datos={datos} />
+                    </Grid>
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" height="40vh" padding="0vh 1.5vh">
+                        <GraficoPastel titulo="Distribución de pacientes por sexo" datos={propSexoPacientes} />
                     </Grid>
                 </Grid>
             )}

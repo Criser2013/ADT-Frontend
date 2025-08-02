@@ -1,16 +1,14 @@
+import { Pie } from 'react-chartjs-2';
 import {
-    Chart as ChartJS, CategoryScale, LinearScale, BarElement,
-    Title, Tooltip, Legend,
+    Chart as ChartJS, Title, Tooltip, Legend, ArcElement
 } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
 
 ChartJS.register(
-    CategoryScale, LinearScale, BarElement,
-    Title, Tooltip, Legend
+    ArcElement, Title, Tooltip, Legend,
 );
 
 /**
- * Gráfico de barras de Chart.js
+ * Gráfico de pastel de Chart.js
  * @param {String} titulo - Título del gráfico
  * @param {JSON} datos - Datos a mostrar en el gráfico. Debe estar en la forma:  
  * {  
@@ -21,15 +19,16 @@ ChartJS.register(
  *     backgroundColor: ['red', 'blue', 'green'], - colores de las barras  
  *   }]  
  * }  
- * @param {Array} colores - Colores para las barras del gráfico
  * @param {String} modoActualizacion - Modo de actualización del gráfico (default, "none", "resize", etc).
  * @returns {JSX.Element}
  */
-export default function GraficoBarras({ titulo, datos, modoActualizacion = "default" }) {
+export default function GraficoPastel({ titulo, datos, modoActualizacion = "default" }) {
     const opciones = {
         responsive: true,
         plugins: {
-            legend: { position: 'top' },
+            legend: {
+                position: 'top',
+            },
             title: {
                 display: true, text: titulo, color: "rgb(0, 0, 0)", font: { size: 13 },
             },
@@ -37,6 +36,6 @@ export default function GraficoBarras({ titulo, datos, modoActualizacion = "defa
     };
 
     return (
-        <Bar data={datos} options={opciones} updateMode={modoActualizacion} />
+        <Pie data={datos} options={opciones} updateMode={modoActualizacion} />
     );
-}
+};
