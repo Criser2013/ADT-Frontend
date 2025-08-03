@@ -45,10 +45,10 @@ export default function IniciarSesionPage() {
         document.title = "Iniciar sesión - HADT";
         navegacion.setPaginaAnterior("");
 
-        if (auth.tokenDrive != null) {
+        if (auth.autenticado) {
             navigation("/menu", { replace: true });
         }
-    }, [auth.tokenDrive]);
+    }, [auth.autenticado]);
 
     /**
      * Manejador de eventos del botón para iniciar sesión.

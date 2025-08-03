@@ -13,8 +13,14 @@ import GraficoBarras from "../charts/GraficoBarras";
 import GraficoPastel from "../charts/GraficoPastel";
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import PersonIcon from '@mui/icons-material/Person';
+import dayjs from "dayjs";
+import { Timestamp } from "firebase/firestore";
 
-
+/**
+ * Menú principal para los usuarios. Muestra la cantidad de pacientes y diagnósticos registrados este mes y
+ * un gráfico de barras con las cifras de los últimos 5 meses.
+ * @returns {JSX.Element}
+ */
 export default function MenuUsuario() {
     const auth = useAuth();
     const credenciales = useCredenciales();
@@ -48,14 +54,11 @@ export default function MenuUsuario() {
                     res.Femenino++;
                 }
             });
-
-            res.Masculino = (res.Masculino / pacientes.length) * 100;
-            res.Femenino = (res.Femenino / pacientes.length) * 100;
         }
 
         return {
             labels: ["Masculino", "Femenino"], datasets: [{
-                label: "Porcentaje de pacientes", data: [res.Masculino, res.Femenino], backgroundColor: [
+                label: "Número de pacientes", data: [res.Masculino, res.Femenino], backgroundColor: [
                     'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)'
                 ]
             }]
@@ -134,7 +137,6 @@ export default function MenuUsuario() {
         return json;
     };
 
-
     /**
      * Carga los datos de los pacientes desde Drive
      */
@@ -155,7 +157,15 @@ export default function MenuUsuario() {
      * @param {Object} DB - Instancia de Firestore.
      */
     const cargarDiagnosticos = async (correo, DB) => {
-        const res = await verDiagnosticosPorMedico(correo, DB);
+        let fechaActual = dayjs().subtract(4, "month");
+
+        fechaActual = fechaActual.set("date", 1);
+        fechaActual = fechaActual.set("hour", 0);
+        fechaActual = fechaActual.set("minute", 0);
+        fechaActual = fechaActual.set("second", 0);
+        fechaActual = fechaActual.set("millisecond", 0);
+
+        const res = await verDiagnosticosPorMedico(correo, DB, Timestamp.fromDate(fechaActual.toDate()));
         if (res.success) {
             setDiagnosticos(res.data);
         } else {

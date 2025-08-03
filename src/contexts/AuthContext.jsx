@@ -71,10 +71,10 @@ export function AuthProvider({ children }) {
      */
     useEffect(() => {
         const ruta = window.location.pathname == "/";
-        if (auth != null && scopes != null && db != null && ruta) {
+        if (auth != null && scopes != null && db != null && ruta && autenticado != null) {
             setCargando(false);
         }
-    }, [auth, db, scopes]);
+    }, [auth, db, scopes, autenticado]);
 
     /**
      * Recupera la sesión si el usuario no la ha cerrado. También refresca los tokens
@@ -119,7 +119,7 @@ export function AuthProvider({ children }) {
             const resCredsSesion = cargarAuthCredsSesion();
             const fecha = (resCredsSesion.success && resCredsSesion.expires != undefined) ? ((parseInt(resCredsSesion.expires, 10) - Date.now()) / 1000) : null;
             const exp = ((fecha != null && fecha <= 20) || !resCredsSesion.success);
-            const urlConds = ["/cerrar-sesion", "/"].includes(window.location.pathname);
+            const urlConds = ["/cerrar-sesion", "/"].includes(location.pathname);
 
             if (fecha != null && fecha > 180) {
                 clearTimeout(idTareaRefresco);              // Se refresca el token de acceso sino faltan mas de 3 minutos para que caduque el token - Cuando se recarga la página
@@ -135,6 +135,10 @@ export function AuthProvider({ children }) {
         } else {
             setAuthInfo({ user: null, correo: null, rol: null });
             setAutenticado(false);
+
+            if (location.pathname != "/") {
+                location.replace("/");
+            }
         }
     };
 

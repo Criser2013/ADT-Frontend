@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, setDoc, where, query, deleteDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, setDoc, where, query, deleteDoc, and } from "firebase/firestore";
 
 /**
  * Edita el contenido de un documento. Sino existe lo crea.
@@ -61,12 +61,15 @@ export const verDiagnosticos = async (db) => {
  * @param {Object} db - Instancia de Firestore.
  * @returns JSON
  */
-export const verDiagnosticosPorMedico = async (id, db) => {
+export const verDiagnosticosPorMedico = async (id, db, fecha = null) => {
     try {
         const coleccion = collection(db, "diagnosticos");
-        const datos = await getDocs(
-            query(coleccion, where("medico", "==", id))
-        );
+        let consulta = query(coleccion, where("medico", "==", id));
+
+        if (fecha != null) {
+            consulta = query(coleccion, and(where("medico", "==", id), where("fecha", ">=", fecha)));
+        }
+        const datos = await getDocs(consulta);
 
         const diagnosticos = [];
         datos.forEach((doc) => {
