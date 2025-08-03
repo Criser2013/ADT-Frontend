@@ -3,6 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 import MenuLayout from "../components/layout/MenuLayout";
 import { CODIGO_ADMIN } from "../../constants";
 import MenuUsuario from "../components/tabs/MenuUsuario";
+import MenuAdministrador from "../components/tabs/MenuAdministrador";
 
 /**
  * Página del menú principal de la aplicación.
@@ -20,7 +21,9 @@ export default function MenuPage() {
         <MenuLayout>
             {(rol != CODIGO_ADMIN) ? (
                 <MenuUsuario />
-            ) : null}
+            ) : (
+                <MenuAdministrador />
+            )}
         </MenuLayout>
     );
 }
