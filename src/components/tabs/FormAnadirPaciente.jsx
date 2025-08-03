@@ -33,7 +33,7 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
     const navegacion = useNavegacion();
     const [datos, setDatos] = useState({
         "nombre": "", "cedula": cedula, "sexo": 2,
-        "telefono": "", "fechaNacimiento": null
+        "telefono": "", "fechaNacimiento": null, fechaCreacion: null
     });
     const [cargando, setCargando] = useState(true);
     const [comorActivadas, setComorActivadas] = useState(false);
@@ -208,7 +208,9 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
 
         dayjs.extend(customParseFormat);
         instancia.fechaNacimiento = datos.fechaNacimiento.format("DD-MM-YYYY");
-        instancia.fechaCreacion = dayjs().format("DD-MM-YYYY");
+        if (esAnadir) {
+            instancia.fechaCreacion = dayjs().format("DD-MM-YYYY");
+        }
         manejadorResGuardado(instancia);
     };
 

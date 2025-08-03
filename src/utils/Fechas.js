@@ -55,7 +55,7 @@ export function obtenerMesActualStr () {
  * @returns {Number}
  */
 export function obtenerDatosMesActual(datos) {
-    if (datos == null || datos.length === 0) {
+    if (datos == null || Object.keys(datos).length === 0) {
         return 0;
     } else {
         return datos[obtenerMesActualStr()];
