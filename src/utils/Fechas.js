@@ -6,12 +6,12 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
  * @param {Array[JSON]} datos - Datos con fechas a filtrar.
  * @param {String} clave - Clave del objeto que contiene la fecha.
  * @param {Number} numMesesAtras - Número de meses hacia atrás sin contar el mes actual.
+ * @param {Dayjs} fechaActual - Fecha actual para calcular los meses.
  * @returns {JSON[Number]}
  */
-export function obtenerDatosPorMes(datos, clave, numMesesAtras) {
+export function obtenerDatosPorMes(datos, clave, numMesesAtras, fechaActual) {
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     const res = {};
-    const fechaActual = dayjs();
     const fechaFinal = fechaActual.subtract(numMesesAtras, "month");
     const mes = fechaFinal.month();
 
@@ -42,22 +42,24 @@ export function obtenerDatosPorMes(datos, clave, numMesesAtras) {
 
 /**
  * Obtiene el nombre del mes actual.
+ * @param {Dayjs} fecha - Fecha para obtener el mes actual. Si no se proporciona, se usa la fecha actual.
  * @returns {String}
  */
-export function obtenerMesActualStr () {
+export function obtenerMesActualStr (fecha) {
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    return meses[dayjs().get("month")];
+    return meses[fecha.get("month")];
 }
 
 /**
  * Obtiene la cantidad de datos del mes actual.
  * @param {Object} datos - Datos con fechas a filtrar. Las claves deben ser los nombres de los meses.
+ * @param {Dayjs} fecha - Fecha para obtener el mes actual. Si no se proporciona, se usa la fecha actual.
  * @returns {Number}
  */
-export function obtenerDatosMesActual(datos) {
+export function obtenerDatosMesActual(datos, fecha) {
     if (datos == null || Object.keys(datos).length === 0) {
         return 0;
     } else {
-        return datos[obtenerMesActualStr()];
+        return datos[obtenerMesActualStr(fecha)];
     }
 }

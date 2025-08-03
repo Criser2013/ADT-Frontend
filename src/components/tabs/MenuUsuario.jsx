@@ -33,6 +33,7 @@ export default function MenuUsuario() {
     const [datosPacientes, setDatosPacientes] = useState(null);
     const [datosDiagnosticos, setDatosDiagnosticos] = useState(null);
     const [modal, setModal] = useState({ mostrar: false, mensaje: "", titulo: "" });
+    const fechaActual = useMemo(() => dayjs(), []);
     const numCols = useMemo(() => {
         const { orientacion, dispositivoMovil } = navegacion;
         return (dispositivoMovil && orientacion == "vertical") || (!dispositivoMovil && (navegacion.ancho < 500)) ? 1 : 2;
@@ -41,8 +42,8 @@ export default function MenuUsuario() {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
-    const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos), [datosDiagnosticos]);
-    const pacientesMesActual = useMemo(() => obtenerDatosMesActual(datosPacientes), [datosPacientes]);
+    const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual), [datosDiagnosticos, fechaActual]);
+    const pacientesMesActual = useMemo(() => obtenerDatosMesActual(datosPacientes, fechaActual), [datosPacientes, fechaActual]);
     const propSexoPacientes = useMemo(() => {
         const res = { Masculino: 0, Femenino: 0 };
 
@@ -94,8 +95,8 @@ export default function MenuUsuario() {
      */
     useEffect(() => {
         if (diagnosticos != null && pacientes != null && datos == null) {
-            const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4);
-            const pacientesMensuales = obtenerDatosPorMes(pacientes, "fechaCreacion", 4);
+            const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4, fechaActual);
+            const pacientesMensuales = obtenerDatosPorMes(pacientes, "fechaCreacion", 4, fechaActual);
             const json = {
                 datasets: [
                     formatearDatosGrafico(diagnosticosMensuales, 'rgba(255, 99, 132, 0.5)', "Diagnósticos realizados"),
