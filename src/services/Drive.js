@@ -33,7 +33,7 @@ function clasificarError(res, cuerpo) {
             return { success: false, data: [], error: `Sesión de carga resumible vencida` };
         case res.status == 404 && cuerpo.error.message.includes("File not found"):
             return { success: false, data: [], error: `Archivo no encontrado` };
-        case res.status == 401 && cuerpo.error.message.includes("Invalid Credentials"):
+        case res.status == 401 && cuerpo.error.message.includes("invalid authentication credentials"):
             return { success: false, data: [], error: `Credenciales inválidas, reintente nuevamente.` };
         default:
             return { success: false, data: [], error: `${res.status} ${cuerpo}` };

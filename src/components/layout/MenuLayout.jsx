@@ -26,7 +26,7 @@ export default function MenuLayout({ children }) {
     useEffect(() => {
         navegacion.setCallbackError({
             fn: () => {
-                navigate("/");
+                navigate("/", { replace: true });
             }
         });
     }, []);

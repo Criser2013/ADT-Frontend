@@ -20,7 +20,7 @@ export default function Sidebar() {
     const filas = useMemo(() => {
         const { rol } = auth.authInfo;
         const usuario = [
-            { txt: "Menú principal", icono: <HomeIcon />, ruta: "/menu-principal" },
+            { txt: "Menú principal", icono: <HomeIcon />, ruta: "/menu" },
             { txt: "Pacientes", icono: <ListPacienteIcono />, ruta: "/pacientes" },
             { txt: "Diagnosticar paciente", icono: <DiagnosticoIcono />, ruta: "/diagnostico-paciente" },
             { txt: "Diagnóstico anónimo", icono: <DiagAnonimoIcono />, ruta: "/diagnostico-anonimo" },

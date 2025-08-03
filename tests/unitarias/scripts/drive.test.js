@@ -314,7 +314,7 @@ describe("Validar la funcion 'buscarArchivo'", () => {
                 json: () => Promise.resolve({
                     error: {
                         code: 401,
-                        message: "Invalid Credentials"
+                        message: "invalid authentication credentials"
                     }
                 })
             })
