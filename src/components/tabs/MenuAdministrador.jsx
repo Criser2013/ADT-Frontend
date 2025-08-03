@@ -1,32 +1,29 @@
 import { Grid, Box, CircularProgress, Typography, Divider } from "@mui/material";
 import { useMemo, useState, useEffect } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
-import { useDrive } from "../../contexts/DriveContext";
 import { detTamCarga } from "../../utils/Responsividad";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCredenciales } from "../../contexts/CredencialesContext";
-import { verDiagnosticos, verDiagnosticosPorMedico } from "../../firestore/diagnosticos-collection";
+import { verDiagnosticos } from "../../firestore/diagnosticos-collection";
 import { obtenerDatosPorMes, obtenerDatosMesActual } from "../../utils/Fechas";
 import ModalSimple from "../modals/ModalSimple";
 import TarjetaMenuPrincipal from "./TarjetaMenuPrincipal";
 import GraficoBarras from "../charts/GraficoBarras";
 import GraficoPastel from "../charts/GraficoPastel";
-import { DiagnosticoIcono } from "../icons/IconosSidebar";
+import { DatosIcono, DiagnosticoIcono } from "../icons/IconosSidebar";
 import PersonIcon from '@mui/icons-material/Person';
 import dayjs from "dayjs";
-import { Timestamp } from "firebase/firestore";
-import { peticionApi} from "../../services/Api";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { peticionApi } from "../../services/Api";
 
 /**
- * Menú principal para los administradores. Muestra la cantidad de pacientes y diagnósticos registrados este mes y
- * un gráfico de barras con las cifras de los últimos 5 meses.
+ * Menú principal para los administradores. Muestra la cantidad de diagnósticos y usuarios nuevos.
  * @returns {JSX.Element}
  */
 export default function MenuAdministrador() {
     const auth = useAuth();
     const credenciales = useCredenciales();
     const navegacion = useNavegacion();
-    const drive = useDrive();
     const [cargando, setCargando] = useState(true);
     const [usuarios, setUsuarios] = useState(null);
     const [diagnosticos, setDiagnosticos] = useState(null);
@@ -37,7 +34,13 @@ export default function MenuAdministrador() {
     const fechaActual = useMemo(() => dayjs(), []);
     const numCols = useMemo(() => {
         const { orientacion, dispositivoMovil } = navegacion;
-        return (dispositivoMovil && orientacion == "vertical") || (!dispositivoMovil && (navegacion.ancho < 500)) ? 1 : 2;
+        if ((dispositivoMovil && orientacion == "vertical") || (!dispositivoMovil && (navegacion.ancho < 500))) {
+            return 1;
+        } else if (dispositivoMovil && orientacion == "horizontal") {
+            return 2;
+        } else {
+            return 4;
+        }
     }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
@@ -45,23 +48,43 @@ export default function MenuAdministrador() {
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
     const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual), [datosDiagnosticos, fechaActual]);
     const usuariosMesActual = useMemo(() => obtenerDatosMesActual(datosUsuarios, fechaActual), [datosUsuarios, fechaActual]);
+    const colsGraficos = useMemo(() => {
+        const { orientacion, dispositivoMovil, mostrarMenu } = navegacion;
+        if (dispositivoMovil && orientacion == "vertical") {
+            return 1;
+        } else if (dispositivoMovil && orientacion == "horizontal" && !mostrarMenu) {
+            return 1;
+        } else if (dispositivoMovil && orientacion == "horizontal" && mostrarMenu) {
+            return 2;
+        } else {
+            return 2;
+        }
+    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu]);
+    const cantDiagnosticos = useMemo(() => {
+        return diagnosticos != null ? diagnosticos.length : 0;
+    }, [diagnosticos]);
+    const cantDiagnosticosConfir = useMemo(() => {
+        return diagnosticos != null ? diagnosticos.filter(x => x.validado != 2).length : 0;
+    }, [diagnosticos]);
     const propDiagnosticos = useMemo(() => {
-        const res = { Positivo: 0, Negativo: 0 };
+        const res = { Positivo: 0, Negativo: 0, "No validado": 0 };
 
         if (diagnosticos != null) {
             diagnosticos.forEach((x) => {
-                if (x.diagnostico == 1) {
+                if (x.validado == 1) {
                     res.Positivo++;
-                } else {
+                } else if (x.validado == 0) {
                     res.Negativo++;
+                } else {
+                    res["No validado"]++;
                 }
             });
         }
 
         return {
-            labels: ["Positivo", "Negativo"], datasets: [{
-                label: "Número de diagnósticos", data: [res.Positivo, res.Negativo], backgroundColor: [
-                    'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)'
+            labels: ["Positivo", "Negativo", "No validado"], datasets: [{
+                label: "Número de diagnósticos", data: [res.Positivo, res.Negativo, res["No validado"]], backgroundColor: [
+                    'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'
                 ]
             }]
         };
@@ -162,29 +185,41 @@ export default function MenuAdministrador() {
                 </Box>
             ) : (
                 <Grid columns={numCols} container spacing={2}>
-                    <Grid size={2}>
+                    <Grid size={4}>
                         <Typography variant="h4" align="left">
                             Bienvenido, {auth.authInfo.user.displayName}
                         </Typography>
                         <Divider sx={{ padding: "1vh 0vh" }} />
                     </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="4vh 1.5vh">
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
                         <TarjetaMenuPrincipal
                             titulo="Diagnósticos realizados este mes"
                             valor={diagnosticosMesActual}
-                            icono={<DiagnosticoIcono />} />
+                            icono={<DiagnosticoIcono sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="4vh 1.5vh">
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
                         <TarjetaMenuPrincipal
-                            titulo="Usuarios registrados este mes"
+                            titulo="Usuarios nuevos este mes"
                             valor={usuariosMesActual}
-                            icono={<PersonIcon />} />
+                            icono={<PersonIcon sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vh">
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
+                        <TarjetaMenuPrincipal
+                            titulo="Diagnósticos recolectados"
+                            valor={cantDiagnosticos}
+                            icono={<DatosIcono sx={{ fontSize: "4.5vh" }} />} />
+                    </Grid>
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
+                        <TarjetaMenuPrincipal
+                            titulo="Diagnósticos validados"
+                            valor={cantDiagnosticosConfir}
+                            icono={<CheckCircleIcon sx={{ fontSize: "4.5vh" }} />} />
+                    </Grid>
+                    <Grid size={colsGraficos} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vh">
                         <GraficoBarras titulo="Cifras de los últimos 5 meses" datos={datos} />
                     </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" height="40vh" padding="0vh 1.5vh">
-                        <GraficoPastel titulo="Proporción de diagnósticos" datos={propDiagnosticos} />
+                    <Grid size={colsGraficos} display="flex" justifyContent="center" alignItems="center" height="40vh" padding="0vh 1.5vh">
+                        <GraficoPastel titulo="Distribución de los diagnósticos" datos={propDiagnosticos} />
                     </Grid>
                 </Grid>
             )}
