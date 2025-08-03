@@ -5,7 +5,7 @@ import {
 import { useDrive } from "../contexts/DriveContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavegacion } from "../contexts/NavegacionContext";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import TabHeader from "../components/tabs/TabHeader";
 import MenuLayout from "../components/layout/MenuLayout";
 import { detTamCarga } from "../utils/Responsividad";
@@ -45,19 +45,23 @@ export default function VerPacientePage() {
         },
         comorbilidades: []
     });
-    const campos = [
+    const width = useMemo(() => {
+        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
+    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
+    const padding = useMemo(() => !navegacion.dispositivoMovil ? "3vh" : "0vh", [navegacion.dispositivoMovil]);
+    const campos = useMemo(() => [
         { titulo: "Nombre", valor: datos.personales.nombre },
         { titulo: "Cédula", valor: datos.personales.cedula },
         { titulo: "Fecha de nacimiento", valor: datos.personales.fechaNacimiento },
         { titulo: "Edad", valor: `${datos.personales.edad} años` },
         { titulo: "Teléfono", valor: datos.personales.telefono },
         { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" }
-    ];
-    const listadoPestanas = [
+    ], []);
+    const listadoPestanas = useMemo(() => [
         { texto: "Lista de pacientes", url: "/pacientes" },
         { texto: `Paciente-${datos.personales.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
-    ];
-    const ced = params.get("cedula");
+    ], [datos.personales.nombre, location.search]);
+    const ced = useMemo(() => params.get("cedula"), [params]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -195,7 +199,7 @@ export default function VerPacientePage() {
         <>
             <MenuLayout>
                 {cargando ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" width={detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho)} height="85vh">
+                    <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
                         <CircularProgress />
                     </Box>
                 ) : (
@@ -208,8 +212,8 @@ export default function VerPacientePage() {
                         <Grid container
                             columns={12}
                             spacing={1}
-                            paddingLeft={!navegacion.dispositivoMovil ? "3vh" : "0vh"}
-                            paddingRight={!navegacion.dispositivoMovil ? "3vh" : "0vh"}
+                            paddingLeft={padding}
+                            paddingRight={padding}
                             marginTop="3vh">
                             <Grid size={12} display="flex" justifyContent="end">
                                 <Tooltip title="Ver más opciones.">
@@ -283,8 +287,7 @@ export default function VerPacientePage() {
                             </Fab>
                         </Tooltip>
                     </>
-                )
-                }
+                )}
                 <ModalAccion
                     abrir={modal.mostrar}
                     titulo={modal.titulo}

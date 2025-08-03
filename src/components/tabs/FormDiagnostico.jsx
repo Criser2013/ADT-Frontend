@@ -87,6 +87,19 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const reCAPTCHAApi = useMemo(() => {
         return credenciales.obtenerRecaptcha();
     }, [credenciales.obtenerRecaptcha()]);
+    const desactivarCamposAux = useMemo(() => desactivarCampos || esDiagPacientes, [desactivarCampos, esDiagPacientes]);
+    const txtErrorOtrasEnfermedades = useMemo(() => !esDiagPacientes ? errores[10].txt : "", [esDiagPacientes, errores[10]]);
+    const txtErrorSexo = useMemo(() => !esDiagPacientes ? errores[0].txt : "", [esDiagPacientes, errores[0]]);
+    const txtErrorEdad = useMemo(() => !esDiagPacientes ? errores[1].txt : "", [esDiagPacientes, errores[1]]);
+    const txtBtnDiagnostico = useMemo(() => {
+        return diagnostico.diagnosticado ? "Ver diagnóstico" : "Diagnosticar";
+    }, [diagnostico.diagnosticado]);
+    const toolBtnVaciar = useMemo(() => {
+        return diagnostico.diagnosticado ? "Vaciar los campos para realizar otro diagnóstico." : "Vaciar el contenido de los campos.";
+    }, [diagnostico.diagnosticado]);
+    const toolBtnDiagnosticar = useMemo(() => {
+        return diagnostico.diagnosticado ? "Ver resultados del diagnóstico" : "Genera el diagnóstico de TEP.";
+    }, [diagnostico.diagnosticado]);
     const CAPTCHA = useRef(null);
 
     /**
@@ -396,8 +409,8 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 value={datosTxt.sexo}
                                 onChange={manejadorCambiosDatosTxt}
                                 error={errores[0].error && !esDiagPacientes}
-                                helperText={!esDiagPacientes ? errores[0].txt : ""}
-                                disabled={desactivarCampos || esDiagPacientes}
+                                helperText={txtErrorSexo}
+                                disabled={desactivarCamposAux}
                                 fullWidth>
                                 {SEXOS.map((x) => (
                                     <MenuItem key={x.val} value={x.val}>
@@ -413,8 +426,8 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 value={datosTxt.edad}
                                 onChange={manejadorCambiosDatosTxt}
                                 error={errores[1].error && !esDiagPacientes}
-                                disabled={desactivarCampos || esDiagPacientes}
-                                helperText={!esDiagPacientes ? errores[1].txt : ""}
+                                disabled={desactivarCamposAux}
+                                helperText={txtErrorEdad}
                                 fullWidth />
                         </Grid>
                         <Grid size={numCols}>
@@ -542,7 +555,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 nombre="otraEnfermedad"
                                 etiqueta="El paciente padece otra enfermedad."
                                 activado={datosBin.otraEnfermedad}
-                                desactivado={desactivarCampos || esDiagPacientes}
+                                desactivado={desactivarCamposAux}
                                 manejadorCambios={manejadorCambiosDatosBin} />
                         </Grid>
                         {datosBin.otraEnfermedad ? (
@@ -553,8 +566,8 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                     manejadorCambios={manejadorCambiosComor}
                                     nombre="comorbilidades"
                                     error={errores[10].error}
-                                    txtError={!esDiagPacientes ? errores[10].txt : ""}
-                                    desactivado={desactivarCampos || esDiagPacientes}
+                                    txtError={txtErrorOtrasEnfermedades}
+                                    desactivado={desactivarCamposAux}
                                     etiqueta="Padecimiento(s) del paciente"
                                 />
                             </Grid>
@@ -567,7 +580,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                         </Grid>) : null }
                         <Grid display="flex" justifyContent="center" size={numCols}>
                             <Stack direction="row" spacing={2}>
-                                <Tooltip title={diagnostico.diagnosticado ? "Vaciar los campos para realizar otro diagnóstico." : "Vaciar el contenido de los campos."}>
+                                <Tooltip title={toolBtnVaciar}>
                                     <Button
                                         startIcon={<CloseIcon />}
                                         variant="contained"
@@ -578,7 +591,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         <b>Vaciar campos</b>
                                     </Button>
                                 </Tooltip>
-                                <Tooltip title={diagnostico.diagnosticado ? "Ver resultados del diagnóstico" : "Genera el diagnóstico de TEP."}>
+                                <Tooltip title={toolBtnDiagnosticar}>
                                     <span>
                                         <Button
                                             startIcon={diagnostico.diagnosticado ? <PersonSearchIcon /> : <DiagnosticoIcono />}
@@ -588,7 +601,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                             sx={{
                                                 textTransform: "none"
                                             }}>
-                                            <b>{diagnostico.diagnosticado ? "Ver diagnóstico" : "Diagnosticar"}</b>
+                                            <b>{txtBtnDiagnostico}</b>
                                         </Button>
                                     </span>
                                 </Tooltip>

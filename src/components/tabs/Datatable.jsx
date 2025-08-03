@@ -1,7 +1,8 @@
 import {
     Box, Paper, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead,
     TableRow, TablePagination, TableSortLabel, TextField, Typography, InputAdornment,
-    Toolbar, IconButton, Stack, Tooltip
+    Toolbar, IconButton, Stack, Tooltip,
+    CircularProgress
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -60,6 +61,10 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     const tamCampoBusq = useMemo(() => {
         return (navegacion.dispositivoMovil && navegacion.orientacion != "horizontal") ? "90%" : "100%";
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
+    const indeterminado = useMemo(() => numSeleccionados > 0 && (numSeleccionados < numFilas || numSeleccionados < datos.length), 
+    [numSeleccionados, numFilas, datos.length]);
+    const seleccionTodos = useMemo(() => numFilas > 0 && (numSeleccionados === numFilas || numSeleccionados === datos.length), 
+    [numSeleccionados, numFilas, datos.length]);
     const filasVacias = pagina > 0 ? Math.max(0, (1 + pagina) * filasEnPagina - datos.length) : 0;
 
     /**
@@ -157,9 +162,9 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
      * Manejador del botón de limpiar búsqueda.
      */
     const manejadorBtnLimpiarBusq = () => {
-        setBusqueda("");
         setPagina(0);
         setAuxDatos(datos);
+        document.getElementsByName("busq")[0].value = "";
     };
 
     /**
@@ -207,7 +212,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                             <TextField
                                 name="busq"
                                 placeholder={lblBusq}
-                                value={busqueda}
+                                defaultValue={terminoBusqueda}
                                 onChange={manejadorBusqueda}
                                 sx={{ backgroundColor: "white", width: tamCampoBusq, paddingTop: "1vh" }}
                                 slotProps={{
@@ -240,8 +245,8 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                     <TableCell padding="checkbox">
                                         <Checkbox
                                             color="primary"
-                                            indeterminate={numSeleccionados > 0 && (numSeleccionados < numFilas || numSeleccionados < datos.length)}
-                                            checked={numFilas > 0 && (numSeleccionados === numFilas || numSeleccionados === datos.length)}
+                                            indeterminate={indeterminado}
+                                            checked={seleccionTodos}
                                             onChange={seleccionarTodo}
                                         />
                                     </TableCell>
@@ -277,8 +282,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                         {busqueda.length > 0 ? "No se encontraron resultados para la búsqueda." : "No hay datos para mostrar."}
                                     </Typography>
                                 </TableRow>
-                            ) : null
-                            }
+                            ) : null}
                             {filas.map((x, i) => {
                                 const estaSeleccionada = seleccionados.includes(x[campoId]);
                                 const labelId = `enhanced-table-checkbox-${i}`;

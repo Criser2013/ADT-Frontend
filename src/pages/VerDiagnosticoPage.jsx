@@ -131,8 +131,8 @@ export default function VerDiagnosticoPage() {
             return persona.nombre != "" ? `Diagnóstico — ${persona.nombre}` : "Ver diagnóstico";
         }
     }, [rol, persona.nombre, datos.personales.id]);
-    const id = params.get("id");
-    const DB = credenciales.obtenerInstanciaDB();
+    const id = useMemo(() => params.get("id"), [params]);
+    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
