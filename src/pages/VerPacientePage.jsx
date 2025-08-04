@@ -48,7 +48,7 @@ export default function VerPacientePage() {
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
-    const padding = useMemo(() => !navegacion.dispositivoMovil ? "3vh" : "0vh", [navegacion.dispositivoMovil]);
+    const padding = useMemo(() => !navegacion.dispositivoMovil ? "2vh" : "0vh", [navegacion.dispositivoMovil]);
     const campos = useMemo(() => [
         { titulo: "Nombre", valor: datos.personales.nombre },
         { titulo: "Cédula", valor: datos.personales.cedula },
@@ -56,7 +56,7 @@ export default function VerPacientePage() {
         { titulo: "Edad", valor: `${datos.personales.edad} años` },
         { titulo: "Teléfono", valor: datos.personales.telefono },
         { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" }
-    ], []);
+    ], [datos.personales]);
     const listadoPestanas = useMemo(() => [
         { texto: "Lista de pacientes", url: "/pacientes" },
         { texto: `Paciente-${datos.personales.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
@@ -212,10 +212,9 @@ export default function VerPacientePage() {
                         <Grid container
                             columns={12}
                             spacing={1}
-                            paddingLeft={padding}
                             paddingRight={padding}
                             marginTop="3vh">
-                            <Grid size={12} display="flex" justifyContent="end">
+                            <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vh">
                                 <Tooltip title="Ver más opciones.">
                                     <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
                                         <MoreVertIcon />
@@ -248,7 +247,7 @@ export default function VerPacientePage() {
                             {campos.map((campo, index) => (
                                 <Grid key={index} size={detVisualizacion(index)}>
                                     <Stack direction="row" spacing={1} alignItems="center">
-                                        <Typography variant="h6">
+                                        <Typography variant="body1">
                                             <b>{campo.titulo}: </b>
                                         </Typography>
                                         <Typography variant="body1">

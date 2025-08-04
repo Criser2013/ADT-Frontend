@@ -537,7 +537,7 @@ export default function VerDiagnosticosPage() {
                         activarBtnAtras={false}
                         titulo={titulo}
                         pestanas={listadoPestanas} />
-                    <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
+                    <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width - 1 }}>
                         <AlertaEspacio />
                         <Grid size={1} display="flex" justifyContent="end">
                             <Button

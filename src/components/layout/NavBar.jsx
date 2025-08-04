@@ -80,9 +80,8 @@ export default function Navbar() {
                         {navegacion.mostrarMenu ? <MenuOpenIcon /> : <MenuIcon />}
                     </IconButton>
                     <Typography variant="h6">HADT</Typography>
-
                     <Stack direction="row" spacing={1}>
-                        <IconButton onClick={manejadorBtnTema}>
+                        <IconButton color="inherit" onClick={manejadorBtnTema}>
                             <ContrastIcon />
                         </IconButton>
                         <Tooltip title="Ver opciones de usuario">

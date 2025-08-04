@@ -9,5 +9,5 @@ export default defineConfig({
 			usePolling: true,
 		},
 	},
-	assetsInclude: ["**/*.txt", "**/*.svg"],
+	assetsInclude: ["**/*.txt", "**/*.svg", "**/*.ttf"],
 });

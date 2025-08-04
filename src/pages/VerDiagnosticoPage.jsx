@@ -107,9 +107,6 @@ export default function VerDiagnosticoPage() {
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
-    const padding = useMemo(() => {
-        return !navegacion.dispositivoMovil ? "3vh" : "0vh";
-    }, [navegacion.dispositivoMovil]);
     const listadoPestanas = useMemo(() => {
         let tit1 = "Histotrial de diagnósticos";
         let tit2 = `Diagnóstico-${persona.nombre}-${datos.personales.fecha}`;
@@ -439,11 +436,9 @@ export default function VerDiagnosticoPage() {
                         <Grid container
                             columns={12}
                             spacing={1}
-                            paddingLeft={padding}
-                            paddingRight={padding}
                             marginTop="3vh">
                             {(rol == CODIGO_ADMIN) ? (
-            <Grid size={12} display="flex" justifyContent="end">
+            <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vh">
                 <Tooltip title="Ver más opciones.">
                     <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
                         <MoreVertIcon />
@@ -474,7 +469,7 @@ export default function VerDiagnosticoPage() {
                 </Popover>
             </Grid>) : null}
                             <Grid size={12}>
-                                <Typography variant="h5">
+                                <Typography variant="h5" paddingBottom="2vh">
                                     Datos personales
                                 </Typography>
                             </Grid>
@@ -485,7 +480,7 @@ export default function VerDiagnosticoPage() {
                                 <Divider />
                             </Grid>
                             <Grid size={12}>
-                                <Typography variant="h5">
+                                <Typography variant="h5" paddingBottom="0.2vh">
                                     Síntomas clínicos
                                 </Typography>
                             </Grid>
@@ -509,7 +504,7 @@ export default function VerDiagnosticoPage() {
                                 <Divider />
                             </Grid>
                             <Grid size={12}>
-                                <Typography variant="h5">
+                                <Typography variant="h5" paddingBottom="2vh">
                                     Exámenes de laboratorio
                                 </Typography>
                             </Grid>

@@ -195,14 +195,16 @@ export default function MenuUsuario() {
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
                         <TarjetaMenuPrincipal
                             titulo="Diagnósticos realizados este mes"
+                            altura="100%"
                             valor={diagnosticosMesActual}
-                            icono={<DiagnosticoIcono sx={{fontSize: "4.5vh"}} />} />
+                            icono={<DiagnosticoIcono sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
                         <TarjetaMenuPrincipal
                             titulo="Pacientes registrados este mes"
+                            altura="100%"
                             valor={pacientesMesActual}
-                            icono={<PersonIcon sx={{fontSize: "4.5vh"}} />} />
+                            icono={<PersonIcon sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vh">
                         <GraficoBarras titulo="Cifras de los últimos 5 meses" datos={datos} />

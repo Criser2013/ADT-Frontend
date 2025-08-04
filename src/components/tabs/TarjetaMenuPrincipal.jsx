@@ -8,12 +8,13 @@ import { Box, Card, Stack, Typography } from "@mui/material";
  * @param {String} colorFondo - Color de fondo de la tarjeta.
  * @param {String} colorTexto - Color del texto de la tarjeta.
  * @param {String} ColorFondoIcono - Color de fondo del icono.
+ * @param {String} altura - Altura de la tarjeta.
  * @returns {JSX.Element}
  */
-export default function TarjetaMenuPrincipal({ titulo, valor, icono, colorFondo = "#cce4f2", colorTexto = "#182d6d", ColorFondoIcono = "#aeccea" }) {
+export default function TarjetaMenuPrincipal({ titulo, valor, icono, colorFondo = "#cce4f2", colorTexto = "#182d6d", ColorFondoIcono = "#aeccea", altura = "80%" }) {
     return (
         <Card elevation={0} sx={{
-            width: "100%", height: "80%", display: "flex", justifyContent: "center",
+            width: "100%", height: altura, display: "flex", justifyContent: "center",
             alignItems: "center", backgroundColor: colorFondo, borderRadius: 5, padding: "3vh 0vh"
         }}>
             <Stack direction="column" spacing={1} display="flex" justifyContent="center" alignItems="center">

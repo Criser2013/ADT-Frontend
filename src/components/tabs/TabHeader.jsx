@@ -40,6 +40,9 @@ export default function TabHeader({ urlPredet, titulo, pestanas, tooltip, activa
                         </IconButton>
                     </Tooltip>) : null}
                 <Box>
+                    <Typography variant="h5">
+                        <b>{titulo}</b>
+                    </Typography>
                     <Breadcrumbs>
                         {pestanas && pestanas.length > 0 ? (
                             pestanas.map((x) => {
@@ -51,9 +54,6 @@ export default function TabHeader({ urlPredet, titulo, pestanas, tooltip, activa
                             })
                         ) : null}
                     </Breadcrumbs>
-                    <Typography variant="h5">
-                        <b>{titulo}</b>
-                    </Typography>
                 </Box>
             </Stack>
             <Divider orientation="horizontal" sx={{ marginTop: "1vh", marginBottom: "1vh" }} />

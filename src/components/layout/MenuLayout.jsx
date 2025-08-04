@@ -18,6 +18,15 @@ export default function MenuLayout({ children }) {
     const height = useMemo(() => {
         return navegacion.dispositivoMovil ? "96vh" : "97.5vh";
     }, [navegacion.dispositivoMovil]);
+    const margin = useMemo(() => {
+        const { dispositivoMovil, orientacion } = navegacion;
+
+        if (dispositivoMovil && orientacion == "vertical") {
+            return "2vh";
+        } else {
+            return "4vh";
+        }
+    }, [navegacion.dispositivoMovil, navegacion.orientacion]);
 
     /**
      * Si hay algún error de autenticación, muestra un modal con el mensaje de error y al cerrarlo
@@ -41,7 +50,7 @@ export default function MenuLayout({ children }) {
                 <Box display="flex">
                     <NavBar />
                     <Sidebar />
-                    <Box component="main" sx={{ padding: "2vh 1vh" }}>
+                    <Box component="main" sx={{ padding: `2vh ${margin}`}}>
                         <Toolbar />
                         {children}
                     </Box>

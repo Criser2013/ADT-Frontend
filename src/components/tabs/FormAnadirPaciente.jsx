@@ -247,7 +247,7 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
                         titulo={titPestana}
                         pestanas={listadoPestanas}
                         tooltip="Volver a la pestaña de pacientes" />
-                    <Grid container columns={2} spacing={1} rowSpacing={2} paddingTop="2vh" overflow="auto">
+                    <Grid container columns={2} spacing={1} rowSpacing={2} paddingTop="2vh" overflow="auto" paddingRight="1vh" /* sx={{ padding: "2vh 1vh", marginLeft: "2vh" }}*/>
                         <Grid size={2}>
                             <Typography variant="h5">
                                 <b>Datos personales</b>

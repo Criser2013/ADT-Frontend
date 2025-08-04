@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import { useNavegacion } from "./contexts/NavegacionContext";
 import ModalSimple from "./components/modals/ModalSimple";
 import ModalAccion from "./components/modals/ModalAccion";
+import { ThemeProvider } from "@emotion/react";
+import { themeOptions } from "./theme";
+import CssBaseline from "@mui/material/CssBaseline";
 
 /**
  * Componente principal que provee las credenciales de autenticación y muestra los 
@@ -116,7 +119,8 @@ export default function App() {
     };
 
     return (
-        <>
+        <ThemeProvider theme={themeOptions}>
+            <CssBaseline />
             <Router />
             <ModalAccion
                 abrir={modal2Btn.mostrar}
@@ -136,6 +140,6 @@ export default function App() {
                 manejadorBtnModal={manejadorBtnModal}
                 txtBtn="Cerrar"
             />
-        </>
+        </ThemeProvider>
     );
 };

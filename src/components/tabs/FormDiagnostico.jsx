@@ -82,8 +82,14 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const numCols = useMemo(() => {
-        return navegacion.dispositivoMovil || (!navegacion.dispositivoMovil && (navegacion.ancho < 500)) ? 1 : 3;
-    }, [navegacion.dispositivoMovil, navegacion.ancho]);
+        if (navegacion.dispositivoMovil && (navegacion.orientacion == "vertical" || navegacion.ancho < 500)) {
+            return 1;
+        } else if (navegacion.dispositivoMovil && navegacion.orientacion == "horizontal") {
+            return 2;
+        } else {
+            return 3;
+        }
+    }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
     const reCAPTCHAApi = useMemo(() => {
         return credenciales.obtenerRecaptcha();
     }, [credenciales.obtenerRecaptcha()]);
