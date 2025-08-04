@@ -7,9 +7,10 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
  * @param {String} clave - Clave del objeto que contiene la fecha.
  * @param {Number} numMesesAtras - Número de meses hacia atrás sin contar el mes actual.
  * @param {Dayjs} fechaActual - Fecha actual para calcular los meses.
+ * @param {String} formatoFecha - Formato de la fecha si es una cadena, por defecto "DD-MM-YYYY".
  * @returns {JSON[Number]}
  */
-export function obtenerDatosPorMes(datos, clave, numMesesAtras, fechaActual) {
+export function obtenerDatosPorMes(datos, clave, numMesesAtras, fechaActual, formatoFecha = "DD-MM-YYYY") {
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     const res = {};
     const fechaFinal = fechaActual.subtract(numMesesAtras, "month");
@@ -25,7 +26,7 @@ export function obtenerDatosPorMes(datos, clave, numMesesAtras, fechaActual) {
 
         if (typeof x[clave] == "string") {
             dayjs.extend(customParseFormat);
-            fecha = dayjs(x[clave], "DD-MM-YYYY");
+            fecha = dayjs(x[clave], formatoFecha);
             mes = fecha.month();
         } else {
             fecha = x[clave].toDate();

@@ -13,8 +13,8 @@ import { Box, Card, Stack, Typography } from "@mui/material";
 export default function TarjetaMenuPrincipal({ titulo, valor, icono, colorFondo = "#cce4f2", colorTexto = "#182d6d", ColorFondoIcono = "#aeccea" }) {
     return (
         <Card elevation={0} sx={{
-            width: "100%", height: "100%", display: "flex", justifyContent: "center",
-            alignItems: "center", backgroundColor: colorFondo, borderRadius: 5, padding: "3vh 1vh"
+            width: "100%", height: "80%", display: "flex", justifyContent: "center",
+            alignItems: "center", backgroundColor: colorFondo, borderRadius: 5, padding: "3vh 0vh"
         }}>
             <Stack direction="column" spacing={1} display="flex" justifyContent="center" alignItems="center">
                 <Box

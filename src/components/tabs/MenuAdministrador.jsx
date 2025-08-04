@@ -1,114 +1,126 @@
 import { Grid, Box, CircularProgress, Typography, Divider } from "@mui/material";
 import { useMemo, useState, useEffect } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
-import { useDrive } from "../../contexts/DriveContext";
 import { detTamCarga } from "../../utils/Responsividad";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCredenciales } from "../../contexts/CredencialesContext";
-import { verDiagnosticosPorMedico } from "../../firestore/diagnosticos-collection";
+import { verDiagnosticos } from "../../firestore/diagnosticos-collection";
 import { obtenerDatosPorMes, obtenerDatosMesActual } from "../../utils/Fechas";
 import ModalSimple from "../modals/ModalSimple";
 import TarjetaMenuPrincipal from "./TarjetaMenuPrincipal";
 import GraficoBarras from "../charts/GraficoBarras";
 import GraficoPastel from "../charts/GraficoPastel";
-import { DiagnosticoIcono } from "../icons/IconosSidebar";
+import { DatosIcono, DiagnosticoIcono } from "../icons/IconosSidebar";
 import PersonIcon from '@mui/icons-material/Person';
 import dayjs from "dayjs";
-import { Timestamp } from "firebase/firestore";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { peticionApi } from "../../services/Api";
 
 /**
- * Menú principal para los usuarios. Muestra la cantidad de pacientes y diagnósticos registrados este mes y
- * un gráfico de barras con las cifras de los últimos 5 meses.
+ * Menú principal para los administradores. Muestra la cantidad de diagnósticos y usuarios nuevos.
  * @returns {JSX.Element}
  */
-export default function MenuUsuario() {
+export default function MenuAdministrador() {
     const auth = useAuth();
     const credenciales = useCredenciales();
     const navegacion = useNavegacion();
-    const drive = useDrive();
     const [cargando, setCargando] = useState(true);
-    const [pacientes, setPacientes] = useState(null);
+    const [usuarios, setUsuarios] = useState(null);
     const [diagnosticos, setDiagnosticos] = useState(null);
     const [datos, setDatos] = useState(null);
-    const [datosPacientes, setDatosPacientes] = useState(null);
+    const [datosUsuarios, setDatosUsuarios] = useState(null);
     const [datosDiagnosticos, setDatosDiagnosticos] = useState(null);
     const [modal, setModal] = useState({ mostrar: false, mensaje: "", titulo: "" });
     const fechaActual = useMemo(() => dayjs(), []);
     const numCols = useMemo(() => {
         const { orientacion, dispositivoMovil } = navegacion;
-        return (dispositivoMovil && orientacion == "vertical") || (!dispositivoMovil && (navegacion.ancho < 500)) ? 1 : 2;
+        if ((dispositivoMovil && orientacion == "vertical") || (!dispositivoMovil && (navegacion.ancho < 500))) {
+            return 1;
+        } else if (dispositivoMovil && orientacion == "horizontal") {
+            return 2;
+        } else {
+            return 4;
+        }
     }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
     const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual), [datosDiagnosticos, fechaActual]);
-    const pacientesMesActual = useMemo(() => obtenerDatosMesActual(datosPacientes, fechaActual), [datosPacientes, fechaActual]);
-    const propSexoPacientes = useMemo(() => {
-        const res = { Masculino: 0, Femenino: 0 };
+    const usuariosMesActual = useMemo(() => obtenerDatosMesActual(datosUsuarios, fechaActual), [datosUsuarios, fechaActual]);
+    const colsGraficos = useMemo(() => {
+        const { orientacion, dispositivoMovil, mostrarMenu } = navegacion;
+        if (dispositivoMovil && orientacion == "vertical") {
+            return 1;
+        } else if (dispositivoMovil && orientacion == "horizontal" && !mostrarMenu) {
+            return 1;
+        } else if (dispositivoMovil && orientacion == "horizontal" && mostrarMenu) {
+            return 2;
+        } else {
+            return 2;
+        }
+    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu]);
+    const cantDiagnosticos = useMemo(() => {
+        return diagnosticos != null ? diagnosticos.length : 0;
+    }, [diagnosticos]);
+    const cantDiagnosticosConfir = useMemo(() => {
+        return diagnosticos != null ? diagnosticos.filter(x => x.validado != 2).length : 0;
+    }, [diagnosticos]);
+    const propDiagnosticos = useMemo(() => {
+        const res = { Positivo: 0, Negativo: 0, "No validado": 0 };
 
-        if (pacientes != null) {
-            pacientes.forEach((x) => {
-                if (x.sexo == 0) {
-                    res.Masculino++;
+        if (diagnosticos != null) {
+            diagnosticos.forEach((x) => {
+                if (x.validado == 1) {
+                    res.Positivo++;
+                } else if (x.validado == 0) {
+                    res.Negativo++;
                 } else {
-                    res.Femenino++;
+                    res["No validado"]++;
                 }
             });
         }
 
         return {
-            labels: ["Masculino", "Femenino"], datasets: [{
-                label: "Número de pacientes", data: [res.Masculino, res.Femenino], backgroundColor: [
-                    'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)'
+            labels: ["Positivo", "Negativo", "No validado"], datasets: [{
+                label: "Número de diagnósticos", data: [res.Positivo, res.Negativo, res["No validado"]], backgroundColor: [
+                    'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'
                 ]
             }]
         };
-    }, [pacientes]);
+    }, [diagnosticos]);
 
     /**
-     * Carga el token de sesión y comienza a descargar el archivo de pacientes.
+     * Carga los diagnósticos y los usuarios.
      */
     useEffect(() => {
-        const token = sessionStorage.getItem("session-tokens");
-        if (token != null) {
-            drive.setToken(JSON.parse(token).accessToken);
-        } else if (auth.tokenDrive != null) {
-            drive.setToken(auth.tokenDrive);
+        const { correo, user } = auth.authInfo;
+
+        if (correo != null && user != null && DB != null) {
+            cargarUsuarios(user.accessToken);
+            cargarDiagnosticos(DB);
         }
-    }, [auth.tokenDrive]);
+    }, [auth.authInfo.correo, auth.authInfo.user, DB]);
 
     /**
-     * Carga los diagnósticos y los pacientes dependiendo del rol del usuario.
+     * Una vez se cargan los diagnósticos y los usuarios, formatea las celdas.
      */
     useEffect(() => {
-        const { correo } = auth.authInfo;
-
-        if (correo != null && drive.token != null && DB != null) {
-            cargarPacientes();
-            cargarDiagnosticos(correo, DB);
-        }
-    }, [auth.authInfo.correo, drive.token, DB]);
-
-    /**
-     * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
-     */
-    useEffect(() => {
-        if (diagnosticos != null && pacientes != null && datos == null) {
+        if (diagnosticos != null && usuarios != null && datos == null) {
             const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4, fechaActual);
-            const pacientesMensuales = obtenerDatosPorMes(pacientes, "fechaCreacion", 4, fechaActual);
+            const usuariosMensuales = obtenerDatosPorMes(usuarios, "fecha_registro", 4, fechaActual, "DD/MM/YYYY hh:mm A");
             const json = {
                 datasets: [
                     formatearDatosGrafico(diagnosticosMensuales, 'rgba(255, 99, 132, 0.5)', "Diagnósticos realizados"),
-                    formatearDatosGrafico(pacientesMensuales, 'rgba(54, 162, 235, 0.5)', "Nuevos pacientes"),
+                    formatearDatosGrafico(usuariosMensuales, 'rgba(54, 162, 235, 0.5)', "Nuevos usuarios"),
                 ]
             };
 
             setDatosDiagnosticos(diagnosticosMensuales);
-            setDatosPacientes(pacientesMensuales);
+            setDatosUsuarios(usuariosMensuales);
             setDatos(json);
         }
-    }, [diagnosticos, pacientes, datos]);
+    }, [diagnosticos, usuarios, datos]);
 
     /**
      * Quita la pantalla de carga cuando se hayan cargado los datos de pacientes y diagnósticos.
@@ -116,12 +128,6 @@ export default function MenuUsuario() {
     useEffect(() => {
         setCargando(datos == null);
     }, [datos]);
-
-    useEffect(() => {
-        if (drive.datos != null) {
-            setPacientes(drive.datos);
-        }
-    }, [drive.datos]);
 
     /**
      * Formatea los datos del gráfico para que sean compatibles con Chart.js.
@@ -139,34 +145,27 @@ export default function MenuUsuario() {
     };
 
     /**
-     * Carga los datos de los pacientes desde Drive
+     * Carga los datos de los usuarios
      */
-    const cargarPacientes = async () => {
-        const res = await drive.cargarDatos();
+    const cargarUsuarios = async (token) => {
+        const res = await peticionApi(token, "admin/usuarios", "GET", null, "No se pudo cargar la lista de usuarios. Reintenta más tarde.");
         if (!res.success) {
             setModal({
                 mostrar: true, mensaje: res.error,
-                titulo: "Error al cargar los datos de los pacientes",
+                titulo: "Error al cargar los datos de los usuarios.",
             });
             setCargando(false);
+        } else {
+            setUsuarios(res.data.usuarios);
         }
     };
 
     /**
      * Carga los datos de los diagnósticos.
-     * @param {String} correo - Correo del médico.
-     * @param {Object} DB - Instancia de Firestore.
+     * @param {Object} db - Instancia de Firestore.
      */
-    const cargarDiagnosticos = async (correo, DB) => {
-        let fechaActual = dayjs().subtract(4, "month");
-
-        fechaActual = fechaActual.set("date", 1);
-        fechaActual = fechaActual.set("hour", 0);
-        fechaActual = fechaActual.set("minute", 0);
-        fechaActual = fechaActual.set("second", 0);
-        fechaActual = fechaActual.set("millisecond", 0);
-
-        const res = await verDiagnosticosPorMedico(correo, DB, Timestamp.fromDate(fechaActual.toDate()));
+    const cargarDiagnosticos = async (db) => {
+        const res = await verDiagnosticos(db);
         if (res.success) {
             setDiagnosticos(res.data);
         } else {
@@ -186,7 +185,7 @@ export default function MenuUsuario() {
                 </Box>
             ) : (
                 <Grid columns={numCols} container spacing={2}>
-                    <Grid size={2}>
+                    <Grid size={4}>
                         <Typography variant="h4" align="left">
                             Bienvenido, {auth.authInfo.user.displayName}
                         </Typography>
@@ -196,19 +195,31 @@ export default function MenuUsuario() {
                         <TarjetaMenuPrincipal
                             titulo="Diagnósticos realizados este mes"
                             valor={diagnosticosMesActual}
-                            icono={<DiagnosticoIcono sx={{fontSize: "4.5vh"}} />} />
+                            icono={<DiagnosticoIcono sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
                         <TarjetaMenuPrincipal
-                            titulo="Pacientes registrados este mes"
-                            valor={pacientesMesActual}
-                            icono={<PersonIcon sx={{fontSize: "4.5vh"}} />} />
+                            titulo="Usuarios nuevos este mes"
+                            valor={usuariosMesActual}
+                            icono={<PersonIcon sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vh">
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
+                        <TarjetaMenuPrincipal
+                            titulo="Diagnósticos recolectados"
+                            valor={cantDiagnosticos}
+                            icono={<DatosIcono sx={{ fontSize: "4.5vh" }} />} />
+                    </Grid>
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
+                        <TarjetaMenuPrincipal
+                            titulo="Diagnósticos validados"
+                            valor={cantDiagnosticosConfir}
+                            icono={<CheckCircleIcon sx={{ fontSize: "4.5vh" }} />} />
+                    </Grid>
+                    <Grid size={colsGraficos} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vh">
                         <GraficoBarras titulo="Cifras de los últimos 5 meses" datos={datos} />
                     </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" height="40vh" padding="0vh 1.5vh">
-                        <GraficoPastel titulo="Distribución de pacientes por sexo" datos={propSexoPacientes} />
+                    <Grid size={colsGraficos} display="flex" justifyContent="center" alignItems="center" height="40vh" padding="0vh 1.5vh">
+                        <GraficoPastel titulo="Distribución de los diagnósticos" datos={propDiagnosticos} />
                     </Grid>
                 </Grid>
             )}

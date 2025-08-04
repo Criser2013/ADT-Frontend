@@ -27,7 +27,7 @@ export default function Sidebar() {
             { txt: "Historial de diagnósticos", icono: <HistDiagnosticoIcono />, ruta: "/diagnosticos" },
         ];
         const admin = [
-            { txt: "Menú principal", icono: <HomeIcon />, ruta: "/menu-principal" },
+            { txt: "Menú principal", icono: <HomeIcon />, ruta: "/menu" },
             { txt: "Datos recolectados", icono: <DatosIcono />, ruta: "/diagnosticos" },
             { txt: "Usuarios", icono: <PeopleIcon />, ruta: "/usuarios" },
         ];
