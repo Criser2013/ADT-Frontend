@@ -107,15 +107,9 @@ export default function MenuUsuario() {
             setDatosDiagnosticos(diagnosticosMensuales);
             setDatosPacientes(pacientesMensuales);
             setDatos(json);
+            setCargando(false);
         }
     }, [diagnosticos, pacientes, datos]);
-
-    /**
-     * Quita la pantalla de carga cuando se hayan cargado los datos de pacientes y diagnósticos.
-     */
-    useEffect(() => {
-        setCargando(datos == null);
-    }, [datos]);
 
     useEffect(() => {
         if (drive.datos != null) {
@@ -148,7 +142,6 @@ export default function MenuUsuario() {
                 mostrar: true, mensaje: res.error,
                 titulo: "Error al cargar los datos de los pacientes",
             });
-            setCargando(false);
         }
     };
 
@@ -174,7 +167,6 @@ export default function MenuUsuario() {
                 mostrar: true, titulo: "Error al cargar los diagnósticos",
                 mensaje: "Ha ocurrido un error al cargar los diagnósticos. Por favor, inténtalo de nuevo más tarde."
             });
-            setCargando(false);
         }
     };
 

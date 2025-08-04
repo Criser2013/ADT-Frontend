@@ -1,5 +1,5 @@
 import { AppBar, Avatar, IconButton, Popover, Tooltip, Typography, Toolbar, Box, MenuItem, Divider, Stack } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { useAuth } from "../../contexts/AuthContext";
@@ -8,6 +8,8 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import BtnTema from "../tabs/BtnTema";
+import LogoutIcon from '@mui/icons-material/Logout';
+import { CODIGO_ADMIN } from "../../../constants";
 
 /**
  * Barra de navegación superior.
@@ -21,6 +23,9 @@ export default function Navbar() {
     const [img, setImg] = useState("");
     const open = Boolean(popOver);
     const idPopOver = open ? "simple-popover" : undefined;
+    const txtRol = useMemo(() => {
+        return auth.authInfo.rol == CODIGO_ADMIN ? "Administrador" : "Médico";
+    }, [auth.authInfo.rol]);
 
     /**
      * Carga de la imagen del usuario a iniciar.
@@ -112,18 +117,25 @@ export default function Navbar() {
                             },
                         }}>
                         <Box padding="1vh 3vh" maxWidth="90vh">
-                            <Typography variant="h6" color="primary">
+                            <Typography variant="h6">
                                 <b>{auth.authInfo.user != null ? auth.authInfo.user.displayName : "Usuario"}</b>
                             </Typography>
+                            <Typography variant="body2" maxWidth="100%">
+                                <b>{txtRol}</b>
+                            </Typography>
                             <Typography variant="body2" color="textSecondary" maxWidth="100%">
-                                {auth.authInfo.user != null ? auth.authInfo.user.email : "Correo@correo.com"}
+                                <span><b>Correo: </b> {auth.authInfo.user != null ? auth.authInfo.user.email : "Correo@correo.com"}</span>
                             </Typography>
                         </Box>
                         <Divider />
                         <MenuItem onClick={cerrarSesion}>
+                        <Stack direction="row" spacing={1} display="flex" alignItems="center">
+                            <LogoutIcon />
                             <Typography variant="body1" sx={{ p: 0.5 }}>
                                 Cerrar sesión
                             </Typography>
+                            
+                            </Stack>
                         </MenuItem>
                     </Popover>
                 </Box>

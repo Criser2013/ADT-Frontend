@@ -84,7 +84,7 @@ export default function MenuAdministrador() {
         return {
             labels: ["Positivo", "Negativo", "No validado"], datasets: [{
                 label: "Número de diagnósticos", data: [res.Positivo, res.Negativo, res["No validado"]], backgroundColor: [
-                    'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'
+                    'rgba(255, 207, 86, 0.85)', 'rgba(75, 192, 192, 0.8)', 'rgba(153, 102, 255, 0.7)'
                 ]
             }]
         };
@@ -119,15 +119,9 @@ export default function MenuAdministrador() {
             setDatosDiagnosticos(diagnosticosMensuales);
             setDatosUsuarios(usuariosMensuales);
             setDatos(json);
+            setCargando(false);
         }
     }, [diagnosticos, usuarios, datos]);
-
-    /**
-     * Quita la pantalla de carga cuando se hayan cargado los datos de pacientes y diagnósticos.
-     */
-    useEffect(() => {
-        setCargando(datos == null);
-    }, [datos]);
 
     /**
      * Formatea los datos del gráfico para que sean compatibles con Chart.js.
@@ -154,7 +148,7 @@ export default function MenuAdministrador() {
                 mostrar: true, mensaje: res.error,
                 titulo: "Error al cargar los datos de los usuarios.",
             });
-            setCargando(false);
+            setUsuarios([]);
         } else {
             setUsuarios(res.data.usuarios);
         }
@@ -173,7 +167,7 @@ export default function MenuAdministrador() {
                 mostrar: true, titulo: "Error al cargar los diagnósticos",
                 mensaje: "Ha ocurrido un error al cargar los diagnósticos. Por favor, inténtalo de nuevo más tarde."
             });
-            setCargando(false);
+            setDiagnosticos([]);
         }
     };
 

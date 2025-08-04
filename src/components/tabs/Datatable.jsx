@@ -63,10 +63,10 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     const tamCampoBusq = useMemo(() => {
         return (navegacion.dispositivoMovil && navegacion.orientacion != "horizontal") ? "90%" : "100%";
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
-    const indeterminado = useMemo(() => numSeleccionados > 0 && (numSeleccionados < numFilas || numSeleccionados < datos.length), 
-    [numSeleccionados, numFilas, datos.length]);
-    const seleccionTodos = useMemo(() => numFilas > 0 && (numSeleccionados === numFilas || numSeleccionados === datos.length), 
-    [numSeleccionados, numFilas, datos.length]);
+    const indeterminado = useMemo(() => numSeleccionados > 0 && (numSeleccionados < numFilas || numSeleccionados < datos.length),
+        [numSeleccionados, numFilas, datos.length]);
+    const seleccionTodos = useMemo(() => numFilas > 0 && (numSeleccionados === numFilas || numSeleccionados === datos.length),
+        [numSeleccionados, numFilas, datos.length]);
     const filasVacias = pagina > 0 ? Math.max(0, (1 + pagina) * filasEnPagina - datos.length) : 0;
 
     /**
@@ -166,6 +166,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     const manejadorBtnLimpiarBusq = () => {
         setPagina(0);
         setAuxDatos(datos);
+        setBusqueda("");
         document.getElementsByName("busq")[0].value = "";
     };
 
@@ -179,7 +180,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
             cbClicCelda(instancia);
         } else if (modoSeleccion && e.target.checked == undefined) {
             const id = !seleccionados.includes(instancia[campoId]);
-            seleccionarFila({ target: { checked: id }}, instancia[campoId]);
+            seleccionarFila({ target: { checked: id } }, instancia[campoId]);
         }
     };
 
@@ -226,9 +227,11 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                         ),
                                         endAdornment: (busqueda.length > 0) ? (
                                             <InputAdornment position="end">
-                                                <IconButton onClick={manejadorBtnLimpiarBusq}>
-                                                    <ClearIcon />
-                                                </IconButton>
+                                                <Tooltip title="Limpiar cuadro de búsqueda">
+                                                    <IconButton onClick={manejadorBtnLimpiarBusq}>
+                                                        <ClearIcon />
+                                                    </IconButton>
+                                                </Tooltip>
                                             </InputAdornment>
                                         ) : null
                                     }
