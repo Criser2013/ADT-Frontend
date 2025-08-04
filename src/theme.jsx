@@ -48,4 +48,7 @@ export const themeOptions = createTheme({
         },
         divider: 'rgba(0,0,0,0.12)',
     },
+    colorSchemes: {
+        dark: true
+    }
 });

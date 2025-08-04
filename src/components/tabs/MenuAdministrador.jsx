@@ -186,7 +186,7 @@ export default function MenuAdministrador() {
             ) : (
                 <Grid columns={numCols} container spacing={2}>
                     <Grid size={4}>
-                        <Typography variant="h4" align="left">
+                        <Typography variant="h4" fontStyle="bold" align="left">
                             Bienvenido, {auth.authInfo.user.displayName}
                         </Typography>
                         <Divider sx={{ padding: "1vh 0vh" }} />
@@ -194,24 +194,28 @@ export default function MenuAdministrador() {
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
                         <TarjetaMenuPrincipal
                             titulo="Diagnósticos realizados este mes"
+                            altura="100%"
                             valor={diagnosticosMesActual}
                             icono={<DiagnosticoIcono sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
                         <TarjetaMenuPrincipal
                             titulo="Usuarios nuevos este mes"
+                            altura="100%"
                             valor={usuariosMesActual}
                             icono={<PersonIcon sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
                         <TarjetaMenuPrincipal
                             titulo="Diagnósticos recolectados"
+                            altura="100%"
                             valor={cantDiagnosticos}
                             icono={<DatosIcono sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
                         <TarjetaMenuPrincipal
                             titulo="Diagnósticos validados"
+                            altura="100%"
                             valor={cantDiagnosticosConfir}
                             icono={<CheckCircleIcon sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>

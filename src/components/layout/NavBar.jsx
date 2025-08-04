@@ -54,7 +54,15 @@ export default function Navbar() {
      * Manejador de evento para cambiar el tema de la aplicación.
      */
     const manejadorBtnTema = () => {
-        console.log("botón de tema presionado");
+       navegacion.cambiarTema();
+       //console.log(mode)
+       /*setMode((prevMode) => {
+        console.log(prevMode)
+        if (prevMode == undefined) {
+            return "system";
+        }
+        return prevMode === "light" ? "dark" : "light"
+    });*/
     };
 
     /**
@@ -79,7 +87,7 @@ export default function Navbar() {
                     <IconButton edge="start" color="inherit" onClick={manejadorAbrirMenu}>
                         {navegacion.mostrarMenu ? <MenuOpenIcon /> : <MenuIcon />}
                     </IconButton>
-                    <Typography variant="h6">HADT</Typography>
+                    <Typography variant="h6"><b>HADT</b></Typography>
                     <Stack direction="row" spacing={1}>
                         <IconButton color="inherit" onClick={manejadorBtnTema}>
                             <ContrastIcon />

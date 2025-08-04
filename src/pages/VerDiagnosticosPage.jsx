@@ -222,7 +222,7 @@ export default function VerDiagnosticosPage() {
             const campos = (rol != CODIGO_ADMIN) ? "paciente" : "medico";
             const persona = aux[auxDiag[i][campos]];
 
-            auxDiag[i].nombre = (persona != undefined) ? persona : "N/A";
+            auxDiag[i].nombre = (persona != undefined) ? persona : auxDiag[i].medico;
             auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico);
             auxDiag[i].fecha = dayjs(auxDiag[i].fecha.toDate()).format("DD/MM/YYYY");
             auxDiag[i].accion = (auxDiag[i].validado == 2 && rol != CODIGO_ADMIN) ? <BtnValidar diagnostico={i} /> : "N/A";
@@ -537,7 +537,7 @@ export default function VerDiagnosticosPage() {
                         activarBtnAtras={false}
                         titulo={titulo}
                         pestanas={listadoPestanas} />
-                    <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width - 1 }}>
+                    <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
                         <AlertaEspacio />
                         <Grid size={1} display="flex" justifyContent="end">
                             <Button

@@ -209,7 +209,7 @@ export default function MenuUsuario() {
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vh">
                         <GraficoBarras titulo="Cifras de los últimos 5 meses" datos={datos} />
                     </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" height="40vh" padding="0vh 1.5vh">
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vh">
                         <GraficoPastel titulo="Distribución de pacientes por sexo" datos={propSexoPacientes} />
                     </Grid>
                 </Grid>

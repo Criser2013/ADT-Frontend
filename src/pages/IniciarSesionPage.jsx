@@ -69,6 +69,7 @@ export default function IniciarSesionPage() {
      * Manejador de eventos del botón para cambiar tema.
      */
     const manejadorBtnCambiarTema = () => {
+        navegacion.cambiarTema();
         console.log("presionado");
     };
 

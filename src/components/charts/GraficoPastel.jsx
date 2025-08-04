@@ -36,6 +36,6 @@ export default function GraficoPastel({ titulo, datos, modoActualizacion = "defa
     };
 
     return (
-        <Pie data={datos} options={opciones} updateMode={modoActualizacion} />
+        <Pie data={datos} options={opciones} updateMode={modoActualizacion} style={{ maxHeight: "40vh"}} />
     );
 };

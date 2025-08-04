@@ -5,9 +5,8 @@ import { useEffect, useState } from "react";
 import { useNavegacion } from "./contexts/NavegacionContext";
 import ModalSimple from "./components/modals/ModalSimple";
 import ModalAccion from "./components/modals/ModalAccion";
-import { ThemeProvider } from "@emotion/react";
-import { themeOptions } from "./theme";
-import CssBaseline from "@mui/material/CssBaseline";
+import dayjs from "dayjs";
+import { useColorScheme } from "@mui/material";
 
 /**
  * Componente principal que provee las credenciales de autenticación y muestra los 
@@ -24,12 +23,14 @@ export default function App() {
     const [modal2Btn, setModal2Btn] = useState({
         mostrar: false, mensaje: "", titulo: "", txtBtn: ""
     });
+    const { mode, setMode } = useColorScheme();
 
     /**
      * Actualiza las instancia de Firebase y permisos de Drive
      * cuando se cargan las credenciales.
     */
     useEffect(() => {
+        import("dayjs/locale/es").then(() => dayjs.locale("es"));
         auth.setAuth(credenciales.obtenerInstanciaAuth());
         auth.setDb(credenciales.obtenerInstanciaDB());
         auth.setScopes(credenciales.scopesDrive);
@@ -119,8 +120,7 @@ export default function App() {
     };
 
     return (
-        <ThemeProvider theme={themeOptions}>
-            <CssBaseline />
+        <>
             <Router />
             <ModalAccion
                 abrir={modal2Btn.mostrar}
@@ -140,6 +140,6 @@ export default function App() {
                 manejadorBtnModal={manejadorBtnModal}
                 txtBtn="Cerrar"
             />
-        </ThemeProvider>
+        </>
     );
 };

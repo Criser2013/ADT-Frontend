@@ -78,7 +78,7 @@ export default function VerUsuariosPage() {
             { nombre: "Rol", valor: datos.rol == CODIGO_ADMIN ? "Administrador" : "Usuario" },
             { nombre: "Estado", valor: datos.estado ? "Inactivo" : "Activo" },
             { nombre: "Última conexión", valor: datos.ultimaConexion },
-            { nombre: "Cantidad de diagnósticos aportada", valor: datos.cantidad },
+            { nombre: "Diagnósticos aportados", valor: datos.cantidad },
         ];
     }, [seleccionado]);
     const tamForm = useMemo(() => {
@@ -91,6 +91,14 @@ export default function VerUsuariosPage() {
             return "30vh";
         }
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
+    const numCols = useMemo(() => {
+        const { dispositivoMovil, orientacion } = navegacion;
+        if (dispositivoMovil && (orientacion == "vertical" || navegacion.ancho < 500)) {
+            return "column";
+        } else {
+            return "row";
+        }
+    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.ancho]);
     const rol = useMemo(() => auth.authInfo.rol, [auth.authInfo.rol]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
 
@@ -314,7 +322,6 @@ export default function VerUsuariosPage() {
             setCargando(false);
         }
     };
-
 
     /**
      * Verifica si el usuario está intentando autoeliminarse.
@@ -582,22 +589,33 @@ export default function VerUsuariosPage() {
     const VerUsuario = () => {
         dayjs.extend(customParseFormat);
         return (
-            <Grid container columns={1} spacing={2} marginTop={1}>
+            <Box>
                 {usuario.map((x, i) => {
+                    let orientacion = numCols;
+                    let espaciado = (numCols == "column") ? 0 : 1;
+                    if (i == 2 || i == 3 || i == 5) {
+                        orientacion = "row";
+                        espaciado = 1;
+                    }
                     return (
-                        <Grid size={1} key={i}>
-                            <Stack direction="row" spacing={1} alignItems="center">
-                                <Typography variant="body1" fontWeight="bold">
-                                    {x.nombre}:
-                                </Typography>
-                                <Typography variant="body1">
-                                    {i == 4 ? dayjs(x.valor, "DD/MM/YYYY hh:mm A").format(`DD [de] MMMM [de] YYYY [a las] hh:mm A`) : x.valor}.
-                                </Typography>
-                            </Stack>
-                        </Grid>
+                        <Stack
+                        direction={orientacion} 
+                        spacing={espaciado} 
+                        display="flex" 
+                        justifyContent="start"
+                        key={i}
+                        width="100%"
+                        marginBottom="5px">
+                            <Typography variant="body1" fontWeight="bold">
+                                {x.nombre}:
+                            </Typography>
+                            <Typography variant="body1">
+                                {i == 4 ? dayjs(x.valor, "DD/MM/YYYY hh:mm A").format(`DD [de] MMMM [de] YYYY [a las] hh:mm A`) : x.valor}.
+                            </Typography>
+                        </Stack>
                     );
                 })}
-            </Grid>
+            </Box>
         );
     };
 
