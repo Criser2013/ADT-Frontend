@@ -9,7 +9,8 @@ import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import BtnTema from "../tabs/BtnTema";
 import LogoutIcon from '@mui/icons-material/Logout';
-import { CODIGO_ADMIN } from "../../../constants";
+import { CODIGO_ADMIN, URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../../constants";
+import ArticleIcon from '@mui/icons-material/Article';
 
 /**
  * Barra de navegación superior.
@@ -26,6 +27,9 @@ export default function Navbar() {
     const txtRol = useMemo(() => {
         return auth.authInfo.rol == CODIGO_ADMIN ? "Administrador" : "Médico";
     }, [auth.authInfo.rol]);
+    const txtToolBtnMenu = useMemo(() => {
+        return navegacion.mostrarMenu ? "Cerrar menú" : "Abrir menú";
+    }, [navegacion.mostrarMenu]);
 
     /**
      * Carga de la imagen del usuario a iniciar.
@@ -33,7 +37,7 @@ export default function Navbar() {
     useEffect(() => {
         if (auth.autenticado && auth.authInfo.user != null) {
             setImg(auth.authInfo.user.photoURL);
-        } else if (auth.autenticado != null && auth.autenticado == false){
+        } else if (auth.autenticado != null && auth.autenticado == false) {
             navigate("/", { replace: true });
         }
     }, [auth.authInfo.user, auth.autenticado]);
@@ -59,7 +63,7 @@ export default function Navbar() {
      * Manejador de evento para cambiar el tema de la aplicación.
      */
     const manejadorBtnTema = () => {
-       navegacion.cambiarTema();
+        navegacion.cambiarTema();
     };
 
     /**
@@ -77,18 +81,33 @@ export default function Navbar() {
         navigate("/cerrar-sesion", { replace: true });
     };
 
+    /**
+     * Abre una nueva pestaña con el manual de instrucciones.
+     */
+    const manejadorBtnInstrucciones = () => {
+        const url = (auth.authInfo.rol == CODIGO_ADMIN) ? URL_MANUAL_ADMIN : URL_MANUAL_USUARIO;
+        window.open(url, "_blank");
+    };
+
     return (
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
             <Toolbar>
                 <Box display="flex" justifyContent="space-between" alignItems="center" flexDirection="row" width="100%" >
-                    <IconButton edge="start" color="inherit" onClick={manejadorAbrirMenu}>
-                        {navegacion.mostrarMenu ? <MenuOpenIcon /> : <MenuIcon />}
-                    </IconButton>
+                    <Tooltip title={txtToolBtnMenu}>
+                        <IconButton edge="start" color="inherit" onClick={manejadorAbrirMenu}>
+                            {navegacion.mostrarMenu ? <MenuOpenIcon /> : <MenuIcon />}
+                        </IconButton>
+                    </Tooltip>
                     <Typography variant="h6"><b>HADT</b></Typography>
                     <Stack direction="row" spacing={1}>
                         <IconButton color="inherit" onClick={manejadorBtnTema}>
                             <BtnTema />
                         </IconButton>
+                        <Tooltip title="Ver manual de instrucciones">
+                            <IconButton color="inherit" onClick={manejadorBtnInstrucciones}>
+                                <ArticleIcon />
+                            </IconButton>
+                        </Tooltip>
                         <Tooltip title="Ver opciones de usuario">
                             <IconButton onClick={manejadorMousePopOver} color="inherit" aria-describedby={idPopOver}>
                                 <Avatar alt="foto-usuario" src={img}>
@@ -129,12 +148,12 @@ export default function Navbar() {
                         </Box>
                         <Divider />
                         <MenuItem onClick={cerrarSesion}>
-                        <Stack direction="row" spacing={1} display="flex" alignItems="center">
-                            <LogoutIcon />
-                            <Typography variant="body1" sx={{ p: 0.5 }}>
-                                Cerrar sesión
-                            </Typography>
-                            
+                            <Stack direction="row" spacing={1} display="flex" alignItems="center">
+                                <LogoutIcon />
+                                <Typography variant="body1" sx={{ p: 0.5 }}>
+                                    Cerrar sesión
+                                </Typography>
+
                             </Stack>
                         </MenuItem>
                     </Popover>

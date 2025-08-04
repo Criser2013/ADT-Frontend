@@ -8,6 +8,7 @@ import { useNavegacion } from "../contexts/NavegacionContext";
 import { useCredenciales } from "../contexts/CredencialesContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import BtnTema from "../components/tabs/BtnTema";
+import { URL_MANUAL_USUARIO } from "../../constants";
 
 /**
  * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.
@@ -153,7 +154,7 @@ export default function IniciarSesionPage() {
                             </Typography>
                             <br />
                             <Typography align="left" variant="body1" marginLeft="auto" marginRight="auto">
-                                ¿Necesitas ayuda? ¡consulta nuestro <Link href="/manual">manual de instrucciones</Link>!
+                                ¿Necesitas ayuda? ¡consulta nuestro <Link href={URL_MANUAL_USUARIO}>manual de instrucciones</Link>!
                             </Typography>
                         </Grid>
                     </Grid>

@@ -120,13 +120,6 @@ export function DriveProvider({ children }) {
     const descargarContArchivo = async (archivoId) => {
         if (token != null) {
             setDescargando(true);
-            const existe = await verificarExisteArchivoYCarpeta(token);
-
-            if (!existe.success) {
-                setDatos([]);
-                return { success: false, error: existe.error };
-            }
-
             const pet = await descargarArchivo(archivoId, token);
 
             if (pet.success) {

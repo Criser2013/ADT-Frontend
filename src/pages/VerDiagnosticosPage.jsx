@@ -1,4 +1,4 @@
-import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography, Alert } from "@mui/material";
+import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography, Alert, Stack } from "@mui/material";
 import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
@@ -23,6 +23,8 @@ import FormSeleccionar from "../components/tabs/FormSeleccionar";
 import { CODIGO_ADMIN } from "../../constants";
 import Check from "../components/tabs/Check";
 import AddToDriveIcon from '@mui/icons-material/AddToDrive';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import AdvertenciaEspacio from "../components/tabs/AdvertenciaEspacio";
 
 export default function VerDiagnosticosPage() {
     const auth = useAuth();
@@ -52,7 +54,7 @@ export default function VerDiagnosticosPage() {
     const rol = useMemo(() => {
         return auth.authInfo.rol;
     }, [auth.authInfo.rol]);
-    const DB = credenciales.obtenerInstanciaDB();
+    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
     const camposVariables = (rol != CODIGO_ADMIN) ? [
         { id: "nombre", label: "Paciente" },
         { id: "paciente", label: "Cédula" }
@@ -105,6 +107,16 @@ export default function VerDiagnosticosPage() {
     const desactivarBtnModal = useMemo(() => {
         return (diagnosticos != null && cantNoConfirmados == diagnosticos.length) && modoModal == 3 && preprocesar;
     }, [diagnosticos, cantNoConfirmados, modoModal, preprocesar]);
+    const txtToolExportar = useMemo(() => {
+        if (rol == CODIGO_ADMIN) {
+            return "Descarga los diagnósticos recolectados como una Hoja de Excel o CSV. También puedes crear una copia en Google Drive.";
+        } else {
+            return "Descarga los diagnósticos como una Hoja de Excel o CSV.";
+        }
+    }, [rol]);
+    const cantDiagnosticos = useMemo(() => {
+        return (diagnosticos != null) ? diagnosticos.length : 0;
+    }, [diagnosticos]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -126,8 +138,7 @@ export default function VerDiagnosticosPage() {
         const { correo } = auth.authInfo;
 
         if (rol != null && correo != null && DB != null) {
-            cargarDiagnosticos(correo, rol, DB);
-            cargarPacientes(auth.authInfo.user.accessToken);
+            manejadorRecargar(auth.authInfo.user.accessToken, correo, rol, DB);
         }
     }, [auth.authInfo.correo, auth.authInfo.user, rol, DB]);
 
@@ -152,6 +163,35 @@ export default function VerDiagnosticosPage() {
             setPersonas(drive.datos);
         }
     }, [drive.datos]);
+
+    /**
+     * Recarga los datos de la página.
+     * @param {String} token - Token de acceso de Drive.
+     * @param {String} usuario - Correo del usuario.
+     * @param {Number} rol - Rol del usuario (0: médico, 1001: administrador).
+     * @param {Object} db - Instancia de Firestore.
+     */
+    const manejadorRecargar = (token = null, usuario = null, rol = null, db = null) => {
+        const credencial = (token == null) ? auth.authInfo.user.accessToken : token;
+        const correo = (usuario == null) ? auth.authInfo.correo : usuario;
+        const rolUsuario = (rol == null) ? auth.authInfo.rol : rol;
+        const BD = (db == null) ? DB : db;
+
+        if (!cargando) {
+            setCargando(true);
+        }
+
+        if (personas != null) {
+            setDatos([]);
+            setPersonas(null);
+            setDiagnosticos(null);
+            setSeleccionados([]);
+            setInstancia(null);
+        }
+
+        cargarDiagnosticos(correo, rolUsuario, BD);
+        cargarPacientes(credencial);
+    };
 
     /**
      * Carga los datos de los pacientes desde Drive y luego los diagnósticos.
@@ -485,8 +525,8 @@ export default function VerDiagnosticosPage() {
                     valor={valor}
                     valores={valores}>
                     {((modoModal == 3 && cantNoConfirmados > 0) && (rol == CODIGO_ADMIN) && preprocesar) ? (
-                        <Typography variant="body2" color="error">
-                            <b>¡Atención! Hay {cantNoConfirmados} diagnóstico(s) sin validar.</b>
+                        <Typography variant="body2">
+                            <b>⚠️ ¡Atención! Hay {cantNoConfirmados} diagnóstico(s) sin validar.</b>
                         </Typography>
                     ) : null}
                     {(modoModal == 3 && rol == CODIGO_ADMIN) ? (
@@ -510,21 +550,6 @@ export default function VerDiagnosticosPage() {
         }
     };
 
-    /**
-     * Alerta de espacio de almacenamiento.
-     * @returns JSX.Element
-     */
-    const AlertaEspacio = () => {
-        return (
-            ((rol == CODIGO_ADMIN) && (diagnosticos != null) && (diagnosticos.length >= 1500)) ? (
-                <Grid size={1}>
-                    <Alert severity="warning">
-                        Tu almacenamiento está por agotarse. Para evitar pérdidas, se recomienda respaldar o exportar la información y eliminar diagnósticos antiguos.
-                    </Alert>
-                </Grid>) : null
-        );
-    };
-
     return (
         <MenuLayout>
             {cargando ? (
@@ -538,17 +563,26 @@ export default function VerDiagnosticosPage() {
                         titulo={titulo}
                         pestanas={listadoPestanas} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
-                        <AlertaEspacio />
-                        <Grid size={1} display="flex" justifyContent="end">
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={manejadorBtnExportar}
-                                disabled={desactivarBtns}
-                                sx={{ textTransform: "none" }}
-                                startIcon={rol == CODIGO_ADMIN ? <AddToDriveIcon /> : <FileDownloadIcon />}>
-                                <b>Exportar diagnósticos</b>
-                            </Button>
+                        <AdvertenciaEspacio rol={rol} cantidadDiagnosticos={cantDiagnosticos} />
+                        <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
+                            <Tooltip title="Recargar la página">
+                                <IconButton onClick={() => manejadorRecargar()}>
+                                    <RefreshIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title={txtToolExportar}>
+                                <span>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={manejadorBtnExportar}
+                                        disabled={desactivarBtns}
+                                        sx={{ textTransform: "none" }}
+                                        startIcon={rol == CODIGO_ADMIN ? <AddToDriveIcon /> : <FileDownloadIcon />}>
+                                        <b>Exportar diagnósticos</b>
+                                    </Button>
+                                </span>
+                            </Tooltip>
                         </Grid>
                         <Datatable
                             campos={camposTabla}

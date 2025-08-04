@@ -9,6 +9,9 @@ export const COMORBILIDADES = ["Enfermedad vascular", "Trombofilia", "Enfermedad
 ];
 export const EXPORT_FILENAME = `HADT Diagnósticos — `;
 export const DRIVE_FOLDER_NAME = import.meta.env.VITE_DRIVE_FOLDER_NAME || "HADT: Herramienta para apoyar el diagnóstico de TEP";
+export const URL_MANUAL_USUARIO = import.meta.env.VITE_URL_MANUAL_USUARIO || "https://www.youtube.com";
+export const URL_MANUAL_ADMIN = import.meta.env.VITE_URL_MANUAL_ADMIN || "https://www.google.com";
+export const CANT_LIM_DIAGNOSTICOS = parseInt(import.meta.env.VITE_CANT_LIM_DIAGNOSTICOS) || 1500;
 export const SEXOS = [
     { texto: "Seleccione el sexo", val: 2 },
     { texto: "Masculino", val: 0 },

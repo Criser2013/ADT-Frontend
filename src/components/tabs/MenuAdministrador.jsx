@@ -15,6 +15,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import dayjs from "dayjs";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { peticionApi } from "../../services/Api";
+import AdvertenciaEspacio from "./AdvertenciaEspacio";
 
 /**
  * Menú principal para los administradores. Muestra la cantidad de diagnósticos y usuarios nuevos.
@@ -179,6 +180,7 @@ export default function MenuAdministrador() {
                 </Box>
             ) : (
                 <Grid columns={numCols} container spacing={2}>
+                    <AdvertenciaEspacio rol={1001} cantidadDiagnosticos={cantDiagnosticos} />
                     <Grid size={4}>
                         <Typography variant="h4" fontStyle="bold" align="left">
                             Bienvenido, {auth.authInfo.user.displayName}

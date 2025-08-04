@@ -1,4 +1,4 @@
-import { Button, Grid, Box, CircularProgress } from "@mui/material";
+import { Button, Grid, Box, CircularProgress, Tooltip, IconButton } from "@mui/material";
 import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
@@ -13,6 +13,7 @@ import { useDrive } from "../contexts/DriveContext";
 import dayjs from "dayjs";
 import ModalAccion from "../components/modals/ModalAccion";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 /**
  * Página para ver la lista de pacientes.
@@ -36,13 +37,13 @@ export default function ListaPacientesPage() {
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
-    const campos = [
+    const campos = useMemo(() => [
         { id: "nombre", label: "Nombre" },
         { id: "cedula", label: "Cédula" },
         { id: "telefono", label: "Teléfono" },
         { id: "sexo", label: "Sexo" },
         { id: "edad", label: "Edad" }
-    ];
+    ], []);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -63,7 +64,7 @@ export default function ListaPacientesPage() {
         document.title = "Lista de pacientes";
 
         if (drive.datos != null && !drive.descargando) {
-            cargarDatos();
+            manejadorRecargar();
         }
     }, []);
 
@@ -80,11 +81,28 @@ export default function ListaPacientesPage() {
     useEffect(() => {
         setDatos(
             drive.datos != null ?
-            formatearCeldas(
-                drive.datos.map((x) => ({ ...x }))
-            ) : []
+                formatearCeldas(
+                    drive.datos.map((x) => ({ ...x }))
+                ) : []
         );
     }, [drive.datos]);
+
+    /**
+     * Recarga los datos de la página.
+     */
+    const manejadorRecargar = () => {
+        if (!cargando) {
+            setCargando(true);
+        }
+
+        if (datos != []) {
+            setDatos([]);
+            setSeleccionados([]);
+        }
+
+        cargarDatos();
+    };
+
 
     /**
      * Carga los datos de los pacientes desde Drive.
@@ -188,15 +206,22 @@ export default function ListaPacientesPage() {
                         titulo="Lista de pacientes"
                         pestanas={listadoPestanas} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
-                        <Grid size={1} display="flex" justifyContent="end">
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={manejadorBtnAnadir}
-                                sx={{ textTransform: "none" }}
-                                startIcon={<AddIcon />}>
-                                <b>Añadir paciente</b>
-                            </Button>
+                        <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
+                            <Tooltip title="Recargar la página">
+                                <IconButton onClick={() => manejadorRecargar()}>
+                                    <RefreshIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Añade un nuevo paciente a la lista">
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={manejadorBtnAnadir}
+                                    sx={{ textTransform: "none" }}
+                                    startIcon={<AddIcon />}>
+                                    <b>Añadir paciente</b>
+                                </Button>
+                            </Tooltip>
                         </Grid>
                         <Datatable
                             campos={campos}
