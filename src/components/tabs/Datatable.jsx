@@ -1,9 +1,7 @@
 import {
     Box, Paper, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead,
     TableRow, TablePagination, TableSortLabel, TextField, Typography, InputAdornment,
-    Toolbar, IconButton, Stack, Tooltip,
-    CircularProgress,
-    useColorScheme
+    Toolbar, IconButton, Stack, Tooltip
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";

@@ -1,4 +1,6 @@
 import { Box, Card, Stack, Typography } from "@mui/material";
+import { useMemo } from "react";
+import { useNavegacion } from "../../contexts/NavegacionContext";
 
 /**
  * Tarjeta que se muestra en el menú principal del usuario.
@@ -12,10 +14,22 @@ import { Box, Card, Stack, Typography } from "@mui/material";
  * @returns {JSX.Element}
  */
 export default function TarjetaMenuPrincipal({ titulo, valor, icono, colorFondo = "#cce4f2", colorTexto = "#182d6d", ColorFondoIcono = "#aeccea", altura = "80%" }) {
+    const navegacion = useNavegacion();
+    const tema = useMemo(() => navegacion.tema, [navegacion.tema]);
+    const bgColor = useMemo(() => {
+        return (tema == "light") ? colorFondo : "#272727";
+    }, [tema, colorFondo]);
+    const bgColorIcono = useMemo(() => {
+        return (tema == "light") ? ColorFondoIcono : "#212020";
+    }, [tema, ColorFondoIcono]);
+    const colorFuente = useMemo(() => {
+        return (tema == "light") ? colorTexto : "#ffffff";
+    }, [tema, colorTexto]);
+
     return (
         <Card elevation={0} sx={{
             width: "100%", height: altura, display: "flex", justifyContent: "center",
-            alignItems: "center", backgroundColor: colorFondo, borderRadius: 5, padding: "3vh 0vh"
+            alignItems: "center", backgroundColor: bgColor, borderRadius: 5, padding: "3vh 0vh"
         }}>
             <Stack direction="column" spacing={1} display="flex" justifyContent="center" alignItems="center">
                 <Box
@@ -23,13 +37,13 @@ export default function TarjetaMenuPrincipal({ titulo, valor, icono, colorFondo 
                     justifyContent="center"
                     alignItems="center"
                     borderRadius={10}
-                    sx={{ backgroundColor: ColorFondoIcono, height: "7vh", width: "7vh", }}>
+                    sx={{ backgroundColor: bgColorIcono, height: "7vh", width: "7vh", }}>
                     {icono}
                 </Box>
-                <Typography variant="subtitle1" fontSize={25} color={colorTexto} align="center">
+                <Typography variant="subtitle1" fontSize={25} color={colorFuente} align="center">
                     <b>{valor}</b>
                 </Typography>
-                <Typography variant="h6" align="center" color={colorTexto}>
+                <Typography variant="h6" align="center" color={colorFuente}>
                     {titulo}
                 </Typography>
             </Stack>

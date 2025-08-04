@@ -2,6 +2,8 @@ import { Pie } from 'react-chartjs-2';
 import {
     Chart as ChartJS, Title, Tooltip, Legend, ArcElement
 } from 'chart.js';
+import { useMemo } from 'react';
+import { useNavegacion } from '../../contexts/NavegacionContext';
 
 ChartJS.register(
     ArcElement, Title, Tooltip, Legend,
@@ -23,19 +25,35 @@ ChartJS.register(
  * @returns {JSX.Element}
  */
 export default function GraficoPastel({ titulo, datos, modoActualizacion = "default" }) {
-    const opciones = {
+    const { tema } = useNavegacion();
+
+    const colorTitulo = useMemo(() => {
+        return tema == "dark" ? "#ffffff" : "#000000";
+    }, [tema]);
+
+    const opciones = useMemo(() => ({
         responsive: true,
         plugins: {
             legend: {
-                position: 'top',
+                position: 'top', labels: {
+                    color: colorTitulo,
+                    font: { size: 14, family: 'Roboto' },
+                    border: { color: "black" }
+                }
             },
             title: {
-                display: true, text: titulo, color: "rgb(0, 0, 0)", font: { size: 13 },
-            },
+                display: true, text: titulo, color: colorTitulo,
+                font: { size: 18, family: "Raleway", weight: "bold" },
+            }
         },
-    };
+        elements: {
+            arc: {
+                borderColor: "#00000000"
+            }
+        }
+    }), [titulo, colorTitulo]);
 
     return (
-        <Pie data={datos} options={opciones} updateMode={modoActualizacion} style={{ maxHeight: "40vh"}} />
+        <Pie data={datos} options={opciones} updateMode={modoActualizacion} style={{ maxHeight: "40vh" }} />
     );
 };

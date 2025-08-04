@@ -1,7 +1,6 @@
 import {
     Grid, Button, Typography, TextField, Stack, Tooltip, Box,
-    CircularProgress, MenuItem,
-    useColorScheme
+    CircularProgress, MenuItem
 } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -40,7 +39,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
     const navigate = useNavigate();
-    const { mode } = useColorScheme();
     const [cargando, setCargando] = useState(false);
     const [recargarCaptcha, setRecargarCaptcha] = useState(false);
     const [modal, setModal] = useState({
@@ -110,17 +108,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         return diagnostico.diagnosticado ? "Ver resultados del diagnóstico" : "Genera el diagnóstico de TEP.";
     }, [diagnostico.diagnosticado]);
     const CAPTCHA = useRef(null);
-    const temaCaptcha = useMemo(() => {
-        if (mode == "system" || mode == undefined) {
-            if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-                return "light";
-            } else {
-                return "dark";
-            }
-        } else {
-            return mode;
-        }
-    }, [mode]);
+    const temaCaptcha = useMemo(() => navegacion.tema, [navegacion.tema]);
     const redibujarCaptcha = useMemo(() => {
         if (!recargarCaptcha) {
             return false;
@@ -133,7 +121,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     useEffect(() => {
         setRecargarCaptcha(false);
         setTimeout(() => setRecargarCaptcha(true), 100);
-    }, [mode]);
+    }, [navegacion.tema]);
 
     /**
      * Manejador de cambios para los datos de texto.

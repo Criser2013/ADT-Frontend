@@ -60,7 +60,7 @@ export default function MenuUsuario() {
         return {
             labels: ["Masculino", "Femenino"], datasets: [{
                 label: "Número de pacientes", data: [res.Masculino, res.Femenino], backgroundColor: [
-                    'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)'
+                    '#263b9886', '#f3736c96'
                 ]
             }]
         };

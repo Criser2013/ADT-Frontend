@@ -6,7 +6,6 @@ import { useNavegacion } from "./contexts/NavegacionContext";
 import ModalSimple from "./components/modals/ModalSimple";
 import ModalAccion from "./components/modals/ModalAccion";
 import dayjs from "dayjs";
-import { useColorScheme } from "@mui/material";
 
 /**
  * Componente principal que provee las credenciales de autenticación y muestra los 
@@ -23,7 +22,6 @@ export default function App() {
     const [modal2Btn, setModal2Btn] = useState({
         mostrar: false, mensaje: "", titulo: "", txtBtn: ""
     });
-    const { mode, setMode } = useColorScheme();
 
     /**
      * Actualiza las instancia de Firebase y permisos de Drive

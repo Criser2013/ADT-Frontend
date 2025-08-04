@@ -1,6 +1,5 @@
-import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip, useColorScheme } from "@mui/material";
+import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip } from "@mui/material";
 import GoogleIcon from '@mui/icons-material/Google';
-import ContrastIcon from '@mui/icons-material/Contrast';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +20,6 @@ export default function IniciarSesionPage() {
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
     const CAPTCHA = useRef(null);
-    const { mode } = useColorScheme();
     const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [recargarCaptcha, setRecargarCaptcha] = useState(false);
     const cargandoAuth = useMemo(() => {
@@ -40,17 +38,7 @@ export default function IniciarSesionPage() {
     const height = useMemo(() => {
         return navegacion.dispositivoMovil ? "96vh" : "97.5vh";
     }, [navegacion.dispositivoMovil]);
-    const temaCaptcha = useMemo(() => {
-        if (mode == "system" || mode == undefined) {
-            if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-                return "light";
-            } else {
-                return "dark";
-            }
-        } else {
-            return mode;
-        }
-    }, [mode]);
+    const temaCaptcha = useMemo(() => navegacion.tema, [navegacion.tema]);
     const reCAPTCHAApi = useMemo(() => {
         return credenciales.obtenerRecaptcha();
     }, [credenciales.obtenerRecaptcha()]);
