@@ -1,9 +1,10 @@
 import {
     Grid, Button, Typography, TextField, Stack, Tooltip, Box,
-    CircularProgress, MenuItem
+    CircularProgress, MenuItem,
+    useColorScheme
 } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import { detTamCarga } from "../../utils/Responsividad";
 import Check from "../tabs/Check";
@@ -39,7 +40,9 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
     const navigate = useNavigate();
+    const { mode } = useColorScheme();
     const [cargando, setCargando] = useState(false);
+    const [recargarCaptcha, setRecargarCaptcha] = useState(false);
     const [modal, setModal] = useState({
         mostrar: false, titulo: "", mensaje: ""
     });
@@ -107,6 +110,30 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         return diagnostico.diagnosticado ? "Ver resultados del diagnóstico" : "Genera el diagnóstico de TEP.";
     }, [diagnostico.diagnosticado]);
     const CAPTCHA = useRef(null);
+    const temaCaptcha = useMemo(() => {
+        if (mode == "system" || mode == undefined) {
+            if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+                return "light";
+            } else {
+                return "dark";
+            }
+        } else {
+            return mode;
+        }
+    }, [mode]);
+    const redibujarCaptcha = useMemo(() => {
+        if (!recargarCaptcha) {
+            return false;
+        } else {
+            return !diagnostico.diagnosticado;
+        }
+    }, [recargarCaptcha, diagnostico.diagnosticado]);
+
+    // Para que se actualice el reCAPTCHA al cambiar el tema
+    useEffect(() => {
+        setRecargarCaptcha(false);
+        setTimeout(() => setRecargarCaptcha(true), 100);
+    }, [mode]);
 
     /**
      * Manejador de cambios para los datos de texto.
@@ -578,12 +605,13 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 />
                             </Grid>
                         ) : null}
-                        {!diagnostico.diagnosticado ? (<Grid size={numCols} display="flex" justifyContent="center">
+                        {(redibujarCaptcha) ? (<Grid size={numCols} display="flex" justifyContent="center">
                             <ReCAPTCHA
+                                theme={temaCaptcha}
                                 onChange={manejadorReCAPTCHA}
                                 sitekey={reCAPTCHAApi}
                                 ref={CAPTCHA} />
-                        </Grid>) : null }
+                        </Grid>) : null}
                         <Grid display="flex" justifyContent="center" size={numCols}>
                             <Stack direction="row" spacing={2}>
                                 <Tooltip title={toolBtnVaciar}>

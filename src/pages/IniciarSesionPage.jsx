@@ -1,4 +1,4 @@
-import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip } from "@mui/material";
+import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip, useColorScheme } from "@mui/material";
 import GoogleIcon from '@mui/icons-material/Google';
 import ContrastIcon from '@mui/icons-material/Contrast';
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -8,6 +8,7 @@ import logo from "../assets/logo.png";
 import { useNavegacion } from "../contexts/NavegacionContext";
 import { useCredenciales } from "../contexts/CredencialesContext";
 import ReCAPTCHA from "react-google-recaptcha";
+import BtnTema from "../components/tabs/BtnTema";
 
 /**
  * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.
@@ -20,7 +21,12 @@ export default function IniciarSesionPage() {
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
     const CAPTCHA = useRef(null);
+    const { mode } = useColorScheme();
     const [desactivarBtn, setDesactivarBtn] = useState(true);
+    const [recargarCaptcha, setRecargarCaptcha] = useState(false);
+    const cargandoAuth = useMemo(() => {
+        return auth.cargando;
+    }, [auth.cargando]);
     const width = useMemo(() => {
         const { dispositivoMovil, orientacion } = navegacion;
         if (!dispositivoMovil) {
@@ -33,7 +39,18 @@ export default function IniciarSesionPage() {
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
     const height = useMemo(() => {
         return navegacion.dispositivoMovil ? "96vh" : "97.5vh";
-    },[navegacion.dispositivoMovil]);
+    }, [navegacion.dispositivoMovil]);
+    const temaCaptcha = useMemo(() => {
+        if (mode == "system" || mode == undefined) {
+            if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+                return "light";
+            } else {
+                return "dark";
+            }
+        } else {
+            return mode;
+        }
+    }, [mode]);
     const reCAPTCHAApi = useMemo(() => {
         return credenciales.obtenerRecaptcha();
     }, [credenciales.obtenerRecaptcha()]);
@@ -69,8 +86,9 @@ export default function IniciarSesionPage() {
      * Manejador de eventos del botón para cambiar tema.
      */
     const manejadorBtnCambiarTema = () => {
+        setRecargarCaptcha(true);
         navegacion.cambiarTema();
-        console.log("presionado");
+        setTimeout(() => setRecargarCaptcha(false), 100);
     };
 
     /**
@@ -84,19 +102,17 @@ export default function IniciarSesionPage() {
 
     return (
         <>
-            {auth.cargando ? (
+            {cargandoAuth ? (
                 <Box alignItems="center" display="flex" justifyContent="center" height="100vh">
                     <CircularProgress />
                 </Box>
             ) : (
-                <Box display="flex" justifyContent="end" height={height} bgcolor="black">
-                    <Grid columns={12} spacing={1} container display="flex" alignItems="center" height="100%" width={width} bgcolor="white" padding="0vh 2vh" overflow="auto">
+                <Box display="flex" justifyContent="end" height={height}>
+                    <Grid columns={12} spacing={1} container display="flex" alignItems="center" height="100%" width={width} padding="0vh 2vh" overflow="auto">
                         <Grid size={12} display="flex" justifyContent="end">
-                            <Tooltip title="Cambiar tema">
-                                <IconButton aria-label="delete" onClick={manejadorBtnCambiarTema}>
-                                    <ContrastIcon />
-                                </IconButton>
-                            </Tooltip>
+                            <IconButton aria-label="delete" onClick={manejadorBtnCambiarTema}>
+                                <BtnTema />
+                            </IconButton>
                         </Grid>
                         <Grid container size={12} alignItems="center">
                             <Grid size={3}>
@@ -120,10 +136,13 @@ export default function IniciarSesionPage() {
                             </Typography>
                         </Grid>
                         <Grid size={12} display="flex" justifyContent="center">
-                            <ReCAPTCHA
-                                onChange={manejadorReCAPTCHA}
-                                sitekey={reCAPTCHAApi}
-                                ref={CAPTCHA} />
+                            {recargarCaptcha ? null : (
+                                <ReCAPTCHA
+                                    theme={temaCaptcha}
+                                    onChange={manejadorReCAPTCHA}
+                                    sitekey={reCAPTCHAApi}
+                                    ref={CAPTCHA} />
+                            )}
                         </Grid>
                         <Grid size={12} justifyContent="center" display="flex">
                             <Tooltip title="Ingresa a la aplicación con tu cuenta de Google">

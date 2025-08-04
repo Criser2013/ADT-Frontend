@@ -18,12 +18,12 @@ export default function ModalAccion({ abrir, mensaje, titulo, manejadorBtnPrimar
     mostrarBtnSecundario, txtBtnSimple, txtBtnSecundario, txtBtnSimpleAlt, children, desactivarBtnPrimario = false }) {
     return (
         <Dialog open={abrir}>
-            <DialogTitle>{titulo}</DialogTitle>
-            <Divider orientation="horizontal" />
+            <DialogTitle><b>{titulo}</b></DialogTitle>
+            <Divider />
             <DialogContent>
                 {mensaje != "" ? <Typography>{mensaje}</Typography> : (children)}
             </DialogContent>
-            <Divider orientation="horizontal" />
+            <Divider />
             <DialogActions>
                 {mostrarBtnSecundario ? (
                     <Button

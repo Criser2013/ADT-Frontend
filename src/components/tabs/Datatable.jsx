@@ -2,7 +2,8 @@ import {
     Box, Paper, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead,
     TableRow, TablePagination, TableSortLabel, TextField, Typography, InputAdornment,
     Toolbar, IconButton, Stack, Tooltip,
-    CircularProgress
+    CircularProgress,
+    useColorScheme
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -51,6 +52,9 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     const [busqueda, setBusqueda] = useState(terminoBusqueda);
     const [auxDatos, setAuxDatos] = useState(datos);
     const [modoSeleccion, setModoSeleccion] = useState(false);
+    const padding = useMemo(() => {
+        return !modoSeleccion ? "1vh" : "0vh";
+    }, [modoSeleccion]);
     const filas = useMemo(() =>
         [...auxDatos]
             .sort(obtenerComparadorStrNum(orden, campoOrden))
@@ -194,7 +198,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                             width="100%"
                             alignItems="center">
                             {numSeleccionados > 0 ? (
-                                <Stack direction="row" display="flex" width="100%" justifyContent="space-between">
+                                <Stack direction="row" display="flex" width="100%" justifyContent="space-between" alignItems="center">
                                     <Typography
                                         sx={{ flex: "1 1 100%" }}
                                         color="inherit"
@@ -214,7 +218,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                 placeholder={lblBusq}
                                 defaultValue={terminoBusqueda}
                                 onChange={manejadorBusqueda}
-                                sx={{ backgroundColor: "white", width: tamCampoBusq, paddingTop: "1vh" }}
+                                sx={{ width: tamCampoBusq, paddingTop: padding }}
                                 slotProps={{
                                     input: {
                                         startAdornment: (

@@ -7,7 +7,7 @@ import { useNavigate } from "react-router";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import ContrastIcon from "@mui/icons-material/Contrast";
+import BtnTema from "../tabs/BtnTema";
 
 /**
  * Barra de navegación superior.
@@ -55,14 +55,6 @@ export default function Navbar() {
      */
     const manejadorBtnTema = () => {
        navegacion.cambiarTema();
-       //console.log(mode)
-       /*setMode((prevMode) => {
-        console.log(prevMode)
-        if (prevMode == undefined) {
-            return "system";
-        }
-        return prevMode === "light" ? "dark" : "light"
-    });*/
     };
 
     /**
@@ -90,7 +82,7 @@ export default function Navbar() {
                     <Typography variant="h6"><b>HADT</b></Typography>
                     <Stack direction="row" spacing={1}>
                         <IconButton color="inherit" onClick={manejadorBtnTema}>
-                            <ContrastIcon />
+                            <BtnTema />
                         </IconButton>
                         <Tooltip title="Ver opciones de usuario">
                             <IconButton onClick={manejadorMousePopOver} color="inherit" aria-describedby={idPopOver}>

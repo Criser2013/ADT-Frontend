@@ -61,6 +61,9 @@ export default function VerPacientePage() {
         { texto: "Lista de pacientes", url: "/pacientes" },
         { texto: `Paciente-${datos.personales.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
     ], [datos.personales.nombre, location.search]);
+    const mostrarComor = useMemo(() => {
+        return datos.comorbilidades.length > 0;
+    }, [datos.comorbilidades]);
     const ced = useMemo(() => params.get("cedula"), [params]);
 
     /**
@@ -127,6 +130,10 @@ export default function VerPacientePage() {
      */
     const detVisualizacion = (indice) => {
         const { orientacion, mostrarMenu, dispositivoMovil } = navegacion;
+
+        if (indice == 2 && dispositivoMovil && ((orientacion == "horizontal" && mostrarMenu) || orientacion == "vertical")) {
+            return 12;
+        }
         if (dispositivoMovil && (orientacion == "vertical" || (orientacion == "horizontal" && mostrarMenu))) {
             return 12;
         } else {
@@ -264,12 +271,12 @@ export default function VerPacientePage() {
                                     <b>Condiciones médicas preexistentes</b>
                                 </Typography>
                             </Grid>
-                            {(datos.comorbilidades.length > 0) ? (
+                            {mostrarComor ? (
                                 <Grid size={12}>
                                     <ContComorbilidades comorbilidades={datos.comorbilidades} />
                                 </Grid>
                             ) : (
-                                <Grid size={5}>
+                                <Grid size={12}>
                                     <Typography variant="body1">
                                         <b>No se han registrado comorbilidades.</b>
                                     </Typography>

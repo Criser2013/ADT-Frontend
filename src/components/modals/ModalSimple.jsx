@@ -12,7 +12,7 @@ import { Dialog, DialogTitle, DialogContent, Button, Typography, DialogActions }
 export default function ModalSimple({ abrir, titulo, mensaje, txtBtn, manejadorBtnModal, children }) {
     return (
         <Dialog open={abrir}>
-            <DialogTitle>{titulo}</DialogTitle>
+            <DialogTitle><b>{titulo}</b></DialogTitle>
             <DialogContent>
                 {(mensaje != null && mensaje != "") ? (
                     <Typography>{mensaje}</Typography>) : (

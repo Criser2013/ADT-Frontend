@@ -12,14 +12,11 @@ export default function ContComorbilidades({ comorbilidades }) {
             borderRadius={3}
             border={1}
             padding="2vh"
-            style={{ borderColor: "#adadad" }}
             sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
             {comorbilidades.map((x) => (
                 <Chip
                     key={x}
                     label={x}
-                    color="info"
-                    variant="outlined"
                     size="medium" />
             ))}
         </Box>);
