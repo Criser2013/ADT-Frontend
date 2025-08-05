@@ -330,9 +330,6 @@ export default function VerUsuariosPage() {
      */
     const verificarAutoeliminacion = (usuarios) => {
         const res = usuarios.includes(auth.authInfo.uid);
-        console.log(usuarios)
-
-        console.log(res);
         if (res) {
             setTimeout(() => {
                 setModoModal(2);

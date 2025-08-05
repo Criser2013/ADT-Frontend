@@ -1,4 +1,4 @@
-import { Dialog, DialogTitle, DialogContent, Button, Typography, DialogActions } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, Button, Typography, DialogActions, Divider } from "@mui/material";
 
 /**
  * Modal simple para mostrar mensajes o información al usuario.
@@ -13,12 +13,14 @@ export default function ModalSimple({ abrir, titulo, mensaje, txtBtn, manejadorB
     return (
         <Dialog open={abrir}>
             <DialogTitle><b>{titulo}</b></DialogTitle>
+            <Divider />
             <DialogContent>
                 {(mensaje != null && mensaje != "") ? (
                     <Typography>{mensaje}</Typography>) : (
                     children
                 )}
             </DialogContent>
+            <Divider />
             <DialogActions>
                 <Button
                     type="submit"

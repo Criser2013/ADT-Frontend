@@ -3,7 +3,7 @@ import {
     CircularProgress, MenuItem
 } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import { detTamCarga } from "../../utils/Responsividad";
 import Check from "../tabs/Check";
@@ -12,7 +12,7 @@ import { COMORBILIDADES, SEXOS, SINTOMAS } from "../../../constants";
 import CloseIcon from "@mui/icons-material/Close";
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import { validarFloatPos, validarNumero } from "../../utils/Validadores";
-import { oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, transformarDatos, validarArray } from "../../utils/TratarDatos";
+import { oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, transformarDatos } from "../../utils/TratarDatos";
 import ModalSimple from "../modals/ModalSimple";
 import { peticionApi } from "../../services/Api";
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
@@ -25,6 +25,20 @@ import { Timestamp } from "firebase/firestore";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import TabHeader from "../tabs/TabHeader";
 import ReCAPTCHA from "react-google-recaptcha";
+import { useForm, Controller } from "react-hook-form";
+
+const defaultValues = {
+    paciente: { cedula: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null},
+    sexo: 2, edad: "", presionSis: "", presionDias: "", frecRes: "",
+    frecCard: "", so2: "", plaquetas: "", hemoglobina: "", wbc: "",
+    fumador: false, bebedor: false, tos: false, fiebre: false,
+    crepitaciones: false, dolorToracico: false, malignidad: false,
+    hemoptisis: false, disnea: false, sibilancias: false,
+    derrame: false, tepPrevio: false, edema: false, disautonomicos: false,
+    inmovilidad: false, viajeProlongado: false, cirugiaReciente: false,
+    otraEnfermedad: false, soplos: false,
+    otrasEnfermedades: [] // Inicializamos el array vacío
+};
 
 /**
  * Formulario para realizar un diagnostico de TEP.
@@ -39,46 +53,9 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
     const navigate = useNavigate();
-    const [cargando, setCargando] = useState(false);
     const [recargarCaptcha, setRecargarCaptcha] = useState(false);
-    const [modal, setModal] = useState({
-        mostrar: false, titulo: "", mensaje: ""
-    });
-    const [datosTxt, setDatosTxt] = useState({
-        sexo: 2, edad: "", presionSis: "", presionDias: "", frecRes: "",
-        frecCard: "", so2: "", plaquetas: "", hemoglobina: "", wbc: ""
-    });
-    const [datosBin, setDatosBin] = useState({
-        fumador: false, bebedor: false, tos: false, fiebre: false,
-        crepitaciones: false, dolorToracico: false, malignidad: false,
-        hemoptisis: false, disnea: false, sibilancias: false,
-        derrame: false, tepPrevio: false, edema: false, disautonomicos: false,
-        inmovilidad: false, viajeProlongado: false, cirugiaReciente: false,
-        otraEnfermedad: false, soplos: false
-    });
-    const [paciente, setPaciente] = useState({
-        cedula: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null
-    });
-    const [diagnostico, setDiagnostico] = useState({
-        resultado: false, probabilidad: 0, diagnosticado: false
-    });
     const [desactivarBtn, setDesactivarBtn] = useState(true);
-    const [desactivarCampos, setDesactivarCampos] = useState(false);
-    const [otrasEnfermedades, setOtrasEnfermedades] = useState([]);
-    const [errores, setErrores] = useState([
-        { campo: "sexo", error: false, txt: "" },
-        { campo: "edad", error: false, txt: "" },
-        { campo: "presionSis", error: false, txt: "" },
-        { campo: "presionDias", error: false, txt: "" },
-        { campo: "frecuenciaRes", error: false, txt: "" },
-        { campo: "frecuenciaCard", error: false, txt: "" },
-        { campo: "so2", error: false, txt: "" },
-        { campo: "plaquetas", error: false, txt: "" },
-        { campo: "hemoglobina", error: false, txt: "" },
-        { campo: "wbc", error: false, txt: "" },
-        { campo: "comorbilidades", error: false, txt: "" },
-        { campo: "paciente", error: false, txt: "" }
-    ]);
+    const [diagnostico, setDiagnostico] = useState({ resultado: false, probabilidad: 0, diagnosticado: false });
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
@@ -94,10 +71,8 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const reCAPTCHAApi = useMemo(() => {
         return credenciales.obtenerRecaptcha();
     }, [credenciales.obtenerRecaptcha()]);
+    const [desactivarCampos, setDesactivarCampos] = useState(false);
     const desactivarCamposAux = useMemo(() => desactivarCampos || esDiagPacientes, [desactivarCampos, esDiagPacientes]);
-    const txtErrorOtrasEnfermedades = useMemo(() => !esDiagPacientes ? errores[10].txt : "", [esDiagPacientes, errores[10]]);
-    const txtErrorSexo = useMemo(() => !esDiagPacientes ? errores[0].txt : "", [esDiagPacientes, errores[0]]);
-    const txtErrorEdad = useMemo(() => !esDiagPacientes ? errores[1].txt : "", [esDiagPacientes, errores[1]]);
     const txtBtnDiagnostico = useMemo(() => {
         return diagnostico.diagnosticado ? "Ver diagnóstico" : "Diagnosticar";
     }, [diagnostico.diagnosticado]);
@@ -117,27 +92,40 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         }
     }, [recargarCaptcha, diagnostico.diagnosticado]);
 
+    const [cargando, setCargando] = useState(false);
+    const [modal, setModal] = useState({ mostrar: false, titulo: "", mensaje: "" });
+    const { setValue, control, handleSubmit, reset, watch, formState: { errors } } = useForm({
+        defaultValues,
+        mode: "onBlur" // Opcional: valida al perder el foco
+    });
+
+    // Usa `watch` para obtener los valores del formulario sin re-renderizar
+    const otraEnfermedad = watch("otraEnfermedad");
+
+    // Lógica para enviar el formulario. Recibe los datos validados
+    const onSubmit = (datos) => {
+        if (diagnostico.diagnosticado) {
+            setModal({ mostrar: true, titulo: "Resultado del diagnóstico", mensaje: "" });
+            return;
+        }
+
+        setCargando(true);
+        diagnosticar(datos);
+    };
+
+    // La función `manejadorBtnVaciar` ahora usará `reset` de react-hook-form
+    const manejadorBtnVaciar = () => {
+        reset(defaultValues); // Resetea el formulario a sus valores iniciales
+        setDesactivarBtn(true);
+        setDesactivarCampos(false);
+        setDiagnostico({ resultado: false, probabilidad: 0, diagnosticado: false });
+    };
+
     // Para que se actualice el reCAPTCHA al cambiar el tema
     useEffect(() => {
         setRecargarCaptcha(false);
         setTimeout(() => setRecargarCaptcha(true), 100);
     }, [navegacion.tema]);
-
-    /**
-     * Manejador de cambios para los datos de texto.
-     * @param {Event} e 
-     */
-    const manejadorCambiosDatosTxt = (e) => {
-        setDatosTxt((x) => ({ ...x, [e.target.name]: e.target.value }));
-    };
-
-    /**
-     * Manejador de cambios para los datos binarios.
-     * @param {Event} e 
-     */
-    const manejadorCambiosDatosBin = (e) => {
-        setDatosBin((x) => ({ ...x, [e.target.name]: e.target.checked }));
-    };
 
     /**
      * Manejador de cambios para menú desplegable de pacientes.
@@ -149,176 +137,60 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
 
         if (e.target.value != -1) {
             const comorbilidades = oneHotInversoOtraEnfermedad(pacienteSeleccionado);
-
-            setDatosTxt({
-                ...datosTxt, sexo: pacienteSeleccionado.sexo, edad: dayjs().diff(dayjs(
-                    pacienteSeleccionado.fechaNacimiento, "DD-MM-YYYY"), "year", false
-                )
-            });
-            setDatosBin({ ...datosBin, otraEnfermedad: pacienteSeleccionado.otraEnfermedad });
-            setOtrasEnfermedades(comorbilidades);
+            setValue("sexo", pacienteSeleccionado.sexo);
+            setValue("edad", dayjs().diff(dayjs(
+                pacienteSeleccionado.fechaNacimiento, "DD-MM-YYYY"), "year", false
+            ));
+            setValue("otrasEnfermedades", comorbilidades);
+            setValue("otraEnfermedad", pacienteSeleccionado.otraEnfermedad);
         } else {
-            setDatosTxt({
-                sexo: 2, edad: "", presionSis: "", presionDias: "", frecRes: "",
-                frecCard: "", so2: "", plaquetas: "", hemoglobina: "", wbc: ""
-            });
-            setDatosBin({
-                fumador: false, bebedor: false, tos: false, fiebre: false,
-                crepitaciones: false, dolorToracico: false, malignidad: false,
-                hemoptisis: false, disnea: false, sibilancias: false,
-                derrame: false, tepPrevio: false, edema: false, disautonomicos: false,
-                inmovilidad: false, viajeProlongado: false, cirugiaReciente: false,
-                otraEnfermedad: false, soplos: false
-            });
-            setOtrasEnfermedades([]);
+            const camposTxt = ["edad", "presionSis", "presionDias", "frecRes",
+                "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"];
+            const camposBin = [
+                "fumador", "bebedor", "tos", "fiebre", "crepitaciones",
+                "dolorToracico", "malignidad", "hemoptisis", "disnea", "sibilancias",
+                "derrame", "tepPrevio", "edema", "disautonomicos", "inmovilidad",
+                "viajeProlongado", "cirugiaReciente", "otraEnfermedad", "soplos"
+            ];
+            setValue("sexo", 2);
+            for (const i of camposTxt) {
+                setValue(i, "");
+            }
+            for (const i of camposBin) {
+                setValue(i, false);
+            }
+            setValue("otrasEnfermedades", []);
         }
 
-        setPaciente(pacienteSeleccionado);
-    };
-
-    /**
-     * Manejador de cambios para las comorbilidades.
-     * @param {Event} e 
-     */
-    const manejadorCambiosComor = (e) => {
-        setOtrasEnfermedades(e.target.value);
-    };
-
-    /**
-     * Manejador del botón de vaciar campos.
-     */
-    const manejadorBtnVaciar = () => {
-        setDesactivarCampos(false);
-        setDiagnostico({ resultado: false, probabilidad: 0, diagnosticado: false });
-        setDatosTxt({
-            sexo: 2, edad: "", presionSis: "", presionDias: "", frecRes: "",
-            frecCard: "", so2: "", plaquetas: "", hemoglobina: "", wbc: ""
-        });
-        setDatosBin({
-            fumador: false, bebedor: false, tos: false, fiebre: false,
-            crepitaciones: false, dolorToracico: false, malignidad: false,
-            hemoptisis: false, disnea: false, sibilancias: false,
-            derrame: false, tepPrevio: false, edema: false, disautonomicos: false,
-            inmovilidad: false, viajeProlongado: false, cirugiaReciente: false,
-            otraEnfermedad: false
-        });
-        setOtrasEnfermedades([]);
-        setErrores(errores.map(e => ({ ...e, error: false, txt: "" })));
-
-        if (esDiagPacientes) {
-            setPaciente({ cedula: -1, nombre: "Seleccionar paciente" });
-        }
-    };
-
-    /**
-     * Quita los errores de los campos en pantalla.
-     */
-    const limpiarErrores = () => {
-        setErrores([
-            { campo: "sexo", error: false, txt: "" },
-            { campo: "edad", error: false, txt: "" },
-            { campo: "presionSis", error: false, txt: "" },
-            { campo: "presionDias", error: false, txt: "" },
-            { campo: "frecuenciaRes", error: false, txt: "" },
-            { campo: "frecuenciaCard", error: false, txt: "" },
-            { campo: "so2", error: false, txt: "" },
-            { campo: "plaquetas", error: false, txt: "" },
-            { campo: "hemoglobina", error: false, txt: "" },
-            { campo: "wbc", error: false, txt: "" },
-            { campo: "comorbilidades", error: false, txt: "" },
-            { campo: "paciente", error: false, txt: "" }
-        ]);
-    };
-
-    /**
-     * Valida el campo que se indique, devuelve un JSON con el resultados.
-     * @param {String} cod - Atributo "name" del campo que se está validando.
-     * @returns JSON
-     */
-    const evaluarErrores = (cod) => {
-        let res = { campo: cod, error: false, txt: "" };
-        const numCampos = ["presionSis", "presionDias", "frecRes", "frecCard",
-            "so2", "plaquetas", "hemoglobina", "wbc"
-        ];
-
-        switch (true) {
-            case (cod == "paciente" && paciente.cedula == -1):
-                res = { error: true, txt: "Debes seleccionar un paciente" };
-                break;
-            case (cod == "sexo" && datosTxt.sexo > 1):
-                res = { error: true, txt: "Selecciona el sexo del paciente" };
-                break;
-            case (cod == "edad" && !validarNumero(datosTxt.edad)):
-                res = { error: true, txt: "Edad inválida" };
-                break;
-            case numCampos.includes(cod) && !validarFloatPos(datosTxt[cod]):
-                res = { error: true, txt: "Solo debes ingresar números positivos" };
-                break;
-            case (cod == "comorbilidades" && (datosBin.otraEnfermedad && otrasEnfermedades.length == 0)):
-                res = { error: true, txt: "Selecciona al menos un padecimiento" };
-                break;
-            default:
-                break;
-        }
-        res["campo"] = cod;
-        return res;
-    };
-
-    /**
-     * Muestra un modal de error cuando los datos son inválidos.
-     */
-    const mostrarErrDatosInv = () => {
-        setModal({
-            mostrar: true,
-            titulo: "Datos inválidos.",
-            mensaje: "Los valores de algunos campos son inválidos."
-        });
-    };
-
-    /**
-     * Manejador del botón de guardar.
-     */
-    const manejadorBtnDiagnosticar = () => {
-        const camposEval = ["presionSis", "presionDias", "frecRes",
-            "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"
-        ];
-
-        camposEval.unshift("sexo", "edad");
-        camposEval.push("comorbilidades");
-
-
-        if (esDiagPacientes) {
-            camposEval.push("paciente");
-        }
-
-        if (diagnostico.diagnosticado) {
-            setModal({ mostrar: true, titulo: "Resultado del diagnóstico", mensaje: "" });
-            return;
-        }
-
-        limpiarErrores();
-        const res = validarArray(
-            camposEval,
-            evaluarErrores,
-            (x) => !x.error,
-            setErrores
-        );
-
-        if (!res) {
-            mostrarErrDatosInv();
-        } else {
-            setCargando(true);
-            diagnosticar();
-        }
+        setValue("paciente", pacienteSeleccionado);
     };
 
     /**
      * Genera el diagnóstico y muestra el resultado en un modal.
      */
-    const diagnosticar = async () => {
-        const oneHotComor = oneHotEncondingOtraEnfermedad(datosBin.otraEnfermedad ? otrasEnfermedades : []);
-        const datos = transformarDatos({ ...datosTxt, ...datosBin }, oneHotComor);
-        const res = await peticionApi(auth.authInfo.user.accessToken, "diagnosticar", "POST", datos,
+    const diagnosticar = async (datos) => {
+        const aux = {};
+        const oneHotComor = oneHotEncondingOtraEnfermedad(datos.otraEnfermedad ? datos.otrasEnfermedades : []);
+        const camposTxt = ["edad", "presionSis", "presionDias", "frecRes",
+            "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"];
+        const camposBin = [
+            "sexo", "fumador", "bebedor", "tos", "fiebre", "crepitaciones",
+            "dolorToracico", "malignidad", "hemoptisis", "disnea", "sibilancias",
+            "derrame", "tepPrevio", "edema", "disautonomicos", "inmovilidad",
+            "viajeProlongado", "cirugiaReciente", "otraEnfermedad", "soplos"
+        ];
+
+        for (let i=0; i< camposBin.length; i++) {
+            if (i < camposTxt.length) {
+                aux[camposTxt[i]] = datos[camposTxt[i]];
+            }
+
+            aux[camposBin[i]] = datos[camposBin[i]];
+        }
+
+
+        const cuerpo = transformarDatos(aux, oneHotComor);
+        const res = await peticionApi(auth.authInfo.user.accessToken, "diagnosticar", "POST", cuerpo,
             "Ha ocurrido un error al generar el diagnóstico. Por favor reintenta nuevamente."
         );
         const { success, data } = res;
@@ -326,7 +198,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         if (!success) {
             setModal({ mostrar: true, titulo: "Error", mensaje: res.error });
         } else if (success && esDiagPacientes) {
-            await guardarDiagnostico(oneHotComor, data);
+            await guardarDiagnostico(oneHotComor, datos, data);
         } else {
             setDesactivarCampos(true);
             setDiagnostico({ resultado: data.prediccion, probabilidad: data.probabilidad * 100, diagnosticado: true });
@@ -334,39 +206,51 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         }
 
         setCargando(false);
+        setRecargarCaptcha(true);
     };
 
     /**
      * Guarda el diagnóstico en la base de datos.
      * @param {JSON} oneHotComor - Datos de comorbilidades en formato one-hot.
+     * @param {JSON} datos - Datos binarios y númericos del formulario.
      * @param {JSON} resultado - Diagnóstico generado por la API.
      */
-    const guardarDiagnostico = async (oneHotComor, resultado) => {
-        const auxBin = { ...datosBin };
-        const auxTxt = { ...datosTxt };
+    const guardarDiagnostico = async (oneHotComor, datos, resultado) => {
+        const aux = {};
+        const camposTxt = ["edad", "presionSis", "presionDias", "frecRes",
+            "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"];
+        const camposBin = [
+            "sexo", "fumador", "bebedor", "tos", "fiebre", "crepitaciones",
+            "dolorToracico", "malignidad", "hemoptisis", "disnea", "sibilancias",
+            "derrame", "tepPrevio", "edema", "disautonomicos", "inmovilidad",
+            "viajeProlongado", "cirugiaReciente", "otraEnfermedad", "soplos"
+        ];
 
         // Convirtiendo los booleanos a 0 y 1
-        for (const i in datosBin) {
-            auxBin[i] = procBool(datosBin[i]);
+        for (const i of camposBin) {
+            aux[i] = procBool(datos[i]);
         }
 
         // Transformando los datos de texto a números
-        for (const i in datosTxt) {
-            if (typeof datosTxt[i] == "string") {
-                auxTxt[i] = parseFloat(datosTxt[i].replace(",", "."));
+        for (const i of camposTxt) {
+            if (typeof datos[i] == "string") {
+                aux[i] = parseFloat(datos[i].replace(",", "."));
+            } else {
+                aux[i] = datos[i];
             }
         }
 
-        const datos = {
-            id: v6(), medico: auth.authInfo.uid, ...auxTxt, ...auxBin, ...oneHotComor,
+        const instancia = {
+            id: v6(), medico: auth.authInfo.uid, ...aux, ...oneHotComor,
             probabilidad: resultado.probabilidad, diagnostico: procBool(resultado.prediccion),
-            fecha: Timestamp.now(), validado: 2, paciente: paciente.cedula
+            fecha: Timestamp.now(), validado: 2, paciente: datos.paciente.cedula,
         };
 
-        const res = await cambiarDiagnostico(datos, credenciales.obtenerInstanciaDB());
+        const res = await cambiarDiagnostico(instancia, credenciales.obtenerInstanciaDB());
 
         if (res.success) {
-            navigate(`/diagnosticos/ver-diagnostico?id=${datos.id}`, { replace: true, state: datos });
+            navegacion.setPaginaAnterior("/diagnostico-paciente");
+            navigate(`/diagnosticos/ver-diagnostico?id=${instancia.id}`, { replace: true, state: instancia });
         } else {
             setModal({
                 mostrar: true,
@@ -404,51 +288,72 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                         </Grid>
                         {esDiagPacientes ? (
                             <Grid size={1}>
-                                <TextField
-                                    select
-                                    label="Paciente"
+                                <Controller
                                     name="paciente"
-                                    value={paciente.cedula}
-                                    onChange={manejadorCambiosPaciente}
-                                    error={errores[11].error}
-                                    helperText={errores[11].txt}
-                                    fullWidth>
-                                    {pacientes.map((x) => (
-                                        <MenuItem key={x.cedula} value={x.cedula}>
-                                            {x.nombre}
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
+                                    control={control}
+                                    rules={{ required: "Debes seleccionar un paciente" }}
+                                    render={({ field }) => (
+                                        <TextField
+                                            select
+                                            label="Paciente"
+                                            {...field}
+                                            value={field.value.cedula}
+                                            onChange={manejadorCambiosPaciente}
+                                            error={!!errors.paciente}
+                                            helperText={errors.paciente?.message}
+                                            fullWidth>
+                                            {pacientes.map((x) => (
+                                                <MenuItem key={x.cedula} value={x.cedula}>
+                                                    {x.nombre}
+                                                </MenuItem>
+                                            ))}
+                                        </TextField>)} />
                             </Grid>
                         ) : null}
                         <Grid size={1}>
-                            <TextField
-                                select
-                                label="Sexo"
+                            <Controller
                                 name="sexo"
-                                value={datosTxt.sexo}
-                                onChange={manejadorCambiosDatosTxt}
-                                error={errores[0].error && !esDiagPacientes}
-                                helperText={txtErrorSexo}
-                                disabled={desactivarCamposAux}
-                                fullWidth>
-                                {SEXOS.map((x) => (
-                                    <MenuItem key={x.val} value={x.val}>
-                                        {x.texto}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
+                                control={control}
+                                rules={{
+                                    required: "Selecciona el sexo del paciente",
+                                    validate: (x) => x != 2 || "Debes seleccionar el sexo del paciente"
+                                }}
+                                render={({ field }) => (
+                                    <TextField
+                                        select
+                                        label="Sexo"
+                                        {...field}
+                                        error={!!errors.sexo}
+                                        helperText={errors.sexo?.message}
+                                        disabled={desactivarCamposAux}
+                                        fullWidth>
+                                        {SEXOS.map((x) => (
+                                            <MenuItem key={x.val} value={x.val}>
+                                                {x.texto}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                )} />
                         </Grid>
                         <Grid size={1}>
-                            <TextField
-                                label="Edad"
+                            <Controller
                                 name="edad"
-                                value={datosTxt.edad}
-                                onChange={manejadorCambiosDatosTxt}
-                                error={errores[1].error && !esDiagPacientes}
-                                disabled={desactivarCamposAux}
-                                helperText={txtErrorEdad}
-                                fullWidth />
+                                control={control}
+                                rules={{
+                                    required: "La edad es obligatoria",
+                                    validate: (value) => validarNumero(value) || "Edad inválida"
+                                }}
+                                render={({ field }) => (
+                                    <TextField
+                                        label="Edad"
+                                        {...field}
+                                        error={!!errors.edad}
+                                        disabled={desactivarCamposAux}
+                                        helperText={errors.edad?.message}
+                                        fullWidth
+                                    />
+                                )}
+                            />
                         </Grid>
                         <Grid size={numCols}>
                             <Typography variant="h6">
@@ -458,12 +363,19 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                         <Grid container size={numCols} columns={numCols} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
                             {SINTOMAS.map((x) => (
                                 <Grid size={1} key={x.nombre}>
-                                    <Check
-                                        nombre={x.nombre}
-                                        etiqueta={x.texto}
-                                        desactivado={desactivarCampos}
-                                        activado={datosBin[x.nombre]}
-                                        manejadorCambios={manejadorCambiosDatosBin} />
+                                    <Controller
+                                        name={x.nombre}
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Check
+                                                nombre={x.nombre}
+                                                etiqueta={x.texto}
+                                                desactivado={desactivarCampos}
+                                                activado={field.value}
+                                                manejadorCambios={field.onChange}
+                                            />
+                                        )}
+                                    />
                                 </Grid>
                             ))}
                         </Grid>
@@ -473,59 +385,96 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                             </Typography>
                         </Grid>
                         <Grid size={1}>
-                            <TextField
-                                label="Presión sistólica (mmHg)"
+                            <Controller
                                 name="presionSis"
-                                value={datosTxt.presionSis}
-                                onChange={manejadorCambiosDatosTxt}
-                                error={errores[2].error}
-                                disabled={desactivarCampos}
-                                helperText={errores[2].txt}
-                                fullWidth />
+                                control={control}
+                                rules={{
+                                    required: "La presión sistólica es obligatoria",
+                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                }}
+                                render={({ field }) => (
+                                    <TextField
+                                        label="Presión sistólica (mmHg)"
+                                        {...field}
+                                        error={!!errors.presionSis}
+                                        helperText={errors.presionSis?.message}
+                                        disabled={desactivarCampos}
+                                        fullWidth
+                                    />
+                                )}
+                            />
                         </Grid>
                         <Grid size={1}>
-                            <TextField
-                                label="Presión diastólica (mmHg)"
+                            <Controller
                                 name="presionDias"
-                                value={datosTxt.presionDias}
-                                onChange={manejadorCambiosDatosTxt}
-                                error={errores[3].error}
-                                disabled={desactivarCampos}
-                                helperText={errores[3].txt}
-                                fullWidth />
+                                control={control}
+                                rules={{
+                                    required: "La presión diastólica es obligatoria",
+                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                }}
+                                render={({ field }) => (
+                                    <TextField
+                                        label="Presión diastólica (mmHg)"
+                                        {...field}
+                                        error={!!errors.presionDias}
+                                        disabled={desactivarCampos}
+                                        helperText={errors.presionDias?.message}
+                                        fullWidth />
+                                )}
+                            />
                         </Grid>
                         <Grid size={1}>
-                            <TextField
-                                label="Frecuencia respiratoria"
+                            <Controller
                                 name="frecRes"
-                                value={datosTxt.frecRes}
-                                onChange={manejadorCambiosDatosTxt}
-                                error={errores[4].error}
-                                disabled={desactivarCampos}
-                                helperText={errores[4].txt}
-                                fullWidth />
+                                control={control}
+                                rules={{
+                                    required: "La frecuencia respiratoria es obligatoria",
+                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                }}
+                                render={({ field }) => (
+                                    <TextField
+                                        label="Frecuencia respiratoria"
+                                        {...field}
+                                        error={!!errors.frecRes}
+                                        disabled={desactivarCampos}
+                                        helperText={errors.frecRes?.message}
+                                        fullWidth />
+                                )}
+                            />
                         </Grid>
                         <Grid size={1}>
-                            <TextField
-                                label="Frecuencia cardíaca"
+                            <Controller
                                 name="frecCard"
-                                value={datosTxt.frecCard}
-                                onChange={manejadorCambiosDatosTxt}
-                                error={errores[5].error}
-                                disabled={desactivarCampos}
-                                helperText={errores[5].txt}
-                                fullWidth />
+                                control={control}
+                                rules={{
+                                    required: "La frecuencia cardíaca es obligatoria",
+                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                }}
+                                render={({ field }) => (
+                                    <TextField
+                                        label="Frecuencia cardíaca"
+                                        {...field}
+                                        error={!!errors.frecCard}
+                                        disabled={desactivarCampos}
+                                        helperText={errors.frecCard?.message}
+                                        fullWidth />)} />
                         </Grid>
                         <Grid size={1}>
-                            <TextField
-                                label="Saturación de la sangre"
+                            <Controller
                                 name="so2"
-                                value={datosTxt.so2}
-                                onChange={manejadorCambiosDatosTxt}
-                                error={errores[6].error}
-                                disabled={desactivarCampos}
-                                helperText={errores[6].txt}
-                                fullWidth />
+                                control={control}
+                                rules={{
+                                    required: "La saturación de oxígeno es obligatoria",
+                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                }}
+                                render={({ field }) => (
+                                    <TextField
+                                        label="Saturación de la sangre"
+                                        {...field}
+                                        error={!!errors.so2}
+                                        disabled={desactivarCampos}
+                                        helperText={errors.so2?.message}
+                                        fullWidth />)} />
                         </Grid>
                         <Grid size={numCols}>
                             <Typography variant="h6">
@@ -533,37 +482,55 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                             </Typography>
                         </Grid>
                         <Grid size={1}>
-                            <TextField
-                                label="Conteo de plaquetas"
+                            <Controller
                                 name="plaquetas"
-                                value={datosTxt.plaquetas}
-                                onChange={manejadorCambiosDatosTxt}
-                                error={errores[7].error}
-                                disabled={desactivarCampos}
-                                helperText={errores[7].txt}
-                                fullWidth />
+                                control={control}
+                                rules={{
+                                    required: "El conteo de plaquetas es obligatorio",
+                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                }}
+                                render={({ field }) => (
+                                    <TextField
+                                        label="Conteo de plaquetas"
+                                        {...field}
+                                        error={!!errors.plaquetas}
+                                        disabled={desactivarCampos}
+                                        helperText={errors.plaquetas?.message}
+                                        fullWidth />)} />
                         </Grid>
                         <Grid size={1}>
-                            <TextField
-                                label="Hemoglobina"
+                            <Controller
                                 name="hemoglobina"
-                                value={datosTxt.hemoglobina}
-                                onChange={manejadorCambiosDatosTxt}
-                                error={errores[8].error}
-                                disabled={desactivarCampos}
-                                helperText={errores[8].txt}
-                                fullWidth />
+                                control={control}
+                                rules={{
+                                    required: "La hemoglobina es obligatoria",
+                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                }}
+                                render={({ field }) => (
+                                    <TextField
+                                        label="Hemoglobina"
+                                        {...field}
+                                        error={!!errors.hemoglobina}
+                                        disabled={desactivarCampos}
+                                        helperText={errors.hemoglobina?.message}
+                                        fullWidth />)} />
                         </Grid>
                         <Grid size={1}>
-                            <TextField
-                                label="Conteo de glóbulos blancos"
+                            <Controller
                                 name="wbc"
-                                value={datosTxt.wbc}
-                                onChange={manejadorCambiosDatosTxt}
-                                error={errores[9].error}
-                                disabled={desactivarCampos}
-                                helperText={errores[9].txt}
-                                fullWidth />
+                                control={control}
+                                rules={{
+                                    required: "El conteo de glóbulos blancos es obligatorio",
+                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                }}
+                                render={({ field }) => (
+                                    <TextField
+                                        label="Conteo de glóbulos blancos"
+                                        {...field}
+                                        error={!!errors.wbc}
+                                        disabled={desactivarCampos}
+                                        helperText={errors.wbc?.message}
+                                        fullWidth />)} />
                         </Grid>
                         <Grid size={numCols}>
                             <Typography variant="h6">
@@ -571,24 +538,40 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                             </Typography>
                         </Grid>
                         <Grid size={numCols}>
-                            <Check
-                                nombre="otraEnfermedad"
-                                etiqueta="El paciente padece otra enfermedad."
-                                activado={datosBin.otraEnfermedad}
-                                desactivado={desactivarCamposAux}
-                                manejadorCambios={manejadorCambiosDatosBin} />
+                            <Controller
+                                name="otraEnfermedad"
+                                control={control}
+                                render={({ field }) => (
+                                    <Check
+                                        nombre="otraEnfermedad"
+                                        etiqueta="El paciente padece otra enfermedad."
+                                        activado={field.value}
+                                        desactivado={desactivarCamposAux}
+                                        manejadorCambios={field.onChange}
+                                    />
+                                )}
+                            />
                         </Grid>
-                        {datosBin.otraEnfermedad ? (
+                        {otraEnfermedad ? (
                             <Grid size={numCols}>
-                                <SelectChip
-                                    valor={otrasEnfermedades}
-                                    listaValores={COMORBILIDADES}
-                                    manejadorCambios={manejadorCambiosComor}
-                                    nombre="comorbilidades"
-                                    error={errores[10].error}
-                                    txtError={txtErrorOtrasEnfermedades}
-                                    desactivado={desactivarCamposAux}
-                                    etiqueta="Padecimiento(s) del paciente"
+                                <Controller
+                                    name="otrasEnfermedades"
+                                    control={control}
+                                    rules={{
+                                        required: otraEnfermedad ? "Selecciona al menos un padecimiento" : false,
+                                    }}
+                                    render={({ field }) => (
+                                        <SelectChip
+                                            valor={field.value}
+                                            listaValores={COMORBILIDADES}
+                                            manejadorCambios={field.onChange}
+                                            nombre="comorbilidades"
+                                            error={!!errors.otrasEnfermedades}
+                                            txtError={errors.otrasEnfermedades?.message}
+                                            desactivado={desactivarCamposAux}
+                                            etiqueta="Padecimiento(s) del paciente"
+                                        />
+                                    )}
                                 />
                             </Grid>
                         ) : null}
@@ -617,7 +600,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         <Button
                                             startIcon={diagnostico.diagnosticado ? <PersonSearchIcon /> : <DiagnosticoIcono />}
                                             variant="contained"
-                                            onClick={manejadorBtnDiagnosticar}
+                                            onClick={handleSubmit(onSubmit)}
                                             disabled={desactivarBtn}
                                             sx={{
                                                 textTransform: "none"

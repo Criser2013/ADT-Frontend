@@ -166,8 +166,6 @@ export default function VerDiagnosticoPage() {
         if (!res) {
             navigate("/diagnosticos", { replace: true });
         }
-
-        navegacion.setPaginaAnterior("/diagnosticos");
     }, [titulo]);
 
     /**
