@@ -82,13 +82,13 @@ export default function MenuUsuario() {
      * Carga los diagnósticos y los pacientes dependiendo del rol del usuario.
      */
     useEffect(() => {
-        const { correo } = auth.authInfo;
+        const { uid } = auth.authInfo;
 
-        if (correo != null && drive.token != null && DB != null) {
+        if (uid != null && drive.token != null && DB != null) {
             cargarPacientes();
-            cargarDiagnosticos(correo, DB);
+            cargarDiagnosticos(uid, DB);
         }
-    }, [auth.authInfo.correo, drive.token, DB]);
+    }, [auth.authInfo.uid, drive.token, DB]);
 
     /**
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
@@ -147,10 +147,10 @@ export default function MenuUsuario() {
 
     /**
      * Carga los datos de los diagnósticos.
-     * @param {String} correo - Correo del médico.
+     * @param {String} uid - UID del usuario.
      * @param {Object} DB - Instancia de Firestore.
      */
-    const cargarDiagnosticos = async (correo, DB) => {
+    const cargarDiagnosticos = async (uid, DB) => {
         let fechaActual = dayjs().subtract(4, "month");
 
         fechaActual = fechaActual.set("date", 1);
@@ -159,7 +159,7 @@ export default function MenuUsuario() {
         fechaActual = fechaActual.set("second", 0);
         fechaActual = fechaActual.set("millisecond", 0);
 
-        const res = await verDiagnosticosPorMedico(correo, DB, Timestamp.fromDate(fechaActual.toDate()));
+        const res = await verDiagnosticosPorMedico(uid, DB, Timestamp.fromDate(fechaActual.toDate()));
         if (res.success) {
             setDiagnosticos(res.data);
         } else {

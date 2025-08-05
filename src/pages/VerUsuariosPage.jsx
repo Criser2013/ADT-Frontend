@@ -42,7 +42,7 @@ export default function VerUsuariosPage() {
     const [diagnosticos, setDiagnosticos] = useState(null);
     const [seleccionados, setSeleccionados] = useState([]);
     const [nuevosDatos, setNuevosDatos] = useState({
-        correo: "", nombre: "", rol: 0, estado: true
+        uid: "", nombre: "", rol: 0, estado: true
     });
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
@@ -60,13 +60,13 @@ export default function VerUsuariosPage() {
         return modoModal == 3 ? "Guardar" : "Eliminar";
     }, [modoModal]);
     const desactivarCampos = useMemo(() => {
-        const { correo } = auth.authInfo;
+        const { uid } = auth.authInfo;
         if (seleccionado != null) {
-            return correo == seleccionado.correo;
+            return uid == seleccionado.uid;
         } else {
             return false;
         }
-    }, [auth.authInfo.correo, seleccionado]);
+    }, [auth.authInfo.uid, seleccionado]);
     const mostrarTxtAdvertencia = useMemo(() => {
         return seleccionado != null && (seleccionado.estado && !nuevosDatos.estado);
     }, [seleccionado, nuevosDatos]);
@@ -181,7 +181,7 @@ export default function VerUsuariosPage() {
         }
 
         for (let i = 0; i < medicos.length; i++) {
-            medicos[i].cantidad = aux[medicos[i].correo] || 0;
+            medicos[i].cantidad = aux[medicos[i].uid] || 0;
         }
 
         setDatos(formatearCeldas(medicos));
@@ -193,17 +193,17 @@ export default function VerUsuariosPage() {
      * @returns Array
      */
     const formatearCeldas = (datos) => {
-        const { correo } = auth.authInfo;
+        const { uid } = auth.authInfo;
         const aux = [];
 
         for (let i = 0; i < datos.length; i++) {
             if (datos[i].rol != "N/A") {
                 aux.push({
-                    nombre: datos[i].nombre, correo: datos[i].correo,
+                    uid: datos[i].uid, nombre: datos[i].nombre, correo: datos[i].correo,
                     rol: datos[i].rol == CODIGO_ADMIN ? "Administrador" : "Usuario",
                     estado: datos[i].estado ? "Activo" : "Inactivo",
                     cantidad: datos[i].cantidad, ultimaConexion: datos[i].ultima_conexion,
-                    accion: datos[i].correo == correo ? "N/A" : <Botonera instancia={datos[i]} />
+                    accion: datos[i].uid == uid ? "N/A" : <Botonera instancia={datos[i]} />
                 });
             }
         }
@@ -248,7 +248,7 @@ export default function VerUsuariosPage() {
         switch (modoModal) {
             case 0:
                 setCargando(true);
-                eliminarUsuarios([seleccionado.correo]);
+                eliminarUsuarios([seleccionado.uid]);
                 break;
             case 1:
                 setCargando(true);
@@ -292,11 +292,11 @@ export default function VerUsuariosPage() {
         let res = true;
 
         if (seleccionado.estado != nuevosDatos.estado) {
-            peticiones[0] = desactivarUsuarios([seleccionado.correo], !nuevosDatos.estado);
+            peticiones[0] = desactivarUsuarios([seleccionado.uid], !nuevosDatos.estado);
         }
 
         if (nuevosDatos.rol != seleccionado.rol) {
-            peticiones[1] = cambiarUsuario({ correo: nuevosDatos.correo, rol: nuevosDatos.rol }, DB);
+            peticiones[1] = cambiarUsuario({ uid: nuevosDatos.uid, rol: nuevosDatos.rol }, DB);
         }
 
         for (let i = 0; i < 2; i++) {
@@ -309,7 +309,7 @@ export default function VerUsuariosPage() {
         if (res) {
             setSeleccionado(null);
             setNuevosDatos({
-                correo: "", nombre: "", rol: 0, estado: true
+                uid: "", nombre: "", rol: 0, estado: true
             });
 
             manejadorRecargar();
@@ -329,8 +329,10 @@ export default function VerUsuariosPage() {
      * @returns Boolean
      */
     const verificarAutoeliminacion = (usuarios) => {
-        const res = usuarios.includes(auth.authInfo.correo);
+        const res = usuarios.includes(auth.authInfo.uid);
+        console.log(usuarios)
 
+        console.log(res);
         if (res) {
             setTimeout(() => {
                 setModoModal(2);
@@ -453,7 +455,7 @@ export default function VerUsuariosPage() {
     const manejadorBtnEditar = (instancia) => {
         sessionStorage.setItem("ejecutar-callback", "false");
         setSeleccionado(instancia);
-        setNuevosDatos({ correo: instancia.correo, nombre: instancia.nombre, rol: instancia.rol, estado: instancia.estado });
+        setNuevosDatos({ uid: instancia.uid, nombre: instancia.nombre, rol: instancia.rol, estado: instancia.estado });
         setModoModal(3);
         setModal({
             mostrar: true, titulo: "Editar usuario", mensaje: ""
@@ -542,7 +544,7 @@ export default function VerUsuariosPage() {
                     variant="outlined"
                     disabled
                     fullWidth
-                    value={nuevosDatos.correo} />
+                    value={nuevosDatos.uid} />
                 <TextField
                     select
                     label="Rol"
@@ -575,7 +577,7 @@ export default function VerUsuariosPage() {
                         Activo
                     </MenuItem>
                 </TextField>
-                {mostrarTxtAdvertencia ? <Typography variant="body2" color="error">
+                {mostrarTxtAdvertencia ? <Typography variant="body2">
                     <b>¡Atención! El usuario no podrá ingresar en la aplicación.</b>
                 </Typography> : null}
             </Stack>
@@ -658,7 +660,7 @@ export default function VerUsuariosPage() {
                                 datos={datos}
                                 lblBusq="Buscar usuario por nombre o correo electrónico"
                                 activarBusqueda={true}
-                                campoId="correo"
+                                campoId="uid"
                                 terminoBusqueda={""}
                                 lblSeleccion="usuarios seleccionados"
                                 camposBusq={["nombre", "correo"]}

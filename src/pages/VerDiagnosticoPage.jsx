@@ -206,17 +206,16 @@ export default function VerDiagnosticoPage() {
 
     /**
      * Carga el nombre del médico que realizó el diagnóstico.
-     * @param {String} correo - Correo del médico.
+     * @param {String} uid - UID del médico.
      * @returns {String|null}
      */
-    const cargarDatosMedico = async (token, correo) => {
-        correo = encodeURIComponent(correo);
-        correo = correo.replaceAll(".","%2E");
-        const res = await peticionApi(token, `admin/usuarios/${correo}`, "GET", null, 
+    const cargarDatosMedico = async (token, uid) => {
+        uid = encodeURIComponent(uid);
+        const res = await peticionApi(token, `admin/usuarios/${uid}`, "GET", null, 
             "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
         );
 
-        setPersona((x) => ({ ...x, nombre: res.success? res.data.nombre : "N/A" }));
+        setPersona((x) => ({ ...x, nombre: res.success? res.data.nombre : res.data.correo }));
     };
 
     /**

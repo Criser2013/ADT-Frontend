@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
     // Información del usuario autenticado
     const [authInfo, setAuthInfo] = useState({
         user: null, // Instancia del usuario de Firebase
-        correo: null, // Correo del usuario
+        uid: null, // UID del usuario
         rol: null // Rol del usuario (0 - Usuario normal, 1001 - Administrador)
     });
     // Permisos necesarios para usar Google Drive
@@ -57,13 +57,13 @@ export function AuthProvider({ children }) {
      */
     useEffect(() => {
         const ruta = window.location.pathname != "/";
-        if (authInfo.user != null && authInfo.correo != null && authInfo.rol == null && ruta) {
+        if (authInfo.user != null && authInfo.uid != null && authInfo.rol == null && ruta) {
             setCargando(true);
-            verDatosUsuario(authInfo.user.email).then(() => {
+            verDatosUsuario(authInfo.user.uid).then(() => {
                 setCargando(false);
             });
         }
-    }, [authInfo.user, authInfo.correo, authInfo.rol]);
+    }, [authInfo.user, authInfo.uid, authInfo.rol]);
 
     /**
      * Retira el indicador de carga cuando se tienen las instancias de la base de datos,
@@ -130,10 +130,10 @@ export function AuthProvider({ children }) {
                 await reautenticarUsuario(currentUser);     // En caso contrario, se reautentica al usuario para refrescar los tokens - Cuando se recarga la página
             }
 
-            setAuthInfo((x) => ({ ...x, user: currentUser, correo: currentUser.email }));
+            setAuthInfo((x) => ({ ...x, user: currentUser, uid: currentUser.uid }));
             setAutenticado(true);
         } else {
-            setAuthInfo({ user: null, correo: null, rol: null });
+            setAuthInfo({ user: null, uid: null, rol: null });
             setAutenticado(false);
 
             if (location.pathname != "/") {
@@ -161,7 +161,7 @@ export function AuthProvider({ children }) {
             // Se abre el popup de Google para iniciar sesión
             const res = await signInWithPopup(auth, provider);
             // Se verifica si el usuario ya está registrado en la base de datos y esté activado
-            const reg = await verRegistrado(res.user.email);
+            const reg = await verRegistrado(res.user.uid);
             const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
             oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
             oauth.scopesDrive = JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes;
@@ -247,7 +247,7 @@ export function AuthProvider({ children }) {
 
             borrarAuthCredsSesion();
             setTokenDrive(null);
-            setAuthInfo({ user: null, email: null, rol: null });
+            setAuthInfo({ user: null, uid: null, rol: null });
             setAuthError({ res: false, operacion: 1, error: "" });
         } catch (error) {
             console.error(error);
@@ -259,41 +259,41 @@ export function AuthProvider({ children }) {
 
     /**
      * Actualiza la información del usuario dentro del contexto.
-     * @param {String} correo 
+     * @param {String} uid - UID del usuario.
      */
-    const verDatosUsuario = async (correo) => {
-        const data = await verUsuario(correo, db);
+    const verDatosUsuario = async (uid) => {
+        const data = await verUsuario(uid, db);
 
         if ((data.success == 1) && (data.data != undefined)) {
             setAuthInfo((x) => ({
-                user: x.user, correo: data.data.correo, rol: data.data.rol
+                user: x.user, uid: x.user.uid, rol: data.data.rol
             }));
         }
     };
 
     /**
      * Registra un nuevo usuario en la base de datos.
-     * @param {String} correo - Correo del usuario a registrar.
+     * @param {String} uid - UID del usuario a registrar.
      * @returns JSON
      */
-    const registrarUsuario = async (correo) => {
+    const registrarUsuario = async (uid) => {
         /* rol = 0 - Usuario normal
            rol = 1001 - Administrador */
-        const res = await cambiarUsuario({ correo: correo, rol: 0 }, db);
+        const res = await cambiarUsuario({ uid: uid, rol: 0 }, db);
 
         return { success: res.success };
     };
 
     /**
      * Verifica si un usuario está registrado en la base de datos.
-     * @param {String} correo - Correo del usuario a verificar.
+     * @param {String} uid - UID del usuario a verificar.
      */
-    const verRegistrado = async (correo) => {
-        const res = await verSiEstaRegistrado(correo, db);
+    const verRegistrado = async (uid) => {
+        const res = await verSiEstaRegistrado(uid, db);
 
         if (res.success && !res.data) {
             // El usuario no está registrado, se procede a registrarlo
-            return await registrarUsuario(correo);
+            return await registrarUsuario(uid);
         } else if (res.success && res.data) {
             // El usuario está registrado
             return { success: true, data: 1 };

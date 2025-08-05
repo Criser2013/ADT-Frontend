@@ -95,13 +95,13 @@ export default function MenuAdministrador() {
      * Carga los diagnósticos y los usuarios.
      */
     useEffect(() => {
-        const { correo, user } = auth.authInfo;
+        const { user } = auth.authInfo;
 
-        if (correo != null && user != null && DB != null) {
+        if (user != null && DB != null) {
             cargarUsuarios(user.accessToken);
             cargarDiagnosticos(DB);
         }
-    }, [auth.authInfo.correo, auth.authInfo.user, DB]);
+    }, [auth.authInfo.user, DB]);
 
     /**
      * Una vez se cargan los diagnósticos y los usuarios, formatea las celdas.

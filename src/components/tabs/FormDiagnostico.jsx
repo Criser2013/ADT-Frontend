@@ -188,7 +188,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      * Manejador del botón de vaciar campos.
      */
     const manejadorBtnVaciar = () => {
-        CAPTCHA.current.reset();
         setDesactivarCampos(false);
         setDiagnostico({ resultado: false, probabilidad: 0, diagnosticado: false });
         setDatosTxt({
@@ -359,7 +358,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         }
 
         const datos = {
-            id: v6(), medico: auth.authInfo.correo, ...auxTxt, ...auxBin, ...oneHotComor,
+            id: v6(), medico: auth.authInfo.uid, ...auxTxt, ...auxBin, ...oneHotComor,
             probabilidad: resultado.probabilidad, diagnostico: procBool(resultado.prediccion),
             fecha: Timestamp.now(), validado: 2, paciente: paciente.cedula
         };

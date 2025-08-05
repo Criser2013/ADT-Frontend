@@ -135,12 +135,12 @@ export default function VerDiagnosticosPage() {
      */
     useEffect(() => {
         document.title = rol != CODIGO_ADMIN ? "Historial de diagnósticos" : "Datos recolectados";
-        const { correo } = auth.authInfo;
+        const { uid } = auth.authInfo;
 
-        if (rol != null && correo != null && DB != null) {
-            manejadorRecargar(auth.authInfo.user.accessToken, correo, rol, DB);
+        if (rol != null && uid != null && DB != null) {
+            manejadorRecargar(auth.authInfo.user.accessToken, uid, rol, DB);
         }
-    }, [auth.authInfo.correo, auth.authInfo.user, rol, DB]);
+    }, [auth.authInfo.uid, auth.authInfo.user, rol, DB]);
 
     /**
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
@@ -167,13 +167,13 @@ export default function VerDiagnosticosPage() {
     /**
      * Recarga los datos de la página.
      * @param {String} token - Token de acceso de Drive.
-     * @param {String} usuario - Correo del usuario.
+     * @param {String} usuario - UID del usuario.
      * @param {Number} rol - Rol del usuario (0: médico, 1001: administrador).
      * @param {Object} db - Instancia de Firestore.
      */
     const manejadorRecargar = (token = null, usuario = null, rol = null, db = null) => {
         const credencial = (token == null) ? auth.authInfo.user.accessToken : token;
-        const correo = (usuario == null) ? auth.authInfo.correo : usuario;
+        const uid = (usuario == null) ? auth.authInfo.uid : usuario;
         const rolUsuario = (rol == null) ? auth.authInfo.rol : rol;
         const BD = (db == null) ? DB : db;
 
@@ -189,7 +189,7 @@ export default function VerDiagnosticosPage() {
             setInstancia(null);
         }
 
-        cargarDiagnosticos(correo, rolUsuario, BD);
+        cargarDiagnosticos(uid, rolUsuario, BD);
         cargarPacientes(credencial);
     };
 
@@ -217,12 +217,12 @@ export default function VerDiagnosticosPage() {
 
     /**
      * Carga los datos de los diagnósticos y dependiendo del rol, de los médicos.
-     * @param {String} correo - Correo del médico.
+     * @param {String} uid - UID del médico.
      * @param {Number} rol - Rol del usuario (0: médico, 1001: administrador).
      * @param {Object} DB - Instancia de Firestore.
      */
-    const cargarDiagnosticos = async (correo, rol, DB) => {
-        const res = (rol != CODIGO_ADMIN) ? await verDiagnosticosPorMedico(correo, DB) : await verDiagnosticos(DB);
+    const cargarDiagnosticos = async (uid, rol, DB) => {
+        const res = (rol != CODIGO_ADMIN) ? await verDiagnosticosPorMedico(uid, DB) : await verDiagnosticos(DB);
         if (res.success) {
             setDiagnosticos(res.data);
         } else {
@@ -251,7 +251,7 @@ export default function VerDiagnosticosPage() {
             let clave = i.cedula;
 
             if (rol == CODIGO_ADMIN) {
-                clave = i.correo;
+                clave = i.uid;
             }
 
             aux[clave] = i.nombre;
@@ -345,7 +345,7 @@ export default function VerDiagnosticosPage() {
 
         if (peticiones.every((x) => x.success)) {
             setCargando(true);
-            cargarDiagnosticos(auth.authInfo.correo, rol, DB);
+            cargarDiagnosticos(auth.authInfo.uid, rol, DB);
             cargarPacientes(auth.authInfo.user.accessToken);
         } else {
             setModoModal(0);
@@ -381,7 +381,7 @@ export default function VerDiagnosticosPage() {
         const res = await cambiarDiagnostico({ ...diagnosticos[indice.diagnostico], validado: validar }, DB);
 
         if (res.success) {
-            cargarDiagnosticos(auth.authInfo.correo, rol, DB);
+            cargarDiagnosticos(auth.authInfo.uid, rol, DB);
             cargarPacientes(auth.authInfo.user.accessToken);
         } else {
             setActivar2Btn(false);

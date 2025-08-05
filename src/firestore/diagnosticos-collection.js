@@ -57,17 +57,17 @@ export const verDiagnosticos = async (db) => {
 
 /**
  * Obtiene los diagnósticos de un médico específico.
- * @param {String} id - Correo del médico.
+ * @param {String} uid - UID del médico.
  * @param {Object} db - Instancia de Firestore.
  * @returns JSON
  */
-export const verDiagnosticosPorMedico = async (id, db, fecha = null) => {
+export const verDiagnosticosPorMedico = async (uid, db, fecha = null) => {
     try {
         const coleccion = collection(db, "diagnosticos");
-        let consulta = query(coleccion, where("medico", "==", id));
+        let consulta = query(coleccion, where("medico", "==", uid));
 
         if (fecha != null) {
-            consulta = query(coleccion, and(where("medico", "==", id), where("fecha", ">=", fecha)));
+            consulta = query(coleccion, and(where("medico", "==", uid), where("fecha", ">=", fecha)));
         }
         const datos = await getDocs(consulta);
 
