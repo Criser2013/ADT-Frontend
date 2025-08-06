@@ -50,10 +50,6 @@ export default function IniciarSesionPage() {
     useEffect(() => {
         document.title = "Iniciar sesión - HADT";
         navegacion.setPaginaAnterior("");
-
-        if (auth.autenticado) {
-            navigation("/menu", { replace: true });
-        }
     }, [auth.autenticado]);
 
     /**
@@ -108,7 +104,7 @@ export default function IniciarSesionPage() {
                                 <img src={logo} height="50px" width="50px" alt="derp" />
                             </Grid>
                             <Grid size={9}>
-                                <Typography align="left" variant="h4" color="primary">
+                                <Typography align="left" variant="h4" fontWeight="bold">
                                     Herramienta de Apoyo para el diagnóstico de TEP
                                 </Typography>
                             </Grid>

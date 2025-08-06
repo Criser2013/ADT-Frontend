@@ -129,7 +129,7 @@ export default function Navbar() {
                         </Tooltip>
                         <Tooltip title="Ver opciones de usuario">
                             <IconButton onClick={manejadorMousePopOver} color="inherit" aria-describedby={idPopOver}>
-                                <Avatar alt="foto-usuario" src={img}>
+                                <Avatar alt={auth.authInfo.user.displayName} src={img}>
                                     {img === "" ? <AccountCircleIcon sx={{ height: 47, width: 47 }} /> : null}
                                 </Avatar>
                                 <ArrowDropDownIcon color="inherit" />
