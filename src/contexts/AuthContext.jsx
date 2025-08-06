@@ -121,7 +121,7 @@ export function AuthProvider({ children }) {
         if (currentUser != null) {
             const resCredsSesion = cargarAuthCredsSesion();
             const fecha = (resCredsSesion.success && resCredsSesion.expires != undefined) ? ((parseInt(resCredsSesion.expires, 10) - Date.now()) / 1000) : null;
-            const urlConds = ["/cerrar-sesion", "/"].includes(location.pathname);
+            const urlConds = ["/cerrar-sesion", "/", "/404"].includes(location.pathname);
 
             if (fecha != null && fecha > 180) {
                 clearTimeout(idTareaRefresco);              // Se refresca el token de acceso sino faltan mas de 3 minutos para que caduque el token - Cuando se recarga la página
@@ -138,7 +138,7 @@ export function AuthProvider({ children }) {
             setAuthInfo({ user: null, uid: null, rol: null, modoUsuario: null, rolVisible: null });
             setAutenticado(false);
 
-            if (location.pathname != "/") {
+            if (!["/", "/404"].includes(location.pathname)) {
                 location.replace("/");
             }
         }
