@@ -2,7 +2,7 @@ import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tool
 import GoogleIcon from '@mui/icons-material/Google';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { useNavegacion } from "../contexts/NavegacionContext";
 import { useCredenciales } from "../contexts/CredencialesContext";
@@ -17,7 +17,7 @@ import { URL_MANUAL_USUARIO } from "../../constants";
  */
 export default function IniciarSesionPage() {
     const auth = useAuth();
-    const navigation = useNavigate();
+    const navigate = useNavigate();
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
     const CAPTCHA = useRef(null);
@@ -50,7 +50,13 @@ export default function IniciarSesionPage() {
     useEffect(() => {
         document.title = "Iniciar sesión - HADT";
         navegacion.setPaginaAnterior("");
-    }, [auth.autenticado]);
+    }, []);
+
+    /*useEffect(() => {
+        if (auth.autenticado) {
+            navigate("/menu", { replace: true });
+        }
+    }, [auth.autenticado]);*/
 
     /**
      * Manejador de eventos del botón para iniciar sesión.
@@ -59,11 +65,20 @@ export default function IniciarSesionPage() {
         const { user } = auth.authInfo;
 
         if (user == null) {
-            await auth.iniciarSesionGoogle();
+            await auth.iniciarSesionGoogle().then((x) => {
+                const res = (x.res == false) && (x.operacion == 0);
+                if (res) {
+                    navigate("/menu", { replace: true });
+                }
+            });
         } else {
-            await auth.reautenticarUsuario(user);
+            auth.reautenticarUsuario(user).then((x) => {
+                const res = (x.res == false) && (x.operacion == 2);
+                if (res) {
+                    navigate("/menu", { replace: true });
+                }
+            });
         }
-
         setDesactivarBtn(true);
     };
 

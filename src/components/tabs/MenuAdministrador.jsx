@@ -172,6 +172,13 @@ export default function MenuAdministrador() {
         }
     };
 
+    /**
+     * Manejador para el botón del modal.
+     */
+    const manejadorBtnModal = () => {
+        setModal({ ...modal, mostrar: false });
+    };
+
     return (
         <>
             {cargando ? (
@@ -224,9 +231,11 @@ export default function MenuAdministrador() {
                 </Grid>
             )}
             <ModalSimple
-                mostrar={modal.mostrar}
+                abrir={modal.mostrar}
                 mensaje={modal.mensaje}
-                titulo={modal.titulo} />
+                titulo={modal.titulo}
+                txtBtn="Cerrar"
+                manejadorBtnModal={manejadorBtnModal} />
         </>
     );
 };

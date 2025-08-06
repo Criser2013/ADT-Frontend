@@ -183,15 +183,18 @@ export function AuthProvider({ children }) {
                 cerrarSesion();
                 resultado = { res: true, operacion: 0, error: "No se pudo verificar si el usuario está registrado." };
             } else {
+                setAutenticado(true);
                 // Al iniciar sesión correctamente, se actualiza la información del usuario
                 setAuthInfo((x) => ({ ...x, user: res.user, modoUsuario: false }));
             }
             setAuthError(resultado);
+            return resultado;
         } catch (error) {
             manejadorErroresAuth(error, 0, null);
+            return { res: true, operacion: 0, error: "Error al iniciar sesión. Reintenta nuevamente." };
+        } finally {
+            setCargando(false);
         }
-
-        setCargando(false);
     };
 
     /**
@@ -224,13 +227,17 @@ export function AuthProvider({ children }) {
             guardarAuthCredsSesion(oauth);
             setAuthError({ res: false, operacion: 2, error: "" });
             setRequiereRefresco(false);
+            setAutenticado(true);
+
+            return { res: false, operacion: 2, error: "" };
         } catch (error) {
             // Necesario por si cierra el popup de Google antes de reautenticarse cuando el token caduca
             setRequiereRefresco(requiereRefresco);
             manejadorErroresAuth(error, 2, usuario);
+            return { res: true, operacion: 2, error: "Error al refrescar los permisos. Reintenta nuevamente." };
+        } finally {
+            setCargando(false);
         }
-
-        setCargando(false);
     };
 
     /**
