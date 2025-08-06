@@ -36,7 +36,9 @@ export function AuthProvider({ children }) {
     const [authInfo, setAuthInfo] = useState({
         user: null, // Instancia del usuario de Firebase
         uid: null, // UID del usuario
-        rol: null // Rol del usuario (0 - Usuario normal, 1001 - Administrador)
+        rol: null, // Rol del usuario (0 - Usuario normal, 1001 - Administrador)
+        modoUsuario: null, // Modo de usuario (false - desactivado, true - activado)
+        rolVisible: null
     });
     // Permisos necesarios para usar Google Drive
     const [scopes, setScopes] = useState(null);
@@ -56,10 +58,11 @@ export function AuthProvider({ children }) {
      * Si el usuario ya está autenticado, obtiene sus datos.
      */
     useEffect(() => {
+        const { user, uid, rol } = authInfo;
         const ruta = window.location.pathname != "/";
-        if (authInfo.user != null && authInfo.uid != null && authInfo.rol == null && ruta) {
+        if (user != null && uid != null && rol == null && ruta) {
             setCargando(true);
-            verDatosUsuario(authInfo.user.uid).then(() => {
+            verDatosUsuario(user.uid).then(() => {
                 setCargando(false);
             });
         }
@@ -133,7 +136,7 @@ export function AuthProvider({ children }) {
             setAuthInfo((x) => ({ ...x, user: currentUser, uid: currentUser.uid }));
             setAutenticado(true);
         } else {
-            setAuthInfo({ user: null, uid: null, rol: null });
+            setAuthInfo({ user: null, uid: null, rol: null, modoUsuario: null, rolVisible: null });
             setAutenticado(false);
 
             if (location.pathname != "/") {
@@ -182,7 +185,7 @@ export function AuthProvider({ children }) {
                 resultado = { res: true, operacion: 0, error: "No se pudo verificar si el usuario está registrado." };
             } else {
                 // Al iniciar sesión correctamente, se actualiza la información del usuario
-                setAuthInfo((x) => ({ ...x, user: res.user }));
+                setAuthInfo((x) => ({ ...x, user: res.user, modoUsuario: false }));
             }
             setAuthError(resultado);
         } catch (error) {
@@ -247,7 +250,7 @@ export function AuthProvider({ children }) {
 
             borrarAuthCredsSesion();
             setTokenDrive(null);
-            setAuthInfo({ user: null, uid: null, rol: null });
+            setAuthInfo({ user: null, uid: null, rol: null, modoUsuario: null, rolVisible: null });
             setAuthError({ res: false, operacion: 1, error: "" });
         } catch (error) {
             console.error(error);
@@ -266,7 +269,7 @@ export function AuthProvider({ children }) {
 
         if ((data.success == 1) && (data.data != undefined)) {
             setAuthInfo((x) => ({
-                user: x.user, uid: x.user.uid, rol: data.data.rol
+                user: x.user, uid: x.user.uid, rol: data.data.rol, modoUsuario: false, rolVisible: data.data.rol
             }));
         }
     };
@@ -380,11 +383,21 @@ export function AuthProvider({ children }) {
         setCargando(false);
     };
 
+    /**
+     * Permite activar o desactivar el modo de usuario de los administradores.
+     * @param {Boolean} modo - Modo de usuario (false - desactivado, true - activado).
+     */
+    const cambiarModoUsuario = (modo) => {
+        setCargando(true);
+        setAuthInfo((x) => ({ ...x, modoUsuario: modo, rolVisible: (modo ? 0 : x.rol) }));
+        setTimeout(() => setCargando(false), 500);
+    };
+
     return (
         <authContext.Provider value={{
             useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive,
             setScopes, cerrarSesion, iniciarSesionGoogle, reautenticarUsuario, permisos, autenticado, 
-            requiereRefresco, quitarPantallaCarga
+            requiereRefresco, quitarPantallaCarga, cambiarModoUsuario
         }}>
             {children}
         </authContext.Provider>

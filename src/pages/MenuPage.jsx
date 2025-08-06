@@ -11,7 +11,7 @@ import MenuAdministrador from "../components/tabs/MenuAdministrador";
  */
 export default function MenuPage() {
     const auth = useAuth();
-    const rol = useMemo(() => auth.authInfo.rol, [auth.authInfo.rol]);
+    const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
 
     useEffect(() => {
         document.title = "Menú principal";

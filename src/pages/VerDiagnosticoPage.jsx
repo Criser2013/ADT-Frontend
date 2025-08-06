@@ -67,7 +67,7 @@ export default function VerDiagnosticoPage() {
     const [persona, setPersona] = useState({
         cedula: "", nombre: ""
     });
-    const rol = auth.authInfo.rol;
+    const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
     const [errorDiagnostico, setErrorDiagnostico] = useState(false);
     const [diagnostico, setDiagnostico] = useState(datos.personales.validado);
     const [diagOriginal, setDiagOriginal] = useState({});
@@ -77,7 +77,7 @@ export default function VerDiagnosticoPage() {
     }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
     const camposPersonales = useMemo(() => {
         const campos = [
-            { titulo: (rol == CODIGO_ADMIN) ? "Médico" : "Nombre", valor: persona.nombre },
+            { titulo: (rol == CODIGO_ADMIN) ? "Médico" : "Paciente", valor: persona.nombre },
             { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" },
             { titulo: "Edad", valor: `${datos.personales.edad} años` },
             { titulo: "Fecha de diagnóstico", valor: datos.personales.fecha },

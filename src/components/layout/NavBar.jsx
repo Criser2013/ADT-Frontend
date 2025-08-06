@@ -11,6 +11,7 @@ import BtnTema from "../tabs/BtnTema";
 import LogoutIcon from '@mui/icons-material/Logout';
 import { CODIGO_ADMIN, URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../../constants";
 import ArticleIcon from '@mui/icons-material/Article';
+import SwitchLabel from "../tabs/SwitchLabel";
 
 /**
  * Barra de navegación superior.
@@ -24,12 +25,22 @@ export default function Navbar() {
     const [img, setImg] = useState("");
     const open = Boolean(popOver);
     const idPopOver = open ? "simple-popover" : undefined;
+    const rol = useMemo(() => auth.authInfo.rol, [auth.authInfo.rol]);
     const txtRol = useMemo(() => {
-        return auth.authInfo.rol == CODIGO_ADMIN ? "Administrador" : "Médico";
+        const { rol } = auth.authInfo;
+        return rol == CODIGO_ADMIN ? "Administrador" : "Médico";
     }, [auth.authInfo.rol]);
     const txtToolBtnMenu = useMemo(() => {
         return navegacion.mostrarMenu ? "Cerrar menú" : "Abrir menú";
     }, [navegacion.mostrarMenu]);
+    const txtSwitch = useMemo(() => {
+        const { modoUsuario } = auth.authInfo;
+        if (modoUsuario === false) {
+            return "Activar modo usuario";
+        } else {
+            return "Desactivar modo usuario";
+        }
+    }, [auth.authInfo.modoUsuario]);
 
     /**
      * Carga de la imagen del usuario a iniciar.
@@ -85,8 +96,16 @@ export default function Navbar() {
      * Abre una nueva pestaña con el manual de instrucciones.
      */
     const manejadorBtnInstrucciones = () => {
-        const url = (auth.authInfo.rol == CODIGO_ADMIN) ? URL_MANUAL_ADMIN : URL_MANUAL_USUARIO;
+        const url = (auth.authInfo.rolVisible == CODIGO_ADMIN) ? URL_MANUAL_ADMIN : URL_MANUAL_USUARIO;
         window.open(url, "_blank");
+    };
+
+    /**
+     * Manejador de evento para cambiar el modo de usuario.
+     * @param {Event} e 
+     */
+    const manejadorSwitchModoUsuario = (e) => {
+        auth.cambiarModoUsuario(e.target.checked);
     };
 
     return (
@@ -147,13 +166,22 @@ export default function Navbar() {
                             </Typography>
                         </Box>
                         <Divider />
+                        {(rol == CODIGO_ADMIN) ? (
+                            <>
+                                <MenuItem>
+                                    <SwitchLabel
+                                        activado={auth.authInfo.modoUsuario}
+                                        etiqueta={txtSwitch}
+                                        manejadorCambios={manejadorSwitchModoUsuario} />
+                                </MenuItem>
+                                <Divider />
+                            </>) : null}
                         <MenuItem onClick={cerrarSesion}>
                             <Stack direction="row" spacing={1} display="flex" alignItems="center">
                                 <LogoutIcon />
                                 <Typography variant="body1" sx={{ p: 0.5 }}>
                                     Cerrar sesión
                                 </Typography>
-
                             </Stack>
                         </MenuItem>
                     </Popover>

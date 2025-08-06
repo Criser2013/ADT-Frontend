@@ -99,7 +99,7 @@ export default function VerUsuariosPage() {
             return "row";
         }
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.ancho]);
-    const rol = useMemo(() => auth.authInfo.rol, [auth.authInfo.rol]);
+    const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
 
     /**

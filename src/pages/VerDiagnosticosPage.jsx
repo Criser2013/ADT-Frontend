@@ -51,9 +51,7 @@ export default function VerDiagnosticosPage() {
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
-    const rol = useMemo(() => {
-        return auth.authInfo.rol;
-    }, [auth.authInfo.rol]);
+    const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
     const camposVariables = (rol != CODIGO_ADMIN) ? [
         { id: "nombre", label: "Paciente" },
@@ -168,13 +166,13 @@ export default function VerDiagnosticosPage() {
      * Recarga los datos de la página.
      * @param {String} token - Token de acceso de Drive.
      * @param {String} usuario - UID del usuario.
-     * @param {Number} rol - Rol del usuario (0: médico, 1001: administrador).
+     * @param {Number} cargo - Rol del usuario (0: médico, 1001: administrador).
      * @param {Object} db - Instancia de Firestore.
      */
-    const manejadorRecargar = (token = null, usuario = null, rol = null, db = null) => {
+    const manejadorRecargar = (token = null, usuario = null, cargo = null, db = null) => {
         const credencial = (token == null) ? auth.authInfo.user.accessToken : token;
         const uid = (usuario == null) ? auth.authInfo.uid : usuario;
-        const rolUsuario = (rol == null) ? auth.authInfo.rol : rol;
+        const rolUsuario = (cargo == null) ? rol : cargo;
         const BD = (db == null) ? DB : db;
 
         if (!cargando) {
@@ -412,9 +410,9 @@ export default function VerDiagnosticosPage() {
 
         return (
             <Tooltip title="Validar diagnóstico">
-                <IconButton onClick={() => func(diagnostico)} color="primary">
+                <Button onClick={() => func(diagnostico)} color="primary" variant="outlined">
                     <CheckCircleOutlineIcon />
-                </IconButton>
+                </Button>
             </Tooltip>
         );
     };
