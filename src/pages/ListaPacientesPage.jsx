@@ -112,7 +112,7 @@ export default function ListaPacientesPage() {
         if (!res.success) {
             setModal({
                 mostrar: true, mensaje: res.error,
-                titulo: "Error al cargar los datos",
+                titulo: res.error,
             });
         }
     };

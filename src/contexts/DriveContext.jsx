@@ -129,7 +129,7 @@ export function DriveProvider({ children }) {
                     return { success: true, data: null };
                 }
                 setDatos([]);
-                return { success: false, error: "Error al leer el archivo" };
+                return { success: false, error: "Se ha producido un error al leer el archivo." };
             } else {
                 setDatos([]);
                 return { success: false, error: pet.error };

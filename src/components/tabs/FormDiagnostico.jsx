@@ -3,7 +3,7 @@ import {
     CircularProgress, MenuItem
 } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import { detTamCarga } from "../../utils/Responsividad";
 import Check from "../tabs/Check";
@@ -27,7 +27,7 @@ import TabHeader from "../tabs/TabHeader";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm, Controller } from "react-hook-form";
 
-const defaultValues = {
+const valoresPredet = {
     paciente: { cedula: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null},
     sexo: 2, edad: "", presionSis: "", presionDias: "", frecRes: "",
     frecCard: "", so2: "", plaquetas: "", hemoglobina: "", wbc: "",
@@ -56,6 +56,8 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const [recargarCaptcha, setRecargarCaptcha] = useState(false);
     const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [diagnostico, setDiagnostico] = useState({ resultado: false, probabilidad: 0, diagnosticado: false });
+    const [cargando, setCargando] = useState(false);
+    const [modal, setModal] = useState({ mostrar: false, titulo: "", mensaje: "" });
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
@@ -91,18 +93,21 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             return !diagnostico.diagnosticado;
         }
     }, [recargarCaptcha, diagnostico.diagnosticado]);
-
-    const [cargando, setCargando] = useState(false);
-    const [modal, setModal] = useState({ mostrar: false, titulo: "", mensaje: "" });
     const { setValue, control, handleSubmit, reset, watch, formState: { errors } } = useForm({
-        defaultValues,
-        mode: "onBlur" // Opcional: valida al perder el foco
+        defaultValues: valoresPredet, mode: "onBlur"
     });
-
-    // Usa `watch` para obtener los valores del formulario sin re-renderizar
     const otraEnfermedad = watch("otraEnfermedad");
 
-    // Lógica para enviar el formulario. Recibe los datos validados
+    // Para que se actualice el reCAPTCHA al cambiar el tema
+    useEffect(() => {
+        setRecargarCaptcha(false);
+        setTimeout(() => setRecargarCaptcha(true), 100);
+    }, [navegacion.tema]);
+
+    /**
+     * Maneja el envío del formulario.
+     * @param {JSON} datos - Datos del formulario.
+     */
     const onSubmit = (datos) => {
         if (diagnostico.diagnosticado) {
             setModal({ mostrar: true, titulo: "Resultado del diagnóstico", mensaje: "" });
@@ -113,19 +118,15 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         diagnosticar(datos);
     };
 
-    // La función `manejadorBtnVaciar` ahora usará `reset` de react-hook-form
+    /**
+     * Manejador para el botón de vaciar campos.
+     */
     const manejadorBtnVaciar = () => {
-        reset(defaultValues); // Resetea el formulario a sus valores iniciales
+        reset(valoresPredet);
         setDesactivarBtn(true);
         setDesactivarCampos(false);
         setDiagnostico({ resultado: false, probabilidad: 0, diagnosticado: false });
     };
-
-    // Para que se actualice el reCAPTCHA al cambiar el tema
-    useEffect(() => {
-        setRecargarCaptcha(false);
-        setTimeout(() => setRecargarCaptcha(true), 100);
-    }, [navegacion.tema]);
 
     /**
      * Manejador de cambios para menú desplegable de pacientes.
