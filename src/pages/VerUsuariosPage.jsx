@@ -6,7 +6,7 @@ import TabHeader from "../components/tabs/TabHeader";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router";
 import { useNavegacion } from "../contexts/NavegacionContext";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import ModalAccion from "../components/modals/ModalAccion";
 import { CODIGO_ADMIN } from "../../constants";
@@ -18,7 +18,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import RefreshIcon from '@mui/icons-material/Refresh';
-
+import { Controller, useForm } from "react-hook-form";
 /**
  * Página que muestra la lista de usuarios.
  * @returns JSX.Element
@@ -41,9 +41,15 @@ export default function VerUsuariosPage() {
     const [seleccionado, setSeleccionado] = useState(null);
     const [diagnosticos, setDiagnosticos] = useState(null);
     const [seleccionados, setSeleccionados] = useState([]);
-    const [nuevosDatos, setNuevosDatos] = useState({
+    /*const [nuevosDatos, setNuevosDatos] = useState({
         uid: "", nombre: "", rol: 0, estado: true
+    });*/
+    const { setValue, getValues, control, handleSubmit, watch } = useForm({
+        defaultValues: {
+            uid: "", nombre: "", correo: "", rol: 0, estado: true
+        }
     });
+    const estado = watch("estado");
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
@@ -68,8 +74,8 @@ export default function VerUsuariosPage() {
         }
     }, [auth.authInfo.uid, seleccionado]);
     const mostrarTxtAdvertencia = useMemo(() => {
-        return seleccionado != null && (seleccionado.estado && !nuevosDatos.estado);
-    }, [seleccionado, nuevosDatos]);
+        return seleccionado != null && (seleccionado.estado && !estado);
+    }, [seleccionado, estado]);
     const usuario = useMemo(() => {
         const datos = seleccionado != null ? seleccionado : { nombre: "", correo: "", rol: 0, estado: true, ultimaConexion: "", cantidad: 0 };
         return [
@@ -125,7 +131,6 @@ export default function VerUsuariosPage() {
             setCargando(false);
         }
     }, [usuarios, diagnosticos, datos]);
-
 
     /**
      * Carga los datos de los pacientes desde Drive.
@@ -258,7 +263,7 @@ export default function VerUsuariosPage() {
                 break;
             case 3:
                 setCargando(true);
-                actualizarUsuario();
+                handleSubmit(actualizarUsuario)();
         }
 
         sessionStorage.setItem("ejecutar-callback", "true");
@@ -287,7 +292,7 @@ export default function VerUsuariosPage() {
     /**
      * Actualiza los datos del usuario seleccionado.
      */
-    const actualizarUsuario = async () => {
+    const actualizarUsuario = async (nuevosDatos) => {
         const peticiones = [null, null];
         let res = true;
 
@@ -308,9 +313,10 @@ export default function VerUsuariosPage() {
 
         if (res) {
             setSeleccionado(null);
-            setNuevosDatos({
+            cambiarValoresUsuario({ uid: "", nombre: "", correo: "", rol: 0, estado: true });
+            /*setNuevosDatos({
                 uid: "", nombre: "", rol: 0, estado: true
-            });
+            });*/
 
             manejadorRecargar();
         } else {
@@ -445,6 +451,14 @@ export default function VerUsuariosPage() {
         });
     };
 
+    const cambiarValoresUsuario = (instancia) => {
+        setValue("uid", instancia.uid);
+        setValue("correo", instancia.correo);
+        setValue("nombre", instancia.nombre);
+        setValue("rol", instancia.rol);
+        setValue("estado", instancia.estado);
+    };
+
     /**
      * Manejador del botón de editar en cada registro de la tabla.
      * @param {Object} instancia - Instancia del usuario.
@@ -452,7 +466,8 @@ export default function VerUsuariosPage() {
     const manejadorBtnEditar = (instancia) => {
         sessionStorage.setItem("ejecutar-callback", "false");
         setSeleccionado(instancia);
-        setNuevosDatos({ uid: instancia.uid, nombre: instancia.nombre, rol: instancia.rol, estado: instancia.estado });
+        cambiarValoresUsuario(instancia);
+        //setNuevosDatos({ uid: instancia.uid, nombre: instancia.nombre, rol: instancia.rol, estado: instancia.estado });
         setModoModal(3);
         setModal({
             mostrar: true, titulo: "Editar usuario", mensaje: ""
@@ -471,9 +486,9 @@ export default function VerUsuariosPage() {
      * Manejador de cambios en los campos del modal.
      * @param {Event} e - Evento de cambio en los campos del modal.
      */
-    const manejadorCambiosEditar = (e) => {
+    /*const manejadorCambiosEditar = (e) => {
         setNuevosDatos({ ...nuevosDatos, [e.target.name]: e.target.value });
-    };
+    };*/
 
     /**
      * Botón de eliminar que se muestra en cada fila de la tabla.
@@ -527,59 +542,71 @@ export default function VerUsuariosPage() {
         );
     };
 
-    const FormActualizarUsuario = () => {
+    const FormActualizarUsuario = useCallback(() => {
         return (
             <Stack spacing={2} width={tamForm}>
-                <TextField
-                    label="Nombre"
-                    variant="outlined"
-                    disabled
-                    fullWidth
-                    value={nuevosDatos.nombre} />
-                <TextField
-                    label="Correo electrónico"
-                    variant="outlined"
-                    disabled
-                    fullWidth
-                    value={nuevosDatos.uid} />
-                <TextField
-                    select
-                    label="Rol"
+                <Controller
+                    name="nombre"
+                    control={control}
+                    render={({ field }) => (
+                        <TextField
+                            label="Nombre"
+                            variant="outlined"
+                            disabled
+                            fullWidth
+                            {...field} />)} />
+                <Controller
+                    name="correo"
+                    control={control}
+                    render={({ field }) => (
+                        <TextField
+                            label="Correo electrónico"
+                            variant="outlined"
+                            disabled
+                            fullWidth
+                            {...field} />)} />
+                <Controller
                     name="rol"
-                    variant="outlined"
-                    disabled={desactivarCampos}
-                    onChange={manejadorCambiosEditar}
-                    fullWidth
-                    value={nuevosDatos.rol}>
-                    <MenuItem value={0}>
-                        Usuario
-                    </MenuItem>
-                    <MenuItem value={CODIGO_ADMIN}>
-                        Administrador
-                    </MenuItem>
-                </TextField>
-                <TextField
-                    label="Estado"
-                    variant="outlined"
-                    fullWidth
-                    select
+                    control={control}
+                    render={({ field }) => (
+                        <TextField
+                            select
+                            label="Rol"
+                            variant="outlined"
+                            disabled={desactivarCampos}
+                            {...field}
+                            fullWidth>
+                            <MenuItem value={0}>
+                                Usuario
+                            </MenuItem>
+                            <MenuItem value={CODIGO_ADMIN}>
+                                Administrador
+                            </MenuItem>
+                        </TextField>)} />
+                <Controller
                     name="estado"
-                    onChange={manejadorCambiosEditar}
-                    disabled={desactivarCampos}
-                    value={nuevosDatos.estado}>
-                    <MenuItem value={false}>
-                        Inactivo
-                    </MenuItem>
-                    <MenuItem value={true}>
-                        Activo
-                    </MenuItem>
-                </TextField>
+                    control={control}
+                    render={({ field }) => (
+                        <TextField
+                            label="Estado"
+                            variant="outlined"
+                            fullWidth
+                            select
+                            disabled={desactivarCampos}
+                            {...field}>
+                            <MenuItem value={false}>
+                                Inactivo
+                            </MenuItem>
+                            <MenuItem value={true}>
+                                Activo
+                            </MenuItem>
+                        </TextField>)} />
                 {mostrarTxtAdvertencia ? <Typography variant="body2">
                     <b>¡Atención! El usuario no podrá ingresar en la aplicación.</b>
                 </Typography> : null}
             </Stack>
         );
-    };
+    }, [control, desactivarCampos, tamForm, mostrarTxtAdvertencia]);
 
     /**
      * Componente que muestra los detalles del usuario seleccionado.
@@ -598,13 +625,13 @@ export default function VerUsuariosPage() {
                     }
                     return (
                         <Stack
-                        direction={orientacion} 
-                        spacing={espaciado} 
-                        display="flex" 
-                        justifyContent="start"
-                        key={i}
-                        width="100%"
-                        marginBottom="5px">
+                            direction={orientacion}
+                            spacing={espaciado}
+                            display="flex"
+                            justifyContent="start"
+                            key={i}
+                            width="100%"
+                            marginBottom="5px">
                             <Typography variant="body1" fontWeight="bold">
                                 {x.nombre}:
                             </Typography>

@@ -169,11 +169,11 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
                                     required: "Ingresa el nombre del paciente",
                                     validate: (x) => validarNombre(x) || "Debes ingresar el nombre del paciente"
                                 }}
-                                render={({ x }) => (
+                                render={({ field }) => (
                                     <TextField
                                         fullWidth
                                         label="Nombre"
-                                        {...x}
+                                        {...field}
                                         error={!!errors.nombre}
                                         helperText={errors.nombre?.message}
                                     />)} />
@@ -186,11 +186,11 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
                                     required: "Ingresa la cédula del paciente",
                                     validate: (x) => (validarNumero(x) && x.length > 6) || "Debes ingresar un número de cédula válido"
                                 }}
-                                render={({ x }) => (
+                                render={({ field }) => (
                                     <TextField
                                         fullWidth
                                         label="Número de cédula"
-                                        {...x}
+                                        {...field}
                                         error={!!errors.cedula}
                                         helperText={errors.cedula?.message}
                                     />)} />
@@ -203,11 +203,11 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
                                     required: "Selecciona el sexo del paciente",
                                     validate: (x) => x != 2 || "Debes seleccionar el sexo del paciente"
                                 }}
-                                render={({ x }) => (
+                                render={({ field }) => (
                                     <TextField
                                         select
                                         label="Sexo"
-                                        {...x}
+                                        {...field}
                                         error={!!errors.sexo}
                                         helperText={errors.sexo?.message}
                                         fullWidth>
@@ -226,11 +226,11 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
                                     required: "Ingresa el teléfono del paciente",
                                     validate: (x) => validarTelefono(x) || "Debes ingresar un número de teléfono válido (entre 8 y 10 dígitos)."
                                 }}
-                                render={({ x }) => (
+                                render={({ field }) => (
                                     <TextField
                                         fullWidth
                                         label="Teléfono"
-                                        {...x}
+                                        {...field}
                                         error={!!errors.telefono}
                                         helperText={errors.telefono?.message} />)} />
                         </Grid>
@@ -243,13 +243,13 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
                                         required: "Selecciona la fecha de nacimiento del paciente",
                                         validate: (x) => (x != null && !x.isAfter(fechaActual)) || "La fecha de nacimiento debe ser anterior a la fecha actual"
                                     }}
-                                    render={({ x }) => (
+                                    render={({ field }) => (
                                         <DatePicker
                                             label="Fecha de nacimiento"
                                             disableFuture={true}
                                             name="fechaNacimiento"
-                                            onChange={x.onChange}
-                                            value={x.value}
+                                            onChange={field.onChange}
+                                            value={field.value}
                                             slotProps={{
                                                 textField: {
                                                     error: !!errors.fechaNacimiento,
@@ -268,12 +268,12 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
                             <Controller
                                 name="otraEnfermedad"
                                 control={control}
-                                render={({ x }) => (
+                                render={({ field }) => (
                                     <Check
                                         nombre="otraEnfermedad"
                                         etiqueta="El paciente padece otra enfermedad"
-                                        activado={x.value}
-                                        manejadorCambios={x.onChange} />)} />
+                                        activado={field.value}
+                                        manejadorCambios={field.onChange} />)} />
                         </Grid>
                         {otraEnfermedad ? (
                             <Grid size={12}>
