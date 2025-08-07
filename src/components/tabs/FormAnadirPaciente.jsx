@@ -141,7 +141,7 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, id = "
         } else {
             setModal({
                 mostrar: true,
-                titulo: "Error al añadir paciente",
+                titulo: "❌ Error al añadir paciente",
                 mensaje: res.error
             });
             setCargando(false);

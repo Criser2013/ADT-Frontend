@@ -151,7 +151,7 @@ export default function ListaPacientesPage() {
         setSeleccionados(seleccionados);
         setEliminar(true);
         setModal({
-            mostrar: true, titulo: "Alerta",
+            mostrar: true, titulo: "⚠️ Alerta",
             mensaje: "¿Estás seguro de querer eliminar a los pacientes seleccionados?"
         });
     };
@@ -187,7 +187,7 @@ export default function ListaPacientesPage() {
         if (!res.success) {
             setModal({
                 mostrar: true,
-                titulo: "Error a los pacientes.",
+                titulo: "❌ Error al eliminar los pacientes.",
                 mensaje: res.error
             });
         }

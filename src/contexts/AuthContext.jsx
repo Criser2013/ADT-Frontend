@@ -340,6 +340,7 @@ export function AuthProvider({ children }) {
      */
     const borrarAuthCredsSesion = () => {
         sessionStorage.removeItem("session-tokens");
+        sessionStorage.removeItem("modo-usuario");
     };
 
     /**

@@ -110,7 +110,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      */
     const onSubmit = (datos) => {
         if (diagnostico.diagnosticado) {
-            setModal({ mostrar: true, titulo: "Resultado del diagnóstico", mensaje: "" });
+            setModal({ mostrar: true, titulo: "ℹ️ Resultado del diagnóstico", mensaje: "" });
             return;
         }
 
@@ -197,13 +197,13 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         const { success, data } = res;
 
         if (!success) {
-            setModal({ mostrar: true, titulo: "Error", mensaje: res.error });
+            setModal({ mostrar: true, titulo: "❌ Error", mensaje: res.error });
         } else if (success && esDiagPacientes) {
             await guardarDiagnostico(oneHotComor, datos, data);
         } else {
             setDesactivarCampos(true);
             setDiagnostico({ resultado: data.prediccion, probabilidad: data.probabilidad * 100, diagnosticado: true });
-            setModal({ mostrar: true, titulo: "Resultado del diagnóstico", mensaje: "" });
+            setModal({ mostrar: true, titulo: "ℹ️ Resultado del diagnóstico", mensaje: "" });
         }
 
         if (getValues("paciente").id == -1) {
@@ -256,7 +256,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         } else {
             setModal({
                 mostrar: true,
-                titulo: "Error al guardar el diagnóstico",
+                titulo: "❌ Error al guardar el diagnóstico",
                 mensaje: `No se pudo guardar el diagnóstico: ${res.data}.`
             });
         }
@@ -626,7 +626,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 <Box>
                     {diagnostico.resultado ? (
                         <Typography variant="body1">
-                            ⚠️ Atención, se ha <b>diagnosticado al paciente con TEP</b>, teniendo una probabilidad del <b>{diagnostico.probabilidad.toFixed(2)}%</b>.
+                            Se ha <b>diagnosticado al paciente con TEP</b>, teniendo una probabilidad del <b>{diagnostico.probabilidad.toFixed(2)}%</b>.
                         </Typography>
                     ) : (
                         <Typography variant="body1">

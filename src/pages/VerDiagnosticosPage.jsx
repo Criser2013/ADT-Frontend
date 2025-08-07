@@ -205,11 +205,13 @@ export default function VerDiagnosticosPage() {
         } else if (res.success && rol != CODIGO_ADMIN) {
             return;
         } else {
+            setModoModal(0);
+            setActivar2Btn(false);
             setModal({
                 mostrar: true, mensaje: res.error,
-                titulo: "Error al cargar los datos de los pacientes",
+                titulo: `❌ Error al cargar los datos ${(rol != CODIGO_ADMIN) ? "de los pacientes" : "de los usuarios"}`,
             });
-            setCargando(false);
+            setPersonas([]);
         }
     };
 
@@ -227,7 +229,7 @@ export default function VerDiagnosticosPage() {
             setModoModal(0);
             setActivar2Btn(false);
             setModal({
-                mostrar: true, titulo: "Error al cargar los diagnósticos",
+                mostrar: true, titulo: "❌ Error al cargar los diagnósticos",
                 mensaje: "Ha ocurrido un error al cargar los diagnósticos. Por favor, inténtalo de nuevo más tarde."
             });
             setCargando(false);
@@ -285,7 +287,7 @@ export default function VerDiagnosticosPage() {
         setActivar2Btn(true);
         setModoModal(1);
         setModal({
-            mostrar: true, titulo: "Alerta",
+            mostrar: true, titulo: "⚠️ Alerta",
             mensaje: "¿Estás seguro de querer eliminar los diagnósticos seleccionados?"
         });
     };
@@ -354,7 +356,7 @@ export default function VerDiagnosticosPage() {
             setModoModal(0);
             setActivar2Btn(false);
             setModal({
-                mostrar: true, titulo: "Error al eliminar los diagnósticos.",
+                mostrar: true, titulo: "❌ Error al eliminar los diagnósticos.",
                 mensaje: "Se ha producido un error al eliminar los diagnósticos seleccionados. Por favor, inténtalo de nuevo más tarde."
             });
             setCargando(false);
@@ -390,7 +392,7 @@ export default function VerDiagnosticosPage() {
             setActivar2Btn(false);
             setModoModal(0);
             setModal({
-                mostrar: true, titulo: "Error",
+                mostrar: true, titulo: "❌ Error",
                 mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
             });
             setCargando(false);
@@ -451,7 +453,6 @@ export default function VerDiagnosticosPage() {
             if (!preprocesar || (preprocesar && aux[i].validado != 2) || (rol != CODIGO_ADMIN)) {
                 aux[i].paciente = datos[i].nombre;
                 aux[i] = nombresCampos(aux[i], rol == CODIGO_ADMIN, preprocesar);
-                aux[i]
                 auxArr.push(aux[i]);
             }
         }
@@ -470,7 +471,7 @@ export default function VerDiagnosticosPage() {
             setModoModal(0);
             setActivar2Btn(false);
             setModal({
-                mostrar: true, titulo: "Error",
+                mostrar: true, titulo: "❌ Error",
                 mensaje: `No se pudo exportar el archivo. Inténtalo de nuevo más tarde: ${res.error}.`
             });
         }
@@ -483,7 +484,7 @@ export default function VerDiagnosticosPage() {
         setActivar2Btn(true);
         setModoModal(3);
         setModal({
-            mostrar: true, titulo: "Exportar diagnósticos",
+            mostrar: true, titulo: "📁 Exportar diagnósticos",
             mensaje: ""
         });
     };

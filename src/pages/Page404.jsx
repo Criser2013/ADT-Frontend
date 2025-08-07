@@ -21,7 +21,7 @@ export default function Page404() {
 
     return (
         <Box width="100%" height="96vh" display="flex" justifyContent="center" alignItems="center">
-            <Paper sx={{ padding: "6vh"}}>
+            <Paper sx={{ padding: "6vh" }}>
                 <Typography variant="h3" align="center">
                     ¡Página no encontrada!
                 </Typography>
@@ -33,12 +33,13 @@ export default function Page404() {
                     color="primary"
                     variant="contained"
                     onClick={manejadorBtn}
-                    sx={{ textTransform: "none",
+                    sx={{
+                        textTransform: "none",
                         marginTop: "3vh"
-                     }}>
+                    }}>
                     <b>Volver a la página principal</b>
                 </Button>
-        </Paper>
+            </Paper>
         </Box>
     );
 };

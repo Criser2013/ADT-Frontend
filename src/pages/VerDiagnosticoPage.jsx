@@ -232,7 +232,7 @@ export default function VerDiagnosticoPage() {
         }
         dayjs.extend(customParseFormat);
 
-        aux.fecha = dayjs(datos.fecha.toDate()/*new Date(datos.fecha.seconds * 1000)*/).format("DD [de] MMMM [de] YYYY");
+        aux.fecha = dayjs(datos.fecha.toDate()).format("DD [de] MMMM [de] YYYY");
         setDatos({ personales: aux, comorbilidades: res });
         setCargando(false);
     };
@@ -276,7 +276,7 @@ export default function VerDiagnosticoPage() {
             setCargando(false);
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: "Error",
+                mostrar: true, titulo: "❌ Error",
                 mensaje: "No se pudo eliminar el diagnóstico. Inténtalo de nuevo más tarde."
             });
         }
@@ -299,7 +299,7 @@ export default function VerDiagnosticoPage() {
         } else {
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: "Error", txtBtn: "Validar",
+                mostrar: true, titulo: "❌ Error", txtBtn: "Cerrar",
                 mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
             });
         }
@@ -331,7 +331,7 @@ export default function VerDiagnosticoPage() {
         cerrarPopover();
         setMostrarBtnSecundario(true);
         setModal({
-            mostrar: true, titulo: "Alerta", txtBtn: "Eliminar",
+            mostrar: true, titulo: "⚠️ Alerta", txtBtn: "Eliminar",
             mensaje: "¿Estás seguro de que deseas eliminar este diagnóstico?"
         });
     };

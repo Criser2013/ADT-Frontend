@@ -182,7 +182,7 @@ export default function VerPacientePage() {
         cerrarPopover();
         setModoEliminar(true);
         setModal({
-            mostrar: true, titulo: "Alerta",
+            mostrar: true, titulo: "⚠️ Alerta",
             mensaje: "¿Estás seguro de que deseas eliminar este paciente?"
         });
     };

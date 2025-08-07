@@ -140,7 +140,7 @@ export default function MenuUsuario() {
         if (!res.success) {
             setModal({
                 mostrar: true, mensaje: res.error,
-                titulo: "Error al cargar los datos de los pacientes",
+                titulo: "❌ Error al cargar los datos de los pacientes",
             });
         }
     };
@@ -164,7 +164,7 @@ export default function MenuUsuario() {
             setDiagnosticos(res.data);
         } else {
             setModal({
-                mostrar: true, titulo: "Error al cargar los diagnósticos",
+                mostrar: true, titulo: "❌ Error al cargar los diagnósticos",
                 mensaje: "Ha ocurrido un error al cargar los diagnósticos. Por favor, inténtalo de nuevo más tarde."
             });
         }

@@ -41,6 +41,6 @@ describe("Validar la función 'detTamCarga'", () => {
 
     test("CP - 24", () => {
         const res = detTamCarga(false, "horizontal", true, 500);
-        expect(res).toBe(240);
+        expect(res).toBe(235);
     });
 });

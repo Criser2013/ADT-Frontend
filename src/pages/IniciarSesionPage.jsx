@@ -1,8 +1,8 @@
-import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip } from "@mui/material";
+import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip, Paper } from "@mui/material";
 import GoogleIcon from '@mui/icons-material/Google';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { useNavegacion } from "../contexts/NavegacionContext";
 import { useCredenciales } from "../contexts/CredencialesContext";
@@ -29,7 +29,7 @@ export default function IniciarSesionPage() {
     const width = useMemo(() => {
         const { dispositivoMovil, orientacion } = navegacion;
         if (!dispositivoMovil) {
-            return "60vh";
+            return "66vh";
         } else if (dispositivoMovil && orientacion == "vertical") {
             return "100vh";
         } else {
@@ -37,7 +37,7 @@ export default function IniciarSesionPage() {
         }
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
     const height = useMemo(() => {
-        return navegacion.dispositivoMovil ? "96vh" : "97.5vh";
+        return navegacion.dispositivoMovil ? "100vh" : "100vh";
     }, [navegacion.dispositivoMovil]);
     const temaCaptcha = useMemo(() => navegacion.tema, [navegacion.tema]);
     const reCAPTCHAApi = useMemo(() => {
@@ -51,12 +51,6 @@ export default function IniciarSesionPage() {
         document.title = "Iniciar sesión - HADT";
         navegacion.setPaginaAnterior("");
     }, []);
-
-    /*useEffect(() => {
-        if (auth.autenticado) {
-            navigate("/menu", { replace: true });
-        }
-    }, [auth.autenticado]);*/
 
     /**
      * Manejador de eventos del botón para iniciar sesión.
@@ -107,68 +101,73 @@ export default function IniciarSesionPage() {
                     <CircularProgress />
                 </Box>
             ) : (
-                <Box display="flex" justifyContent="end" height={height}>
-                    <Grid columns={12} spacing={1} container display="flex" alignItems="center" height="100%" width={width} padding="0vh 2vh" overflow="auto">
-                        <Grid size={12} display="flex" justifyContent="end">
-                            <IconButton aria-label="delete" onClick={manejadorBtnCambiarTema}>
-                                <BtnTema />
-                            </IconButton>
-                        </Grid>
-                        <Grid container size={12} alignItems="center">
-                            <Grid size={3}>
-                                <img src={logo} height="50px" width="50px" alt="derp" />
+                <Box display="flex" justifyContent="end" alignItems="center" height={height}>
+                    <Paper sx={{ width: width, padding: "4vh", overflow: "auto", height: "100%" }}>
+                        <Grid columns={12} spacing={2} container>
+                            <Grid size={12} display="flex" justifyContent="end">
+                                <IconButton aria-label="delete" onClick={manejadorBtnCambiarTema}>
+                                    <BtnTema />
+                                </IconButton>
                             </Grid>
-                            <Grid size={9}>
-                                <Typography align="left" variant="h4" fontWeight="bold">
-                                    Herramienta de Apoyo para el diagnóstico de TEP
+                            <Grid container size={12} alignItems="center">
+                                <Grid size={3}>
+                                    <img src={logo} height="50px" width="50px" alt="derp" />
+                                </Grid>
+                                <Grid size={9}>
+                                    <Typography align="left" variant="h4" fontWeight="bold">
+                                        Herramienta de Apoyo para el diagnóstico de TEP
+                                    </Typography>
+                                </Grid>
+                            </Grid>
+                            <Grid container columns={1} spacing={2} size={12}>
+                                <Grid size={1}>
+                                    <Typography align="left" variant="body1">
+                                        ¡Ingresa a la aplicación y utiliza nuestro modelo de apoyo para el diagnóstico de TEP
+                                        requiriendo unos cuentos datos de laboratorio!
+                                    </Typography>
+                                </Grid>
+                                <Grid size={1}>
+                                    <Typography align="left" variant="body1">
+                                        Cada diagnóstico realizado es una contribución a la recolección de datos para entrenar
+                                        mejores modelos. También puedes optar por realizar diagnósticos sin compartir los datos
+                                    </Typography>
+                                </Grid>
+                            </Grid>
+                            <Grid size={12} display="flex" justifyContent="center">
+                                {recargarCaptcha ? null : (
+                                    <ReCAPTCHA
+                                        theme={temaCaptcha}
+                                        onChange={manejadorReCAPTCHA}
+                                        sitekey={reCAPTCHAApi}
+                                        ref={CAPTCHA} />
+                                )}
+                            </Grid>
+                            <Grid size={12} justifyContent="center" display="flex">
+                                <Tooltip title="Ingresa a la aplicación con tu cuenta de Google">
+                                    <span style={{ width: "100%" }}>
+                                        <Button
+                                            startIcon={<GoogleIcon />}
+                                            fullWidth
+                                            onClick={manejadorBtnIniciarSesion}
+                                            variant="contained"
+                                            disabled={desactivarBtn}
+                                            sx={{ textTransform: "none" }}>
+                                            {auth.authInfo.user == null ? "Iniciar sesión" : "Ir a la aplicación"}
+                                        </Button>
+                                    </span>
+                                </Tooltip>
+                            </Grid>
+                            <Grid size={12}>
+                                <Typography align="center" variant="body1" marginLeft="auto" marginRight="auto">
+                                    <b>¡Los datos de tus pacientes no se comparten con nosotros!</b>
+                                </Typography>
+                                <br />
+                                <Typography align="center" variant="body1" marginLeft="auto" marginRight="auto">
+                                    ¿Necesitas ayuda? ¡consulta nuestro <Link href={URL_MANUAL_USUARIO}>manual de instrucciones</Link>!
                                 </Typography>
                             </Grid>
                         </Grid>
-                        <Grid size={12}>
-                            <Typography align="left" variant="body1">
-                                ¡Ingresa a la aplicación y utiliza nuestro modelo de apoyo para el diagnóstico de TEP
-                                requiriendo unos cuentos datos de laboratorio!
-                            </Typography>
-                            <br />
-                            <Typography align="left" variant="body1">
-                                Cada diagnóstico realizado es una contribución a la recolección de datos para entrenar
-                                mejores modelos. También puedes optar por realizar diagnósticos sin compartir los datos
-                            </Typography>
-                        </Grid>
-                        <Grid size={12} display="flex" justifyContent="center">
-                            {recargarCaptcha ? null : (
-                                <ReCAPTCHA
-                                    theme={temaCaptcha}
-                                    onChange={manejadorReCAPTCHA}
-                                    sitekey={reCAPTCHAApi}
-                                    ref={CAPTCHA} />
-                            )}
-                        </Grid>
-                        <Grid size={12} justifyContent="center" display="flex">
-                            <Tooltip title="Ingresa a la aplicación con tu cuenta de Google">
-                                <span style={{ width: "100%" }}>
-                                    <Button
-                                        startIcon={<GoogleIcon />}
-                                        fullWidth
-                                        onClick={manejadorBtnIniciarSesion}
-                                        variant="contained"
-                                        disabled={desactivarBtn}
-                                        sx={{ textTransform: "none" }}>
-                                        {auth.authInfo.user == null ? "Iniciar sesión" : "Ir a la aplicación"}
-                                    </Button>
-                                </span>
-                            </Tooltip>
-                        </Grid>
-                        <Grid size={12}>
-                            <Typography align="center" variant="body1" marginLeft="auto" marginRight="auto">
-                                <b>¡Los datos de tus pacientes no se comparten con nosotros!</b>
-                            </Typography>
-                            <br />
-                            <Typography align="left" variant="body1" marginLeft="auto" marginRight="auto">
-                                ¿Necesitas ayuda? ¡consulta nuestro <Link href={URL_MANUAL_USUARIO}>manual de instrucciones</Link>!
-                            </Typography>
-                        </Grid>
-                    </Grid>
+                    </Paper>
                 </Box>)}
 
         </>

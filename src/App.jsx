@@ -42,11 +42,11 @@ export default function App() {
 
         let compsModal = {
             mostrar: !auth.permisos, mensaje: "Debes otorgar los permisos requeridos en tu cuenta de Google para utilizar la aplicación.",
-            titulo: "Permisos insuficientes", txtBtn: "Conceder permisos"
+            titulo: "ℹ️ Permisos insuficientes", txtBtn: "Conceder permisos"
         };
         if (auth.requiereRefresco) {
             compsModal = {
-                mostrar: true, titulo: "La sesión ha caducado", txtBtn: "Extender sesión",
+                mostrar: true, titulo: "ℹ️ La sesión ha caducado", txtBtn: "Extender sesión",
                 mensaje: "Tu sesión ha caducado, por favor reautentícate para continuar utilizando la aplicación."
             };
         }
