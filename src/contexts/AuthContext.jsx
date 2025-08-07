@@ -4,6 +4,7 @@ import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebas
 import { verUsuario } from "../firestore/usuarios-collection";
 import { cambiarUsuario, verSiEstaRegistrado } from "../firestore/usuarios-collection";
 import { FirebaseError } from "firebase/app";
+import { CODIGO_ADMIN } from "../../constants";
 
 export const authContext = createContext();
 
@@ -274,9 +275,13 @@ export function AuthProvider({ children }) {
         const data = await verUsuario(uid, db);
 
         if ((data.success == 1) && (data.data != undefined)) {
-            setAuthInfo((x) => ({
-                user: x.user, uid: x.user.uid, rol: data.data.rol, modoUsuario: false, rolVisible: data.data.rol
-            }));
+            setAuthInfo((x) => {
+                const modoUsuario = cargarModoUsuario();
+                const rol = (modoUsuario && data.data.rol == CODIGO_ADMIN) ? 0 : data.data.rol;
+                return ({
+                    user: x.user, uid: x.user.uid, rol: data.data.rol, modoUsuario: modoUsuario, rolVisible: rol
+                });
+            });
         }
     };
 
@@ -396,7 +401,17 @@ export function AuthProvider({ children }) {
     const cambiarModoUsuario = (modo) => {
         setCargando(true);
         setAuthInfo((x) => ({ ...x, modoUsuario: modo, rolVisible: (modo ? 0 : x.rol) }));
+        sessionStorage.setItem("modo-usuario", modo ? "true" : "false");
         setTimeout(() => setCargando(false), 500);
+    };
+
+    /**
+     * Carga el modo de usuario desde el almacenamiento local.
+     */
+    const cargarModoUsuario = () => {
+        const modo = sessionStorage.getItem("modo-usuario");
+
+        return (modo != null && modo != undefined && modo == "true");
     };
 
     return (
