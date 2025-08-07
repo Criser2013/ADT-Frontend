@@ -8,6 +8,7 @@ import { collection, doc, getDoc, getDocs, setDoc, where, query, deleteDoc, and 
  */
 export const cambiarDiagnostico = async (json, db) => {
     try {
+        console.log(json, db)
         const docRef = doc(db, "diagnosticos", json.id);
         const datos = await setDoc(docRef, json);
 

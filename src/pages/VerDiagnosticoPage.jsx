@@ -5,7 +5,7 @@ import {
 import { useDrive } from "../contexts/DriveContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavegacion } from "../contexts/NavegacionContext";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import TabHeader from "../components/tabs/TabHeader";
 import MenuLayout from "../components/layout/MenuLayout";
 import { detTamCarga } from "../utils/Responsividad";
@@ -152,6 +152,7 @@ export default function VerDiagnosticoPage() {
             cargarDatosDiagnostico(auth.authInfo.user.accessToken);
         } else if (datos != null && rol != null && DB != null) {
             cargarDatosPaciente(datos.paciente);
+            setDiagOriginal({ ...datos });
             preprocesarDiag(datos);
         }
     }, [drive.descargando, auth.authInfo.user, rol, DB]);
@@ -174,7 +175,9 @@ export default function VerDiagnosticoPage() {
     const cargarDatosDiagnostico = async (token) => {
         const datos = await verDiagnostico(id, DB);
 
+        console.log(datos)
         if (datos.success && datos.data != []) {
+            console.log(datos.data)
             setDiagOriginal({ ...datos.data });
 
             if (rol == CODIGO_ADMIN) {
@@ -221,6 +224,7 @@ export default function VerDiagnosticoPage() {
      * @param {JSON} datos - Datos del diagnóstico.
      */
     const preprocesarDiag = (datos) => {
+        console.log(datos)
         const aux = { ...datos };
         const res = oneHotInversoOtraEnfermedad(aux);
 
@@ -254,7 +258,9 @@ export default function VerDiagnosticoPage() {
      * Manejador del botón de editar paciente.
      */
     const manejadorBtnEditar = () => {
+        setDiagnostico(2);
         setMostrarBtnSecundario(true);
+        setErrorDiagnostico(false);
         setModal({ titulo: "Validar diagnóstico", mensaje: "", mostrar: true, txtBtn: "Validar" });
     };
 
@@ -282,9 +288,14 @@ export default function VerDiagnosticoPage() {
      */
     const validarDiagnostico = async () => {
         setCargando(true);
+        setErrorDiagnostico(false);
+        console.log(diagOriginal)
+        console.log({ ...diagOriginal, validado: diagnostico })
+        console.log(auth.authInfo.uid)
         const DB = credenciales.obtenerInstanciaDB();
         const res = await cambiarDiagnostico({ ...diagOriginal, validado: diagnostico }, DB);
 
+        console.log(res)
         if (res.success) {
             setDatos((x) => {
                 x.personales.validado = diagnostico;
@@ -404,7 +415,7 @@ export default function VerDiagnosticoPage() {
      * Componente para el cuerpo del modal.
      * @returns {JSX.Element}
      */
-    const CuerpoModal = () => {
+    const CuerpoModal = useCallback(() => {
         return ((rol != CODIGO_ADMIN) ? (
             <FormSeleccionar
                 onChange={setDiagnostico}
@@ -414,7 +425,7 @@ export default function VerDiagnosticoPage() {
                 valor={diagnostico}
                 valores={DIAGNOSTICOS} />) : null
         );
-    };
+    }, [errorDiagnostico, diagnostico, rol]);
 
     return (
         <>

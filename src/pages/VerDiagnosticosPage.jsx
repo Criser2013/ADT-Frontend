@@ -252,7 +252,7 @@ export default function VerDiagnosticosPage() {
                 clave = i.uid;
             }
 
-            aux[clave] = i.nombre;
+            aux[clave] = {nombre: i.nombre, cedula: (rol != CODIGO_ADMIN) ? i.cedula : i.uid};
         }
 
         for (let i = 0; i < diags.length; i++) {
@@ -260,12 +260,11 @@ export default function VerDiagnosticosPage() {
             const campos = (rol != CODIGO_ADMIN) ? "paciente" : "medico";
             const persona = aux[auxDiag[i][campos]];
 
-           /* if (persona == undefined && rol != CODIGO_ADMIN) {
-                auxDiag[i].paciente = " N/A";
-            } else {*/
-                auxDiag[i].nombre = (persona != undefined) ? persona : "N/A";
-            //}
+            if (rol != CODIGO_ADMIN) {
+                auxDiag[i].paciente = (persona != undefined) ? persona.cedula : "N/A";
+            }
 
+            auxDiag[i].nombre = (persona != undefined) ? persona.nombre : "N/A";
             auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico);
             auxDiag[i].fecha = dayjs(auxDiag[i].fecha.toDate()).format("DD/MM/YYYY");
             auxDiag[i].accion = (auxDiag[i].validado == 2 && rol != CODIGO_ADMIN) ? <BtnValidar diagnostico={i} /> : "N/A";
@@ -316,6 +315,7 @@ export default function VerDiagnosticosPage() {
             sessionStorage.setItem("ejecutar-callback", "true");
             setInstancia(null);
         } else if (activar2Btn && modoModal == 2) {
+            setErrorDiagnostico(false);
             validarCambio();
         } else if (modoModal == 3) {
             exportarDiagnosticos();
@@ -329,7 +329,7 @@ export default function VerDiagnosticosPage() {
 
     /**
      * Eliminar los pacientes seleccionados de Drive y maneja la respuesta.
-     * @param {Array} pacientes - Lista de pacientes a eliminar.
+     * @param {Array} pacientes - Lista de diagnósticos a eliminar.
      */
     const borrarDiagnosticos = async (diagnosticos) => {
         const peticiones = [];
@@ -384,6 +384,8 @@ export default function VerDiagnosticosPage() {
         const res = await cambiarDiagnostico({ ...diagnosticos[indice.diagnostico], validado: validar }, DB);
 
         if (res.success) {
+            setErrorDiagnostico(false);
+            setValidar(2);
             cargarDiagnosticos(auth.authInfo.uid, rol, DB);
             cargarPacientes(auth.authInfo.user.accessToken);
         } else {
@@ -404,6 +406,7 @@ export default function VerDiagnosticosPage() {
      */
     const BtnValidar = (diagnostico) => {
         const func = (x) => {
+            setValidar(2);
             sessionStorage.setItem("ejecutar-callback", "false");
             setInstancia(x);
             setActivar2Btn(true);
@@ -446,9 +449,11 @@ export default function VerDiagnosticosPage() {
         const nombreArchivo = preprocesar ? `${EXPORT_FILENAME}${fecha}-Preprocesados` : `${EXPORT_FILENAME}${fecha}`;
 
         for (let i = 0; i < aux.length; i++) {
+            // Solo se incluyen los diagnósticos validados si se requiere preprocesar y lo pide un admin
             if (!preprocesar || (preprocesar && aux[i].validado != 2) || (rol != CODIGO_ADMIN)) {
                 aux[i].paciente = datos[i].nombre;
                 aux[i] = nombresCampos(aux[i], rol == CODIGO_ADMIN, preprocesar);
+                aux[i]
                 auxArr.push(aux[i]);
             }
         }
