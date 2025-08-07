@@ -8,7 +8,6 @@ import { collection, doc, getDoc, getDocs, setDoc, where, query, deleteDoc, and 
  */
 export const cambiarDiagnostico = async (json, db) => {
     try {
-        console.log(json, db)
         const docRef = doc(db, "diagnosticos", json.id);
         const datos = await setDoc(docRef, json);
 
@@ -28,6 +27,10 @@ export const verDiagnostico = async (id, db) => {
     try {
         const docRef = doc(db, "diagnosticos", id);
         const datos = await getDoc(docRef);
+
+        if (!datos.exists()) {
+            return { success: false, data: "El diagnóstico no existe." };
+        }
 
         return { success: true, data: datos.data() };
     } catch (error) {

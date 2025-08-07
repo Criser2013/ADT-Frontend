@@ -27,6 +27,7 @@ import { CODIGO_ADMIN } from "../../constants";
 import { SINTOMAS } from "../../constants";
 import ContComorbilidades from "../components/tabs/ContComorbilidades";
 import { peticionApi } from "../services/Api";
+import { Timestamp } from "firebase/firestore";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -152,6 +153,7 @@ export default function VerDiagnosticoPage() {
             cargarDatosDiagnostico(auth.authInfo.user.accessToken);
         } else if (datos != null && rol != null && DB != null) {
             cargarDatosPaciente(datos.paciente);
+            datos.fecha = new Timestamp(datos.fecha.seconds, datos.fecha.nanoseconds);
             setDiagOriginal({ ...datos });
             preprocesarDiag(datos);
         }
@@ -175,9 +177,7 @@ export default function VerDiagnosticoPage() {
     const cargarDatosDiagnostico = async (token) => {
         const datos = await verDiagnostico(id, DB);
 
-        console.log(datos)
         if (datos.success && datos.data != []) {
-            console.log(datos.data)
             setDiagOriginal({ ...datos.data });
 
             if (rol == CODIGO_ADMIN) {
@@ -224,7 +224,6 @@ export default function VerDiagnosticoPage() {
      * @param {JSON} datos - Datos del diagnóstico.
      */
     const preprocesarDiag = (datos) => {
-        console.log(datos)
         const aux = { ...datos };
         const res = oneHotInversoOtraEnfermedad(aux);
 
@@ -233,7 +232,7 @@ export default function VerDiagnosticoPage() {
         }
         dayjs.extend(customParseFormat);
 
-        aux.fecha = dayjs(new Date(datos.fecha.seconds * 1000)).format("DD [de] MMMM [de] YYYY");
+        aux.fecha = dayjs(datos.fecha.toDate()/*new Date(datos.fecha.seconds * 1000)*/).format("DD [de] MMMM [de] YYYY");
         setDatos({ personales: aux, comorbilidades: res });
         setCargando(false);
     };
@@ -289,13 +288,9 @@ export default function VerDiagnosticoPage() {
     const validarDiagnostico = async () => {
         setCargando(true);
         setErrorDiagnostico(false);
-        console.log(diagOriginal)
-        console.log({ ...diagOriginal, validado: diagnostico })
-        console.log(auth.authInfo.uid)
         const DB = credenciales.obtenerInstanciaDB();
         const res = await cambiarDiagnostico({ ...diagOriginal, validado: diagnostico }, DB);
 
-        console.log(res)
         if (res.success) {
             setDatos((x) => {
                 x.personales.validado = diagnostico;

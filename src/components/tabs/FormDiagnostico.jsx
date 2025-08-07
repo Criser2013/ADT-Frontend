@@ -93,7 +93,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             return !diagnostico.diagnosticado;
         }
     }, [recargarCaptcha, diagnostico.diagnosticado]);
-    const { setValue, control, handleSubmit, reset, watch, formState: { errors } } = useForm({
+    const { getValues, setValue, control, handleSubmit, reset, watch, formState: { errors } } = useForm({
         defaultValues: valoresPredet, mode: "onBlur"
     });
     const otraEnfermedad = watch("otraEnfermedad");
@@ -206,8 +206,9 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             setModal({ mostrar: true, titulo: "Resultado del diagnóstico", mensaje: "" });
         }
 
-        setCargando(false);
-        setRecargarCaptcha(true);
+        if (getValues("paciente").id == -1) {
+            setCargando(false);
+        }
     };
 
     /**

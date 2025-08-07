@@ -384,8 +384,6 @@ export default function VerDiagnosticosPage() {
         const res = await cambiarDiagnostico({ ...diagnosticos[indice.diagnostico], validado: validar }, DB);
 
         if (res.success) {
-            setErrorDiagnostico(false);
-            setValidar(2);
             cargarDiagnosticos(auth.authInfo.uid, rol, DB);
             cargarPacientes(auth.authInfo.user.accessToken);
         } else {
@@ -406,6 +404,7 @@ export default function VerDiagnosticosPage() {
      */
     const BtnValidar = (diagnostico) => {
         const func = (x) => {
+            setErrorDiagnostico(false);
             setValidar(2);
             sessionStorage.setItem("ejecutar-callback", "false");
             setInstancia(x);
@@ -430,7 +429,6 @@ export default function VerDiagnosticosPage() {
      */
     const manejadorBtnCancelar = () => {
         setModal({ ...modal, mostrar: false });
-        setErrorDiagnostico(false);
         sessionStorage.setItem("ejecutar-callback", "true");
         setInstancia(null);
     };
