@@ -10,7 +10,7 @@ import TabHeader from "../components/tabs/TabHeader";
 import MenuLayout from "../components/layout/MenuLayout";
 import { detTamCarga } from "../utils/Responsividad";
 import { useNavigate, useSearchParams } from "react-router";
-import { validarNumero } from "../utils/Validadores";
+import { validarId } from "../utils/Validadores";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -39,7 +39,7 @@ export default function VerPacientePage() {
     });
     const [datos, setDatos] = useState({
         personales: {
-            nombre: "", cedula: "", sexo: "",
+            id: "", nombre: "", cedula: "", sexo: "",
             telefono: "", fechaNacimiento: "",
             edad: ""
         },
@@ -64,7 +64,7 @@ export default function VerPacientePage() {
     const mostrarComor = useMemo(() => {
         return datos.comorbilidades.length > 0;
     }, [datos.comorbilidades]);
-    const ced = useMemo(() => params.get("cedula"), [params]);
+    const id = useMemo(() => params.get("id"), [params]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -92,7 +92,7 @@ export default function VerPacientePage() {
      */
     useEffect(() => {
         document.title = `${datos.personales.nombre != "" ? `Paciente — ${datos.personales.nombre}` : "Ver paciente"}`;
-        const res = (ced != null && ced != undefined) ? validarNumero(ced) : false;
+        const res = (id != null && id != undefined) ? validarId(id) : false;
 
         if (!res) {
             navigate("/pacientes", { replace: true });
@@ -105,7 +105,7 @@ export default function VerPacientePage() {
      * Carga los datos del paciente a editar.
      */
     const cargarDatosPaciente = () => {
-        const res = drive.cargarDatosPaciente(ced);
+        const res = drive.cargarDatosPaciente(id);
         if (res.success) {
             dayjs.extend(customParseFormat);
             res.data.personales.edad = dayjs().diff(dayjs(
@@ -145,8 +145,8 @@ export default function VerPacientePage() {
      * Manejador del botón de editar paciente.
      */
     const manejadorBtnEditar = () => {
-        navegacion.setPaginaAnterior(`/pacientes/ver-paciente?cedula=${datos.personales.cedula}`);
-        navigate(`/pacientes/editar?cedula=${datos.personales.cedula}`, { replace: true });
+        navegacion.setPaginaAnterior(`/pacientes/ver-paciente?id=${datos.personales.id}`);
+        navigate(`/pacientes/editar?id=${datos.personales.id}`, { replace: true });
     };
 
     /**
@@ -154,7 +154,7 @@ export default function VerPacientePage() {
      */
     const eliminarPaciente = async () => {
         setCargando(true);
-        const res = await drive.eliminarPaciente(datos.personales.cedula);
+        const res = await drive.eliminarPaciente(datos.personales.id);
         if (res.success) {
             navigate("/pacientes", { replace: true });
         } else {

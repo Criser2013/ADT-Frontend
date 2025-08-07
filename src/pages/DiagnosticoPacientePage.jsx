@@ -13,7 +13,7 @@ export default function DiagnosticoPacientePage() {
     const auth = useAuth();
     const drive = useDrive();
     const [datos, setDatos] = useState([
-        { cedula: -1, nombre: "Seleccionar paciente" }
+        { id: -1, nombre: "Seleccionar paciente" }
     ]);
     const [modal, setModal] = useState(false);
     const listadoPestanas = [{
@@ -39,7 +39,7 @@ export default function DiagnosticoPacientePage() {
         if (drive.datos != null && drive.datos.length > 0) {
             const aux = drive.datos.map((x) => ({ ...x }));
 
-            aux.unshift({ cedula: -1, nombre: "Seleccionar paciente" });
+            aux.unshift({ id: -1, nombre: "Seleccionar paciente" });
             setDatos(aux);
         }
     }, [drive.datos]);

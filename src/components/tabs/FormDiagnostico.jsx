@@ -28,7 +28,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { useForm, Controller } from "react-hook-form";
 
 const valoresPredet = {
-    paciente: { cedula: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null},
+    paciente: { id: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null},
     sexo: 2, edad: "", presionSis: "", presionDias: "", frecRes: "",
     frecCard: "", so2: "", plaquetas: "", hemoglobina: "", wbc: "",
     fumador: false, bebedor: false, tos: false, fiebre: false,
@@ -134,7 +134,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      */
     const manejadorCambiosPaciente = (e) => {
         dayjs.extend(customParseFormat);
-        const pacienteSeleccionado = pacientes.find((x) => x.cedula == e.target.value);
+        const pacienteSeleccionado = pacientes.find((x) => x.id == e.target.value);
 
         if (e.target.value != -1) {
             const comorbilidades = oneHotInversoOtraEnfermedad(pacienteSeleccionado);
@@ -244,7 +244,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         const instancia = {
             id: v6(), medico: auth.authInfo.uid, ...aux, ...oneHotComor,
             probabilidad: resultado.probabilidad, diagnostico: procBool(resultado.prediccion),
-            fecha: Timestamp.now(), validado: 2, paciente: datos.paciente.cedula,
+            fecha: Timestamp.now(), validado: 2, paciente: datos.paciente.id,
         };
 
         const res = await cambiarDiagnostico(instancia, credenciales.obtenerInstanciaDB());
@@ -292,19 +292,21 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 <Controller
                                     name="paciente"
                                     control={control}
-                                    rules={{ required: "Debes seleccionar un paciente" }}
+                                    rules={{ required: "Debes seleccionar un paciente",
+                                        validate: (x) => x.id != -1 || "Debes seleccionar un paciente"
+                                     }}
                                     render={({ field }) => (
                                         <TextField
                                             select
                                             label="Paciente"
                                             {...field}
-                                            value={field.value.cedula}
+                                            value={field.value.id}
                                             onChange={manejadorCambiosPaciente}
                                             error={!!errors.paciente}
                                             helperText={errors.paciente?.message}
                                             fullWidth>
                                             {pacientes.map((x) => (
-                                                <MenuItem key={x.cedula} value={x.cedula}>
+                                                <MenuItem key={x.id} value={x.id}>
                                                     {x.nombre}
                                                 </MenuItem>
                                             ))}

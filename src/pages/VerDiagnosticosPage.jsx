@@ -246,7 +246,7 @@ export default function VerDiagnosticosPage() {
         const auxDiag = diags.map((d) => d);
 
         for (const i of personas) {
-            let clave = i.cedula;
+            let clave = i.id;
 
             if (rol == CODIGO_ADMIN) {
                 clave = i.uid;
@@ -260,7 +260,12 @@ export default function VerDiagnosticosPage() {
             const campos = (rol != CODIGO_ADMIN) ? "paciente" : "medico";
             const persona = aux[auxDiag[i][campos]];
 
-            auxDiag[i].nombre = (persona != undefined) ? persona : auxDiag[i].medico;
+           /* if (persona == undefined && rol != CODIGO_ADMIN) {
+                auxDiag[i].paciente = " N/A";
+            } else {*/
+                auxDiag[i].nombre = (persona != undefined) ? persona : "N/A";
+            //}
+
             auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico);
             auxDiag[i].fecha = dayjs(auxDiag[i].fecha.toDate()).format("DD/MM/YYYY");
             auxDiag[i].accion = (auxDiag[i].validado == 2 && rol != CODIGO_ADMIN) ? <BtnValidar diagnostico={i} /> : "N/A";

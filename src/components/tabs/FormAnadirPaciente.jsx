@@ -19,16 +19,17 @@ import SelectChip from "./SelectChip";
 import ModalSimple from "../modals/ModalSimple";
 import { Controller, useForm } from "react-hook-form";
 import Check from "./Check";
+import { v6 } from "uuid";
 
 /**
  * Componente que representa el formularios para añadir/editar los datos de
  * un paciente.
  * @param {Array[JSON]} listadoPestanas - Lista de pestañas para el encabezado.
- * @param {String} cedula - Cédula del paciente.
+ * @param {String} id - ID del paciente.
  * @param {Boolean} esAnadir - Indica si es para añadir un nuevo paciente o editar uno existente.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
-export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula = "", esAnadir = true }) {
+export default function FormAnadirPaciente({ listadoPestanas, titPestana, id = "", esAnadir = true }) {
     const drive = useDrive();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
@@ -47,11 +48,12 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
     ], []);
     const { setValue, control, handleSubmit, watch, formState: { errors } } = useForm({
         defaultValues: {
-            "nombre": "", "cedula": cedula, "sexo": 2, "telefono": "",
+            id: id, "nombre": "", "cedula": "", "sexo": 2, "telefono": "",
             "fechaNacimiento": null, fechaCreacion: null, otraEnfermedad: false,
             otrasEnfermedades: []
         }, mode: "onBlur"
     });
+    const [prevCedula, setPrevCedula] = useState("");
     const otraEnfermedad = watch("otraEnfermedad");
 
     /**
@@ -78,9 +80,12 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
      * Carga los datos del paciente a editar.
      */
     const cargarDatosPaciente = async () => {
-        const res = await drive.cargarDatosPaciente(cedula);
+        const res = await drive.cargarDatosPaciente(id);
         if (res.success) {
             dayjs.extend(customParseFormat);
+
+            setPrevCedula(res.data.personales.cedula);
+            setValue("id", res.data.personales.id);
             setValue("nombre", res.data.personales.nombre);
             setValue("cedula", res.data.personales.cedula);
             setValue("sexo", res.data.personales.sexo);
@@ -105,7 +110,7 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
      * Verifica que el paciente no esté ya registrado y guarda los datos en Google Drive.
      */
     const guardar = (datos) => {
-        const { nombre, sexo, fechaNacimiento, telefono, cedula, otraEnfermedad, otrasEnfermedades } = datos;
+        const { nombre, sexo, fechaNacimiento, telefono, cedula, otraEnfermedad, otrasEnfermedades, id } = datos;
         const oneHotComor = oneHotEncondingOtraEnfermedad(otraEnfermedad ? otrasEnfermedades : []);
         const instancia = {
             nombre, sexo, telefono, cedula, ...oneHotComor, otraEnfermedad: otraEnfermedad ? 1 : 0
@@ -114,21 +119,22 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, cedula
         dayjs.extend(customParseFormat);
         instancia.fechaNacimiento = fechaNacimiento.format("DD-MM-YYYY");
         if (esAnadir) {
+            instancia.id = v6();
             instancia.fechaCreacion = dayjs().format("DD-MM-YYYY");
         } else {
+            instancia.id = id;
             instancia.fechaCreacion = datos.fechaCreacion;
         }
 
-        manejadorResGuardado(instancia);
+        manejadorResGuardado(instancia, prevCedula);
     };
 
     /**
      * Muestra el resultado del guardado del paciente.
      * @param {JSON} instancia - Datos del paciente.
-     * @param {Boolean} esAnadir - Si es añadir o editar paciente.
      * @param {String} cedula - Cédula del paciente.
      */
-    const manejadorResGuardado = async (instancia) => {
+    const manejadorResGuardado = async (instancia, cedula) => {
         const res = await drive.anadirPaciente(instancia, !esAnadir, cedula);
         if (res.success) {
             navigate("/pacientes", { replace: true });

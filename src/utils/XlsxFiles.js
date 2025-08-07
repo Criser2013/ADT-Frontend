@@ -1,6 +1,6 @@
 import { utils, writeXLSX, read, writeFile } from "xlsx";
 import { COMORBILIDADES, EXPORT_FILENAME } from "../../constants";
-import { validarFecha, validarNombre, validarNumero, validarTelefono } from "./Validadores";
+import { validarFecha, validarId, validarNombre, validarNumero, validarTelefono } from "./Validadores";
 
 /**
  * Genera un archivo en memoria XLSX a partir de un Array de JSON.
@@ -80,7 +80,7 @@ export function leerArchivoXlsx (archivo) {
 export function validarXlsx (archivo, filas) {
     const hojas = archivo.SheetNames.length == 1 && archivo.SheetNames[0] == "Datos";
     const campos = Object.keys(filas[0]).sort();
-    const ord = COMORBILIDADES.concat(["cedula","nombre","sexo","telefono","fechaNacimiento","otraEnfermedad","fechaCreacion"]).sort();
+    const ord = COMORBILIDADES.concat(["id","cedula","nombre","sexo","telefono","fechaNacimiento","otraEnfermedad","fechaCreacion"]).sort();
     let igual = true;
 
     // comparar los arrays no funciona con el operador de igualdad
@@ -99,6 +99,7 @@ export function validarXlsx (archivo, filas) {
 export function validarFilas (filas) {
     for (const fila of filas) {
         let res = true;
+        res &= validarId(fila.id);
         res &= validarNumero(fila.cedula);
         res &= validarNombre(fila.nombre);
         res &= validarTelefono(fila.telefono);

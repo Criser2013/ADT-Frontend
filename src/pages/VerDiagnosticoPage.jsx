@@ -65,7 +65,7 @@ export default function VerDiagnosticoPage() {
         comorbilidades: []
     });
     const [persona, setPersona] = useState({
-        cedula: "", nombre: ""
+        id: "", nombre: ""
     });
     const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
     const [errorDiagnostico, setErrorDiagnostico] = useState(false);
@@ -191,14 +191,14 @@ export default function VerDiagnosticoPage() {
 
     /**
      * Carga los datos del paciente asociado al diagnóstico.
-     * @param {String} cedula - Cédula del paciente.
+     * @param {String} id - ID del paciente.
      */
-    const cargarDatosPaciente = (cedula) => {
-        const res = drive.cargarDatosPaciente(cedula);
+    const cargarDatosPaciente = (id) => {
+        const res = drive.cargarDatosPaciente(id);
         if (res.success) {
             setPersona({ ...res.data.personales });
         } else {
-            setPersona({ cedula: cedula, nombre: "N/A" });
+            setPersona({ id: id, nombre: "N/A" });
         }
     };
 

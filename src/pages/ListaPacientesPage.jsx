@@ -125,6 +125,7 @@ export default function ListaPacientesPage() {
     const formatearCeldas = (datos) => {
         dayjs.extend(customParseFormat);
         return datos.map((dato,) => ({
+            id: dato.id,
             nombre: dato.nombre, cedula: dato.cedula,
             telefono: dato.telefono,
             edad: dayjs().diff(dayjs(
@@ -161,7 +162,7 @@ export default function ListaPacientesPage() {
      */
     const manejadorClicCelda = (dato) => {
         navegacion.setPaginaAnterior("/pacientes");
-        navigate(`/pacientes/ver-paciente?cedula=${dato.cedula}`, { replace: true });
+        navigate(`/pacientes/ver-paciente?id=${dato.id}`, { replace: true });
     };
 
     /**
@@ -228,7 +229,7 @@ export default function ListaPacientesPage() {
                             datos={datos}
                             lblBusq="Buscar paciente por nombre o número de cédula"
                             activarBusqueda={true}
-                            campoId="cedula"
+                            campoId="id"
                             terminoBusqueda={""}
                             lblSeleccion="pacientes seleccionados"
                             camposBusq={["nombre", "cedula"]}
