@@ -15,7 +15,7 @@ import SwitchLabel from "../tabs/SwitchLabel";
 
 /**
  * Barra de navegación superior.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function Navbar() {
     const auth = useAuth();
@@ -105,6 +105,10 @@ export default function Navbar() {
      * @param {Event} e 
      */
     const manejadorSwitchModoUsuario = (e) => {
+        const modoUsuario = auth.authInfo.modoUsuario;
+        if (e == null) {
+            e = { target: { checked: !modoUsuario } };
+        }
         auth.cambiarModoUsuario(e.target.checked);
     };
 
@@ -168,7 +172,7 @@ export default function Navbar() {
                         <Divider />
                         {(rol == CODIGO_ADMIN) ? (
                             <>
-                                <MenuItem>
+                                <MenuItem onClick={() => manejadorSwitchModoUsuario(null)}>
                                     <SwitchLabel
                                         activado={auth.authInfo.modoUsuario}
                                         etiqueta={txtSwitch}

@@ -29,7 +29,6 @@ export default function IniciarSesionPage() {
     const width = useMemo(() => {
         const { dispositivoMovil, orientacion } = navegacion;
         if (!dispositivoMovil) {
-            console.log("asd")
             return "34vw";
         } else if (dispositivoMovil && orientacion == "vertical") {
             return "100vw";

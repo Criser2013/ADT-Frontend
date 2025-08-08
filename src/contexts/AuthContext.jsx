@@ -128,11 +128,10 @@ export function AuthProvider({ children }) {
                 clearTimeout(idTareaRefresco);              // Se refresca el token de acceso sino faltan mas de 3 minutos para que caduque el token - Cuando se recarga la página
                 setIdTareaRefresco(setTimeout(refrescarTokens, (fecha - 180) * 1000));
             } else if (fecha != null && (fecha <= 180 && fecha > 20)) {
-                refrescarTokens();        
-            } else if (!urlConds){
+                refrescarTokens();
+            } else if (!urlConds) {
                 await reautenticarUsuario(currentUser);
             }
-            console.log("xd")
 
             setAuthInfo((x) => ({ ...x, user: currentUser, uid: currentUser.uid }));
             setAutenticado(true);
@@ -185,6 +184,9 @@ export function AuthProvider({ children }) {
                 cerrarSesion();
                 resultado = { res: true, operacion: 0, error: "No se pudo verificar si el usuario está registrado." };
             } else {
+                if (location.pathname == "/") {
+                    await verDatosUsuario(res.user.uid);
+                }
                 setAutenticado(true);
                 // Al iniciar sesión correctamente, se actualiza la información del usuario
                 setAuthInfo((x) => ({ ...x, user: res.user, modoUsuario: false }));
@@ -229,6 +231,11 @@ export function AuthProvider({ children }) {
             guardarAuthCredsSesion(oauth);
             setAuthError({ res: false, operacion: 2, error: "" });
             setRequiereRefresco(false);
+
+            if (location.pathname == "/") {
+                await verDatosUsuario(res.user.uid);
+            }
+
             setAutenticado(true);
 
             return { res: false, operacion: 2, error: "" };
@@ -342,6 +349,7 @@ export function AuthProvider({ children }) {
     const borrarAuthCredsSesion = () => {
         sessionStorage.removeItem("session-tokens");
         sessionStorage.removeItem("modo-usuario");
+        sessionStorage.removeItem("ejecutar-callback");
     };
 
     /**
@@ -419,7 +427,7 @@ export function AuthProvider({ children }) {
     return (
         <authContext.Provider value={{
             useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive,
-            setScopes, cerrarSesion, iniciarSesionGoogle, reautenticarUsuario, permisos, autenticado, 
+            setScopes, cerrarSesion, iniciarSesionGoogle, reautenticarUsuario, permisos, autenticado,
             requiereRefresco, quitarPantallaCarga, cambiarModoUsuario
         }}>
             {children}

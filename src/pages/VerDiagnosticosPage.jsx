@@ -136,7 +136,6 @@ export default function VerDiagnosticosPage() {
         document.title = rol != CODIGO_ADMIN ? "Historial de diagnósticos" : "Datos recolectados";
         const { uid } = auth.authInfo;
 
-        console.log(auth.authInfo)
         if (rol != null && uid != null && DB != null) {
             manejadorRecargar(auth.authInfo.user.accessToken, uid, rol, DB);
         }
@@ -202,7 +201,6 @@ export default function VerDiagnosticosPage() {
             await peticionApi(token, "admin/usuarios", "GET", null,
                 "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
             );
-            console.log(res)
         if (res.success && rol == CODIGO_ADMIN) {
             setPersonas(res.data.usuarios);
         } else if (res.success && rol != CODIGO_ADMIN) {
@@ -226,7 +224,6 @@ export default function VerDiagnosticosPage() {
      */
     const cargarDiagnosticos = async (uid, rol, DB) => {
         const res = (rol != CODIGO_ADMIN) ? await verDiagnosticosPorMedico(uid, DB) : await verDiagnosticos(DB);
-        console.log(res)
         if (res.success) {
             setDiagnosticos(res.data);
         } else {
