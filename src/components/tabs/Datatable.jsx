@@ -190,7 +190,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
             <Paper sx={{ width: "100%", mb: 2 }}>
                 {(numSeleccionados > 0 || activarBusqueda) ? (
                     <Toolbar
-                        sx={{ padding: "1vh 0vh" }}>
+                        sx={{ padding: "1vh 0vw" }}>
                         <Stack
                             direction="column"
                             display="flex"
@@ -287,7 +287,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                         variant="body2"
                                         align="center" component="th"
                                         width="100%" colSpan={campos.length + 1}
-                                        sx={{ padding: "10vh 0" }}>
+                                        sx={{ padding: "10vh 0vw" }}>
                                         {busqueda.length > 0 ? "No se encontraron resultados para la búsqueda." : "No hay datos para mostrar."}
                                     </Typography>
                                 </TableRow>

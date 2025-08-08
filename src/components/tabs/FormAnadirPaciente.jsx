@@ -12,8 +12,6 @@ import { useDrive } from "../../contexts/DriveContext";
 import { oneHotEncondingOtraEnfermedad } from "../../utils/TratarDatos";
 import { useNavigate } from "react-router";
 import TabHeader from "./TabHeader";
-import { useNavegacion } from "../../contexts/NavegacionContext";
-import { detTamCarga } from "../../utils/Responsividad";
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import SelectChip from "./SelectChip";
 import CloseIcon from "@mui/icons-material/Close";
@@ -33,14 +31,10 @@ import { v6 } from "uuid";
 export default function FormAnadirPaciente({ listadoPestanas, titPestana, id = "", esAnadir = true }) {
     const drive = useDrive();
     const navigate = useNavigate();
-    const navegacion = useNavegacion();
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({
         mostrar: false, mensaje: "", titulo: ""
     });
-    const width = useMemo(() => {
-        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const fechaActual = useMemo(() => dayjs(), []);
     const sexos = useMemo(() => [
         { texto: "Seleccione el sexo", val: 2 },
@@ -152,7 +146,7 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, id = "
     return (
         <>
             {cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
+                <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
                     <CircularProgress />
                 </Box>
             ) : (
@@ -162,7 +156,7 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, id = "
                         titulo={titPestana}
                         pestanas={listadoPestanas}
                         tooltip="Volver a la pestaña de pacientes" />
-                    <Grid container columns={2} spacing={1} rowSpacing={2} paddingTop="2vh" overflow="auto" paddingRight="1vh">
+                    <Grid container columns={2} spacing={1} rowSpacing={2} paddingTop="2vh" overflow="auto" paddingRight="0.5vw">
                         <Grid size={2}>
                             <Typography variant="h5">
                                 <b>Datos personales</b>

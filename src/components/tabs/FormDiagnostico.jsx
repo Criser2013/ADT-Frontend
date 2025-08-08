@@ -5,7 +5,6 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
-import { detTamCarga } from "../../utils/Responsividad";
 import Check from "../tabs/Check";
 import SelectChip from "../tabs/SelectChip";
 import { COMORBILIDADES, SEXOS, SINTOMAS } from "../../../constants";
@@ -59,9 +58,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const [diagnostico, setDiagnostico] = useState({ resultado: false, probabilidad: 0, diagnosticado: false });
     const [cargando, setCargando] = useState(false);
     const [modal, setModal] = useState({ mostrar: false, titulo: "", mensaje: "" });
-    const width = useMemo(() => {
-        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const numCols = useMemo(() => {
         if (navegacion.dispositivoMovil && (navegacion.orientacion == "vertical" || navegacion.ancho < 500)) {
             return 1;
@@ -274,7 +270,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     return (
         <>
             {cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
+                <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
                     <CircularProgress />
                 </Box>
             ) : (
@@ -283,7 +279,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                         activarBtnAtras={false}
                         titulo={tituloHeader}
                         pestanas={listadoPestanas} />
-                    <Grid container columns={numCols} spacing={2} sx={{ marginTop: "3vh", width: width }}>
+                    <Grid container columns={numCols} spacing={2} sx={{ marginTop: "3vh" }}>
                         <Grid size={numCols}>
                             <Typography variant="h6">
                                 <b>Datos personales</b>

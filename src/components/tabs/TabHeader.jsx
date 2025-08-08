@@ -56,7 +56,7 @@ export default function TabHeader({ urlPredet, titulo, pestanas, tooltip, activa
                     </Breadcrumbs>
                 </Box>
             </Stack>
-            <Divider orientation="horizontal" sx={{ marginTop: "1vh", marginBottom: "1vh" }} />
+            <Divider orientation="horizontal" sx={{ margin: "1vh 0 vw" }} />
         </Box>
     );
 };

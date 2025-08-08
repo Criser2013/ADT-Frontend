@@ -22,11 +22,27 @@ export default function MenuLayout({ children }) {
         const { dispositivoMovil, orientacion } = navegacion;
 
         if (dispositivoMovil && orientacion == "vertical") {
-            return "2vh";
+            return "4vw";
         } else {
-            return "4vh";
+            return "1.9vw";
         }
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
+    const marginMenu = useMemo(() => {
+        const { dispositivoMovil, orientacion, mostrarMenu } = navegacion;
+        if (dispositivoMovil && orientacion == "vertical") {
+            return "0px";
+        } else if (orientacion == "horizontal" && mostrarMenu) {
+            return "240px";
+        }
+    }, [navegacion.dispositivoMovil, navegacion.mostrarMenu, navegacion.orientacion]);
+    const width = useMemo(() => {
+        const { dispositivoMovil, orientacion, mostrarMenu } = navegacion;
+        if ((!dispositivoMovil && !mostrarMenu)|| (dispositivoMovil && orientacion == "vertical")) {
+            return "100vw";
+        } else if (orientacion == "horizontal" && mostrarMenu) {
+            return "calc(100vw - 240px)";
+        }
+    }, [navegacion.dispositivoMovil, navegacion.mostrarMenu, navegacion.orientacion]);
 
     /**
      * Si hay algún error de autenticación, muestra un modal con el mensaje de error y al cerrarlo
@@ -47,7 +63,7 @@ export default function MenuLayout({ children }) {
                     <CircularProgress />
                 </Box>
             ) : (
-                <Box display="flex">
+                <Box width={width} marginLeft={marginMenu}>
                     <NavBar />
                     <Sidebar />
                     <Box component="main" sx={{ padding: `2vh ${margin}`}}>

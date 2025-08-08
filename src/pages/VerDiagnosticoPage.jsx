@@ -8,7 +8,6 @@ import { useNavegacion } from "../contexts/NavegacionContext";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import TabHeader from "../components/tabs/TabHeader";
 import MenuLayout from "../components/layout/MenuLayout";
-import { detTamCarga } from "../utils/Responsividad";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { validarId } from "../utils/Validadores";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -106,9 +105,6 @@ export default function VerDiagnosticoPage() {
         { titulo: "Hemoglobina", valor: `${datos.personales.hemoglobina} g/dL.` },
         { titulo: "Conteo glóbulos blancos", valor: `${datos.personales.wbc} /µL.` },
     ], [datos.personales]);
-    const width = useMemo(() => {
-        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const listadoPestanas = useMemo(() => {
         let tit1 = "Histotrial de diagnósticos";
         let tit2 = `Diagnóstico-${persona.nombre}-${datos.personales.fecha}`;
@@ -429,7 +425,7 @@ export default function VerDiagnosticoPage() {
         <>
             <MenuLayout>
                 {cargando ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
+                    <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
                         <CircularProgress />
                     </Box>
                 ) : (
@@ -444,7 +440,7 @@ export default function VerDiagnosticoPage() {
                             spacing={1}
                             marginTop="3vh">
                             {(rol == CODIGO_ADMIN) ? (
-            <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vh">
+            <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                 <Tooltip title="Ver más opciones.">
                     <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
                         <MoreVertIcon />

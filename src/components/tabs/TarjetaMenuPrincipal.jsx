@@ -29,7 +29,7 @@ export default function TarjetaMenuPrincipal({ titulo, valor, icono, colorFondo 
     return (
         <Card elevation={0} sx={{
             width: "100%", height: altura, display: "flex", justifyContent: "center",
-            alignItems: "center", backgroundColor: bgColor, borderRadius: 5, padding: "3vh 0vh"
+            alignItems: "center", backgroundColor: bgColor, borderRadius: 5, padding: "3vh 0vw"
         }}>
             <Stack direction="column" spacing={1} display="flex" justifyContent="center" alignItems="center">
                 <Box

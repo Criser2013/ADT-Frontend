@@ -53,7 +53,7 @@ export default function VerUsuariosPage() {
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
-    const campos = [
+    const campos = useMemo(() => [
         { id: "nombre", label: "Nombre" },
         { id: "correo", label: "Correo" },
         { id: "rol", label: "Rol" },
@@ -61,7 +61,7 @@ export default function VerUsuariosPage() {
         { id: "cantidad", label: "Diagnósticos" },
         { id: "estado", label: "Estado" },
         { id: "accion", label: "Acción" }
-    ];
+    ], []);
     const txtBtnModal = useMemo(() => {
         return modoModal == 3 ? "Guardar" : "Eliminar";
     }, [modoModal]);
@@ -90,11 +90,11 @@ export default function VerUsuariosPage() {
     const tamForm = useMemo(() => {
         const { dispositivoMovil, orientacion } = navegacion;
         if (!dispositivoMovil) {
-            return "47vh";
+            return "27vw";
         } else if (dispositivoMovil && orientacion == "horizontal") {
-            return "70vh";
+            return "50vw";
         } else {
-            return "30vh";
+            return "60vw";
         }
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
     const numCols = useMemo(() => {
@@ -662,7 +662,7 @@ export default function VerUsuariosPage() {
                         activarBtnAtras={false}
                         titulo="Lista de usuarios"
                         pestanas={listadoPestanas} />
-                    <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
+                    <Grid container columns={1} spacing={3} width="100%" sx={{ marginTop: "3vh" }}>
                         <Grid display="flex" size={1} justifyContent="end">
                             <Tooltip title="Recargar datos">
                                 <IconButton onClick={() => manejadorRecargar()}>

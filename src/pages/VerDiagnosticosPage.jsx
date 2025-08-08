@@ -1,5 +1,4 @@
 import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography, Alert, Stack } from "@mui/material";
-import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
 import TabHeader from "../components/tabs/TabHeader";
@@ -53,9 +52,6 @@ export default function VerDiagnosticosPage() {
     const [errorDiagnostico, setErrorDiagnostico] = useState(false);
     const [preprocesar, setPreprocesar] = useState(false);
     const [guardarDrive, setGuardarDrive] = useState(false);
-    const width = useMemo(() => {
-        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
     const camposVariables = (rol != CODIGO_ADMIN) ? [
@@ -570,7 +566,7 @@ export default function VerDiagnosticosPage() {
     return (
         <MenuLayout>
             {cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
+                <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
                     <CircularProgress />
                 </Box>
             ) : (
@@ -579,7 +575,7 @@ export default function VerDiagnosticosPage() {
                         activarBtnAtras={false}
                         titulo={titulo}
                         pestanas={listadoPestanas} />
-                    <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
+                    <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh" }}>
                         <AdvertenciaEspacio rol={rol} cantidadDiagnosticos={cantDiagnosticos} />
                         <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
                             <Tooltip title="Recargar la página">

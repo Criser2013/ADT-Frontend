@@ -1,7 +1,6 @@
 import { Grid, Box, CircularProgress, Typography, Divider } from "@mui/material";
 import { useMemo, useState, useEffect } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
-import { detTamCarga } from "../../utils/Responsividad";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import { verDiagnosticos } from "../../firestore/diagnosticos-collection";
@@ -44,9 +43,6 @@ export default function MenuAdministrador() {
             return 4;
         }
     }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
-    const width = useMemo(() => {
-        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
     const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual), [datosDiagnosticos, fechaActual]);
     const usuariosMesActual = useMemo(() => obtenerDatosMesActual(datosUsuarios, fechaActual), [datosUsuarios, fechaActual]);
@@ -183,7 +179,7 @@ export default function MenuAdministrador() {
     return (
         <>
             {cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
+                <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
                     <CircularProgress />
                 </Box>
             ) : (
@@ -193,40 +189,40 @@ export default function MenuAdministrador() {
                         <Typography variant="h4" fontStyle="bold" align="left">
                             Bienvenido, {auth.authInfo.user.displayName}
                         </Typography>
-                        <Divider sx={{ padding: "1vh 0vh" }} />
+                        <Divider sx={{ padding: "1vh 0vw" }} />
                     </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
                         <TarjetaMenuPrincipal
                             titulo="Diagnósticos realizados este mes"
                             altura="100%"
                             valor={diagnosticosMesActual}
                             icono={<DiagnosticoIcono sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
                         <TarjetaMenuPrincipal
                             titulo="Usuarios nuevos este mes"
                             altura="100%"
                             valor={usuariosMesActual}
                             icono={<PersonIcon sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
                         <TarjetaMenuPrincipal
                             titulo="Diagnósticos recolectados"
                             altura="100%"
                             valor={cantDiagnosticos}
                             icono={<DatosIcono sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vh 0vh">
+                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
                         <TarjetaMenuPrincipal
                             titulo="Diagnósticos validados"
                             altura="100%"
                             valor={cantDiagnosticosConfir}
                             icono={<CheckCircleIcon sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
-                    <Grid size={colsGraficos} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vh">
+                    <Grid size={colsGraficos} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vw">
                         <GraficoBarras titulo="Cifras de los últimos 5 meses" datos={datos} />
                     </Grid>
-                    <Grid size={colsGraficos} display="flex" justifyContent="center" alignItems="center" height="40vh" padding="0vh 1.5vh">
+                    <Grid size={colsGraficos} display="flex" justifyContent="center" alignItems="center" height="40vh" padding="0vh 1.5vw">
                         <GraficoPastel titulo="Distribución de los diagnósticos" datos={propDiagnosticos} />
                     </Grid>
                 </Grid>

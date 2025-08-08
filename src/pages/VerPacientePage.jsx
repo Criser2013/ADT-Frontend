@@ -8,7 +8,6 @@ import { useNavegacion } from "../contexts/NavegacionContext";
 import { useEffect, useMemo, useState } from "react";
 import TabHeader from "../components/tabs/TabHeader";
 import MenuLayout from "../components/layout/MenuLayout";
-import { detTamCarga } from "../utils/Responsividad";
 import { useNavigate, useSearchParams } from "react-router";
 import { validarId } from "../utils/Validadores";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -46,9 +45,6 @@ export default function VerPacientePage() {
         },
         comorbilidades: []
     });
-    const width = useMemo(() => {
-        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const padding = useMemo(() => !navegacion.dispositivoMovil ? "2vh" : "0vh", [navegacion.dispositivoMovil]);
     const campos = useMemo(() => [
         { titulo: "Nombre", valor: datos.personales.nombre },
@@ -207,7 +203,7 @@ export default function VerPacientePage() {
         <>
             <MenuLayout>
                 {cargando ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
+                    <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
                         <CircularProgress />
                     </Box>
                 ) : (
@@ -222,7 +218,7 @@ export default function VerPacientePage() {
                             spacing={1}
                             paddingRight={padding}
                             marginTop="3vh">
-                            <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vh">
+                            <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                                 <Tooltip title="Ver más opciones.">
                                     <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
                                         <MoreVertIcon />

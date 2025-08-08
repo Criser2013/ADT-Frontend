@@ -111,7 +111,7 @@ export default function Navbar() {
     return (
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
             <Toolbar>
-                <Box display="flex" justifyContent="space-between" alignItems="center" flexDirection="row" width="100%" >
+                <Box display="flex" justifyContent="space-between" alignItems="center" flexDirection="row" width="100vw" >
                     <Tooltip title={txtToolBtnMenu}>
                         <IconButton edge="start" color="inherit" onClick={manejadorAbrirMenu}>
                             {navegacion.mostrarMenu ? <MenuOpenIcon /> : <MenuIcon />}
@@ -154,7 +154,7 @@ export default function Navbar() {
                                 },
                             },
                         }}>
-                        <Box padding="1vh 3vh" maxWidth="90vh">
+                        <Box padding="1vh 3vw" maxWidth="90vw">
                             <Typography variant="h6">
                                 <b>{auth.authInfo.user != null ? auth.authInfo.user.displayName : "Usuario"}</b>
                             </Typography>

@@ -1,5 +1,4 @@
 import { Button, Grid, Box, CircularProgress, Tooltip, IconButton } from "@mui/material";
-import { detTamCarga } from "../utils/Responsividad";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
 import TabHeader from "../components/tabs/TabHeader";
@@ -35,9 +34,6 @@ export default function ListaPacientesPage() {
     const [eliminar, setEliminar] = useState(false);
     const [datos, setDatos] = useState([]);
     const [seleccionados, setSeleccionados] = useState([]);
-    const width = useMemo(() => {
-        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const campos = useMemo(() => [
         { id: "nombre", label: "Nombre" },
         { id: "cedula", label: "Cédula" },
@@ -198,7 +194,7 @@ export default function ListaPacientesPage() {
     return (
         <MenuLayout>
             {cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
+                <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
                     <CircularProgress />
                 </Box>
             ) : (
@@ -207,7 +203,7 @@ export default function ListaPacientesPage() {
                         activarBtnAtras={false}
                         titulo="Lista de pacientes"
                         pestanas={listadoPestanas} />
-                    <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
+                    <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh" }}>
                         <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
                             <Tooltip title="Recargar la página">
                                 <IconButton onClick={() => manejadorRecargar()}>

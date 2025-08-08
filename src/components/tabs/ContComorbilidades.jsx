@@ -11,8 +11,8 @@ export default function ContComorbilidades({ comorbilidades }) {
             borderColor="blue"
             borderRadius={3}
             border={1}
-            padding="2vh"
-            sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+            padding="1vw"
+            sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             {comorbilidades.map((x) => (
                 <Chip
                     key={x}

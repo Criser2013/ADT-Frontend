@@ -123,7 +123,7 @@ export default function App() {
     };
 
     return (
-        <>
+        <span style={{ height: "100vh", width: "100vw" }}>
             <Router />
             <ModalAccion
                 abrir={modal2Btn.mostrar}
@@ -146,6 +146,6 @@ export default function App() {
                 txtBtn="Cerrar"
                 iconoBtn={<CloseIcon />}
             />
-        </>
+        </span>
     );
 };
