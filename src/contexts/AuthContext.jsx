@@ -132,6 +132,7 @@ export function AuthProvider({ children }) {
             } else if (!urlConds){
                 await reautenticarUsuario(currentUser);
             }
+            console.log("xd")
 
             setAuthInfo((x) => ({ ...x, user: currentUser, uid: currentUser.uid }));
             setAutenticado(true);

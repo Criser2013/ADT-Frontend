@@ -13,6 +13,7 @@ import GraficoBarras from "../charts/GraficoBarras";
 import GraficoPastel from "../charts/GraficoPastel";
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import PersonIcon from '@mui/icons-material/Person';
+import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
 import { Timestamp } from "firebase/firestore";
 
@@ -218,6 +219,7 @@ export default function MenuUsuario() {
                 mensaje={modal.mensaje}
                 titulo={modal.titulo}
                 txtBtn="Cerrar"
+                iconoBtn={<CloseIcon />}
                 manejadorBtnModal={manejadorBtnModal} />
         </>
     );

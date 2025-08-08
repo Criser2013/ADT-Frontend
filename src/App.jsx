@@ -5,12 +5,16 @@ import { useEffect, useState } from "react";
 import { useNavegacion } from "./contexts/NavegacionContext";
 import ModalSimple from "./components/modals/ModalSimple";
 import ModalAccion from "./components/modals/ModalAccion";
+import CloseIcon from "@mui/icons-material/Close";
+import LogoutIcon from "@mui/icons-material/Logout";
 import dayjs from "dayjs";
+import { IconoPermisos } from "./components/icons/IconosModal";
+import LoginIcon from "@mui/icons-material/Login";
 
 /**
  * Componente principal que provee las credenciales de autenticación y muestra los 
  * errores relacionados con el servicio de autenticación.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function App() {
     const auth = useAuth();
@@ -20,7 +24,7 @@ export default function App() {
         mostrar: false, mensaje: ""
     });
     const [modal2Btn, setModal2Btn] = useState({
-        mostrar: false, mensaje: "", titulo: "", txtBtn: ""
+        mostrar: false, mensaje: "", titulo: "", txtBtn: "", icono: null
     });
 
     /**
@@ -42,12 +46,13 @@ export default function App() {
 
         let compsModal = {
             mostrar: !auth.permisos, mensaje: "Debes otorgar los permisos requeridos en tu cuenta de Google para utilizar la aplicación.",
-            titulo: "ℹ️ Permisos insuficientes", txtBtn: "Conceder permisos"
+            titulo: "ℹ️ Permisos insuficientes", txtBtn: "Conceder permisos", icono: <IconoPermisos />
         };
         if (auth.requiereRefresco) {
             compsModal = {
                 mostrar: true, titulo: "ℹ️ La sesión ha caducado", txtBtn: "Extender sesión",
-                mensaje: "Tu sesión ha caducado, por favor reautentícate para continuar utilizando la aplicación."
+                mensaje: "Tu sesión ha caducado, por favor reautentícate para continuar utilizando la aplicación.",
+                icono: <LoginIcon />
             };
         }
         setModal2Btn(compsModal);
@@ -129,14 +134,17 @@ export default function App() {
                 mostrarBtnSecundario={true}
                 txtBtnSimple={modal2Btn.txtBtn}
                 txtBtnSecundario="Cerrar sesión"
+                iconoBtnSecundario={<LogoutIcon />}
+                iconoBtnPrincipal={modal2Btn.icono}
                 txtBtnSimpleAlt={modal2Btn.txtBtn}
             />
             <ModalSimple
                 abrir={modal.mostrar}
-                titulo="Error"
+                titulo="❌ Error"
                 mensaje={modal.mensaje}
                 manejadorBtnModal={manejadorBtnModal}
                 txtBtn="Cerrar"
+                iconoBtn={<CloseIcon />}
             />
         </>
     );

@@ -5,6 +5,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { useState, useMemo, useEffect } from "react";
 import { visuallyHidden } from "@mui/utils";
 import { obtenerComparadorStrNum } from "../../utils/Ordenamiento";
@@ -203,7 +204,10 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                         color="inherit"
                                         variant="body1"
                                         component="div">
-                                        <b>{numSeleccionados} {lblSeleccion}</b>
+                                            <span style={{ display: "flex", alignItems: "center" }}>
+                                                <CheckBoxIcon sx={{ mr: 1.5 }} />
+                                                <b>{numSeleccionados} {lblSeleccion}</b>
+                                            </span>
                                     </Typography>
                                     <Tooltip title={tooltipAccion}>
                                         <IconButton onClick={(e) => cbAccion(seleccionados, e)}>

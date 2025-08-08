@@ -1,16 +1,16 @@
-import { createTheme } from "@mui/material";
+import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 import Raleway from "./fonts/Raleway/Raleway-regular.ttf";
 import Roboto from "./fonts/Roboto/Roboto-Regular.ttf";
 
 const fuenteTitulos = {
-    fontFamily: '"Raleway", sans-serif',
+    fontFamily: '"Raleway", Arial',
     fontWeight: 500,
     fontStyle: "bold"
 };
 
-export const themeOptions = createTheme({
+const opcionesTema = createTheme({
     typography: {
-        fontFamily: '"Roboto", sans-serif',
+        fontFamily: '"Roboto", Arial',
         h1: fuenteTitulos,
         h2: fuenteTitulos,
         h3: fuenteTitulos,
@@ -52,3 +52,5 @@ export const themeOptions = createTheme({
         dark: true
     }
 });
+
+export const instanciaTema = responsiveFontSizes(opcionesTema);

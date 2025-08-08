@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { peticionApi } from "../../services/Api";
 import AdvertenciaEspacio from "./AdvertenciaEspacio";
+import CloseIcon from "@mui/icons-material/Close";
 
 /**
  * Menú principal para los administradores. Muestra la cantidad de diagnósticos y usuarios nuevos.
@@ -235,6 +236,7 @@ export default function MenuAdministrador() {
                 mensaje={modal.mensaje}
                 titulo={modal.titulo}
                 txtBtn="Cerrar"
+                iconoBtn={<CloseIcon />}
                 manejadorBtnModal={manejadorBtnModal} />
         </>
     );

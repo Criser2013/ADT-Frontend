@@ -18,7 +18,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import RefreshIcon from '@mui/icons-material/Refresh';
+import CloseIcon from '@mui/icons-material/Close';
 import { Controller, useForm } from "react-hook-form";
+import SaveIcon from '@mui/icons-material/Save';
 
 /**
  * Página que muestra la lista de usuarios.
@@ -34,7 +36,7 @@ export default function VerUsuariosPage() {
     }];
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({
-        mostrar: false, titulo: "", mensaje: ""
+        mostrar: false, titulo: "", mensaje: "", icono: null
     });
     const [modoModal, setModoModal] = useState(2);
     const [datos, setDatos] = useState(null);
@@ -142,7 +144,7 @@ export default function VerUsuariosPage() {
             setUsuarios([]);
             setModoModal(2);
             setModal({
-                mostrar: true, mensaje: res.error,
+                mostrar: true, mensaje: res.error, icono: <CloseIcon />,
                 titulo: "❌ Error al cargar los datos",
             });
         } else {
@@ -159,7 +161,7 @@ export default function VerUsuariosPage() {
             setDiagnosticos([]);
             setModoModal(2);
             setModal({
-                mostrar: true, mensaje: res.error,
+                mostrar: true, mensaje: res.error, icono: <CloseIcon />,
                 titulo: "❌ Error al cargar los diagnósticos",
             });
         } else {
@@ -222,7 +224,7 @@ export default function VerUsuariosPage() {
         setSeleccionados(seleccionados);
         setModoModal(1);
         setModal({
-            mostrar: true, titulo: "⚠️ Alerta",
+            mostrar: true, titulo: "⚠️ Alerta", icono: <DeleteIcon />,
             mensaje: "¿Estás seguro de querer eliminar a los pacientes seleccionados?"
         });
     };
@@ -239,7 +241,7 @@ export default function VerUsuariosPage() {
             setSeleccionado(aux);
             setModoModal(4);
             setModal({
-                mostrar: true, titulo: "ℹ️ Detalles del usuario", mensaje: ""
+                mostrar: true, titulo: "ℹ️ Detalles del usuario", mensaje: "", icono: <CloseIcon />
             });
         }
     };
@@ -320,7 +322,7 @@ export default function VerUsuariosPage() {
         } else {
             setModoModal(2);
             setModal({
-                mostrar: true, titulo: "❌ Error al actualizar el usuario.",
+                mostrar: true, titulo: "❌ Error al actualizar el usuario.", icono: <CloseIcon />,
                 mensaje: "Se ha producido un error al actualizar el usuario seleccionado. Por favor, inténtalo de nuevo más tarde."
             });
             setCargando(false);
@@ -338,7 +340,7 @@ export default function VerUsuariosPage() {
             setTimeout(() => {
                 setModoModal(2);
                 setModal({
-                    mostrar: true, titulo: "⚠️ Alerta",
+                    mostrar: true, titulo: "⚠️ Alerta", icono: <CloseIcon />,
                     mensaje: "No puedes eliminarte a ti mismo. Por favor, selecciona otros usuarios."
                 });
                 setCargando(false);
@@ -415,14 +417,14 @@ export default function VerUsuariosPage() {
             if (!exitoTodas) {
                 setModoModal(2);
                 setModal({
-                    mostrar: true, titulo: "⚠️ Alerta.",
+                    mostrar: true, titulo: "⚠️ Error al eliminar algunos usuarios.", icono: <CloseIcon />,
                     mensaje: "Algunos usuarios no se pudieron eliminar. Por favor, revisa los registros."
                 });
             }
         } else {
             setModoModal(2);
             setModal({
-                mostrar: true, titulo: "❌ Error al eliminar los usuarios.",
+                mostrar: true, titulo: "❌ Error al eliminar los usuarios.", icono: <CloseIcon />,
                 mensaje: "Se ha producido un error al eliminar los usuarios seleccionados. Por favor, inténtalo de nuevo más tarde."
             });
             setCargando(false);
@@ -439,7 +441,7 @@ export default function VerUsuariosPage() {
         setSeleccionado(instancia);
         setModoModal(0);
         setModal({
-            mostrar: true, titulo: "⚠️ Alerta",
+            mostrar: true, titulo: "⚠️ Alerta", icono: <DeleteIcon />,
             mensaje: (<>
                 ¿Estás seguro de querer eliminar al usuario {instancia.nombre} ({instancia.correo}) — {rol}?
                 <br />
@@ -468,7 +470,7 @@ export default function VerUsuariosPage() {
         //setNuevosDatos({ uid: instancia.uid, nombre: instancia.nombre, rol: instancia.rol, estado: instancia.estado });
         setModoModal(3);
         setModal({
-            mostrar: true, titulo: "✏️ Editar usuario", mensaje: ""
+            mostrar: true, titulo: "✏️ Editar usuario", mensaje: "", icono: <SaveIcon />
         });
     };
 
@@ -690,6 +692,8 @@ export default function VerUsuariosPage() {
                 abrir={modal.mostrar}
                 titulo={modal.titulo}
                 mensaje={modal.mensaje}
+                iconoBtnPrincipal={modal.icono}
+                iconoBtnSecundario={<CloseIcon />}
                 manejadorBtnPrimario={manejadorBtnModal}
                 manejadorBtnSecundario={manejadorBtnCancelar}
                 mostrarBtnSecundario={modoModal != 2 && modoModal != 4}

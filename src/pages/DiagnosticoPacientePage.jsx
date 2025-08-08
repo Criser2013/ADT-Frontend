@@ -4,6 +4,7 @@ import FormDiagnostico from "../components/tabs/FormDiagnostico";
 import { useAuth } from "../contexts/AuthContext";
 import { useDrive } from "../contexts/DriveContext";
 import ModalSimple from "../components/modals/ModalSimple";
+import CloseIcon from "@mui/icons-material/Close";
 
 /**
  * Página para realizar un diagnóstico de TEP al paciente.
@@ -68,8 +69,9 @@ export default function DiagnosticoPacientePage() {
                 esDiagPacientes={true} />
             <ModalSimple
                 abrir={modal}
-                titulo="Error"
-                mensaje="No se ha podido cargar los datos de los pacientes."
+                titulo="❌ Error"
+                iconoBtn={<CloseIcon />}
+                mensaje="No se han podido cargar los datos del paciente. Recarga la página y reintenta nuevamente."
                 txtBtn="Cerrar"
                 manejadorBtnModal={() => setModal(false)}
             />

@@ -16,6 +16,7 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
 import { detTamCarga } from "../../utils/Responsividad";
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import SelectChip from "./SelectChip";
+import CloseIcon from "@mui/icons-material/Close";
 import ModalSimple from "../modals/ModalSimple";
 import { Controller, useForm } from "react-hook-form";
 import Check from "./Check";
@@ -321,6 +322,7 @@ export default function FormAnadirPaciente({ listadoPestanas, titPestana, id = "
                 titulo={modal.titulo}
                 mensaje={modal.mensaje}
                 txtBtn="Cerrar"
+                iconoBtn={<CloseIcon />}
                 manejadorBtnModal={manejadorBtnModal}
             />
         </>

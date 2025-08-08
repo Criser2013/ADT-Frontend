@@ -29,11 +29,12 @@ export default function IniciarSesionPage() {
     const width = useMemo(() => {
         const { dispositivoMovil, orientacion } = navegacion;
         if (!dispositivoMovil) {
-            return "66vh";
+            console.log("asd")
+            return "34vw";
         } else if (dispositivoMovil && orientacion == "vertical") {
-            return "100vh";
+            return "100vw";
         } else {
-            return "100vh";
+            return "40vw";
         }
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
     const height = useMemo(() => {

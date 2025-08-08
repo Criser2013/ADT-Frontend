@@ -14,10 +14,11 @@ import dayjs from "dayjs";
 import ModalAccion from "../components/modals/ModalAccion";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import CloseIcon from "@mui/icons-material/Close";
 
 /**
  * Página para ver la lista de pacientes.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function ListaPacientesPage() {
     const auth = useAuth();
@@ -29,7 +30,7 @@ export default function ListaPacientesPage() {
     }];
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({
-        mostrar: false, titulo: "", mensaje: ""
+        mostrar: false, titulo: "", mensaje: "", icono: null
     });
     const [eliminar, setEliminar] = useState(false);
     const [datos, setDatos] = useState([]);
@@ -112,7 +113,7 @@ export default function ListaPacientesPage() {
         if (!res.success) {
             setModal({
                 mostrar: true, mensaje: res.error,
-                titulo: res.error,
+                titulo: `❌ ${res.error}`, icono: <CloseIcon />
             });
         }
     };
@@ -151,7 +152,7 @@ export default function ListaPacientesPage() {
         setSeleccionados(seleccionados);
         setEliminar(true);
         setModal({
-            mostrar: true, titulo: "⚠️ Alerta",
+            mostrar: true, titulo: "⚠️ Alerta", icono: <DeleteIcon />,
             mensaje: "¿Estás seguro de querer eliminar a los pacientes seleccionados?"
         });
     };
@@ -186,7 +187,7 @@ export default function ListaPacientesPage() {
         const res = await drive.eliminarPaciente(pacientes, true);
         if (!res.success) {
             setModal({
-                mostrar: true,
+                mostrar: true, icono: <CloseIcon />,
                 titulo: "❌ Error al eliminar los pacientes.",
                 mensaje: res.error
             });
@@ -247,6 +248,8 @@ export default function ListaPacientesPage() {
                 manejadorBtnPrimario={manejadorBtnModal}
                 manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
                 mostrarBtnSecundario={eliminar}
+                iconoBtnPrincipal={modal.icono}
+                iconoBtnSecundario={<CloseIcon />}
                 txtBtnSimple="Eliminar"
                 txtBtnSecundario="Cancelar"
                 txtBtnSimpleAlt="Cerrar" />

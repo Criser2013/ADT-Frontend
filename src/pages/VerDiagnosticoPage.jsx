@@ -12,6 +12,7 @@ import { detTamCarga } from "../utils/Responsividad";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { validarId } from "../utils/Validadores";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -48,7 +49,7 @@ export default function VerDiagnosticoPage() {
     const open = Boolean(popOver);
     const elem = open ? "simple-popover" : undefined;
     const [modal, setModal] = useState({
-        mostrar: false, mensaje: "", titulo: "", txtBtn: "Validar"
+        mostrar: false, mensaje: "", titulo: "", txtBtn: "Validar", icono: null
     });
     const [datos, setDatos] = useState({
         personales: {
@@ -260,7 +261,9 @@ export default function VerDiagnosticoPage() {
         setDiagnostico(2);
         setMostrarBtnSecundario(true);
         setErrorDiagnostico(false);
-        setModal({ titulo: "Validar diagnóstico", mensaje: "", mostrar: true, txtBtn: "Validar" });
+        setModal({ titulo: "Validar diagnóstico", mensaje: "", 
+            mostrar: true, txtBtn: "Validar", icono: <CheckCircleOutlineIcon />
+        });
     };
 
     /**
@@ -276,7 +279,7 @@ export default function VerDiagnosticoPage() {
             setCargando(false);
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: "❌ Error",
+                mostrar: true, titulo: "❌ Error", icono: <CloseIcon />,
                 mensaje: "No se pudo eliminar el diagnóstico. Inténtalo de nuevo más tarde."
             });
         }
@@ -299,7 +302,7 @@ export default function VerDiagnosticoPage() {
         } else {
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: "❌ Error", txtBtn: "Cerrar",
+                mostrar: true, titulo: "❌ Error", txtBtn: "Cerrar", icono: <CloseIcon />,
                 mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
             });
         }
@@ -331,7 +334,7 @@ export default function VerDiagnosticoPage() {
         cerrarPopover();
         setMostrarBtnSecundario(true);
         setModal({
-            mostrar: true, titulo: "⚠️ Alerta", txtBtn: "Eliminar",
+            mostrar: true, titulo: "⚠️ Alerta", txtBtn: "Eliminar", icono: <DeleteIcon />,
             mensaje: "¿Estás seguro de que deseas eliminar este diagnóstico?"
         });
     };
@@ -541,11 +544,13 @@ export default function VerDiagnosticoPage() {
                     abrir={modal.mostrar}
                     titulo={modal.titulo}
                     mensaje={modal.mensaje}
+                    iconoBtnPrincipal={modal.icono}
                     manejadorBtnPrimario={manejadorBtnModal}
                     manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
                     mostrarBtnSecundario={mostrarBtnSecundario}
                     txtBtnSimple={modal.txtBtn}
                     txtBtnSecundario="Cancelar"
+                    iconoBtnSecundario={<CloseIcon />}
                     txtBtnSimpleAlt="Cerrar">
                         <CuerpoModal />
                 </ModalAccion>

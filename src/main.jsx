@@ -4,13 +4,13 @@ import App from './App.jsx';
 import { CredencialesProvider } from './contexts/CredencialesContext.jsx';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import { NavegacionProvider } from './contexts/NavegacionContext.jsx';
-import { themeOptions } from './theme.jsx';
+import { instanciaTema } from './theme.jsx';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from "@mui/material/CssBaseline";
 
 createRoot(document.getElementById('root')).render(
 	<StrictMode>
-		<ThemeProvider theme={themeOptions}>
+		<ThemeProvider theme={instanciaTema}>
 			<CssBaseline />
 			<CredencialesProvider>
 				<AuthProvider>

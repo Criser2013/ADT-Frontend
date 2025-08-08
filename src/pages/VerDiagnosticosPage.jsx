@@ -25,7 +25,12 @@ import Check from "../components/tabs/Check";
 import AddToDriveIcon from '@mui/icons-material/AddToDrive';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AdvertenciaEspacio from "../components/tabs/AdvertenciaEspacio";
+import CloseIcon from "@mui/icons-material/Close";
 
+/**
+ * Página para ver los diagnósticos del usuario.
+ * @returns {JSX.Element}
+ */
 export default function VerDiagnosticosPage() {
     const auth = useAuth();
     const drive = useDrive();
@@ -34,7 +39,7 @@ export default function VerDiagnosticosPage() {
     const credenciales = useCredenciales();
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({
-        mostrar: false, titulo: "", mensaje: ""
+        mostrar: false, titulo: "", mensaje: "", icono: null
     });
     const [activar2Btn, setActivar2Btn] = useState(false);
     const [datos, setDatos] = useState([]);
@@ -135,6 +140,7 @@ export default function VerDiagnosticosPage() {
         document.title = rol != CODIGO_ADMIN ? "Historial de diagnósticos" : "Datos recolectados";
         const { uid } = auth.authInfo;
 
+        console.log(auth.authInfo)
         if (rol != null && uid != null && DB != null) {
             manejadorRecargar(auth.authInfo.user.accessToken, uid, rol, DB);
         }
@@ -200,6 +206,7 @@ export default function VerDiagnosticosPage() {
             await peticionApi(token, "admin/usuarios", "GET", null,
                 "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
             );
+            console.log(res)
         if (res.success && rol == CODIGO_ADMIN) {
             setPersonas(res.data.usuarios);
         } else if (res.success && rol != CODIGO_ADMIN) {
@@ -208,7 +215,7 @@ export default function VerDiagnosticosPage() {
             setModoModal(0);
             setActivar2Btn(false);
             setModal({
-                mostrar: true, mensaje: res.error,
+                mostrar: true, mensaje: res.error, icono: <CloseIcon />,
                 titulo: `❌ Error al cargar los datos ${(rol != CODIGO_ADMIN) ? "de los pacientes" : "de los usuarios"}`,
             });
             setPersonas([]);
@@ -223,13 +230,14 @@ export default function VerDiagnosticosPage() {
      */
     const cargarDiagnosticos = async (uid, rol, DB) => {
         const res = (rol != CODIGO_ADMIN) ? await verDiagnosticosPorMedico(uid, DB) : await verDiagnosticos(DB);
+        console.log(res)
         if (res.success) {
             setDiagnosticos(res.data);
         } else {
             setModoModal(0);
             setActivar2Btn(false);
             setModal({
-                mostrar: true, titulo: "❌ Error al cargar los diagnósticos",
+                mostrar: true, titulo: "❌ Error al cargar los diagnósticos", icono: <CloseIcon />,
                 mensaje: "Ha ocurrido un error al cargar los diagnósticos. Por favor, inténtalo de nuevo más tarde."
             });
             setCargando(false);
@@ -286,8 +294,10 @@ export default function VerDiagnosticosPage() {
         setSeleccionados(seleccionados);
         setActivar2Btn(true);
         setModoModal(1);
+        setGuardarDrive(false);
+        setPreprocesar(false);
         setModal({
-            mostrar: true, titulo: "⚠️ Alerta",
+            mostrar: true, titulo: "⚠️ Alerta", icono: <DeleteIcon />,
             mensaje: "¿Estás seguro de querer eliminar los diagnósticos seleccionados?"
         });
     };
@@ -356,7 +366,7 @@ export default function VerDiagnosticosPage() {
             setModoModal(0);
             setActivar2Btn(false);
             setModal({
-                mostrar: true, titulo: "❌ Error al eliminar los diagnósticos.",
+                mostrar: true, titulo: "❌ Error al eliminar los diagnósticos.", icono: <CloseIcon />,
                 mensaje: "Se ha producido un error al eliminar los diagnósticos seleccionados. Por favor, inténtalo de nuevo más tarde."
             });
             setCargando(false);
@@ -392,7 +402,7 @@ export default function VerDiagnosticosPage() {
             setActivar2Btn(false);
             setModoModal(0);
             setModal({
-                mostrar: true, titulo: "❌ Error",
+                mostrar: true, titulo: "❌ Error", icono: <CloseIcon />,
                 mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
             });
             setCargando(false);
@@ -413,7 +423,7 @@ export default function VerDiagnosticosPage() {
             setActivar2Btn(true);
             setModoModal(2);
             setModal({
-                mostrar: true, titulo: "Validar diagnóstico", mensaje: ""
+                mostrar: true, titulo: "Validar diagnóstico", mensaje: "", icono: <CheckCircleOutlineIcon />,
             });
         };
 
@@ -471,7 +481,7 @@ export default function VerDiagnosticosPage() {
             setModoModal(0);
             setActivar2Btn(false);
             setModal({
-                mostrar: true, titulo: "❌ Error",
+                mostrar: true, titulo: "❌ Error", icono: <CloseIcon />,
                 mensaje: `No se pudo exportar el archivo. Inténtalo de nuevo más tarde: ${res.error}.`
             });
         }
@@ -485,7 +495,7 @@ export default function VerDiagnosticosPage() {
         setModoModal(3);
         setModal({
             mostrar: true, titulo: "📁 Exportar diagnósticos",
-            mensaje: ""
+            mensaje: "", icono: <FileDownloadIcon />
         });
     };
 
@@ -612,6 +622,8 @@ export default function VerDiagnosticosPage() {
                 abrir={modal.mostrar}
                 titulo={modal.titulo}
                 mensaje={modal.mensaje}
+                iconoBtnPrincipal={modal.icono}
+                iconoBtnSecundario={<CloseIcon />}
                 manejadorBtnPrimario={manejadorBtnModal}
                 manejadorBtnSecundario={manejadorBtnCancelar}
                 mostrarBtnSecundario={activar2Btn}

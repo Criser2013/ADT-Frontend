@@ -10,6 +10,7 @@ import Check from "../tabs/Check";
 import SelectChip from "../tabs/SelectChip";
 import { COMORBILIDADES, SEXOS, SINTOMAS } from "../../../constants";
 import CloseIcon from "@mui/icons-material/Close";
+import ClearIcon from '@mui/icons-material/Clear';
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import { validarFloatPos, validarNumero } from "../../utils/Validadores";
 import { oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, transformarDatos } from "../../utils/TratarDatos";
@@ -590,7 +591,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                             <Stack direction="row" spacing={2}>
                                 <Tooltip title={toolBtnVaciar}>
                                     <Button
-                                        startIcon={<CloseIcon />}
+                                        startIcon={<ClearIcon />}
                                         variant="contained"
                                         onClick={manejadorBtnVaciar}
                                         sx={{
@@ -622,6 +623,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 titulo={modal.titulo}
                 mensaje={modal.mensaje}
                 txtBtn="Cerrar"
+                iconoBtn={<CloseIcon />}
                 manejadorBtnModal={() => setModal((x) => ({ ...x, mostrar: false }))}>
                 <Box>
                     {diagnostico.resultado ? (

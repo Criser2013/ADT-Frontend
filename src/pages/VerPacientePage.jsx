@@ -13,6 +13,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import { validarId } from "../utils/Validadores";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
+import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -21,7 +22,7 @@ import ContComorbilidades from "../components/tabs/ContComorbilidades";
 
 /**
  * Página para ver los datos de un paciente.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function VerPacientePage() {
     const auth = useAuth();
@@ -35,7 +36,7 @@ export default function VerPacientePage() {
     const open = Boolean(popOver);
     const elem = open ? "simple-popover" : undefined;
     const [modal, setModal] = useState({
-        mostrar: false, mensaje: "", titulo: ""
+        mostrar: false, mensaje: "", titulo: "", icono: null
     });
     const [datos, setDatos] = useState({
         personales: {
@@ -159,7 +160,7 @@ export default function VerPacientePage() {
             navigate("/pacientes", { replace: true });
         } else {
             setCargando(false);
-            setModal({ mostrar: true, titulo: "Error", mensaje: res.error });
+            setModal({ mostrar: true, titulo: "❌ Error", mensaje: res.error, icono: <CloseIcon /> });
         }
     };
 
@@ -182,7 +183,7 @@ export default function VerPacientePage() {
         cerrarPopover();
         setModoEliminar(true);
         setModal({
-            mostrar: true, titulo: "⚠️ Alerta",
+            mostrar: true, titulo: "⚠️ Alerta", icono: <DeleteIcon />,
             mensaje: "¿Estás seguro de que deseas eliminar este paciente?"
         });
     };
@@ -298,6 +299,8 @@ export default function VerPacientePage() {
                     abrir={modal.mostrar}
                     titulo={modal.titulo}
                     mensaje={modal.mensaje}
+                    iconoBtnPrincipal={modal.icono}
+                    iconoBtnSecundario={<CloseIcon />}
                     manejadorBtnPrimario={manejadorBtnModal}
                     manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
                     mostrarBtnSecundario={modoEliminar}
