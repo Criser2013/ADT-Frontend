@@ -25,8 +25,19 @@ ChartJS.register(
  * @returns {JSX.Element}
  */
 export default function GraficoPastel({ titulo, datos, modoActualizacion = "default" }) {
-    const { tema } = useNavegacion();
+    const { tema, ancho } = useNavegacion();
+    const tamTitulo = useMemo(() => {
+        const vw = (ancho / 100); // en pixeles
+        const rem = 16;
 
+        return Math.floor(vw + (rem * 0.35));
+    }, [ancho]);
+    const tamLeyenda = useMemo(() => {
+        const vw = (ancho / 100); // en pixeles
+        const rem = 16;
+
+        return Math.floor(vw + (rem * 0.2));
+    }, [ancho]);
     const colorTitulo = useMemo(() => {
         return tema == "dark" ? "#ffffff" : "#000000";
     }, [tema]);
@@ -37,13 +48,13 @@ export default function GraficoPastel({ titulo, datos, modoActualizacion = "defa
             legend: {
                 position: 'top', labels: {
                     color: colorTitulo,
-                    font: { size: 14, family: 'Roboto' },
+                    font: { size: tamLeyenda, family: 'Roboto' },
                     border: { color: "black" }
                 }
             },
             title: {
                 display: true, text: titulo, color: colorTitulo,
-                font: { size: 18, family: "Raleway", weight: "bold" },
+                font: { size: tamTitulo, family: "Raleway", weight: "bold" },
             }
         },
         elements: {

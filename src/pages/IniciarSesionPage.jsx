@@ -27,13 +27,23 @@ export default function IniciarSesionPage() {
         return auth.cargando;
     }, [auth.cargando]);
     const width = useMemo(() => {
-        const { dispositivoMovil, orientacion } = navegacion;
-        if (!dispositivoMovil) {
-            return "34vw";
-        } else if (dispositivoMovil && orientacion == "vertical") {
+        const { dispositivoMovil, orientacion, ancho } = navegacion;
+        if (!dispositivoMovil && (ancho >= 1020)) {
+            return "35vw";
+        } else if (!dispositivoMovil && (ancho >= 550 && ancho < 1020 )) {
+            return "57vw";
+        } else if ((!dispositivoMovil && (ancho < 550))||(dispositivoMovil && (orientacion == "vertical"))) {
             return "100vw";
         } else {
             return "40vw";
+        }
+    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.ancho]);
+    const centrar = useMemo(() => {
+        const { dispositivoMovil, orientacion } = navegacion;
+        if (!dispositivoMovil || (dispositivoMovil && (orientacion == "vertical"))) {
+            return "center";
+        } else {
+            return null;
         }
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
     const height = useMemo(() => {
@@ -102,16 +112,16 @@ export default function IniciarSesionPage() {
                 </Box>
             ) : (
                 <Box display="flex" justifyContent="end" alignItems="center" height={height}>
-                    <Paper sx={{ width: width, padding: "4vh", overflow: "auto", height: "100%" }}>
+                    <Paper sx={{ width: width, padding: "4vh", overflow: "auto", height: "100%", display:"flex", alignItems: centrar }}>
                         <Grid columns={12} spacing={2} container>
                             <Grid size={12} display="flex" justifyContent="end">
-                                <IconButton aria-label="delete" onClick={manejadorBtnCambiarTema}>
+                                <IconButton aria-label="delete" onClick={manejadorBtnCambiarTema} size="large">
                                     <BtnTema />
                                 </IconButton>
                             </Grid>
                             <Grid container size={12} alignItems="center">
                                 <Grid size={3}>
-                                    <img src={logo} height="50px" width="50px" alt="derp" />
+                                    <img src={logo} height="90vh" width="90vh" alt="derp" />
                                 </Grid>
                                 <Grid size={9}>
                                     <Typography align="left" variant="h4" fontWeight="bold">
@@ -146,7 +156,7 @@ export default function IniciarSesionPage() {
                                 <Tooltip title="Ingresa a la aplicación con tu cuenta de Google">
                                     <span style={{ width: "100%" }}>
                                         <Button
-                                            startIcon={<GoogleIcon />}
+                                            startIcon={<GoogleIcon fontSize="large" />}
                                             fullWidth
                                             onClick={manejadorBtnIniciarSesion}
                                             variant="contained"

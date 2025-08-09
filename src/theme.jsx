@@ -2,21 +2,58 @@ import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 import Raleway from "./fonts/Raleway/Raleway-regular.ttf";
 import Roboto from "./fonts/Roboto/Roboto-Regular.ttf";
 
-const fuenteTitulos = {
-    fontFamily: '"Raleway", Arial',
-    fontWeight: 500,
-    fontStyle: "bold"
-};
-
-const opcionesTema = createTheme({
+const tema = createTheme({
     typography: {
+        htmlFontSize: 16,
         fontFamily: '"Roboto", Arial',
-        h1: fuenteTitulos,
-        h2: fuenteTitulos,
-        h3: fuenteTitulos,
-        h4: fuenteTitulos,
-        h5: fuenteTitulos,
-        h6: fuenteTitulos,
+        h1: {
+            fontFamily: '"Raleway", Arial',
+            fontWeight: 500,
+            fontStyle: "bold",
+            //fontSize: "calc(2.5rem + 2vw)"
+        },
+        h2: {
+            fontFamily: '"Raleway", Arial',
+            fontWeight: 500,
+            fontStyle: "bold",
+            //fontSize: "calc(2.25rem + 1vw)"
+        },
+        h3: {
+            fontFamily: '"Raleway", Arial',
+            fontWeight: 500,
+            fontStyle: "bold",
+            //fontSize: "calc(2rem + 1vw)"
+        },
+        h4: {
+            fontFamily: '"Raleway", Arial',
+            fontWeight: 500,
+            fontStyle: "bold",
+            //fontSize: "calc(0.9rem + 1vw)"
+        },
+        h5: {
+            fontFamily: '"Raleway", Arial',
+            fontWeight: 500,
+            fontStyle: "bold",
+            //fontSize: "calc(0.6rem + 1vw)"
+        },
+        h6: {
+            fontFamily: '"Raleway", Arial',
+            fontWeight: 500,
+            fontStyle: "bold",
+            //fontSize: "calc(0.5rem + 1vw)"
+        },
+        body1: {
+            fontFamily: '"Roboto", Arial',
+        //    fontSize: "calc(0.2rem + 1vw)"
+        },
+        body2: {
+            fontFamily: '"Roboto", Arial',
+          //  fontSize: "calc(0.3rem + 1vw)"
+        },
+        button: {
+            fontFamily: '"Roboto", Arial',
+            //fontSize: "calc(0.3rem + 1vw)"
+        }
     },
     components: {
         MuiCssBaseline: {
@@ -53,4 +90,4 @@ const opcionesTema = createTheme({
     }
 });
 
-export const instanciaTema = responsiveFontSizes(opcionesTema);
+export const instanciaTema = responsiveFontSizes(tema);
