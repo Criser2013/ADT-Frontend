@@ -21,6 +21,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import CloseIcon from '@mui/icons-material/Close';
 import { Controller, useForm } from "react-hook-form";
 import SaveIcon from '@mui/icons-material/Save';
+import { ChipEstado, ChipRol } from "../components/tabs/Chips";
 
 /**
  * Página que muestra la lista de usuarios.
@@ -54,12 +55,12 @@ export default function VerUsuariosPage() {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const campos = useMemo(() => [
-        { id: "nombre", label: "Nombre" },
-        { id: "correo", label: "Correo" },
-        { id: "rol", label: "Rol" },
-        { id: "ultimaConexion", label: "Última conexión" },
-        { id: "cantidad", label: "Diagnósticos" },
-        { id: "estado", label: "Estado" },
+        { id: "nombre", label: "Nombre", componente: null },
+        { id: "correo", label: "Correo", componente: null },
+        { id: "rol", label: "Rol", componente: (x) => <ChipRol rol={x.rol} /> },
+        { id: "ultimaConexion", label: "Última conexión", componente: null },
+        { id: "cantidad", label: "Diagnósticos", componente: null },
+        { id: "estado", label: "Estado", componente: (x) => <ChipEstado estado={x.estado} /> },
         { id: "accion", label: "Acción" }
     ], []);
     const txtBtnModal = useMemo(() => {

@@ -1,4 +1,4 @@
-import { Button, Grid, Box, CircularProgress, Tooltip, IconButton } from "@mui/material";
+import { Button, Grid, Box, CircularProgress, Tooltip, IconButton, Chip } from "@mui/material";
 import MenuLayout from "../components/layout/MenuLayout";
 import Datatable from "../components/tabs/Datatable";
 import TabHeader from "../components/tabs/TabHeader";
@@ -14,6 +14,7 @@ import ModalAccion from "../components/modals/ModalAccion";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import CloseIcon from "@mui/icons-material/Close";
+import { ChipSexo } from "../components/tabs/Chips";
 
 /**
  * Página para ver la lista de pacientes.
@@ -35,11 +36,11 @@ export default function ListaPacientesPage() {
     const [datos, setDatos] = useState([]);
     const [seleccionados, setSeleccionados] = useState([]);
     const campos = useMemo(() => [
-        { id: "nombre", label: "Nombre" },
-        { id: "cedula", label: "Cédula" },
-        { id: "telefono", label: "Teléfono" },
-        { id: "sexo", label: "Sexo" },
-        { id: "edad", label: "Edad" }
+        { id: "cedula", label: "Cédula", componente: null},
+        { id: "nombre", label: "Nombre", componente: null},
+        { id: "sexo", label: "Sexo", componente: (x) => <ChipSexo sexo={x.sexo} />},
+        { id: "edad", label: "Edad", componente: null},
+        { id: "telefono", label: "Teléfono", componente: null},
     ], []);
 
     /**
@@ -121,15 +122,17 @@ export default function ListaPacientesPage() {
      */
     const formatearCeldas = (datos) => {
         dayjs.extend(customParseFormat);
-        return datos.map((dato,) => ({
-            id: dato.id,
-            nombre: dato.nombre, cedula: dato.cedula,
-            telefono: dato.telefono,
+        return datos.map((dato) => {
+            const sexo = (dato.sexo == 0) ? "Masculino" : "Femenino";
+
+            return {
+            id: dato.id, nombre: dato.nombre, cedula: dato.cedula,
+            telefono: dato.telefono, sexo: sexo,
             edad: dayjs().diff(dayjs(
                 dato.fechaNacimiento, "DD-MM-YYYY"), "year", false
-            ),
-            sexo: dato.sexo == 0 ? "Masculino" : "Femenino",
-        }));
+            )
+        };
+    });
     };
 
     /**

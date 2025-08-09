@@ -61,6 +61,13 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
         [auxDatos, orden, campoOrden, pagina, filasEnPagina]);
     const numFilas = useMemo(() => auxDatos.length, [auxDatos]);
     const nombresCampos = useMemo(() => campos.map((campo) => campo.id), [campos]);
+    const compsCampos = useMemo(() => {
+        const aux = {};
+        campos.forEach((campo) => {
+            aux[campo.id] = campo.componente;
+        });
+        return aux;
+    }, [campos]);
     const tamCampoBusq = useMemo(() => {
         return (navegacion.dispositivoMovil && navegacion.orientacion != "horizontal") ? "90%" : "100%";
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
@@ -317,7 +324,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                         {nombresCampos.map((y) => {
                                             return (
                                                 <TableCell key={`${x.id}-${y}`}>
-                                                    {x[y]}
+                                                    {compsCampos[y] ? compsCampos[y](x) : x[y]}
                                                 </TableCell>
                                             );
                                         })

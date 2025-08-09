@@ -25,6 +25,7 @@ import AddToDriveIcon from '@mui/icons-material/AddToDrive';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AdvertenciaEspacio from "../components/tabs/AdvertenciaEspacio";
 import CloseIcon from "@mui/icons-material/Close";
+import { ChipDiagnostico, ChipValidado, ChipSexo } from "../components/tabs/Chips";
 
 /**
  * Página para ver los diagnósticos del usuario.
@@ -55,15 +56,15 @@ export default function VerDiagnosticosPage() {
     const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
     const camposVariables = (rol != CODIGO_ADMIN) ? [
-        { id: "nombre", label: "Paciente" },
-        { id: "paciente", label: "Cédula" }
-    ] : [{ id: "nombre", label: "Médico" }];
+        { id: "nombre", label: "Paciente", componente: null },
+        { id: "paciente", label: "Cédula", componente: null }
+    ] : [{ id: "nombre", label: "Médico", componente: null }];
     const camposFijos = camposVariables.concat([
-        { id: "fecha", label: "Fecha" },
-        { id: "edad", label: "Edad" },
-        { id: "sexo", label: "Sexo" },
-        { id: "diagnostico", label: "Diagnóstico modelo" },
-        { id: "validado", label: "Diagnóstico médico" }
+        { id: "fecha", label: "Fecha", componente: null },
+        { id: "edad", label: "Edad", componente: null },
+        { id: "sexo", label: "Sexo", componente: (x) => <ChipSexo sexo={x.sexo} /> },
+        { id: "diagnostico", label: "Diagnóstico modelo", componente: (x) => <ChipDiagnostico diagnostico={x.diagnostico} /> },
+        { id: "validado", label: "Diagnóstico médico", componente: (x) => <ChipValidado validado={x.validado} /> }
     ]);
     const camposTabla = useMemo(() => {
         return (rol != CODIGO_ADMIN) ? camposFijos.concat([{ id: "accion", label: "Acción" }]) : camposFijos;
