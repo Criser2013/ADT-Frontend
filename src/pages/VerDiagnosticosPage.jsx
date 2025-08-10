@@ -56,18 +56,18 @@ export default function VerDiagnosticosPage() {
     const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
     const camposVariables = (rol != CODIGO_ADMIN) ? [
-        { id: "nombre", label: "Paciente", componente: null },
-        { id: "paciente", label: "Cédula", componente: null }
-    ] : [{ id: "nombre", label: "Médico", componente: null }];
+        { id: "nombre", label: "Paciente", componente: null, ordenable: true },
+        { id: "paciente", label: "Cédula", componente: null, ordenable: true }
+    ] : [{ id: "nombre", label: "Médico", componente: null, ordenable: true }];
     const camposFijos = camposVariables.concat([
-        { id: "fecha", label: "Fecha", componente: null },
-        { id: "edad", label: "Edad", componente: null },
-        { id: "sexo", label: "Sexo", componente: (x) => <ChipSexo sexo={x.sexo} /> },
-        { id: "diagnostico", label: "Diagnóstico modelo", componente: (x) => <ChipDiagnostico diagnostico={x.diagnostico} /> },
-        { id: "validado", label: "Diagnóstico médico", componente: (x) => <ChipValidado validado={x.validado} /> }
+        { id: "fecha", label: "Fecha", componente: null, ordenable: true },
+        { id: "edad", label: "Edad", componente: null, ordenable: true },
+        { id: "sexo", label: "Sexo", componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true },
+        { id: "diagnostico", label: "Diagnóstico modelo", componente: (x) => <ChipDiagnostico diagnostico={x.diagnostico} />, ordenable: true },
+        { id: "validado", label: "Diagnóstico médico", componente: (x) => <ChipValidado validado={x.validado} />, ordenable: true }
     ]);
     const camposTabla = useMemo(() => {
-        return (rol != CODIGO_ADMIN) ? camposFijos.concat([{ id: "accion", label: "Acción" }]) : camposFijos;
+        return (rol != CODIGO_ADMIN) ? camposFijos.concat([{ id: "accion", label: "Acción", componente: null, ordenable: false }]) : camposFijos;
     }, [rol]);
     const camposBusq = useMemo(() => {
         return (rol != CODIGO_ADMIN) ? ["nombre", "paciente"] : ["nombre"];

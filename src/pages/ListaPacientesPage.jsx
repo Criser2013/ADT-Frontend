@@ -36,11 +36,11 @@ export default function ListaPacientesPage() {
     const [datos, setDatos] = useState([]);
     const [seleccionados, setSeleccionados] = useState([]);
     const campos = useMemo(() => [
-        { id: "cedula", label: "Cédula", componente: null},
-        { id: "nombre", label: "Nombre", componente: null},
-        { id: "sexo", label: "Sexo", componente: (x) => <ChipSexo sexo={x.sexo} />},
-        { id: "edad", label: "Edad", componente: null},
-        { id: "telefono", label: "Teléfono", componente: null},
+        { id: "cedula", label: "Cédula", componente: null, ordenable: true},
+        { id: "nombre", label: "Nombre", componente: null, ordenable: true},
+        { id: "sexo", label: "Sexo", componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true},
+        { id: "edad", label: "Edad", componente: null, ordenable: true},
+        { id: "telefono", label: "Teléfono", componente: null, ordenable: true},
     ], []);
 
     /**

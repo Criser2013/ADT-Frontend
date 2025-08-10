@@ -8,14 +8,12 @@ import CloseIcon from "@mui/icons-material/Close";
 
 /**
  * Página para realizar un diagnóstico de TEP al paciente.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function DiagnosticoPacientePage() {
     const auth = useAuth();
     const drive = useDrive();
-    const [datos, setDatos] = useState([
-        { id: -1, nombre: "Seleccionar paciente" }
-    ]);
+    const [datos, setDatos] = useState([]);
     const [modal, setModal] = useState(false);
     const listadoPestanas = [{
         texto: "Diagnóstico paciente", url: "/diagnostico-paciente"
@@ -42,6 +40,8 @@ export default function DiagnosticoPacientePage() {
 
             aux.unshift({ id: -1, nombre: "Seleccionar paciente" });
             setDatos(aux);
+        } else if (drive.datos != null) {
+            setDatos([{ id: -1, nombre: "Seleccionar paciente" }]);
         }
     }, [drive.datos]);
 
@@ -52,13 +52,29 @@ export default function DiagnosticoPacientePage() {
         document.title = "Diagnosticar paciente";
 
         if (drive.datos != null && !drive.descargando) {
-            drive.cargarDatos().then((res) => {
-                if (!res.success) {
-                    setModal(true);
-                }
-            });
+            cargarDatosPacientes();
         }
     }, []);
+
+    /**
+     * Manejador de carga de datos de los pacientes.
+     * @param {function} callback - Función a ejecutar antes de cargar los datos.
+     * @param {function} pantallaCarga - Función para controlar la pantalla de carga.
+     */
+    const cargarDatosPacientes = async (callback = null, pantallaCarga = null) => {
+        if (callback != null) {
+            callback();
+        }
+
+        const res = await drive.cargarDatos();
+        if (!res.success) {
+            setModal(true);
+        }
+
+        if (pantallaCarga != null) {
+            pantallaCarga(false);
+        }
+    };
 
     return (
         <MenuLayout>
@@ -66,6 +82,7 @@ export default function DiagnosticoPacientePage() {
                 tituloHeader="Diagnóstico paciente"
                 listadoPestanas={listadoPestanas}
                 pacientes={datos}
+                manejadorRecarga={cargarDatosPacientes}
                 esDiagPacientes={true} />
             <ModalSimple
                 abrir={modal}

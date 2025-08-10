@@ -9,7 +9,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import LogoutIcon from "@mui/icons-material/Logout";
 import dayjs from "dayjs";
 import { IconoPermisos } from "./components/icons/IconosModal";
-import LoginIcon from "@mui/icons-material/Login";
+import UpdateIcon from '@mui/icons-material/Update';
 
 /**
  * Componente principal que provee las credenciales de autenticación y muestra los 
@@ -52,7 +52,7 @@ export default function App() {
             compsModal = {
                 mostrar: true, titulo: "ℹ️ La sesión ha caducado", txtBtn: "Extender sesión",
                 mensaje: "Tu sesión ha caducado, por favor reautentícate para continuar utilizando la aplicación.",
-                icono: <LoginIcon />
+                icono: <UpdateIcon />
             };
         }
         setModal2Btn(compsModal);

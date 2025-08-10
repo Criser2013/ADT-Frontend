@@ -1,6 +1,7 @@
 import {
     Grid, Button, Typography, TextField, Stack, Tooltip, Box,
-    CircularProgress, MenuItem
+    CircularProgress, MenuItem,
+    IconButton
 } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -26,9 +27,10 @@ import { useCredenciales } from "../../contexts/CredencialesContext";
 import TabHeader from "../tabs/TabHeader";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm, Controller } from "react-hook-form";
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const valoresPredet = {
-    paciente: { id: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null},
+    paciente: { id: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null },
     sexo: 2, edad: "", presionSis: "", presionDias: "", frecRes: "",
     frecCard: "", so2: "", plaquetas: "", hemoglobina: "", wbc: "",
     fumador: false, bebedor: false, tos: false, fiebre: false,
@@ -45,10 +47,11 @@ const valoresPredet = {
  * @param {Array} listadoPestanas - Lista de pestañas para el encabezado.
  * @param {Array} tituloHeader - Título del encabezado.
  * @param {Array} pacientes - Lista de pacientes registrados.
+ * @param {function} manejadorRecarga - Función para manejar la recarga de datos.
  * @param {Boolean} esDiagPacientes - Indica si el formulario es para diagnosticar pacientes.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
-export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacientes = [], esDiagPacientes = false }) {
+export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacientes = [], esDiagPacientes = false, manejadorRecarga = null }) {
     const auth = useAuth();
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
@@ -56,7 +59,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const [recargarCaptcha, setRecargarCaptcha] = useState(false);
     const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [diagnostico, setDiagnostico] = useState({ resultado: false, probabilidad: 0, diagnosticado: false });
-    const [cargando, setCargando] = useState(false);
+    const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({ mostrar: false, titulo: "", mensaje: "" });
     const numCols = useMemo(() => {
         if (navegacion.dispositivoMovil && (navegacion.orientacion == "vertical" || navegacion.ancho < 500)) {
@@ -94,6 +97,12 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         defaultValues: valoresPredet, mode: "onBlur"
     });
     const otraEnfermedad = watch("otraEnfermedad");
+
+    useEffect(() => {
+        if (!esDiagPacientes || (esDiagPacientes && (pacientes.length > 0))) {
+            setCargando(false);
+        }
+    }, [esDiagPacientes, pacientes]);
 
     // Para que se actualice el reCAPTCHA al cambiar el tema
     useEffect(() => {
@@ -178,7 +187,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             "viajeProlongado", "cirugiaReciente", "otraEnfermedad", "soplos"
         ];
 
-        for (let i=0; i< camposBin.length; i++) {
+        for (let i = 0; i < camposBin.length; i++) {
             if (i < camposTxt.length) {
                 aux[camposTxt[i]] = datos[camposTxt[i]];
             }
@@ -267,6 +276,19 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         setDesactivarBtn(!(typeof token == "string"));
     };
 
+    /**
+     * Manejador de botón de recarga de pacientes.
+     */
+    const manejadorBtnRecargar = () => {
+        setCargando(true);
+
+        if (getValues("paciente").id != -1) {
+            setValue("paciente", { id: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null });
+            setValue("sexo", 2);
+            setValue("edad", "");   
+        }
+    };
+
     return (
         <>
             {cargando ? (
@@ -287,28 +309,36 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                         </Grid>
                         {esDiagPacientes ? (
                             <Grid size={1}>
-                                <Controller
-                                    name="paciente"
-                                    control={control}
-                                    rules={{ required: "Debes seleccionar un paciente",
-                                        validate: (x) => x.id != -1 || "Debes seleccionar un paciente"
-                                     }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            select
-                                            label="Paciente"
-                                            {...field}
-                                            value={field.value.id}
-                                            onChange={manejadorCambiosPaciente}
-                                            error={!!errors.paciente}
-                                            helperText={errors.paciente?.message}
-                                            fullWidth>
-                                            {pacientes.map((x) => (
-                                                <MenuItem key={x.id} value={x.id}>
-                                                    {x.nombre}
-                                                </MenuItem>
-                                            ))}
-                                        </TextField>)} />
+                                <Stack direction="row" spacing={0.5} alignItems="center">
+                                    <Controller
+                                        name="paciente"
+                                        control={control}
+                                        rules={{
+                                            required: "Debes seleccionar un paciente",
+                                            validate: (x) => x.id != -1 || "Debes seleccionar un paciente"
+                                        }}
+                                        render={({ field }) => (
+                                            <TextField
+                                                select
+                                                label="Paciente"
+                                                {...field}
+                                                value={field.value.id}
+                                                onChange={manejadorCambiosPaciente}
+                                                error={!!errors.paciente}
+                                                helperText={errors.paciente?.message}
+                                                fullWidth>
+                                                {pacientes.map((x) => (
+                                                    <MenuItem key={x.id} value={x.id}>
+                                                        {x.nombre}
+                                                    </MenuItem>
+                                                ))}
+                                            </TextField>)} />
+                                    <Tooltip title="Volver a cargar los datos de los pacientes">
+                                        <IconButton onClick={() => manejadorRecarga(manejadorBtnRecargar, setCargando)}>
+                                            <RefreshIcon fontSize="medium" />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Stack>
                             </Grid>
                         ) : null}
                         <Grid size={1}>

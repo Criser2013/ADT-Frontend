@@ -55,13 +55,13 @@ export default function VerUsuariosPage() {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const campos = useMemo(() => [
-        { id: "nombre", label: "Nombre", componente: null },
-        { id: "correo", label: "Correo", componente: null },
-        { id: "rol", label: "Rol", componente: (x) => <ChipRol rol={x.rol} /> },
-        { id: "ultimaConexion", label: "Última conexión", componente: null },
-        { id: "cantidad", label: "Diagnósticos", componente: null },
+        { id: "nombre", label: "Nombre", componente: null, ordenable: true },
+        { id: "correo", label: "Correo", componente: null, ordenable: true },
+        { id: "rol", label: "Rol", componente: (x) => <ChipRol rol={x.rol} />, ordenable: true },
+        { id: "ultimaConexion", label: "Última conexión", componente: null, ordenable: true },
+        { id: "cantidad", label: "Diagnósticos", componente: null, ordenable: true },
         { id: "estado", label: "Estado", componente: (x) => <ChipEstado estado={x.estado} /> },
-        { id: "accion", label: "Acción" }
+        { id: "accion", label: "Acción", ordenable: false, componente: null }
     ], []);
     const txtBtnModal = useMemo(() => {
         return modoModal == 3 ? "Guardar" : "Eliminar";

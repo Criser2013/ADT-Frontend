@@ -40,7 +40,7 @@ export default function MenuLayout({ children }) {
         if ((!dispositivoMovil && !mostrarMenu)|| (dispositivoMovil && orientacion == "vertical")) {
             return "100vw";
         } else if (orientacion == "horizontal" && mostrarMenu) {
-            return "calc(100vw - 240px)";
+            return "calc(100vw - 240px - 1.9vw)";
         }
     }, [navegacion.dispositivoMovil, navegacion.mostrarMenu, navegacion.orientacion]);
 

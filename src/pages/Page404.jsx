@@ -1,6 +1,7 @@
 import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { useNavigate } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
+import { useEffect } from "react";
 
 /**
  * Página 404 de la aplicación.
@@ -9,6 +10,10 @@ import { useAuth } from "../contexts/AuthContext";
 export default function Page404() {
     const auth = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        document.title = "Página no encontrada - 404";
+    }, []);
 
     /**
      * Manejador de eventos del botón para redirigir al usuario a la página principal.
