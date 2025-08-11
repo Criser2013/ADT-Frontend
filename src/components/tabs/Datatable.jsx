@@ -37,7 +37,7 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
  * @param {Function} cbAccion - Callback para manejar la acción del botón de selección de filas.
  * @param {JSX.Element} icono - Icono a mostrar en el botón de acción de selección de filas.
  * @param {String} tooltipAccion - Texto del tooltip del botón de acción de selección de filas.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function Datatable({ campos, datos, lblSeleccion, campoId = "id", lblBusq = "", activarBusqueda = false,
     activarSeleccion = true, terminoBusqueda = "", camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "" }) {

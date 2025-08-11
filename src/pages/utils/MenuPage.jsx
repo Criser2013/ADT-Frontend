@@ -1,9 +1,9 @@
 import { useEffect, useMemo } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import MenuLayout from "../components/layout/MenuLayout";
-import { CODIGO_ADMIN } from "../../constants";
-import MenuUsuario from "../components/tabs/MenuUsuario";
-import MenuAdministrador from "../components/tabs/MenuAdministrador";
+import { useAuth } from "../../contexts/AuthContext";
+import MenuLayout from "../../components/layout/MenuLayout";
+import { CODIGO_ADMIN } from "../../../constants";
+import MenuUsuario from "../../components/menu/MenuUsuario";
+import MenuAdministrador from "../../components/menu/MenuAdministrador";
 
 /**
  * Página del menú principal de la aplicación.

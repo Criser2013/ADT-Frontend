@@ -10,7 +10,7 @@ import WestIcon from '@mui/icons-material/West';
  * @param {Array} pestanas - Lista de pestañas con sus textos y URLs
  * @param {String} tooltip - Texto del tooltip para el botón de retroceso.
  * @param {Boolean} activarBtnAtras - Si se debe mostrar el botón de volver atrás
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function TabHeader({ urlPredet, titulo, pestanas, tooltip, activarBtnAtras = true }) {
     const navigate = useNavigate();

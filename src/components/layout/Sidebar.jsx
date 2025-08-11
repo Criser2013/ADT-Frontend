@@ -11,7 +11,7 @@ import { CODIGO_ADMIN } from "../../../constants";
 
 /**
  * Menú de navegación lateral de la aplicación.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function Sidebar() {
     const navegacion = useNavegacion();

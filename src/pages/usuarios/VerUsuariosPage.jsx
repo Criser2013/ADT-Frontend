@@ -1,19 +1,19 @@
 import { Button, Grid, Box, CircularProgress, Tooltip, Stack, TextField, MenuItem, Typography, IconButton } from "@mui/material";
-import { detTamCarga } from "../utils/Responsividad";
-import MenuLayout from "../components/layout/MenuLayout";
-import Datatable from "../components/tabs/Datatable";
-import TabHeader from "../components/tabs/TabHeader";
+import { detTamCarga } from "../../utils/Responsividad";
+import MenuLayout from "../../components/layout/MenuLayout";
+import Datatable from "../../components/tabs/Datatable";
+import TabHeader from "../../components/layout/TabHeader";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router";
-import { useNavegacion } from "../contexts/NavegacionContext";
+import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import ModalAccion from "../components/modals/ModalAccion";
-import { CODIGO_ADMIN } from "../../constants";
-import { peticionApi } from "../services/Api";
-import { verDiagnosticos } from "../firestore/diagnosticos-collection";
-import { useCredenciales } from "../contexts/CredencialesContext";
-import { cambiarUsuario, eliminarUsuario } from "../firestore/usuarios-collection";
+import { useAuth } from "../../contexts/AuthContext";
+import ModalAccion from "../../components/modals/ModalAccion";
+import { CODIGO_ADMIN } from "../../../constants";
+import { peticionApi } from "../../services/Api";
+import { verDiagnosticos } from "../../firestore/diagnosticos-collection";
+import { useCredenciales } from "../../contexts/CredencialesContext";
+import { cambiarUsuario, eliminarUsuario } from "../../firestore/usuarios-collection";
 import EditIcon from '@mui/icons-material/Edit';
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -21,7 +21,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import CloseIcon from '@mui/icons-material/Close';
 import { Controller, useForm } from "react-hook-form";
 import SaveIcon from '@mui/icons-material/Save';
-import { ChipEstado, ChipRol } from "../components/tabs/Chips";
+import { ChipEstado, ChipRol } from "../../components/tabs/Chips";
 
 /**
  * Página que muestra la lista de usuarios.
@@ -82,7 +82,7 @@ export default function VerUsuariosPage() {
         return [
             { nombre: "Nombre", valor: datos.nombre },
             { nombre: "Correo", valor: datos.correo },
-            { nombre: "Rol", valor: datos.rol == CODIGO_ADMIN ? "Administrador" : "Usuario" },
+            { nombre: "Rol", valor: datos.rol },
             { nombre: "Estado", valor: datos.estado ? "Inactivo" : "Activo" },
             { nombre: "Última conexión", valor: datos.ultimaConexion },
             { nombre: "Diagnósticos aportados", valor: datos.cantidad },
@@ -468,7 +468,6 @@ export default function VerUsuariosPage() {
         sessionStorage.setItem("ejecutar-callback", "false");
         setSeleccionado(instancia);
         cambiarValoresUsuario(instancia);
-        //setNuevosDatos({ uid: instancia.uid, nombre: instancia.nombre, rol: instancia.rol, estado: instancia.estado });
         setModoModal(3);
         setModal({
             mostrar: true, titulo: "✏️ Editar usuario", mensaje: "", icono: <SaveIcon />
@@ -628,9 +627,9 @@ export default function VerUsuariosPage() {
                             <Typography variant="body1" fontWeight="bold">
                                 {x.nombre}:
                             </Typography>
-                            {i == 2 ? <ChipRol rol={x.valor} /> : null}
-                            {i == 3 ? <ChipEstado estado={x.valor} /> : null}
-                            {(i < 2 || i > 3) ? (
+                            {(x.nombre == "Rol") ? <ChipRol rol={x.valor} /> : null}
+                            {(x.nombre == "Estado") ? <ChipEstado estado={x.valor} /> : null}
+                            {(!["Rol", "Estado"].includes(x.nombre)) ? (
                                 <Typography variant="body1">
                                     {i == 4 ? dayjs(x.valor, "DD/MM/YYYY hh:mm A").format(`DD [de] MMMM [de] YYYY [a las] hh:mm A`) : x.valor}.
                                 </Typography>) : null}

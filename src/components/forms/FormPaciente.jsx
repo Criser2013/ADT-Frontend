@@ -11,13 +11,13 @@ import { validarNombre, validarNumero, validarTelefono } from "../../utils/Valid
 import { useDrive } from "../../contexts/DriveContext";
 import { oneHotEncondingOtraEnfermedad } from "../../utils/TratarDatos";
 import { useNavigate } from "react-router";
-import TabHeader from "./TabHeader";
+import TabHeader from "../layout/TabHeader";
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import SelectChip from "./SelectChip";
+import SelectChip from "../tabs/SelectChip";
 import CloseIcon from "@mui/icons-material/Close";
 import ModalSimple from "../modals/ModalSimple";
 import { Controller, useForm } from "react-hook-form";
-import Check from "./Check";
+import Check from "../tabs/Check";
 import { v6 } from "uuid";
 
 /**
@@ -28,7 +28,7 @@ import { v6 } from "uuid";
  * @param {Boolean} esAnadir - Indica si es para añadir un nuevo paciente o editar uno existente.
  * @returns {JSX.Element}
  */
-export default function FormAnadirPaciente({ listadoPestanas, titPestana, id = "", esAnadir = true }) {
+export default function FormPaciente({ listadoPestanas, titPestana, id = "", esAnadir = true }) {
     const drive = useDrive();
     const navigate = useNavigate();
     const [cargando, setCargando] = useState(true);

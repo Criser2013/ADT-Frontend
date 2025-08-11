@@ -1,10 +1,10 @@
 import { Box, Button, Paper, Typography, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { useEffect, useMemo } from "react";
-import { useNavegacion } from "../contexts/NavegacionContext";
-import fondoClaro from "../assets/fondo_claro.png";
-import fondoOscuro from "../assets/fondo_oscuro.png";
+import { useNavegacion } from "../../contexts/NavegacionContext";
+import fondoClaro from "../../assets/fondo_claro.png";
+import fondoOscuro from "../../assets/fondo_oscuro.png";
 
 /**
  * Página 404 de la aplicación.

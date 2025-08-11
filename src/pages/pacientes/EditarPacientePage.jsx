@@ -1,14 +1,14 @@
-import { useDrive } from "../contexts/DriveContext";
-import { useAuth } from "../contexts/AuthContext";
+import { useDrive } from "../../contexts/DriveContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { useEffect } from "react";
-import FormAnadirPaciente from "../components/tabs/FormAnadirPaciente";
-import MenuLayout from "../components/layout/MenuLayout";
+import FormPaciente from "../../components/forms/FormPaciente";
+import MenuLayout from "../../components/layout/MenuLayout";
 import { useNavigate, useSearchParams } from "react-router";
-import { validarId, validarNumero } from "../utils/Validadores";
+import { validarId } from "../../utils/Validadores";
 
 /**
  * Página para editar los datos de un paciente.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function EditarPacientePage() {
     const auth = useAuth();
@@ -48,7 +48,7 @@ export default function EditarPacientePage() {
 
     return (
         <MenuLayout>
-            <FormAnadirPaciente
+            <FormPaciente
                 listadoPestanas={listadoPestanas}
                 esAnadir={false}
                 titPestana="Editar paciente"

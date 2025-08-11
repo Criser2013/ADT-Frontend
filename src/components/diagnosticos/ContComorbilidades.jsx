@@ -3,7 +3,7 @@ import { Box, Chip } from "@mui/material";
 /**
  * Contenedor que muestra una lista de comorbilidades como chips. Es de solo lectura.
  * @param {Array[String]} comorbilidades - Lista de comorbilidades a mostrar.
- * @returns 
+ * @returns {JSX.Element}
  */
 export default function ContComorbilidades({ comorbilidades }) {
     return (

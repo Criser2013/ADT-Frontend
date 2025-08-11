@@ -1,26 +1,26 @@
-import { Button, Grid, Box, CircularProgress, Tooltip, IconButton, Chip } from "@mui/material";
-import MenuLayout from "../components/layout/MenuLayout";
-import Datatable from "../components/tabs/Datatable";
-import TabHeader from "../components/tabs/TabHeader";
+import { Button, Grid, Box, CircularProgress, Tooltip, IconButton } from "@mui/material";
+import MenuLayout from "../../components/layout/MenuLayout";
+import Datatable from "../../components/tabs/Datatable";
+import TabHeader from "../../components/layout/TabHeader";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router";
-import { useNavegacion } from "../contexts/NavegacionContext";
+import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { useDrive } from "../contexts/DriveContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useDrive } from "../../contexts/DriveContext";
 import dayjs from "dayjs";
-import ModalAccion from "../components/modals/ModalAccion";
+import ModalAccion from "../../components/modals/ModalAccion";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import CloseIcon from "@mui/icons-material/Close";
-import { ChipSexo } from "../components/tabs/Chips";
+import { ChipSexo } from "../../components/tabs/Chips";
 
 /**
  * Página para ver la lista de pacientes.
  * @returns {JSX.Element}
  */
-export default function ListaPacientesPage() {
+export default function VerPacientesPage() {
     const auth = useAuth();
     const drive = useDrive();
     const navigate = useNavigate();

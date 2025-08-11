@@ -2,23 +2,23 @@ import {
     Box, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
     Button, Popover, IconButton
 } from "@mui/material";
-import { useDrive } from "../contexts/DriveContext";
-import { useAuth } from "../contexts/AuthContext";
-import { useNavegacion } from "../contexts/NavegacionContext";
+import { useDrive } from "../../contexts/DriveContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useEffect, useMemo, useState } from "react";
-import TabHeader from "../components/tabs/TabHeader";
-import MenuLayout from "../components/layout/MenuLayout";
+import TabHeader from "../../components/layout/TabHeader";
+import MenuLayout from "../../components/layout/MenuLayout";
 import { useNavigate, useSearchParams } from "react-router";
-import { validarId } from "../utils/Validadores";
+import { validarId } from "../../utils/Validadores";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import ModalAccion from "../components/modals/ModalAccion";
-import ContComorbilidades from "../components/tabs/ContComorbilidades";
-import { ChipSexo } from "../components/tabs/Chips";
+import ModalAccion from "../../components/modals/ModalAccion";
+import ContComorbilidades from "../../components/diagnosticos/ContComorbilidades";
+import { ChipSexo } from "../../components/tabs/Chips";
 
 /**
  * Página para ver los datos de un paciente.

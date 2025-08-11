@@ -7,7 +7,7 @@ import { useNavigate } from "react-router";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import BtnTema from "../tabs/BtnTema";
+import BtnTema from "../layout/BtnTema";
 import LogoutIcon from '@mui/icons-material/Logout';
 import { CODIGO_ADMIN, URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../../constants";
 import ArticleIcon from '@mui/icons-material/Article';

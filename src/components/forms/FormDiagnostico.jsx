@@ -23,7 +23,7 @@ import { useNavigate } from "react-router";
 import { v6 } from "uuid";
 import { Timestamp } from "firebase/firestore";
 import { useCredenciales } from "../../contexts/CredencialesContext";
-import TabHeader from "../tabs/TabHeader";
+import TabHeader from "../layout/TabHeader";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm, Controller } from "react-hook-form";
 import RefreshIcon from '@mui/icons-material/Refresh';

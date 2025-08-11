@@ -1,18 +1,18 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
-import IniciarSesionPage from "./src/pages/IniciarSesionPage";
-import CerrarSesionPage from "./src/pages/CerrarSesionPage";
-import AnadirPacientePage from "./src/pages/AnadirPacientePage";
+import IniciarSesionPage from "./src/pages/auth/IniciarSesionPage";
+import CerrarSesionPage from "./src/pages/auth/CerrarSesionPage";
+import AnadirPacientePage from "./src/pages/pacientes/AnadirPacientePage";
 import { DriveProvider } from "./src/contexts/DriveContext";
-import EditarPacientePage from "./src/pages/EditarPacientePage";
-import VerPacientePage from "./src/pages/VerPacientePage";
-import ListaPacientesPage from "./src/pages/ListaPacientesPage";
-import DiagnosticoAnonimoPage from "./src/pages/DiagnosticoAnonimoPage";
-import DiagnosticoPacientePage from "./src/pages/DiagnosticoPacientePage";
-import VerDiagnosticoPage from "./src/pages/VerDiagnosticoPage";
-import VerDiagnosticosPage from "./src/pages/VerDiagnosticosPage";
-import VerUsuariosPage from "./src/pages/VerUsuariosPage";
-import MenuPage from "./src/pages/MenuPage";
-import Page404 from "./src/pages/Page404";
+import EditarPacientePage from "./src/pages/pacientes/EditarPacientePage";
+import VerPacientePage from "./src/pages/pacientes/VerPacientePage";
+import VerPacientesPage from "./src/pages/pacientes/VerPacientesPage";
+import DiagnosticoAnonimoPage from "./src/pages/diagnosticos/DiagnosticoAnonimoPage";
+import DiagnosticoPacientePage from "./src/pages/diagnosticos/DiagnosticoPacientePage";
+import VerDiagnosticoPage from "./src/pages/diagnosticos/VerDiagnosticoPage";
+import VerDiagnosticosPage from "./src/pages/diagnosticos/VerDiagnosticosPage";
+import VerUsuariosPage from "./src/pages/usuarios/VerUsuariosPage";
+import MenuPage from "./src/pages/utils/MenuPage";
+import Page404 from "./src/pages/utils/Page404";
 
 /**
  * Enrutador principal de la aplicación que define las rutas y páginas.
@@ -48,7 +48,7 @@ export default function Router() {
                 } />
                 <Route path="/pacientes" element={
                     <DriveProvider>
-                        <ListaPacientesPage />
+                        <VerPacientesPage />
                     </DriveProvider>
                 } />
                 <Route path="/diagnostico-paciente" element={

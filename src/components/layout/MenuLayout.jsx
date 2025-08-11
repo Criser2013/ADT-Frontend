@@ -9,7 +9,7 @@ import { useEffect, useMemo } from "react";
 /**
  * Layout que contiene la sidebar y la barra de navegación superior.
  * @param {children} Children - Contenido a renderizar dentro del layout del menú
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function MenuLayout({ children }) {
     const auth = useAuth();

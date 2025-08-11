@@ -1,17 +1,16 @@
 import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip, Paper } from "@mui/material";
 import GoogleIcon from '@mui/icons-material/Google';
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-//import logo from "../assets/logo.png";
-import { useNavegacion } from "../contexts/NavegacionContext";
-import { useCredenciales } from "../contexts/CredencialesContext";
+import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useCredenciales } from "../../contexts/CredencialesContext";
 import ReCAPTCHA from "react-google-recaptcha";
-import BtnTema from "../components/tabs/BtnTema";
-import { URL_MANUAL_USUARIO } from "../../constants";
-import fondoClaro from "../assets/fondo_claro.png";
-import fondoOscuro from "../assets/fondo_oscuro.png";
-import icono from "../assets/icono.png";
+import BtnTema from "../../components/layout/BtnTema";
+import { URL_MANUAL_USUARIO } from "../../../constants";
+import fondoClaro from "../../assets/fondo_claro.png";
+import fondoOscuro from "../../assets/fondo_oscuro.png";
+import icono from "../../assets/icono.png";
 
 /**
  * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.

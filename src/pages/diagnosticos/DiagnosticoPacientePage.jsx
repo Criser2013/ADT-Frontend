@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import MenuLayout from "../components/layout/MenuLayout";
-import FormDiagnostico from "../components/tabs/FormDiagnostico";
-import { useAuth } from "../contexts/AuthContext";
-import { useDrive } from "../contexts/DriveContext";
-import ModalSimple from "../components/modals/ModalSimple";
+import MenuLayout from "../../components/layout/MenuLayout";
+import FormDiagnostico from "../../components/forms/FormDiagnostico";
+import { useAuth } from "../../contexts/AuthContext";
+import { useDrive } from "../../contexts/DriveContext";
+import ModalSimple from "../../components/modals/ModalSimple";
 import CloseIcon from "@mui/icons-material/Close";
 
 /**

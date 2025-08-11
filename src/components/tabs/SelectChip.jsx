@@ -10,7 +10,7 @@ import { FormControl, InputLabel, Select, Box, OutlinedInput, MenuItem, FormHelp
  * @param {String} txtError - Mensaje de error a mostrar si hay un error.
  * @param {String} etiqueta - Etiqueta del campo de selección.
  * @param {Boolean} desactivado - Indica si el campo está desactivado.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function SelectChip({ valor, listaValores, manejadorCambios, nombre, error, txtError, etiqueta, desactivado = false }) {
     return (
