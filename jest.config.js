@@ -7,7 +7,7 @@ export default {
     ],
     moduleFileExtensions: ["js",],
     coverageDirectory: `tests/unitarias/cobertura/testrun-${fecha.toDateString()} - ${fecha.toLocaleTimeString().replaceAll(":", "-")}`,
-    collectCoverage: true,
+    collectCoverage: false,//true,
     testResultsProcessor: "jest-sonar-reporter",
     coverageThreshold: {
         global: {

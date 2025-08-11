@@ -274,7 +274,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                         onClick={() => (headCell.ordenable ? cambiarOrden(headCell.id) : null)}
                                         sortDirection={campoOrden === headCell.id ? orden : false}>
                                         <TableSortLabel
-                                            active={headCell.ordenable ? (campoOrden === headCell.id) : false}
+                                            active={campoOrden === headCell.id}
                                             direction={campoOrden === headCell.id ? orden : "asc"}>
                                             <b>{headCell.label}</b>
                                             {campoOrden === headCell.id ? (

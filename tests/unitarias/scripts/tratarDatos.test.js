@@ -171,7 +171,7 @@ describe("Validar la función 'detTxtDiagnostico'", () => {
 
     test("CP - 78", () => {
         const res = detTxtDiagnostico(2);
-        expect(res).toEqual("No validado");
+        expect(res).toEqual("No diagnósticado");
     });
 });
 

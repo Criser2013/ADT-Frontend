@@ -365,7 +365,7 @@ export function detTxtDiagnostico(diagnostico) {
         case 1:
             return "Positivo";
         default:
-            return "No validado";
+            return "No diagnósticado";
     }
 };
 

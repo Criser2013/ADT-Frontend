@@ -28,6 +28,7 @@ import { SINTOMAS } from "../../constants";
 import ContComorbilidades from "../components/tabs/ContComorbilidades";
 import { peticionApi } from "../services/Api";
 import { Timestamp } from "firebase/firestore";
+import { ChipDiagnostico, ChipSexo, ChipValidado } from "../components/tabs/Chips";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -209,11 +210,11 @@ export default function VerDiagnosticoPage() {
      */
     const cargarDatosMedico = async (token, uid) => {
         uid = encodeURIComponent(uid);
-        const res = await peticionApi(token, `admin/usuarios/${uid}`, "GET", null, 
+        const res = await peticionApi(token, `admin/usuarios/${uid}`, "GET", null,
             "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
         );
 
-        setPersona((x) => ({ ...x, nombre: res.success? res.data.nombre : res.data.correo }));
+        setPersona((x) => ({ ...x, nombre: res.success ? res.data.nombre : res.data.correo }));
     };
 
     /**
@@ -257,7 +258,8 @@ export default function VerDiagnosticoPage() {
         setDiagnostico(2);
         setMostrarBtnSecundario(true);
         setErrorDiagnostico(false);
-        setModal({ titulo: "Validar diagnóstico", mensaje: "", 
+        setModal({
+            titulo: "Validar diagnóstico", mensaje: "",
             mostrar: true, txtBtn: "Validar", icono: <CheckCircleOutlineIcon />
         });
     };
@@ -363,9 +365,13 @@ export default function VerDiagnosticoPage() {
                     <Typography variant="body1">
                         <b>{campo.titulo}: </b>
                     </Typography>
-                    <Typography variant="body1">
-                        {campo.valor}
-                    </Typography>
+                    {(campo.titulo == "Sexo") ? <ChipSexo sexo={campo.valor} /> : null}
+                    {(campo.titulo == "Diagnóstico modelo") ? <ChipDiagnostico diagnostico={campo.valor} /> : null}
+                    {(campo.titulo == "Diagnóstico médico") ? <ChipValidado validado={campo.valor} /> : null}
+                    {(campo.titulo != "Sexo"&& campo.titulo != "Diagnóstico modelo" && campo.titulo != "Diagnóstico médico") ? (
+                        <Typography variant="body1">
+                            {campo.valor}
+                        </Typography>) : null}
                 </Stack>
             </Grid>
         );
@@ -440,36 +446,36 @@ export default function VerDiagnosticoPage() {
                             spacing={1}
                             marginTop="3vh">
                             {(rol == CODIGO_ADMIN) ? (
-            <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
-                <Tooltip title="Ver más opciones.">
-                    <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
-                        <MoreVertIcon />
-                    </IconButton>
-                </Tooltip>
-                <Popover
-                    id={elem}
-                    open={open}
-                    anchorEl={popOver}
-                    onClose={cerrarPopover}
-                    anchorOrigin={{
-                        vertical: "bottom",
-                        horizontal: "left",
-                    }}
-                    transformOrigin={{
-                        vertical: "top",
-                        horizontal: "center",
-                    }}>
-                    <Tooltip title="Eliminar paciente">
-                        <Button
-                            color="error"
-                            startIcon={<DeleteIcon />}
-                            onClick={manejadorBtnEliminar}
-                            sx={{ textTransform: "none", padding: 2 }}>
-                            Eliminar
-                        </Button>
-                    </Tooltip>
-                </Popover>
-            </Grid>) : null}
+                                <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
+                                    <Tooltip title="Ver más opciones.">
+                                        <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
+                                            <MoreVertIcon />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Popover
+                                        id={elem}
+                                        open={open}
+                                        anchorEl={popOver}
+                                        onClose={cerrarPopover}
+                                        anchorOrigin={{
+                                            vertical: "bottom",
+                                            horizontal: "left",
+                                        }}
+                                        transformOrigin={{
+                                            vertical: "top",
+                                            horizontal: "center",
+                                        }}>
+                                        <Tooltip title="Eliminar paciente">
+                                            <Button
+                                                color="error"
+                                                startIcon={<DeleteIcon />}
+                                                onClick={manejadorBtnEliminar}
+                                                sx={{ textTransform: "none", padding: 2 }}>
+                                                Eliminar
+                                            </Button>
+                                        </Tooltip>
+                                    </Popover>
+                                </Grid>) : null}
                             <Grid size={12}>
                                 <Typography variant="h5" paddingBottom="2vh">
                                     Datos personales
@@ -548,7 +554,7 @@ export default function VerDiagnosticoPage() {
                     txtBtnSecundario="Cancelar"
                     iconoBtnSecundario={<CloseIcon />}
                     txtBtnSimpleAlt="Cerrar">
-                        <CuerpoModal />
+                    <CuerpoModal />
                 </ModalAccion>
             </MenuLayout>
         </>

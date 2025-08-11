@@ -1,7 +1,6 @@
 import {
     Grid, Button, Typography, TextField, Stack, Tooltip, Box,
-    CircularProgress, MenuItem,
-    IconButton
+    CircularProgress, MenuItem, IconButton
 } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -56,7 +55,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
     const navigate = useNavigate();
-    const [recargarCaptcha, setRecargarCaptcha] = useState(false);
     const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [diagnostico, setDiagnostico] = useState({ resultado: false, probabilidad: 0, diagnosticado: false });
     const [cargando, setCargando] = useState(true);
@@ -74,6 +72,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         return credenciales.obtenerRecaptcha();
     }, [credenciales.obtenerRecaptcha()]);
     const [desactivarCampos, setDesactivarCampos] = useState(false);
+    const [antTema, setAntTema] = useState(navegacion.tema);
     const desactivarCamposAux = useMemo(() => desactivarCampos || esDiagPacientes, [desactivarCampos, esDiagPacientes]);
     const txtBtnDiagnostico = useMemo(() => {
         return diagnostico.diagnosticado ? "Ver diagnóstico" : "Diagnosticar";
@@ -86,29 +85,31 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     }, [diagnostico.diagnosticado]);
     const CAPTCHA = useRef(null);
     const temaCaptcha = useMemo(() => navegacion.tema, [navegacion.tema]);
-    const redibujarCaptcha = useMemo(() => {
-        if (!recargarCaptcha) {
-            return false;
-        } else {
-            return !diagnostico.diagnosticado;
-        }
-    }, [recargarCaptcha, diagnostico.diagnosticado]);
+    const redibujarCaptcha = useMemo(() => !diagnostico.diagnosticado
+        , [diagnostico.diagnosticado]);
     const { getValues, setValue, control, handleSubmit, reset, watch, formState: { errors } } = useForm({
         defaultValues: valoresPredet, mode: "onBlur"
     });
     const otraEnfermedad = watch("otraEnfermedad");
 
     useEffect(() => {
-        if (!esDiagPacientes || (esDiagPacientes && (pacientes.length > 0))) {
+        if (!esDiagPacientes || (esDiagPacientes && (pacientes != null))) {
             setCargando(false);
         }
     }, [esDiagPacientes, pacientes]);
 
     // Para que se actualice el reCAPTCHA al cambiar el tema
     useEffect(() => {
-        setRecargarCaptcha(false);
-        setTimeout(() => setRecargarCaptcha(true), 100);
-    }, [navegacion.tema]);
+        //if (reCAPTCHAApi) {
+        setAntTema(temaCaptcha);
+        if (antTema != temaCaptcha) {
+            setCargando(true);
+            setTimeout(() => {
+                setCargando(false);
+                setDesactivarBtn(true);
+            }, 100);
+        }
+    }, [antTema, temaCaptcha]);
 
     /**
      * Maneja el envío del formulario.
@@ -285,7 +286,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         if (getValues("paciente").id != -1) {
             setValue("paciente", { id: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null });
             setValue("sexo", 2);
-            setValue("edad", "");   
+            setValue("edad", "");
         }
     };
 

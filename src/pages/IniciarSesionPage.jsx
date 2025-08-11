@@ -3,17 +3,20 @@ import GoogleIcon from '@mui/icons-material/Google';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
+//import logo from "../assets/logo.png";
 import { useNavegacion } from "../contexts/NavegacionContext";
 import { useCredenciales } from "../contexts/CredencialesContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import BtnTema from "../components/tabs/BtnTema";
 import { URL_MANUAL_USUARIO } from "../../constants";
+import fondoClaro from "../assets/fondo_claro.png";
+import fondoOscuro from "../assets/fondo_oscuro.png";
+import icono from "../assets/icono.png";
 
 /**
  * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.
  * Si el usuario ya está autenticado, se redirige automáticamente al menú principal.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function IniciarSesionPage() {
     const auth = useAuth();
@@ -22,17 +25,17 @@ export default function IniciarSesionPage() {
     const credenciales = useCredenciales();
     const CAPTCHA = useRef(null);
     const [desactivarBtn, setDesactivarBtn] = useState(true);
-    const [recargarCaptcha, setRecargarCaptcha] = useState(false);
+    const [cargando, setCargando] = useState(false);
     const cargandoAuth = useMemo(() => {
-        return auth.cargando;
-    }, [auth.cargando]);
+        return auth.cargando || !credenciales.verSiCredsFirebaseEstancargadas();
+    }, [auth.cargando, credenciales.verSiCredsFirebaseEstancargadas()]);
     const width = useMemo(() => {
         const { dispositivoMovil, orientacion, ancho } = navegacion;
         if (!dispositivoMovil && (ancho >= 1020)) {
             return "35vw";
-        } else if (!dispositivoMovil && (ancho >= 550 && ancho < 1020 )) {
+        } else if (!dispositivoMovil && (ancho >= 550 && ancho < 1020)) {
             return "57vw";
-        } else if ((!dispositivoMovil && (ancho < 550))||(dispositivoMovil && (orientacion == "vertical"))) {
+        } else if ((!dispositivoMovil && (ancho < 550)) || (dispositivoMovil && (orientacion == "vertical"))) {
             return "100vw";
         } else {
             return "40vw";
@@ -46,13 +49,13 @@ export default function IniciarSesionPage() {
             return null;
         }
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
-    const height = useMemo(() => {
-        return navegacion.dispositivoMovil ? "100vh" : "100vh";
-    }, [navegacion.dispositivoMovil]);
     const temaCaptcha = useMemo(() => navegacion.tema, [navegacion.tema]);
+    const fondoImg = useMemo(() => {
+        return temaCaptcha === "light" ? fondoClaro : fondoOscuro;
+    }, [temaCaptcha]);
     const reCAPTCHAApi = useMemo(() => {
         return credenciales.obtenerRecaptcha();
-    }, [credenciales.obtenerRecaptcha()]);
+    }, [credenciales.obtenerRecaptcha]);
 
     /**
      * Verifica la autenticación del usuario y redirige si ya está autenticado.
@@ -90,9 +93,12 @@ export default function IniciarSesionPage() {
      * Manejador de eventos del botón para cambiar tema.
      */
     const manejadorBtnCambiarTema = () => {
-        setRecargarCaptcha(true);
+        setCargando(true);
         navegacion.cambiarTema();
-        setTimeout(() => setRecargarCaptcha(false), 100);
+        setTimeout(() => {
+            setDesactivarBtn(true);
+            setCargando(false);
+        }, 100);
     };
 
     /**
@@ -106,22 +112,22 @@ export default function IniciarSesionPage() {
 
     return (
         <>
-            {cargandoAuth ? (
+            {(cargando || cargandoAuth) ? (
                 <Box alignItems="center" display="flex" justifyContent="center" height="100vh">
                     <CircularProgress />
                 </Box>
             ) : (
-                <Box display="flex" justifyContent="end" alignItems="center" height={height}>
-                    <Paper sx={{ width: width, padding: "4vh", overflow: "auto", height: "100%", display:"flex", alignItems: centrar }}>
+                <Box display="flex" justifyContent="end" alignItems="center" height="100vh" sx={{ backgroundImage: `url(${fondoImg})`, backgroundSize: "cover" }}>
+                    <Paper sx={{ width: width, padding: "4vh", overflow: "auto", height: "100%", display: "flex", alignItems: centrar }}>
                         <Grid columns={12} spacing={2} container>
                             <Grid size={12} display="flex" justifyContent="end">
                                 <IconButton aria-label="delete" onClick={manejadorBtnCambiarTema} size="large">
                                     <BtnTema />
                                 </IconButton>
                             </Grid>
-                            <Grid container size={12} alignItems="center">
+                            <Grid container columnSpacing={0} size={12} alignItems="center">
                                 <Grid size={3}>
-                                    <img src={logo} height="90vh" width="90vh" alt="derp" />
+                                    <img src={icono} height="90vh" width="90vh" alt="derp" />
                                 </Grid>
                                 <Grid size={9}>
                                     <Typography align="left" variant="h4" fontWeight="bold">
@@ -144,13 +150,11 @@ export default function IniciarSesionPage() {
                                 </Grid>
                             </Grid>
                             <Grid size={12} display="flex" justifyContent="center">
-                                {recargarCaptcha ? null : (
-                                    <ReCAPTCHA
-                                        theme={temaCaptcha}
-                                        onChange={manejadorReCAPTCHA}
-                                        sitekey={reCAPTCHAApi}
-                                        ref={CAPTCHA} />
-                                )}
+                                <ReCAPTCHA
+                                    theme={temaCaptcha}
+                                    onChange={manejadorReCAPTCHA}
+                                    sitekey={reCAPTCHAApi}
+                                    ref={CAPTCHA} />
                             </Grid>
                             <Grid size={12} justifyContent="center" display="flex">
                                 <Tooltip title="Ingresa a la aplicación con tu cuenta de Google">

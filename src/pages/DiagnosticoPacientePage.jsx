@@ -13,7 +13,7 @@ import CloseIcon from "@mui/icons-material/Close";
 export default function DiagnosticoPacientePage() {
     const auth = useAuth();
     const drive = useDrive();
-    const [datos, setDatos] = useState([]);
+    const [datos, setDatos] = useState(null);
     const [modal, setModal] = useState(false);
     const listadoPestanas = [{
         texto: "Diagnóstico paciente", url: "/diagnostico-paciente"

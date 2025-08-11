@@ -18,6 +18,7 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ModalAccion from "../components/modals/ModalAccion";
 import ContComorbilidades from "../components/tabs/ContComorbilidades";
+import { ChipSexo } from "../components/tabs/Chips";
 
 /**
  * Página para ver los datos de un paciente.
@@ -254,9 +255,10 @@ export default function VerPacientePage() {
                                         <Typography variant="body1">
                                             <b>{campo.titulo}: </b>
                                         </Typography>
-                                        <Typography variant="body1">
-                                            {campo.valor}
-                                        </Typography>
+                                        {(campo.titulo == "Sexo") ? <ChipSexo sexo={campo.valor} /> : (
+                                            <Typography variant="body1">
+                                                {campo.valor}
+                                            </Typography>)}
                                     </Stack>
                                 </Grid>
                             ))}

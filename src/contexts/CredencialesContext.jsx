@@ -69,28 +69,29 @@ export function CredencialesProvider({ children }) {
      */
     const obtenerCredenciales = async () => {
         let intentos = 0;
-        while (intentos < 4) {
+        let parar = false;
+        while (intentos < 4 && !parar) {
             try {
                 const res = await fetch(`${API_URL}/credenciales`, {
                     method: "GET"
                 });
 
-                const json = await res.json();
-
                 if (res.status == 200 && res.ok) {
+                    parar = true;
+                    const json = await res.json();
                     inicializarFirebase({
                         apiKey: json.apiKey,
                         authDomain: json.authDomain,
                         projectId: json.projectId,
-                        storeBucket: json.storeBucket,
+                        storeBucket: json.storageBucket,
                         messagingSenderId: json.messagingSenderId,
                         appId: json.appId,
                         measurementId: json.measurementId,
-                        scopes: json.driveScopes
+                        scopes: json.driveScopes,
+                        reCAPTCHA: json.reCAPTCHA
                     });
 
                     setScopesDrive(json.data.scopes);
-                    break;
                 } else {
                     intentos++;
                 }
@@ -117,7 +118,7 @@ export function CredencialesProvider({ children }) {
             almacenarCredenciales(credsInfo, scopes);
 
             setScopesDrive(scopes);
-            setCredsInfo((x) => ({ ...x, app: app, db: db, auth: auth }));
+            setCredsInfo((x) => ({ ...x, app: app, db: db, auth: auth, reCAPTCHA: credsInfo.reCAPTCHA }));
         }
     };
 

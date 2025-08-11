@@ -628,9 +628,12 @@ export default function VerUsuariosPage() {
                             <Typography variant="body1" fontWeight="bold">
                                 {x.nombre}:
                             </Typography>
-                            <Typography variant="body1">
-                                {i == 4 ? dayjs(x.valor, "DD/MM/YYYY hh:mm A").format(`DD [de] MMMM [de] YYYY [a las] hh:mm A`) : x.valor}.
-                            </Typography>
+                            {i == 2 ? <ChipRol rol={x.valor} /> : null}
+                            {i == 3 ? <ChipEstado estado={x.valor} /> : null}
+                            {(i < 2 || i > 3) ? (
+                                <Typography variant="body1">
+                                    {i == 4 ? dayjs(x.valor, "DD/MM/YYYY hh:mm A").format(`DD [de] MMMM [de] YYYY [a las] hh:mm A`) : x.valor}.
+                                </Typography>) : null}
                         </Stack>
                     );
                 })}
