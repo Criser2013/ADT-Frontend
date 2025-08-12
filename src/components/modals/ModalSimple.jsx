@@ -1,4 +1,4 @@
-import { Dialog, DialogTitle, DialogContent, Button, Typography, DialogActions } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, Button, Typography, DialogActions, Divider } from "@mui/material";
 
 /**
  * Modal simple para mostrar mensajes o información al usuario.
@@ -7,22 +7,26 @@ import { Dialog, DialogTitle, DialogContent, Button, Typography, DialogActions }
  * @param {String} mensaje - Mensaje a mostrar en el modal
  * @param {String} txtBtn - Texto del botón del modal
  * @param {Function} manejadorBtnModal - Función que se ejecuta al hacer clic en el botón del modal.
- * @returns JSX.Element
+ * @param {JSX.Element} iconoBtn - Icono que se muestra en el botón del modal (opcional).
+ * @returns {JSX.Element}
  */
-export default function ModalSimple({ abrir, titulo, mensaje, txtBtn, manejadorBtnModal, children }) {
+export default function ModalSimple({ abrir, titulo, mensaje, txtBtn, manejadorBtnModal, children, iconoBtn = null }) {
     return (
         <Dialog open={abrir}>
-            <DialogTitle>{titulo}</DialogTitle>
+            <DialogTitle><b>{titulo}</b></DialogTitle>
+            <Divider />
             <DialogContent>
                 {(mensaje != null && mensaje != "") ? (
                     <Typography>{mensaje}</Typography>) : (
                     children
                 )}
             </DialogContent>
+            <Divider />
             <DialogActions>
                 <Button
                     type="submit"
                     variant="contained"
+                    startIcon={iconoBtn}
                     onClick={manejadorBtnModal}
                     sx={{ textTransform: "none" }}>
                     <b>{txtBtn}</b>

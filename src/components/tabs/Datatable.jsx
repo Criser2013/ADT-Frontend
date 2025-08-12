@@ -5,6 +5,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { useState, useMemo, useEffect } from "react";
 import { visuallyHidden } from "@mui/utils";
 import { obtenerComparadorStrNum } from "../../utils/Ordenamiento";
@@ -36,7 +37,7 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
  * @param {Function} cbAccion - Callback para manejar la acción del botón de selección de filas.
  * @param {JSX.Element} icono - Icono a mostrar en el botón de acción de selección de filas.
  * @param {String} tooltipAccion - Texto del tooltip del botón de acción de selección de filas.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function Datatable({ campos, datos, lblSeleccion, campoId = "id", lblBusq = "", activarBusqueda = false,
     activarSeleccion = true, terminoBusqueda = "", camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "" }) {
@@ -50,6 +51,9 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     const [busqueda, setBusqueda] = useState(terminoBusqueda);
     const [auxDatos, setAuxDatos] = useState(datos);
     const [modoSeleccion, setModoSeleccion] = useState(false);
+    const padding = useMemo(() => {
+        return !modoSeleccion ? "1vh" : "0vh";
+    }, [modoSeleccion]);
     const filas = useMemo(() =>
         [...auxDatos]
             .sort(obtenerComparadorStrNum(orden, campoOrden))
@@ -57,9 +61,20 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
         [auxDatos, orden, campoOrden, pagina, filasEnPagina]);
     const numFilas = useMemo(() => auxDatos.length, [auxDatos]);
     const nombresCampos = useMemo(() => campos.map((campo) => campo.id), [campos]);
+    const compsCampos = useMemo(() => {
+        const aux = {};
+        campos.forEach((campo) => {
+            aux[campo.id] = campo.componente;
+        });
+        return aux;
+    }, [campos]);
     const tamCampoBusq = useMemo(() => {
         return (navegacion.dispositivoMovil && navegacion.orientacion != "horizontal") ? "90%" : "100%";
     }, [navegacion.dispositivoMovil, navegacion.orientacion]);
+    const indeterminado = useMemo(() => numSeleccionados > 0 && (numSeleccionados < numFilas || numSeleccionados < datos.length),
+        [numSeleccionados, numFilas, datos.length]);
+    const seleccionTodos = useMemo(() => numFilas > 0 && (numSeleccionados === numFilas || numSeleccionados === datos.length),
+        [numSeleccionados, numFilas, datos.length]);
     const filasVacias = pagina > 0 ? Math.max(0, (1 + pagina) * filasEnPagina - datos.length) : 0;
 
     /**
@@ -157,9 +172,10 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
      * Manejador del botón de limpiar búsqueda.
      */
     const manejadorBtnLimpiarBusq = () => {
-        setBusqueda("");
         setPagina(0);
         setAuxDatos(datos);
+        setBusqueda("");
+        document.getElementsByName("busq")[0].value = "";
     };
 
     /**
@@ -172,7 +188,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
             cbClicCelda(instancia);
         } else if (modoSeleccion && e.target.checked == undefined) {
             const id = !seleccionados.includes(instancia[campoId]);
-            seleccionarFila({ target: { checked: id }}, instancia[campoId]);
+            seleccionarFila({ target: { checked: id } }, instancia[campoId]);
         }
     };
 
@@ -181,7 +197,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
             <Paper sx={{ width: "100%", mb: 2 }}>
                 {(numSeleccionados > 0 || activarBusqueda) ? (
                     <Toolbar
-                        sx={{ padding: "1vh 0vh" }}>
+                        sx={{ padding: "1vh 0vw" }}>
                         <Stack
                             direction="column"
                             display="flex"
@@ -189,13 +205,16 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                             width="100%"
                             alignItems="center">
                             {numSeleccionados > 0 ? (
-                                <Stack direction="row" display="flex" width="100%" justifyContent="space-between">
+                                <Stack direction="row" display="flex" width="100%" justifyContent="space-between" alignItems="center">
                                     <Typography
                                         sx={{ flex: "1 1 100%" }}
                                         color="inherit"
                                         variant="body1"
                                         component="div">
-                                        <b>{numSeleccionados} {lblSeleccion}</b>
+                                            <span style={{ display: "flex", alignItems: "center" }}>
+                                                <CheckBoxIcon sx={{ mr: 1.5 }} />
+                                                <b>{numSeleccionados} {lblSeleccion}</b>
+                                            </span>
                                     </Typography>
                                     <Tooltip title={tooltipAccion}>
                                         <IconButton onClick={(e) => cbAccion(seleccionados, e)}>
@@ -207,9 +226,9 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                             <TextField
                                 name="busq"
                                 placeholder={lblBusq}
-                                value={busqueda}
+                                defaultValue={terminoBusqueda}
                                 onChange={manejadorBusqueda}
-                                sx={{ backgroundColor: "white", width: tamCampoBusq, paddingTop: "1vh" }}
+                                sx={{ width: tamCampoBusq, paddingTop: padding }}
                                 slotProps={{
                                     input: {
                                         startAdornment: (
@@ -219,9 +238,11 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                         ),
                                         endAdornment: (busqueda.length > 0) ? (
                                             <InputAdornment position="end">
-                                                <IconButton onClick={manejadorBtnLimpiarBusq}>
-                                                    <ClearIcon />
-                                                </IconButton>
+                                                <Tooltip title="Limpiar cuadro de búsqueda">
+                                                    <IconButton onClick={manejadorBtnLimpiarBusq}>
+                                                        <ClearIcon />
+                                                    </IconButton>
+                                                </Tooltip>
                                             </InputAdornment>
                                         ) : null
                                     }
@@ -240,8 +261,8 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                     <TableCell padding="checkbox">
                                         <Checkbox
                                             color="primary"
-                                            indeterminate={numSeleccionados > 0 && (numSeleccionados < numFilas || numSeleccionados < datos.length)}
-                                            checked={numFilas > 0 && (numSeleccionados === numFilas || numSeleccionados === datos.length)}
+                                            indeterminate={indeterminado}
+                                            checked={seleccionTodos}
                                             onChange={seleccionarTodo}
                                         />
                                     </TableCell>
@@ -250,7 +271,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                     <TableCell
                                         key={headCell.id}
                                         align="left"
-                                        onClick={() => cambiarOrden(headCell.id)}
+                                        onClick={() => (headCell.ordenable ? cambiarOrden(headCell.id) : null)}
                                         sortDirection={campoOrden === headCell.id ? orden : false}>
                                         <TableSortLabel
                                             active={campoOrden === headCell.id}
@@ -273,12 +294,11 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                         variant="body2"
                                         align="center" component="th"
                                         width="100%" colSpan={campos.length + 1}
-                                        sx={{ padding: "10vh 0" }}>
+                                        sx={{ padding: "10vh 0vw" }}>
                                         {busqueda.length > 0 ? "No se encontraron resultados para la búsqueda." : "No hay datos para mostrar."}
                                     </Typography>
                                 </TableRow>
-                            ) : null
-                            }
+                            ) : null}
                             {filas.map((x, i) => {
                                 const estaSeleccionada = seleccionados.includes(x[campoId]);
                                 const labelId = `enhanced-table-checkbox-${i}`;
@@ -304,7 +324,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                         {nombresCampos.map((y) => {
                                             return (
                                                 <TableCell key={`${x.id}-${y}`}>
-                                                    {x[y]}
+                                                    {compsCampos[y] ? compsCampos[y](x) : x[y]}
                                                 </TableCell>
                                             );
                                         })

@@ -7,7 +7,7 @@ import { SvgIcon } from "@mui/material";
 /**
  * Icono para el diagnóstico de pacientes.
  * @param {JSON} props - Props predeterminadas de MUI SvgIcon
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export function DiagnosticoIcono(props) {
     return (
@@ -22,7 +22,7 @@ export function DiagnosticoIcono(props) {
 /**
  * Icono para el diagnóstico ánonimo.
  * @param {JSON} props - Props predeterminadas de MUI SvgIcon
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export function DiagAnonimoIcono(props) {
     return (
@@ -37,7 +37,7 @@ export function DiagAnonimoIcono(props) {
 /**
  * Icono para el historial de pacientes.
  * @param {JSON} props - Props predeterminadas de MUI SvgIcon
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export function HistDiagnosticoIcono(props) {
     return (
@@ -52,7 +52,7 @@ export function HistDiagnosticoIcono(props) {
 /**
  * Icono para la lista de pacientes.
  * @param {JSON} props - Props predeterminadas de MUI SvgIcon
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export function ListPacienteIcono(props) {
     return (
@@ -67,7 +67,7 @@ export function ListPacienteIcono(props) {
 /**
  * Icono para los datos recolectados.
  * @param {JSON} props - Props predeterminadas de MUI SvgIcon
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export function DatosIcono(props) {
     return (

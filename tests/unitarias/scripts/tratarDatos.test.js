@@ -171,7 +171,7 @@ describe("Validar la función 'detTxtDiagnostico'", () => {
 
     test("CP - 78", () => {
         const res = detTxtDiagnostico(2);
-        expect(res).toEqual("No validado");
+        expect(res).toEqual("No diagnósticado");
     });
 });
 
@@ -199,7 +199,7 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             "Enfermedad hepática": 0, "Trombofilia": 0, "VIH": 0,
             "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
             diagnostico: 1, validado: 0, probabilidad: 0.5, fecha: mockFecha,
-            paciente: "Paciente Test", id: "ID"
+            paciente: "1f073a07-6630-6d90-ac94-34c18cc96549", id: "ID"
         }
 
         const respuesta = {
@@ -217,7 +217,7 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             "Cardíaca": 0, "Enfermedad coronaria": 0,
             "Endocrina": 0, "Gastrointestinal": 0,
             "Urológica": 0, "Neurológica": 0,
-            "Trombofilia": 0, "VIH": 0, "Paciente": "Paciente Test", "Probabilidad": 0.5,
+            "Trombofilia": 0, "VIH": 0, "Paciente": "1f073a07-6630-6d90-ac94-34c18cc96549", "Probabilidad": "50.00",
             "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
             "TEP": 0, "ID": "ID", "Fecha": "1/10/2023", "Diagnóstico modelo": 1
         };

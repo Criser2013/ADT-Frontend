@@ -29,6 +29,9 @@ VITE_DRIVE_FILENAME=<string>         # Nombre del archivo con los pacientes en D
 VITE_API_URL=<string>                # URL del API (servidor backend)
 VITE_EXPORT_FILENAME=<string>        # Nombre del archivo para exportar diagnósticos
 VITE_DRIVE_FOLDER_NAME=<string>      # Nombre de la carpeta en Drive
+VITE_URL_MANUAL_USUARIO=<string>     # URL del manual de instrucciones para los usuarios
+VITE_URL_MANUAL_ADMIN=<string>       # URL del manual de instrucciones para los administradores
+VITE_CANT_LIM_DIAGNOSTICOS=<int>     # Cantidad de diagnósticos a partir del cual mostrar la advertencia de espacio
 ```
 
 ## Ejecución del frontend  sin backend
@@ -40,15 +43,16 @@ Para iniciar el servidor de esta forma, establezca la siguiente variables de ent
 ### Descripción de las variables de entorno
 
 ```
-VITE_API_KEY=<string>           # API key del proyecto de Firebase
-VITE_AUTH_DOMAIN=<string>       # Dominio de autenticación de Firebase
-VITE_PROJECT_ID=<string>        # ID del proyecto en Firebase
-VITE_STORE_BUCKET=<string>      # ID del bucket de Firestore
-VITE_MESSAGING_SENDER_ID=<int>  # ID para envío de mensajes
-VITE_APP_ID=<string>            # ID de la aplicación de Firebase
-VITE_MEASUREMENT_ID=<string>    # ID de Google Analytics (métricas)
-VITE_DRIVE_SCOPES=<string>      # URLs de permisos de Drive requeridos
-VITE_ENTORNO=<int>              # Número de entorno de ejecución
+VITE_API_KEY=<string>            # API key del proyecto de Firebase
+VITE_AUTH_DOMAIN=<string>        # Dominio de autenticación de Firebase
+VITE_PROJECT_ID=<string>         # ID del proyecto en Firebase
+VITE_STORE_BUCKET=<string>       # ID del bucket de Firestore
+VITE_MESSAGING_SENDER_ID=<int>   # ID para envío de mensajes
+VITE_APP_ID=<string>             # ID de la aplicación de Firebase
+VITE_MEASUREMENT_ID=<string>     # ID de Google Analytics (métricas)
+VITE_DRIVE_SCOPES=<string>       # URLs de permisos de Drive requeridos
+VITE_ENTORNO=<int>               # Número de entorno de ejecución
+VITE_RECAPTCHA_SITE_KEY=<string> # Clave de reCAPTCHA para el sitio
 ```
 
 ## Dockerfile

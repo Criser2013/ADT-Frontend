@@ -12,24 +12,28 @@ import { Dialog, DialogActions, DialogContent, DialogTitle, Button, Typography, 
  * @param {String} txtBtnSecundario - Texto del botón secundario.
  * @param {String} txtBtnSimpleAlt - Texto alternativo del botón primario si no se muestra el secundario.
  * @param {boolean} desactivarBtnPrimario - Indica si el botón primario debe estar desactivado.
- * @returns JSX.Element
+ * @param {JSX.Element} iconoBtnPrincipal - Icono que se muestra en el botón primario (opcional).
+ * @param {JSX.Element} iconoBtnSecundario - Icono que se muestra en el botón secundario (opcional).
+ * @returns {JSX.Element}
  */
-export default function ModalAccion({ abrir, mensaje, titulo, manejadorBtnPrimario, manejadorBtnSecundario, 
-    mostrarBtnSecundario, txtBtnSimple, txtBtnSecundario, txtBtnSimpleAlt, children, desactivarBtnPrimario = false }) {
+export default function ModalAccion({ abrir, mensaje, titulo, manejadorBtnPrimario, manejadorBtnSecundario,
+    mostrarBtnSecundario, txtBtnSimple, txtBtnSecundario, txtBtnSimpleAlt, children, desactivarBtnPrimario = false,
+    iconoBtnPrincipal = null, iconoBtnSecundario = null }) {
     return (
         <Dialog open={abrir}>
-            <DialogTitle>{titulo}</DialogTitle>
-            <Divider orientation="horizontal" />
+            <DialogTitle><b>{titulo}</b></DialogTitle>
+            <Divider />
             <DialogContent>
                 {mensaje != "" ? <Typography>{mensaje}</Typography> : (children)}
             </DialogContent>
-            <Divider orientation="horizontal" />
+            <Divider />
             <DialogActions>
                 {mostrarBtnSecundario ? (
                     <Button
                         type="submit"
                         variant="contained"
                         onClick={manejadorBtnSecundario}
+                        startIcon={iconoBtnSecundario}
                         sx={{ textTransform: "none" }}>
                         <b>{txtBtnSecundario}</b>
                     </Button>) : null}
@@ -38,6 +42,7 @@ export default function ModalAccion({ abrir, mensaje, titulo, manejadorBtnPrimar
                     variant="contained"
                     disabled={desactivarBtnPrimario}
                     onClick={manejadorBtnPrimario}
+                    startIcon={iconoBtnPrincipal}
                     sx={{ textTransform: "none" }}>
                     <b>{mostrarBtnSecundario ? txtBtnSimple : txtBtnSimpleAlt}</b>
                 </Button>

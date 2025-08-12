@@ -10,7 +10,7 @@ describe("Validar la funcion 'validarXlsx", () => {
             "Enfermedad vascular": 0, "Trombofilia": 0, "Enfermedad renal": 0, "Enfermedad pulmonar": 0, "otraEnfermedad": 0,
             "Diabetes": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0, "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0,
-            "Enfermedad neurológica": 0
+            "Enfermedad neurológica": 0, fechaCreacion: "12-02-2023",  id: "1f073994-d5df-6880-ad6e-7f6737152867"
         }]);
 
         expect(res).toBe(true);
@@ -24,7 +24,7 @@ describe("Validar la funcion 'validarXlsx", () => {
             "Enfermedad vascular": 0, "Trombofilia": 0, "Enfermedad renal": 0, "Enfermedad pulmonar": 0, "otraEnfermedad": 0,
             "Diabetes": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0, "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0,
-            "campo malo": 1
+            "campo malo": 1, fechaCreacion: "2023-13-14"
         }]);
 
         expect(res).toBe(false);
@@ -38,7 +38,7 @@ describe("Validar la funcion 'validarFilas", () => {
             "Enfermedad vascular": 0, "Trombofilia": 0, "Enfermedad renal": 0, "Enfermedad pulmonar": 0, "otraEnfermedad": 0,
             "Diabetes": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0, "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0,
-            "Enfermedad neurológica": 0
+            "Enfermedad neurológica": 0, fechaCreacion: "12-02-2023", id: "1f073994-d5df-6880-ad6e-7f6737152867"
         }]);
 
         expect(res).toBe(true);
@@ -50,7 +50,7 @@ describe("Validar la funcion 'validarFilas", () => {
             "Enfermedad vascular": 0, "Trombofilia": 0, "Enfermedad renal": 0, "Enfermedad pulmonar": 0, "otraEnfermedad": 0,
             "Diabetes": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0, "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0,
-            "Enfermedad neurológica": 0
+            "Enfermedad neurológica": 0, fechaCreacion: "12-02-2023"
         }]);
 
         expect(res).toBe(false);
@@ -62,7 +62,7 @@ describe("Validar la funcion 'validarFilas", () => {
             "Enfermedad vascular": 0, "Trombofilia": 0, "Enfermedad renal": 0, "Enfermedad pulmonar": 0, "otraEnfermedad": 0,
             "Diabetes": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0, "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0,
-            "Enfermedad neurológica": 0
+            "Enfermedad neurológica": 0, fechaCreacion: "12-02-2023"
         }]);
 
         expect(res).toBe(false);
@@ -74,7 +74,7 @@ describe("Validar la funcion 'validarFilas", () => {
             "Enfermedad vascular": 0, "Trombofilia": 0, "Enfermedad renal": 0, "Enfermedad pulmonar": 0, "otraEnfermedad": 0,
             "Diabetes": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0, "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0,
-            "Enfermedad neurológica": 0
+            "Enfermedad neurológica": 0, fechaCreacion: "12-02-2023"
         }]);
 
         expect(res).toBe(false);
@@ -86,7 +86,7 @@ describe("Validar la funcion 'validarFilas", () => {
             "Enfermedad vascular": 0, "Trombofilia": 0, "Enfermedad renal": 0, "Enfermedad pulmonar": 0, "otraEnfermedad": 0,
             "Diabetes": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0, "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0,
-            "Enfermedad neurológica": 0
+            "Enfermedad neurológica": 0, fechaCreacion: "12-02-2023"
         }]);
 
         expect(res).toBe(false);
@@ -98,7 +98,7 @@ describe("Validar la funcion 'validarFilas", () => {
             "Enfermedad vascular": 0, "Trombofilia": 0, "Enfermedad renal": 0, "Enfermedad pulmonar": 0,"otraEnfermedad": 0,
             "Diabetes": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0, "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0,
-            "Enfermedad neurológica": 0
+            "Enfermedad neurológica": 0, fechaCreacion: "12-02-2023"
         }]);
 
         expect(res).toBe(false);
@@ -110,7 +110,7 @@ describe("Validar la funcion 'validarFilas", () => {
             "Enfermedad vascular": 6, "Trombofilia": 7, "Enfermedad renal": 3, "Enfermedad pulmonar": 10, "otraEnfermedad": 11,
             "Diabetes": 2, "Hipertensión arterial": 8, "Hepatopatía crónica": 4, "Enfermedad hematológica": 7, "VIH": 6, "Enfermedad cardíaca": 4,
             "Enfermedad coronaria": 67, "Enfermedad endocrina": 9, "Enfermedad gastrointestinal": 9, "Enfermedad urológica": 8,
-            "Enfermedad neurológica": 0
+            "Enfermedad neurológica": 0, fechaCreacion: "12-02-2023"
         }]);
 
         expect(res).toBe(false);
