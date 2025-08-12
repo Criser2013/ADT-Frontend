@@ -1,6 +1,6 @@
 import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 import Raleway from "./fonts/Raleway/Raleway-regular.ttf";
-import Roboto from "./fonts/Roboto/Roboto-Regular.ttf";
+import Roboto from "./fonts/Roboto/Roboto-regular.ttf";
 
 const tema = createTheme({
     typography: {
