@@ -11,14 +11,14 @@ import { CODIGO_ADMIN } from "../../../constants";
 
 /**
  * Menú de navegación lateral de la aplicación.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function Sidebar() {
     const navegacion = useNavegacion();
     const navigate = useNavigate();
     const auth = useAuth();
     const filas = useMemo(() => {
-        const { rol } = auth.authInfo;
+        const { rolVisible, modoUsuario } = auth.authInfo;
         const usuario = [
             { txt: "Menú principal", icono: <HomeIcon />, ruta: "/menu" },
             { txt: "Pacientes", icono: <ListPacienteIcono />, ruta: "/pacientes" },
@@ -32,8 +32,14 @@ export default function Sidebar() {
             { txt: "Usuarios", icono: <PeopleIcon />, ruta: "/usuarios" },
         ];
 
-        return rol == CODIGO_ADMIN ? admin : usuario;
-    }, [auth.authInfo.rol]);
+        if (rolVisible != null && (rolVisible != CODIGO_ADMIN || modoUsuario)) {
+            return usuario;
+        } else if (rolVisible != null && rolVisible == CODIGO_ADMIN && !modoUsuario) {
+            return admin;
+        } else {
+            return usuario;
+        }
+    }, [auth.authInfo.rolVisible, auth.authInfo.modoUsuario]);
     const mostrarMenu = useMemo(() => {
         return detAbrirMenu(navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion) ? "none" : "block";
     }, [navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion]);
@@ -64,6 +70,10 @@ export default function Sidebar() {
     const manejadorClicMenu = (url) => {
         navegacion.setPaginaAnterior(window.location.pathname);
         navigate(url, { replace: true });
+
+        if (navegacion.dispositivoMovil && navegacion.orientacion == "vertical") {
+            navegacion.setMostrarMenu(false);
+        }
     };
 
     return (
@@ -97,4 +107,4 @@ export default function Sidebar() {
             </Box>
         </Drawer>
     );
-}
+};

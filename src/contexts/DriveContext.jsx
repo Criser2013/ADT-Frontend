@@ -120,13 +120,6 @@ export function DriveProvider({ children }) {
     const descargarContArchivo = async (archivoId) => {
         if (token != null) {
             setDescargando(true);
-            const existe = await verificarExisteArchivoYCarpeta(token);
-
-            if (!existe.success) {
-                setDatos([]);
-                return { success: false, error: existe.error };
-            }
-
             const pet = await descargarArchivo(archivoId, token);
 
             if (pet.success) {
@@ -136,7 +129,7 @@ export function DriveProvider({ children }) {
                     return { success: true, data: null };
                 }
                 setDatos([]);
-                return { success: false, error: "Error al leer el archivo" };
+                return { success: false, error: "Se ha producido un error al leer el archivo." };
             } else {
                 setDatos([]);
                 return { success: false, error: pet.error };
@@ -167,7 +160,7 @@ export function DriveProvider({ children }) {
 
         const yaExiste = verificarExistePaciente(instancia.cedula, tabla);
         if (yaExiste && (!esEditar || (esEditar && instancia.cedula != prevCedula))) {
-            return { success: false, error: "El paciente ya está registrado" };
+            return { success: false, error: "Ya hay un paciente registrado con ese número de cédula." };
         }
 
         if (esEditar) {
@@ -193,11 +186,11 @@ export function DriveProvider({ children }) {
 
     /**
      * Elimina un paciente del documento en Google Drive.
-     * @param {String|Array[String]} cedula - Cédula del paciente a eliminar.
+     * @param {String|Array[String]} id - ID del paciente a eliminar.
      * @param {Boolean} varios - Indica si se están eliminando varios pacientes.
      * @returns JSON
      */
-    const eliminarPaciente = async (cedula, varios = false) => {
+    const eliminarPaciente = async (id, varios = false) => {
         let tabla = datos;
         const existe = await verificarExisteArchivoYCarpeta();
 
@@ -215,8 +208,8 @@ export function DriveProvider({ children }) {
             const aux = [];
             let cont = 0;
             for (let i = 0; i < tabla.length; i++) {
-                for (const j of cedula) {
-                    if (tabla[i].cedula == j) {
+                for (const j of id) {
+                    if (tabla[i].id == j) {
                         aux.push(i);
                     }
                 }
@@ -227,7 +220,7 @@ export function DriveProvider({ children }) {
                 cont++;
             }
         } else {
-            const indice = tabla.findIndex((paciente) => paciente.cedula == cedula);
+            const indice = tabla.findIndex((paciente) => paciente.id == id);
             if (indice == -1) {
                 return { success: false, error: "Paciente no encontrado" };
             } else {
@@ -248,11 +241,11 @@ export function DriveProvider({ children }) {
 
     /**
      * Carga los datos de un paciente a partir de su cédula.
-     * @param {String} cedula - Cédula del paciente a cargar.
+     * @param {String} id - ID del paciente a cargar.
      * @returns JSON
      */
-    const cargarDatosPaciente = (cedula) => {
-        const indice = datos != null ? datos.findIndex((paciente) => paciente.cedula == cedula) : -1;
+    const cargarDatosPaciente = (id) => {
+        const indice = datos != null ? datos.findIndex((paciente) => paciente.id == id) : -1;
 
         if (indice == -1) {
             return { success: false };

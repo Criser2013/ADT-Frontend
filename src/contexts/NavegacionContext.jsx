@@ -1,4 +1,5 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useState, useContext, useEffect, useMemo } from "react";
+import { useColorScheme } from "@mui/material/styles";
 
 export const navegacionContext = createContext();
 
@@ -32,10 +33,22 @@ export function NavegacionProvider({ children }) {
     const [orientacion, setOrientacion] = useState("horizontal");
     const [ancho, setAncho] = useState(window.viewport.segments[0].width);
     const [alto, setAlto] = useState(window.viewport.segments[0].height);
+    const { mode, setMode } = useColorScheme();
+    const tema = useMemo(() => {
+        if (mode == "system" || mode == undefined) {
+            if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+                return "light";
+            } else {
+                return "dark";
+            }
+        } else {
+            return mode;
+        }
+    }, [mode]);
 
     /**
      * Detecta si el usuario está en un dispositivo móvil. Ajusta el menú lateral
-     * dependiendo de ello.
+     * dependiendo de ello.z
      */
     useEffect(() => {
         const userAgent = typeof navigator === 'undefined' ? 'SSR' : navigator.userAgent;
@@ -94,10 +107,35 @@ export function NavegacionProvider({ children }) {
         detecOrientacion(ancho, alto);
     };
 
+    /**
+     * Maneja el cambio de temas según la preferencia del usuario o el sistema.
+     */
+    const cambiarTema = () => {
+        switch (mode) {
+            case "light":
+                setMode("dark");
+                break;
+            case "dark":
+                setMode("light");
+                break;
+            case undefined:
+                setMode("system");
+                break;
+            default:
+                // Es alreves porque se esta cambiando
+                if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+                    setMode("dark");
+                } else {
+                    setMode("light");
+                }
+                break;
+        }
+    };
+
     return (
         <navegacionContext.Provider value={{
             paginaAnterior, setPaginaAnterior, callbackError, setCallbackError, mostrarMenu, setMostrarMenu, cerrandoMenu,
-            variantSidebar, setCerrandoMenu, dispositivoMovil, orientacion, ancho, alto
+            variantSidebar, setCerrandoMenu, dispositivoMovil, orientacion, ancho, alto, cambiarTema, tema
         }}>
             {children}
         </navegacionContext.Provider>

@@ -29,6 +29,9 @@ VITE_DRIVE_FILENAME=<string>         # Nombre del archivo con los pacientes en D
 VITE_API_URL=<string>                # URL del API (servidor backend)
 VITE_EXPORT_FILENAME=<string>        # Nombre del archivo para exportar diagnósticos
 VITE_DRIVE_FOLDER_NAME=<string>      # Nombre de la carpeta en Drive
+VITE_URL_MANUAL_USUARIO=<string>     # URL del manual de instrucciones para los usuarios
+VITE_URL_MANUAL_ADMIN=<string>       # URL del manual de instrucciones para los administradores
+VITE_CANT_LIM_DIAGNOSTICOS=<int>     # Cantidad de diagnósticos a partir del cual mostrar la advertencia de espacio
 ```
 
 ## Ejecución del frontend  sin backend

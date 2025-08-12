@@ -1,12 +1,12 @@
-import { useDrive } from "../contexts/DriveContext";
-import { useAuth } from "../contexts/AuthContext";
+import { useDrive } from "../../contexts/DriveContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { useEffect } from "react";
-import FormAnadirPaciente from "../components/tabs/FormAnadirPaciente";
-import MenuLayout from "../components/layout/MenuLayout";
+import FormPaciente from "../../components/forms/FormPaciente";
+import MenuLayout from "../../components/layout/MenuLayout";
 
 /**
  * Página para añadir un nuevo paciente al sistema.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function AnadirPacientePage() {
     const auth = useAuth();
@@ -37,7 +37,7 @@ export default function AnadirPacientePage() {
 
     return (
         <MenuLayout>
-            <FormAnadirPaciente
+            <FormPaciente
                 listadoPestanas={listadoPestanas}
                 esAnadir={true}
                 titPestana="Añadir paciente" />

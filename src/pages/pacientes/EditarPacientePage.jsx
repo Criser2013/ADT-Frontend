@@ -1,14 +1,14 @@
-import { useDrive } from "../contexts/DriveContext";
-import { useAuth } from "../contexts/AuthContext";
+import { useDrive } from "../../contexts/DriveContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { useEffect } from "react";
-import FormAnadirPaciente from "../components/tabs/FormAnadirPaciente";
-import MenuLayout from "../components/layout/MenuLayout";
+import FormPaciente from "../../components/forms/FormPaciente";
+import MenuLayout from "../../components/layout/MenuLayout";
 import { useNavigate, useSearchParams } from "react-router";
-import { validarNumero } from "../utils/Validadores";
+import { validarId } from "../../utils/Validadores";
 
 /**
  * Página para editar los datos de un paciente.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function EditarPacientePage() {
     const auth = useAuth();
@@ -19,7 +19,7 @@ export default function EditarPacientePage() {
         { texto: "Lista de pacientes", url: "/pacientes" },
         { texto: "Editar paciente", url: `/pacientes/editar${location.search}` }
     ];
-    const ced = params.get("cedula");
+    const id = params.get("id");
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -38,7 +38,7 @@ export default function EditarPacientePage() {
      */
     useEffect(() => {
         document.title = `Editar paciente`;
-        const res = (ced != null && ced != undefined) ? validarNumero(ced) : false;
+        const res = (id != null && id != undefined) ? validarId(id) : false;
 
         if (!res) {
             navigate("/pacientes", { replace: true });
@@ -48,11 +48,11 @@ export default function EditarPacientePage() {
 
     return (
         <MenuLayout>
-            <FormAnadirPaciente
+            <FormPaciente
                 listadoPestanas={listadoPestanas}
                 esAnadir={false}
                 titPestana="Editar paciente"
-                cedula={ced} />
+                id={id} />
         </MenuLayout>
     );
 };

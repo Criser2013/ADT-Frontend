@@ -8,7 +8,8 @@ import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
  */
 export const cambiarUsuario = async (json, db) => {
     try {
-        const docRef = doc(db, "usuarios", json.correo);
+        const docRef = doc(db, "usuarios", json.uid);
+        delete json.uid;
         const datos = await setDoc(docRef, json);
 
         return { success: true, data: datos };
@@ -18,14 +19,14 @@ export const cambiarUsuario = async (json, db) => {
 };
 
 /**
- * Determina si ya hay una cuenta de usuario registrada con el correo dado.
- * @param {String} correo - Correo del usuario a verificar.
+ * Determina si ya hay una cuenta de usuario registrada con el uid dado.
+ * @param {String} uid - UID del usuario a verificar.
  * @param {Object} db - Instancia de Firestore.
  * @returns JSON
  */
-export const verSiEstaRegistrado = async (correo, db) => {
+export const verSiEstaRegistrado = async (uid, db) => {
     try {
-        const docRef = doc(db, "usuarios", correo);
+        const docRef = doc(db, "usuarios", uid);
         const datos = await getDoc(docRef);
 
         return { success: true, data: datos.exists() };
@@ -36,13 +37,13 @@ export const verSiEstaRegistrado = async (correo, db) => {
 
 /**
  * Obtiene la información de un usuario dentro de la BD
- * @param {String} correo - Correo del usuario a buscar.
+ * @param {String} uid - UID del usuario a buscar.
  * @param {Object} db - Instancia de Firestore.
  * @returns JSON
  */
-export const verUsuario = async (correo, db) => {
+export const verUsuario = async (uid, db) => {
     try {
-        const docRef = doc(db, "usuarios", correo);
+        const docRef = doc(db, "usuarios", uid);
         const datos = await getDoc(docRef);
 
         return datos.exists() ? { success: 1, data: datos.data() }
@@ -55,14 +56,14 @@ export const verUsuario = async (correo, db) => {
 
 /**
  * Elimina el usuario proveído de la BD.
- * @param {String} correo - Correo del usuario a eliminar.
+ * @param {String} uid - UID del usuario a eliminar.
  * @param {Object} db - Instancia de Firestore.
  * @returns JSON
  */
-export const eliminarUsuario = async (correo, db) => {
+export const eliminarUsuario = async (uid, db) => {
     try {
         await deleteDoc(
-            doc(db, "usuarios", correo)
+            doc(db, "usuarios", uid)
         );
 
         return { success: true, data: null, error: null };

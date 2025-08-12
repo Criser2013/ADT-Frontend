@@ -2,35 +2,37 @@ import {
     Box, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
     Button, Popover, IconButton
 } from "@mui/material";
-import { useDrive } from "../contexts/DriveContext";
-import { useAuth } from "../contexts/AuthContext";
-import { useNavegacion } from "../contexts/NavegacionContext";
-import { useEffect, useState, useMemo } from "react";
-import TabHeader from "../components/tabs/TabHeader";
-import MenuLayout from "../components/layout/MenuLayout";
-import { detTamCarga } from "../utils/Responsividad";
+import { useDrive } from "../../contexts/DriveContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import TabHeader from "../../components/layout/TabHeader";
+import MenuLayout from "../../components/layout/MenuLayout";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
-import { validarId } from "../utils/Validadores";
+import { validarId } from "../../utils/Validadores";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import ModalAccion from "../components/modals/ModalAccion";
-import { cambiarDiagnostico, eliminarDiagnosticos, verDiagnostico } from "../firestore/diagnosticos-collection";
-import { oneHotInversoOtraEnfermedad, detTxtDiagnostico } from "../utils/TratarDatos";
-import { COMORBILIDADES, DIAGNOSTICOS } from "../../constants";
-import { useCredenciales } from "../contexts/CredencialesContext";
-import Check from "../components/tabs/Check";
+import ModalAccion from "../../components/modals/ModalAccion";
+import { cambiarDiagnostico, eliminarDiagnosticos, verDiagnostico } from "../../firestore/diagnosticos-collection";
+import { oneHotInversoOtraEnfermedad, detTxtDiagnostico } from "../../utils/TratarDatos";
+import { COMORBILIDADES, DIAGNOSTICOS } from "../../../constants";
+import { useCredenciales } from "../../contexts/CredencialesContext";
+import Check from "../../components/tabs/Check";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import FormSeleccionar from "../components/tabs/FormSeleccionar";
-import { CODIGO_ADMIN } from "../../constants";
-import { SINTOMAS } from "../../constants";
-import ContComorbilidades from "../components/tabs/ContComorbilidades";
-import { peticionApi } from "../services/Api";
+import FormSeleccionar from "../../components/forms/FormSeleccionar";
+import { CODIGO_ADMIN } from "../../../constants";
+import { SINTOMAS } from "../../../constants";
+import ContComorbilidades from "../../components/diagnosticos/ContComorbilidades";
+import { peticionApi } from "../../services/Api";
+import { Timestamp } from "firebase/firestore";
+import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
 
 /**
  * Página para ver los datos de un diagnóstico.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function VerDiagnosticoPage() {
     const auth = useAuth();
@@ -47,7 +49,7 @@ export default function VerDiagnosticoPage() {
     const open = Boolean(popOver);
     const elem = open ? "simple-popover" : undefined;
     const [modal, setModal] = useState({
-        mostrar: false, mensaje: "", titulo: "", txtBtn: "Validar"
+        mostrar: false, mensaje: "", titulo: "", txtBtn: "Validar", icono: null
     });
     const [datos, setDatos] = useState({
         personales: {
@@ -65,9 +67,9 @@ export default function VerDiagnosticoPage() {
         comorbilidades: []
     });
     const [persona, setPersona] = useState({
-        cedula: "", nombre: ""
+        id: "", nombre: ""
     });
-    const rol = auth.authInfo.rol;
+    const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
     const [errorDiagnostico, setErrorDiagnostico] = useState(false);
     const [diagnostico, setDiagnostico] = useState(datos.personales.validado);
     const [diagOriginal, setDiagOriginal] = useState({});
@@ -77,7 +79,7 @@ export default function VerDiagnosticoPage() {
     }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
     const camposPersonales = useMemo(() => {
         const campos = [
-            { titulo: (rol == CODIGO_ADMIN) ? "Médico" : "Nombre", valor: persona.nombre },
+            { titulo: (rol == CODIGO_ADMIN) ? "Médico" : "Paciente", valor: persona.nombre },
             { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" },
             { titulo: "Edad", valor: `${datos.personales.edad} años` },
             { titulo: "Fecha de diagnóstico", valor: datos.personales.fecha },
@@ -104,12 +106,6 @@ export default function VerDiagnosticoPage() {
         { titulo: "Hemoglobina", valor: `${datos.personales.hemoglobina} g/dL.` },
         { titulo: "Conteo glóbulos blancos", valor: `${datos.personales.wbc} /µL.` },
     ], [datos.personales]);
-    const width = useMemo(() => {
-        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
-    const padding = useMemo(() => {
-        return !navegacion.dispositivoMovil ? "3vh" : "0vh";
-    }, [navegacion.dispositivoMovil]);
     const listadoPestanas = useMemo(() => {
         let tit1 = "Histotrial de diagnósticos";
         let tit2 = `Diagnóstico-${persona.nombre}-${datos.personales.fecha}`;
@@ -155,6 +151,8 @@ export default function VerDiagnosticoPage() {
             cargarDatosDiagnostico(auth.authInfo.user.accessToken);
         } else if (datos != null && rol != null && DB != null) {
             cargarDatosPaciente(datos.paciente);
+            datos.fecha = new Timestamp(datos.fecha.seconds, datos.fecha.nanoseconds);
+            setDiagOriginal({ ...datos });
             preprocesarDiag(datos);
         }
     }, [drive.descargando, auth.authInfo.user, rol, DB]);
@@ -169,8 +167,6 @@ export default function VerDiagnosticoPage() {
         if (!res) {
             navigate("/diagnosticos", { replace: true });
         }
-
-        navegacion.setPaginaAnterior("/diagnosticos");
     }, [titulo]);
 
     /**
@@ -196,30 +192,29 @@ export default function VerDiagnosticoPage() {
 
     /**
      * Carga los datos del paciente asociado al diagnóstico.
-     * @param {String} cedula - Cédula del paciente.
+     * @param {String} id - ID del paciente.
      */
-    const cargarDatosPaciente = (cedula) => {
-        const res = drive.cargarDatosPaciente(cedula);
+    const cargarDatosPaciente = (id) => {
+        const res = drive.cargarDatosPaciente(id);
         if (res.success) {
             setPersona({ ...res.data.personales });
         } else {
-            setPersona({ cedula: cedula, nombre: "N/A" });
+            setPersona({ id: id, nombre: "N/A" });
         }
     };
 
     /**
      * Carga el nombre del médico que realizó el diagnóstico.
-     * @param {String} correo - Correo del médico.
+     * @param {String} uid - UID del médico.
      * @returns {String|null}
      */
-    const cargarDatosMedico = async (token, correo) => {
-        correo = encodeURIComponent(correo);
-        correo = correo.replaceAll(".","%2E");
-        const res = await peticionApi(token, `admin/usuarios/${correo}`, "GET", null, 
+    const cargarDatosMedico = async (token, uid) => {
+        uid = encodeURIComponent(uid);
+        const res = await peticionApi(token, `admin/usuarios/${uid}`, "GET", null,
             "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
         );
 
-        setPersona((x) => ({ ...x, nombre: res.success? res.data.nombre : "N/A" }));
+        setPersona((x) => ({ ...x, nombre: res.success ? res.data.nombre : res.data.correo }));
     };
 
     /**
@@ -235,7 +230,7 @@ export default function VerDiagnosticoPage() {
         }
         dayjs.extend(customParseFormat);
 
-        aux.fecha = dayjs(new Date(datos.fecha.seconds * 1000)).format("DD [de] MMMM [de] YYYY");
+        aux.fecha = dayjs(datos.fecha.toDate()).format("DD [de] MMMM [de] YYYY");
         setDatos({ personales: aux, comorbilidades: res });
         setCargando(false);
     };
@@ -260,8 +255,13 @@ export default function VerDiagnosticoPage() {
      * Manejador del botón de editar paciente.
      */
     const manejadorBtnEditar = () => {
+        setDiagnostico(2);
         setMostrarBtnSecundario(true);
-        setModal({ titulo: "Validar diagnóstico", mensaje: "", mostrar: true, txtBtn: "Validar" });
+        setErrorDiagnostico(false);
+        setModal({
+            titulo: "Validar diagnóstico", mensaje: "",
+            mostrar: true, txtBtn: "Validar", icono: <CheckCircleOutlineIcon />
+        });
     };
 
     /**
@@ -277,7 +277,7 @@ export default function VerDiagnosticoPage() {
             setCargando(false);
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: "Error",
+                mostrar: true, titulo: "❌ Error", icono: <CloseIcon />,
                 mensaje: "No se pudo eliminar el diagnóstico. Inténtalo de nuevo más tarde."
             });
         }
@@ -288,6 +288,7 @@ export default function VerDiagnosticoPage() {
      */
     const validarDiagnostico = async () => {
         setCargando(true);
+        setErrorDiagnostico(false);
         const DB = credenciales.obtenerInstanciaDB();
         const res = await cambiarDiagnostico({ ...diagOriginal, validado: diagnostico }, DB);
 
@@ -299,7 +300,7 @@ export default function VerDiagnosticoPage() {
         } else {
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: "Error", txtBtn: "Validar",
+                mostrar: true, titulo: "❌ Error", txtBtn: "Cerrar", icono: <CloseIcon />,
                 mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
             });
         }
@@ -331,7 +332,7 @@ export default function VerDiagnosticoPage() {
         cerrarPopover();
         setMostrarBtnSecundario(true);
         setModal({
-            mostrar: true, titulo: "Alerta", txtBtn: "Eliminar",
+            mostrar: true, titulo: "⚠️ Alerta", txtBtn: "Eliminar", icono: <DeleteIcon />,
             mensaje: "¿Estás seguro de que deseas eliminar este diagnóstico?"
         });
     };
@@ -364,9 +365,13 @@ export default function VerDiagnosticoPage() {
                     <Typography variant="body1">
                         <b>{campo.titulo}: </b>
                     </Typography>
-                    <Typography variant="body1">
-                        {campo.valor}
-                    </Typography>
+                    {(campo.titulo == "Sexo") ? <ChipSexo sexo={campo.valor} /> : null}
+                    {(campo.titulo == "Diagnóstico modelo") ? <ChipDiagnostico diagnostico={campo.valor} /> : null}
+                    {(campo.titulo == "Diagnóstico médico") ? <ChipValidado validado={campo.valor} /> : null}
+                    {(campo.titulo != "Sexo"&& campo.titulo != "Diagnóstico modelo" && campo.titulo != "Diagnóstico médico") ? (
+                        <Typography variant="body1">
+                            {campo.valor}
+                        </Typography>) : null}
                 </Stack>
             </Grid>
         );
@@ -410,7 +415,7 @@ export default function VerDiagnosticoPage() {
      * Componente para el cuerpo del modal.
      * @returns {JSX.Element}
      */
-    const CuerpoModal = () => {
+    const CuerpoModal = useCallback(() => {
         return ((rol != CODIGO_ADMIN) ? (
             <FormSeleccionar
                 onChange={setDiagnostico}
@@ -420,13 +425,13 @@ export default function VerDiagnosticoPage() {
                 valor={diagnostico}
                 valores={DIAGNOSTICOS} />) : null
         );
-    };
+    }, [errorDiagnostico, diagnostico, rol]);
 
     return (
         <>
             <MenuLayout>
                 {cargando ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
+                    <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
                         <CircularProgress />
                     </Box>
                 ) : (
@@ -439,42 +444,40 @@ export default function VerDiagnosticoPage() {
                         <Grid container
                             columns={12}
                             spacing={1}
-                            paddingLeft={padding}
-                            paddingRight={padding}
                             marginTop="3vh">
                             {(rol == CODIGO_ADMIN) ? (
-            <Grid size={12} display="flex" justifyContent="end">
-                <Tooltip title="Ver más opciones.">
-                    <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
-                        <MoreVertIcon />
-                    </IconButton>
-                </Tooltip>
-                <Popover
-                    id={elem}
-                    open={open}
-                    anchorEl={popOver}
-                    onClose={cerrarPopover}
-                    anchorOrigin={{
-                        vertical: "bottom",
-                        horizontal: "left",
-                    }}
-                    transformOrigin={{
-                        vertical: "top",
-                        horizontal: "center",
-                    }}>
-                    <Tooltip title="Eliminar paciente">
-                        <Button
-                            color="error"
-                            startIcon={<DeleteIcon />}
-                            onClick={manejadorBtnEliminar}
-                            sx={{ textTransform: "none", padding: 2 }}>
-                            Eliminar
-                        </Button>
-                    </Tooltip>
-                </Popover>
-            </Grid>) : null}
+                                <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
+                                    <Tooltip title="Ver más opciones.">
+                                        <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
+                                            <MoreVertIcon />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Popover
+                                        id={elem}
+                                        open={open}
+                                        anchorEl={popOver}
+                                        onClose={cerrarPopover}
+                                        anchorOrigin={{
+                                            vertical: "bottom",
+                                            horizontal: "left",
+                                        }}
+                                        transformOrigin={{
+                                            vertical: "top",
+                                            horizontal: "center",
+                                        }}>
+                                        <Tooltip title="Eliminar paciente">
+                                            <Button
+                                                color="error"
+                                                startIcon={<DeleteIcon />}
+                                                onClick={manejadorBtnEliminar}
+                                                sx={{ textTransform: "none", padding: 2 }}>
+                                                Eliminar
+                                            </Button>
+                                        </Tooltip>
+                                    </Popover>
+                                </Grid>) : null}
                             <Grid size={12}>
-                                <Typography variant="h5">
+                                <Typography variant="h5" paddingBottom="2vh">
                                     Datos personales
                                 </Typography>
                             </Grid>
@@ -485,7 +488,7 @@ export default function VerDiagnosticoPage() {
                                 <Divider />
                             </Grid>
                             <Grid size={12}>
-                                <Typography variant="h5">
+                                <Typography variant="h5" paddingBottom="0.2vh">
                                     Síntomas clínicos
                                 </Typography>
                             </Grid>
@@ -509,7 +512,7 @@ export default function VerDiagnosticoPage() {
                                 <Divider />
                             </Grid>
                             <Grid size={12}>
-                                <Typography variant="h5">
+                                <Typography variant="h5" paddingBottom="2vh">
                                     Exámenes de laboratorio
                                 </Typography>
                             </Grid>
@@ -543,13 +546,15 @@ export default function VerDiagnosticoPage() {
                     abrir={modal.mostrar}
                     titulo={modal.titulo}
                     mensaje={modal.mensaje}
+                    iconoBtnPrincipal={modal.icono}
                     manejadorBtnPrimario={manejadorBtnModal}
                     manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
                     mostrarBtnSecundario={mostrarBtnSecundario}
                     txtBtnSimple={modal.txtBtn}
                     txtBtnSecundario="Cancelar"
+                    iconoBtnSecundario={<CloseIcon />}
                     txtBtnSimpleAlt="Cerrar">
-                        <CuerpoModal />
+                    <CuerpoModal />
                 </ModalAccion>
             </MenuLayout>
         </>

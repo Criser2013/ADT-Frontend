@@ -1,24 +1,26 @@
-import { Button, Grid, Box, CircularProgress } from "@mui/material";
-import { detTamCarga } from "../utils/Responsividad";
-import MenuLayout from "../components/layout/MenuLayout";
-import Datatable from "../components/tabs/Datatable";
-import TabHeader from "../components/tabs/TabHeader";
+import { Button, Grid, Box, CircularProgress, Tooltip, IconButton } from "@mui/material";
+import MenuLayout from "../../components/layout/MenuLayout";
+import Datatable from "../../components/tabs/Datatable";
+import TabHeader from "../../components/layout/TabHeader";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router";
-import { useNavegacion } from "../contexts/NavegacionContext";
+import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { useDrive } from "../contexts/DriveContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useDrive } from "../../contexts/DriveContext";
 import dayjs from "dayjs";
-import ModalAccion from "../components/modals/ModalAccion";
+import ModalAccion from "../../components/modals/ModalAccion";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import CloseIcon from "@mui/icons-material/Close";
+import { ChipSexo } from "../../components/tabs/Chips";
 
 /**
  * Página para ver la lista de pacientes.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
-export default function ListaPacientesPage() {
+export default function VerPacientesPage() {
     const auth = useAuth();
     const drive = useDrive();
     const navigate = useNavigate();
@@ -28,21 +30,18 @@ export default function ListaPacientesPage() {
     }];
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({
-        mostrar: false, titulo: "", mensaje: ""
+        mostrar: false, titulo: "", mensaje: "", icono: null
     });
     const [eliminar, setEliminar] = useState(false);
     const [datos, setDatos] = useState([]);
     const [seleccionados, setSeleccionados] = useState([]);
-    const width = useMemo(() => {
-        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
-    const campos = [
-        { id: "nombre", label: "Nombre" },
-        { id: "cedula", label: "Cédula" },
-        { id: "telefono", label: "Teléfono" },
-        { id: "sexo", label: "Sexo" },
-        { id: "edad", label: "Edad" }
-    ];
+    const campos = useMemo(() => [
+        { id: "cedula", label: "Cédula", componente: null, ordenable: true},
+        { id: "nombre", label: "Nombre", componente: null, ordenable: true},
+        { id: "sexo", label: "Sexo", componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true},
+        { id: "edad", label: "Edad", componente: null, ordenable: true},
+        { id: "telefono", label: "Teléfono", componente: null, ordenable: true},
+    ], []);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -63,7 +62,7 @@ export default function ListaPacientesPage() {
         document.title = "Lista de pacientes";
 
         if (drive.datos != null && !drive.descargando) {
-            cargarDatos();
+            manejadorRecargar();
         }
     }, []);
 
@@ -80,11 +79,28 @@ export default function ListaPacientesPage() {
     useEffect(() => {
         setDatos(
             drive.datos != null ?
-            formatearCeldas(
-                drive.datos.map((x) => ({ ...x }))
-            ) : []
+                formatearCeldas(
+                    drive.datos.map((x) => ({ ...x }))
+                ) : []
         );
     }, [drive.datos]);
+
+    /**
+     * Recarga los datos de la página.
+     */
+    const manejadorRecargar = () => {
+        if (!cargando) {
+            setCargando(true);
+        }
+
+        if (datos != []) {
+            setDatos([]);
+            setSeleccionados([]);
+        }
+
+        cargarDatos();
+    };
+
 
     /**
      * Carga los datos de los pacientes desde Drive.
@@ -94,7 +110,7 @@ export default function ListaPacientesPage() {
         if (!res.success) {
             setModal({
                 mostrar: true, mensaje: res.error,
-                titulo: "Error al cargar los datos",
+                titulo: `❌ ${res.error}`, icono: <CloseIcon />
             });
         }
     };
@@ -106,14 +122,17 @@ export default function ListaPacientesPage() {
      */
     const formatearCeldas = (datos) => {
         dayjs.extend(customParseFormat);
-        return datos.map((dato,) => ({
-            nombre: dato.nombre, cedula: dato.cedula,
-            telefono: dato.telefono,
+        return datos.map((dato) => {
+            const sexo = (dato.sexo == 0) ? "Masculino" : "Femenino";
+
+            return {
+            id: dato.id, nombre: dato.nombre, cedula: dato.cedula,
+            telefono: dato.telefono, sexo: sexo,
             edad: dayjs().diff(dayjs(
                 dato.fechaNacimiento, "DD-MM-YYYY"), "year", false
-            ),
-            sexo: dato.sexo == 0 ? "Masculino" : "Femenino",
-        }));
+            )
+        };
+    });
     };
 
     /**
@@ -132,7 +151,7 @@ export default function ListaPacientesPage() {
         setSeleccionados(seleccionados);
         setEliminar(true);
         setModal({
-            mostrar: true, titulo: "Alerta",
+            mostrar: true, titulo: "⚠️ Alerta", icono: <DeleteIcon />,
             mensaje: "¿Estás seguro de querer eliminar a los pacientes seleccionados?"
         });
     };
@@ -143,7 +162,7 @@ export default function ListaPacientesPage() {
      */
     const manejadorClicCelda = (dato) => {
         navegacion.setPaginaAnterior("/pacientes");
-        navigate(`/pacientes/ver-paciente?cedula=${dato.cedula}`, { replace: true });
+        navigate(`/pacientes/ver-paciente?id=${dato.id}`, { replace: true });
     };
 
     /**
@@ -167,8 +186,8 @@ export default function ListaPacientesPage() {
         const res = await drive.eliminarPaciente(pacientes, true);
         if (!res.success) {
             setModal({
-                mostrar: true,
-                titulo: "Error a los pacientes.",
+                mostrar: true, icono: <CloseIcon />,
+                titulo: "❌ Error al eliminar los pacientes.",
                 mensaje: res.error
             });
         }
@@ -178,7 +197,7 @@ export default function ListaPacientesPage() {
     return (
         <MenuLayout>
             {cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
+                <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
                     <CircularProgress />
                 </Box>
             ) : (
@@ -187,23 +206,30 @@ export default function ListaPacientesPage() {
                         activarBtnAtras={false}
                         titulo="Lista de pacientes"
                         pestanas={listadoPestanas} />
-                    <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh", width: width }}>
-                        <Grid size={1} display="flex" justifyContent="end">
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={manejadorBtnAnadir}
-                                sx={{ textTransform: "none" }}
-                                startIcon={<AddIcon />}>
-                                <b>Añadir paciente</b>
-                            </Button>
+                    <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh" }}>
+                        <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
+                            <Tooltip title="Recargar la página">
+                                <IconButton onClick={() => manejadorRecargar()}>
+                                    <RefreshIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Añade un nuevo paciente a la lista">
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={manejadorBtnAnadir}
+                                    sx={{ textTransform: "none" }}
+                                    startIcon={<AddIcon />}>
+                                    <b>Añadir paciente</b>
+                                </Button>
+                            </Tooltip>
                         </Grid>
                         <Datatable
                             campos={campos}
                             datos={datos}
                             lblBusq="Buscar paciente por nombre o número de cédula"
                             activarBusqueda={true}
-                            campoId="cedula"
+                            campoId="id"
                             terminoBusqueda={""}
                             lblSeleccion="pacientes seleccionados"
                             camposBusq={["nombre", "cedula"]}
@@ -221,6 +247,8 @@ export default function ListaPacientesPage() {
                 manejadorBtnPrimario={manejadorBtnModal}
                 manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
                 mostrarBtnSecundario={eliminar}
+                iconoBtnPrincipal={modal.icono}
+                iconoBtnSecundario={<CloseIcon />}
                 txtBtnSimple="Eliminar"
                 txtBtnSecundario="Cancelar"
                 txtBtnSimpleAlt="Cerrar" />

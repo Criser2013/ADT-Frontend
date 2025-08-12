@@ -365,7 +365,7 @@ export function detTxtDiagnostico(diagnostico) {
         case 1:
             return "Positivo";
         default:
-            return "No validado";
+            return "No diagnósticado";
     }
 };
 
@@ -429,7 +429,7 @@ export function nombresCampos(instancia, esAdmin, preprocesar = false) {
         datos["Paciente"] = instancia.paciente;
         datos["Fecha"] = instancia.fecha.toDate().toLocaleDateString("es-CO");
         datos["Diagnóstico modelo"] = instancia.diagnostico;
-        datos["Probabilidad"] = instancia.probabilidad;
+        datos["Probabilidad"] = (instancia.probabilidad * 100).toFixed(2);
     }
 
     return datos;

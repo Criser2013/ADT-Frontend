@@ -1,8 +1,8 @@
 import { Box, CircularProgress } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useNavegacion } from '../contexts/NavegacionContext';
+import { useNavegacion } from '../../contexts/NavegacionContext';
 
 /**
  * Página dónde el usuario cierra sesión. Al acceder se cierra la sesión si el usuario

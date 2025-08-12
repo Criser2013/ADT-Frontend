@@ -3,6 +3,8 @@ import {
     Title, Tooltip, Legend,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import { useMemo } from 'react';
+import { useNavegacion } from '../../contexts/NavegacionContext';
 
 ChartJS.register(
     CategoryScale, LinearScale, BarElement,
@@ -26,15 +28,56 @@ ChartJS.register(
  * @returns {JSX.Element}
  */
 export default function GraficoBarras({ titulo, datos, modoActualizacion = "default" }) {
-    const opciones = {
+    const { tema, ancho } = useNavegacion();
+    const tamTitulo = useMemo(() => {
+        const vw = (ancho / 100); // en pixeles
+        const rem = 16;
+
+        return Math.floor(vw + (rem * 0.35));
+    }, [ancho]);
+    const tamLeyenda = useMemo(() => {
+        const vw = (ancho / 100); // en pixelesa
+        const rem = 16;
+
+        return Math.floor(vw + (rem * 0.2));
+    }, [ancho]);
+    const colorTitulo = useMemo(() => {
+        return tema == "dark" ? "#ffffff" : "#000000";
+    }, [tema]);
+    const colorMalla = useMemo(() => {
+        return tema == "dark" ? "#838383ff" : "#d3d3d3bd";
+    }, [tema]);
+    const opciones = useMemo(() => ({
         responsive: true,
         plugins: {
-            legend: { position: 'top' },
+            legend: {
+                position: 'top', labels: {
+                    color: colorTitulo,
+                    font: { size: tamLeyenda, family: 'Roboto' }
+                }
+            },
             title: {
-                display: true, text: titulo, color: "rgb(0, 0, 0)", font: { size: 13 },
+                display: true, text: titulo, color: colorTitulo,
+                font: { size: tamTitulo, family: "Raleway", weight: "bold" },
             },
         },
-    };
+        scales: {
+            x: {
+                grid: { color: colorMalla },
+                ticks: {
+                    color: colorTitulo,
+                    font: { size: tamLeyenda, family: 'Roboto' },
+                }
+            },
+            y: {
+                grid: { color: colorMalla },
+                ticks: {
+                    color: colorTitulo,
+                    font: { size: tamLeyenda, family: 'Roboto' },
+                }
+            }
+        }
+    }), [titulo, colorTitulo, colorMalla, tamLeyenda, tamTitulo]);
 
     return (
         <Bar data={datos} options={opciones} updateMode={modoActualizacion} />
