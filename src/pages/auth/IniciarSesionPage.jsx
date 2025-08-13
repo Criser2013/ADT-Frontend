@@ -168,7 +168,7 @@ export default function IniciarSesionPage() {
                                     <BtnTema />
                                 </IconButton>
                             </Grid>
-                            <Grid container columnSpacing={0} size={12} alignItems="center">
+                            <Grid container columnSpacing={"20px"} columns={12} alignItems="center">
                                 <Grid size={3}>
                                     <img src={icono} height="90vh" width="90vh" alt="derp" />
                                 </Grid>

@@ -174,7 +174,7 @@ export default function VerDiagnosticosPage() {
      */
     const manejadorRecargar = (token = null, usuario = null, cargo = null, db = null) => {
         const descargar = sessionStorage.getItem("descargando-drive");
-        const credencial = (token == null) ? auth.authInfo.user.accessToken : token;
+        const credencial = (rol == CODIGO_ADMIN || token == null) ? auth.authInfo.user.accessToken : token;
         const uid = (usuario == null) ? auth.authInfo.uid : usuario;
         const rolUsuario = (cargo == null) ? rol : cargo;
         const BD = (db == null) ? DB : db;
@@ -582,7 +582,7 @@ export default function VerDiagnosticosPage() {
                         <AdvertenciaEspacio rol={rol} cantidadDiagnosticos={cantDiagnosticos} />
                         <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
                             <Tooltip title="Recargar la página">
-                                <IconButton onClick={manejadorRecargar}>
+                                <IconButton onClick={() => manejadorRecargar()}>
                                     <RefreshIcon />
                                 </IconButton>
                             </Tooltip>
