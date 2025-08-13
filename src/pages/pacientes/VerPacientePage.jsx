@@ -80,9 +80,13 @@ export default function VerPacientePage() {
      * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
      */
     useEffect(() => {
-        if (!drive.descargando) {
+        if (drive.token != null) {
             cargarDatosPaciente();
         }
+    }, [drive.token]);
+
+    useEffect(() => {
+        setCargando(drive.descargando);
     }, [drive.descargando]);
 
     /**
@@ -102,8 +106,18 @@ export default function VerPacientePage() {
     /**
      * Carga los datos del paciente a editar.
      */
-    const cargarDatosPaciente = () => {
-        const res = drive.cargarDatosPaciente(id);
+    const cargarDatosPaciente = async () => {
+        let res = await drive.cargarDatos();
+
+        if (!res.success) {
+            setModal({
+                mostrar: true, mensaje: res.error,
+                titulo: "❌ Error al cargar los datos de los pacientes",
+            });
+            return;
+        }
+
+        res = drive.cargarDatosPaciente(id);
         if (res.success) {
             dayjs.extend(customParseFormat);
             res.data.personales.edad = dayjs().diff(dayjs(

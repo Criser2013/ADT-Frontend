@@ -137,10 +137,10 @@ export default function VerDiagnosticosPage() {
         document.title = rol != CODIGO_ADMIN ? "Historial de diagnósticos" : "Datos recolectados";
         const { uid } = auth.authInfo;
 
-        if (rol != null && uid != null && DB != null) {
-            manejadorRecargar(auth.authInfo.user.accessToken, uid, rol, DB);
+        if (rol != null && uid != null && DB != null && drive.token != null) {
+            manejadorRecargar(drive.token, uid, rol, DB);
         }
-    }, [auth.authInfo.uid, auth.authInfo.user, rol, DB]);
+    }, [auth.authInfo.uid, auth.authInfo.user, drive.token, drive.archivoId, rol, DB]);
 
     /**
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
@@ -172,6 +172,7 @@ export default function VerDiagnosticosPage() {
      * @param {Object} db - Instancia de Firestore.
      */
     const manejadorRecargar = (token = null, usuario = null, cargo = null, db = null) => {
+        const descargar = sessionStorage.getItem("descargando-drive");
         const credencial = (token == null) ? auth.authInfo.user.accessToken : token;
         const uid = (usuario == null) ? auth.authInfo.uid : usuario;
         const rolUsuario = (cargo == null) ? rol : cargo;
@@ -190,7 +191,10 @@ export default function VerDiagnosticosPage() {
         }
 
         cargarDiagnosticos(uid, rolUsuario, BD);
-        cargarPacientes(credencial);
+
+        if (descargar == null || descargar == "false") {
+            cargarPacientes(credencial);
+        }
     };
 
     /**
@@ -256,7 +260,7 @@ export default function VerDiagnosticosPage() {
                 clave = i.uid;
             }
 
-            aux[clave] = {nombre: i.nombre, cedula: (rol != CODIGO_ADMIN) ? i.cedula : i.uid};
+            aux[clave] = { nombre: i.nombre, cedula: (rol != CODIGO_ADMIN) ? i.cedula : i.uid };
         }
 
         for (let i = 0; i < diags.length; i++) {
@@ -577,7 +581,7 @@ export default function VerDiagnosticosPage() {
                         <AdvertenciaEspacio rol={rol} cantidadDiagnosticos={cantDiagnosticos} />
                         <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
                             <Tooltip title="Recargar la página">
-                                <IconButton onClick={() => manejadorRecargar()}>
+                                <IconButton onClick={manejadorRecargar}>
                                     <RefreshIcon />
                                 </IconButton>
                             </Tooltip>

@@ -55,10 +55,12 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
      * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
      */
     useEffect(() => {
-        if (!drive.descargando && !esAnadir) {
+        if (drive.token != null && !esAnadir) {
             cargarDatosPaciente();
         }
+    }, [drive.token]);
 
+    useEffect(() => {
         setCargando(drive.descargando);
     }, [drive.descargando]);
 
@@ -75,7 +77,17 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
      * Carga los datos del paciente a editar.
      */
     const cargarDatosPaciente = async () => {
-        const res = await drive.cargarDatosPaciente(id);
+        let res = await drive.cargarDatos();
+
+        if (!res.success) {
+            setModal({
+                mostrar: true, mensaje: res.error,
+                titulo: "❌ Error al cargar los datos de los pacientes",
+            });
+            return;
+        }
+
+        res = await drive.cargarDatosPaciente(id);
         if (res.success) {
             dayjs.extend(customParseFormat);
 

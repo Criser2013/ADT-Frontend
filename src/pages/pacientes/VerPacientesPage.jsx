@@ -55,16 +55,15 @@ export default function VerPacientesPage() {
         }
     }, [auth.tokenDrive]);
 
-    /**
-     * Coloca el título de la página.
-     */
     useEffect(() => {
+        const descargar = sessionStorage.getItem("descargando-drive");
         document.title = "Lista de pacientes";
 
-        if (drive.datos != null && !drive.descargando) {
+        if (drive.token != null && (descargar == null || descargar == "false")) {
+            sessionStorage.setItem("descargando-drive", "true");
             manejadorRecargar();
         }
-    }, []);
+    }, [drive.token]);
 
     /**
      * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
