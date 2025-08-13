@@ -122,18 +122,27 @@ export default function IniciarSesionPage() {
      * @param {string} token - Token de ReCAPTCHA
      */
     const verificarRespuesta = async (token) => {
-        const res = await peticionApi("", "recaptcha", "POST", { token: token }, "Se ha producido un error al verificar el CAPTCHA.");
+        const res = await peticionApi("", "recaptcha", "POST", { token: token }, "Se ha producido un error al verificar el CAPTCHA. Reintentalo nuevamente.");
 
         if (res.success) {
             if (res.data.success) {
                 setDesactivarBtn(false);
             } else {
-                setModal({ mostrar: true, mensaje: "No se ha podido comprobar que seas un humano. Reintenta el CAPTCHA nuevamente." });
+                setModal({ 
+                    mostrar: true, titulo: "❌ Error",
+                    mensaje: "No se ha podido comprobar que seas un humano. Reintenta el CAPTCHA nuevamente."
+                });
                 CAPTCHA.current.reset();
             }
         } else {
+            let txtError = res.error;
+            if (typeof res.error != "string") {
+                for (const i of res.error) {
+                    txtError += `${i} `;
+                }
+            }
             CAPTCHA.current.reset();
-            setModal({ mostrar: true, mensaje: res.error });
+            setModal({ titulo: "❌ Error", mostrar: true, mensaje: txtError });
         }
     };
 

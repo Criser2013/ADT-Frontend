@@ -298,8 +298,14 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 CAPTCHA.current.reset();
             }
         } else {
+            let txtError = res.error;
+            if (typeof res.error != "string") {
+                for (const i of res.error) {
+                    txtError += `${i} `;
+                }
+            }
             CAPTCHA.current.reset();
-            setModal({ titulo: "❌ Error", mostrar: true, mensaje: res.error });
+            setModal({ titulo: "❌ Error", mostrar: true, mensaje: txtError });
         }
     };
 
