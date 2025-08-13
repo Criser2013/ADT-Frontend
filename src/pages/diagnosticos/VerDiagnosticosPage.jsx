@@ -42,6 +42,7 @@ export default function VerDiagnosticosPage() {
         mostrar: false, titulo: "", mensaje: "", icono: null
     });
     const [activar2Btn, setActivar2Btn] = useState(false);
+    const [archivoDescargado, setArchivoDescargado] = useState(false);
     const [datos, setDatos] = useState([]);
     const [diagnosticos, setDiagnosticos] = useState(null);
     const [personas, setPersonas] = useState(null);
@@ -54,7 +55,7 @@ export default function VerDiagnosticosPage() {
     const [preprocesar, setPreprocesar] = useState(false);
     const [guardarDrive, setGuardarDrive] = useState(false);
     const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
+    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
     const camposVariables = (rol != CODIGO_ADMIN) ? [
         { id: "nombre", label: "Paciente", componente: null, ordenable: true },
         { id: "paciente", label: "Cédula", componente: null, ordenable: true }
@@ -137,10 +138,10 @@ export default function VerDiagnosticosPage() {
         document.title = rol != CODIGO_ADMIN ? "Historial de diagnósticos" : "Datos recolectados";
         const { uid } = auth.authInfo;
 
-        if (rol != null && uid != null && DB != null && drive.token != null) {
+        if (rol != null && uid != null && DB != null && drive.token != null && !archivoDescargado) {
             manejadorRecargar(drive.token, uid, rol, DB);
         }
-    }, [auth.authInfo.uid, auth.authInfo.user, drive.token, drive.archivoId, rol, DB]);
+    }, [auth.authInfo.uid, auth.authInfo.user, drive.token, rol, DB, archivoDescargado]);
 
     /**
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
@@ -191,7 +192,6 @@ export default function VerDiagnosticosPage() {
         }
 
         cargarDiagnosticos(uid, rolUsuario, BD);
-
         if (descargar == null || descargar == "false") {
             cargarPacientes(credencial);
         }
@@ -206,6 +206,7 @@ export default function VerDiagnosticosPage() {
             await peticionApi(token, "admin/usuarios", "GET", null,
                 "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
             );
+        setArchivoDescargado(true);
         if (res.success && rol == CODIGO_ADMIN) {
             setPersonas(res.data.usuarios);
         } else if (res.success && rol != CODIGO_ADMIN) {

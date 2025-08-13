@@ -29,14 +29,10 @@ export function DriveProvider({ children }) {
     const [token, setToken] = useState(null);
     const [descargando, setDescargando] = useState(true);
 
-    /*useEffect(() => {
-        const descargar = sessionStorage.getItem("descargando-drive");
-
-        if (token != null && (descargar == null || descargar == "false")) {
-            sessionStorage.setItem("descargando-drive", "true");
-            cargarDatos(token);
-        }
-    }, [token]);*/
+    /* Colocar un useEffect para actualizar los datos cuando se cambie el token provoca errores
+       si un usuario no tiene archivo de pacientes o la carpeta de la app se creará una nueva. Desde
+       cada página se hace el llamado para actualizar los datos. Hacer esto solo provoca que se creen
+       2 carpetas o archivos. */
 
     /**
      * Verifica si un archivo o carpeta existe en Google Drive.
@@ -326,7 +322,6 @@ export function DriveProvider({ children }) {
         setDescargando(true);
         let respuesta = null;
         const res = await verificarExisteArchivoYCarpeta(token);
-        console.log(res)
         if (res.success) {
             setArchivoId(res.data);
             respuesta = await descargarContArchivo(res.data);
