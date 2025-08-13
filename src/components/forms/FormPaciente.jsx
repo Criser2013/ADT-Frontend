@@ -32,6 +32,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
     const drive = useDrive();
     const navigate = useNavigate();
     const [cargando, setCargando] = useState(true);
+    const [archivoDescargado, setArchivoDescargado] = useState(false);
     const [modal, setModal] = useState({
         mostrar: false, mensaje: "", titulo: ""
     });
@@ -55,14 +56,25 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
      * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
      */
     useEffect(() => {
-        if (drive.token != null && !esAnadir) {
-            cargarDatosPaciente();
+        const descargar = sessionStorage.getItem("descargando-drive");
+        if (drive.token != null && !esAnadir && (descargar == null || descargar == "false")) {
+            sessionStorage.setItem("descargando-drive", "true");
+            cargarDatos();
         }
     }, [drive.token]);
 
     useEffect(() => {
         setCargando(drive.descargando);
     }, [drive.descargando]);
+
+    /**
+     * Una vez se carguen los datos de los pacientes, se cargan los datos del paciente.
+     */
+    useEffect(() => {
+        if (drive.datos != null && archivoDescargado) {
+            cargarPaciente();
+        }
+    }, [drive.datos, archivoDescargado]);
 
     /**
      * Maneja el envío del formulario.
@@ -76,7 +88,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
     /**
      * Carga los datos del paciente a editar.
      */
-    const cargarDatosPaciente = async () => {
+    const cargarDatos = async () => {
         let res = await drive.cargarDatos();
 
         if (!res.success) {
@@ -87,7 +99,14 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
             return;
         }
 
-        res = await drive.cargarDatosPaciente(id);
+        setArchivoDescargado(true);
+    };
+
+    /**
+     * Carga los datos del paciente.
+     */
+    const cargarPaciente = () => {
+        const res = drive.cargarDatosPaciente(id);
         if (res.success) {
             dayjs.extend(customParseFormat);
 
@@ -110,6 +129,9 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
      * Manejador del botón de cerrar en el modal.
      */
     const manejadorBtnModal = () => {
+        if (!archivoDescargado) {
+            navigate("/pacientes", { replace: true });
+        }
         setModal({ ...modal, mostrar: false });
     };
 

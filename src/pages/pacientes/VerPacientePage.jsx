@@ -32,6 +32,7 @@ export default function VerPacientePage() {
     const [params] = useSearchParams();
     const [cargando, setCargando] = useState(true);
     const [modoEliminar, setModoEliminar] = useState(false);
+    const [archivoDescargado, setArchivoDescargado] = useState(false);
     const [popOver, setPopOver] = useState(null);
     const open = Boolean(popOver);
     const elem = open ? "simple-popover" : undefined;
@@ -80,8 +81,10 @@ export default function VerPacientePage() {
      * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
      */
     useEffect(() => {
-        if (drive.token != null) {
-            cargarDatosPaciente();
+        const descargar = sessionStorage.getItem("descargando-drive");
+        if (drive.token != null && (descargar == null || descargar == "false")) {
+            sessionStorage.setItem("descargando-drive", "true");
+            cargarDatos();
         }
     }, [drive.token]);
 
@@ -103,10 +106,20 @@ export default function VerPacientePage() {
         navegacion.setPaginaAnterior("/pacientes");
     }, [datos.personales.nombre]);
 
+
     /**
-     * Carga los datos del paciente a editar.
+     * Una vez se carguen los datos de los pacientes, se cargan los datos del paciente.
      */
-    const cargarDatosPaciente = async () => {
+    useEffect(() => {
+        if (drive.datos != null && archivoDescargado) {
+            cargarPaciente();
+        }
+    }, [drive.datos, archivoDescargado]);
+
+    /**
+     * Carga los datos de los pacientes.
+     */
+    const cargarDatos = async () => {
         let res = await drive.cargarDatos();
 
         if (!res.success) {
@@ -117,7 +130,14 @@ export default function VerPacientePage() {
             return;
         }
 
-        res = drive.cargarDatosPaciente(id);
+        setArchivoDescargado(true);
+    };
+
+    /**
+     * Carga los datos del paciente.
+     */
+    const cargarPaciente = () => {
+        const res = drive.cargarDatosPaciente(id);
         if (res.success) {
             dayjs.extend(customParseFormat);
             res.data.personales.edad = dayjs().diff(dayjs(
@@ -181,6 +201,10 @@ export default function VerPacientePage() {
     const manejadorBtnModal = () => {
         if (modoEliminar) {
             eliminarPaciente();
+        }
+
+        if (!archivoDescargado) {
+            navigate("/pacientes", { replace: true });
         }
 
         setModoEliminar(false);
