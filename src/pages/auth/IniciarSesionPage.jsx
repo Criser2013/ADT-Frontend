@@ -11,6 +11,9 @@ import { URL_MANUAL_USUARIO } from "../../../constants";
 import fondoClaro from "../../assets/fondo_claro.png";
 import fondoOscuro from "../../assets/fondo_oscuro.png";
 import icono from "../../assets/icono.png";
+import ModalSimple from "../../components/modals/ModalSimple";
+import CloseIcon from "@mui/icons-material/Close";
+import { peticionApi } from "../../services/Api";
 
 /**
  * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.
@@ -25,6 +28,9 @@ export default function IniciarSesionPage() {
     const CAPTCHA = useRef(null);
     const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [cargando, setCargando] = useState(false);
+    const [modal, setModal] = useState({
+        mensaje: "", mostrar: false
+    });
     const cargandoAuth = useMemo(() => {
         return auth.cargando || !credenciales.verSiCredsFirebaseEstancargadas();
     }, [auth.cargando, credenciales.verSiCredsFirebaseEstancargadas()]);
@@ -104,9 +110,47 @@ export default function IniciarSesionPage() {
      * Activa o desactiva el botón de inicio de sesión basado en la respuesta de reCAPTCHA.
      * @param {String|null} token - Token de reCAPTCHA recibido al completar el desafío.
      */
-    const manejadorReCAPTCHA = (token) => {
+    const manejadorReCAPTCHA = async (token) => {
         const res = (typeof token == "string");
-        setDesactivarBtn(!res);
+        if (res) {
+            verificarRespuesta(token);
+        }
+    };
+
+    /**
+     * Comprueba que la respuesta de reCAPTCHA sea que un usuario es un humano.
+     * @param {string} token - Token de ReCAPTCHA
+     */
+    const verificarRespuesta = async (token) => {
+        const res = await peticionApi("", "recaptcha", "POST", { token: token }, "Se ha producido un error al verificar el CAPTCHA. Reintentalo nuevamente.");
+
+        if (res.success) {
+            if (res.data.success) {
+                setDesactivarBtn(false);
+            } else {
+                setModal({ 
+                    mostrar: true, titulo: "❌ Error",
+                    mensaje: "No se ha podido comprobar que seas un humano. Reintenta el CAPTCHA nuevamente."
+                });
+                CAPTCHA.current.reset();
+            }
+        } else {
+            let txtError = res.error;
+            if (typeof res.error != "string") {
+                for (const i of res.error) {
+                    txtError += `${i} `;
+                }
+            }
+            CAPTCHA.current.reset();
+            setModal({ titulo: "❌ Error", mostrar: true, mensaje: txtError });
+        }
+    };
+
+    /**
+     * Manejador del botón para cerrar el modal.
+     */
+    const manejadorBtnModal = () => {
+        setModal((x) => ({ ...x, mostrar: false }));
     };
 
     return (
@@ -181,6 +225,14 @@ export default function IniciarSesionPage() {
                             </Grid>
                         </Grid>
                     </Paper>
+                    <ModalSimple
+                        abrir={modal.mostrar}
+                        titulo={"❌ Error"}
+                        mensaje={modal.mensaje}
+                        txtBtn="Cerrar"
+                        iconoBtn={<CloseIcon />}
+                        manejadorBtnModal={manejadorBtnModal}
+                    />
                 </Box>)}
 
         </>
