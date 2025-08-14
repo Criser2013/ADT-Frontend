@@ -322,7 +322,6 @@ export function DriveProvider({ children }) {
         setDescargando(true);
         let respuesta = null;
         const res = await verificarExisteArchivoYCarpeta(token);
-        console.log(res)
         if (res.success) {
             setArchivoId(res.data);
             respuesta = await descargarContArchivo(res.data);

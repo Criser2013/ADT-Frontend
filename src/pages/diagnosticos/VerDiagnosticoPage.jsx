@@ -108,7 +108,7 @@ export default function VerDiagnosticoPage() {
         { titulo: "Conteo glóbulos blancos", valor: `${datos.personales.wbc} /µL.` },
     ], [datos.personales]);
     const listadoPestanas = useMemo(() => {
-        let tit1 = "Histotrial de diagnósticos";
+        let tit1 = "Historial de diagnósticos";
         let tit2 = `Diagnóstico-${persona.nombre}-${datos.personales.fecha}`;
 
         if (rol == CODIGO_ADMIN) {
@@ -151,12 +151,29 @@ export default function VerDiagnosticoPage() {
         if (datos == null && rol != null && DB != null && !archivoDescargado) {
             cargarDatosDiagnostico(auth.authInfo.user.accessToken);
         } else if (datos != null && rol != null && DB != null && !archivoDescargado) {
-            cargarDatosPacientes();
+            sessionStorage.setItem("paciente", datos.paciente);
+            if (rol == CODIGO_ADMIN) {
+                cargarDatosMedico(auth.authInfo.user.accessToken, datos.medico);
+            } else {
+                cargarDatosPacientes();
+            }
             datos.fecha = new Timestamp(datos.fecha.seconds, datos.fecha.nanoseconds);
             setDiagOriginal({ ...datos });
             preprocesarDiag(datos);
         }
     }, [drive.descargando, auth.authInfo.user, rol, archivoDescargado, DB]);
+
+    /**
+     * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
+     */
+    useEffect(() => {
+        if (navegacion.recargarPagina) {
+            setArchivoDescargado(false);
+            setCargando(true);
+            setPersona({ id: "", nombre: "" });
+            navegacion.setRecargarPagina(false);
+        }
+    }, [navegacion.recargarPagina]);
 
     /**
      * Coloca el título de la página.
@@ -179,6 +196,12 @@ export default function VerDiagnosticoPage() {
             cargarPaciente(datos);
         }
     }, [drive.datos, archivoDescargado]);
+
+    useEffect(() => {
+        if ((persona.nombre.length > 0) && (datos.personales.id.length > 0)) {
+            setCargando(false);
+        }
+    }, [datos, persona]);
 
     /**
      * Carga los datos del diagnóstico.
@@ -236,6 +259,7 @@ export default function VerDiagnosticoPage() {
         } else {
             setPersona({ id: id, nombre: "N/A" });
         }
+        sessionStorage.setItem("descargando-drive", "false");
     };
 
     /**
@@ -267,7 +291,6 @@ export default function VerDiagnosticoPage() {
 
         aux.fecha = dayjs(datos.fecha.toDate()).format("DD [de] MMMM [de] YYYY");
         setDatos({ personales: aux, comorbilidades: res });
-        setCargando(false);
     };
 
     /**
@@ -278,10 +301,13 @@ export default function VerDiagnosticoPage() {
      * @returns Int
      */
     const detVisualizacion = (indice) => {
-        const { orientacion, mostrarMenu, dispositivoMovil } = navegacion;
+        const { orientacion, mostrarMenu, dispositivoMovil, ancho } = navegacion;
         if (dispositivoMovil && (orientacion == "vertical" || (orientacion == "horizontal" && mostrarMenu))) {
             return 12;
-        } else {
+        } else if (!dispositivoMovil && ancho < 600) {
+            return 12;
+        }
+        else {
             return indice % 2 == 0 ? 7 : 5;
         }
     };
@@ -294,7 +320,7 @@ export default function VerDiagnosticoPage() {
         setMostrarBtnSecundario(true);
         setErrorDiagnostico(false);
         setModal({
-            titulo: "Validar diagnóstico", mensaje: "",
+            titulo: "✏️ Validar diagnóstico", mensaje: "",
             mostrar: true, txtBtn: "Validar", icono: <CheckCircleOutlineIcon />
         });
     };
@@ -328,6 +354,11 @@ export default function VerDiagnosticoPage() {
         const res = await cambiarDiagnostico({ ...diagOriginal, validado: diagnostico }, DB);
 
         if (res.success) {
+            if (location.state != null) {
+                location.state.validado = diagnostico;
+                
+            }
+
             setDatos((x) => {
                 x.personales.validado = diagnostico;
                 return { ...x };

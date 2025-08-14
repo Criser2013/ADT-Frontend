@@ -65,5 +65,5 @@ export default function Chips({ valor, fnColor = () => "primary" }) {
         return (tema == "light") ? "filled" : "outlined";
     }, [tema]);
 
-    return <Chip variant={variante} size="small" label={valor} color={fnColor(valor)} />;
+    return <Chip clickable={false} variant={variante} size="small" label={valor} color={fnColor(valor)} />;
 };

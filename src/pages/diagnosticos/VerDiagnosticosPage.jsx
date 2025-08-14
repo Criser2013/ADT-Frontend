@@ -137,11 +137,24 @@ export default function VerDiagnosticosPage() {
     useEffect(() => {
         document.title = rol != CODIGO_ADMIN ? "Historial de diagnósticos" : "Datos recolectados";
         const { uid } = auth.authInfo;
+        const descargar = sessionStorage.getItem("descargando-drive");
+        const exp = (descargar == null || descargar == "false");
 
-        if (rol != null && uid != null && DB != null && drive.token != null && !archivoDescargado) {
+        if (rol != null && uid != null && DB != null && drive.token != null && exp && !archivoDescargado) {
+            sessionStorage.setItem("descargando-drive", "true");
             manejadorRecargar(drive.token, uid, rol, DB);
         }
-    }, [auth.authInfo.uid, auth.authInfo.user, drive.token, rol, DB, archivoDescargado]);
+    }, [auth.authInfo.uid, drive.token, rol, DB, archivoDescargado]);
+
+    /**
+     * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
+     */
+    useEffect(() => {
+        if (navegacion.recargarPagina) {
+            setArchivoDescargado(false);
+            navegacion.setRecargarPagina(false);
+        }
+    }, [navegacion.recargarPagina]);
 
     /**
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
@@ -173,7 +186,6 @@ export default function VerDiagnosticosPage() {
      * @param {Object} db - Instancia de Firestore.
      */
     const manejadorRecargar = (token = null, usuario = null, cargo = null, db = null) => {
-        const descargar = sessionStorage.getItem("descargando-drive");
         const credencial = (rol == CODIGO_ADMIN || token == null) ? auth.authInfo.user.accessToken : token;
         const uid = (usuario == null) ? auth.authInfo.uid : usuario;
         const rolUsuario = (cargo == null) ? rol : cargo;
@@ -192,9 +204,7 @@ export default function VerDiagnosticosPage() {
         }
 
         cargarDiagnosticos(uid, rolUsuario, BD);
-        if (descargar == null || descargar == "false") {
-            cargarPacientes(credencial);
-        }
+        cargarPacientes(credencial);
     };
 
     /**
@@ -422,7 +432,7 @@ export default function VerDiagnosticosPage() {
             setActivar2Btn(true);
             setModoModal(2);
             setModal({
-                mostrar: true, titulo: "Validar diagnóstico", mensaje: "", icono: <CheckCircleOutlineIcon />,
+                mostrar: true, titulo: "✏️ Validar diagnóstico", mensaje: "", icono: <CheckCircleOutlineIcon />,
             });
         };
 

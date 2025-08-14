@@ -110,6 +110,7 @@ export default function Navbar() {
             e = { target: { checked: !modoUsuario } };
         }
         auth.cambiarModoUsuario(e.target.checked);
+        navegacion.setRecargarPagina(true);
     };
 
     return (
