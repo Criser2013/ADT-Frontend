@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useState, useContext } from "react";
 import { crearArchivoXlsx, leerArchivoXlsx } from "../utils/XlsxFiles";
 import { crearArchivo, buscarArchivo, crearCargaResumible, subirArchivoResumible, descargarArchivo } from "../services/Drive";
 import { DRIVE_FILENAME, DRIVE_FOLDER_NAME } from "../../constants";
@@ -21,7 +21,7 @@ export const useDrive = () => {
 /**
  * Proveedor del contexto que almacena el estado de Drive.
  * @param {JSX.Element} children
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export function DriveProvider({ children }) {
     const [archivoId, setArchivoId] = useState(null);
@@ -29,18 +29,17 @@ export function DriveProvider({ children }) {
     const [token, setToken] = useState(null);
     const [descargando, setDescargando] = useState(true);
 
-    useEffect(() => {
-        if (token != null) {
-            cargarDatos(token);
-        }
-    }, [token]);
+    /* Colocar un useEffect para actualizar los datos cuando se cambie el token provoca errores
+       si un usuario no tiene archivo de pacientes o la carpeta de la app se creará una nueva. Desde
+       cada página se hace el llamado para actualizar los datos. Hacer esto solo provoca que se creen
+       2 carpetas o archivos. */
 
     /**
      * Verifica si un archivo o carpeta existe en Google Drive.
      * @param {String} idArchivo - ID del archivo o carpeta a verificar.
      * @param {String} nombre - Nombre del archivo o carpeta a verificar.
      * @param {Boolean} esCarpeta - Indicador si el archivo es una carpeta.
-     * @returns JSON
+     * @returns {JSON}
      */
     const verificarExisteArchivo = async (nombre, esCarpeta = false, carpeta = "") => {
         let params = `name='${nombre}' and trashed=false`;
@@ -68,7 +67,7 @@ export function DriveProvider({ children }) {
      * @param {Boolean} esCarpeta - Indicador si el archivo es una carpeta.
      * @param {String} carpeta - ID de la carpeta donde se creará el archivo (opcional).
      * @param {String} mimeType - Tipo MIME del archivo (opcional). De forma predeterminada es un archivo de Excel.
-     * @returns JSON
+     * @returns {JSON}
      */
     const crearArchivoMeta = async (nombre, esCarpeta = false, carpeta = "", mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") => {
         const res = await crearArchivo({
@@ -91,7 +90,7 @@ export function DriveProvider({ children }) {
      * @param {String} archivoId - ID del archivo a subir.
      * @param {Uint8Array|File|Blob} datos - Contenido del archivo a subir.
      * @param {String} mimeType - Tipo MIME del archivo. Por defecto es binario.
-     * @returns JSON
+     * @returns {JSON}
      */
     const subirArchivo = async (archivoId, datos, mimeType = "application/octet-stream") => {
         const urlCarga = await crearCargaResumible(archivoId, token);
@@ -115,7 +114,7 @@ export function DriveProvider({ children }) {
 
     /**
      * Descarga el contenido del archivo de Google Drive y lo convierte a un Array de JSON.
-     * @returns JSON
+     * @returns {JSON}
      */
     const descargarContArchivo = async (archivoId) => {
         if (token != null) {
@@ -141,7 +140,7 @@ export function DriveProvider({ children }) {
      * Guarda los datos de los pacientes en una hoja de Excel en Google Drive.
      * @param {String} instancia - Datos del paciente a guardar.
      * @param {Boolean} esEditar - Indica si se está añadiendo o editando un paciente.
-     * @returns JSON
+     * @returns {JSON}
      */
     const anadirPaciente = async (instancia, esEditar = false, prevCedula = null) => {
         let tabla = datos;
@@ -188,7 +187,7 @@ export function DriveProvider({ children }) {
      * Elimina un paciente del documento en Google Drive.
      * @param {String|Array[String]} id - ID del paciente a eliminar.
      * @param {Boolean} varios - Indica si se están eliminando varios pacientes.
-     * @returns JSON
+     * @returns {JSON}
      */
     const eliminarPaciente = async (id, varios = false) => {
         let tabla = datos;
@@ -242,7 +241,7 @@ export function DriveProvider({ children }) {
     /**
      * Carga los datos de un paciente a partir de su cédula.
      * @param {String} id - ID del paciente a cargar.
-     * @returns JSON
+     * @returns {JSON}
      */
     const cargarDatosPaciente = (id) => {
         const indice = datos != null ? datos.findIndex((paciente) => paciente.id == id) : -1;
@@ -259,9 +258,10 @@ export function DriveProvider({ children }) {
 
     /**
      * Crea la carpeta y el archivo de pacientes en Google Drive.
-     * @returns JSON
+     * @returns {JSON}
      */
     const crearCarpetaYArchivo = async () => {
+        let idArchivo = null;
         const petCrearCarp = await crearArchivoMeta(DRIVE_FOLDER_NAME, true);
         if (!petCrearCarp.success) {
             return { success: false, error: petCrearCarp.error };
@@ -271,15 +271,16 @@ export function DriveProvider({ children }) {
             return { success: false, error: petCrearArch.error };
         } else {
             setArchivoId(petCrearArch.data.id);
+            idArchivo = petCrearArch.data.id;
         }
 
-        return { success: true, data: "Carpeta y archivo creados correctamente" };
+        return { success: true, data: idArchivo };
     };
 
     /**
      * Verifica si existe el archivo y la carpeta en Google Drive.
      * de no existir alguno de ellos, los crea.
-     * @returns JSON
+     * @returns {JSON}
      */
     const verificarExisteArchivoYCarpeta = async () => {
         const existeCarpeta = await verificarExisteArchivo(DRIVE_FOLDER_NAME, true);
@@ -291,7 +292,8 @@ export function DriveProvider({ children }) {
                 setArchivoId(busquedaArchivo.data.files[0].id);
                 return { success: true, data: busquedaArchivo.data.files[0].id };
             } else {
-                return await crearArchivoMeta(DRIVE_FILENAME, false, idCarpeta);
+                const res = await crearArchivoMeta(DRIVE_FILENAME, false, idCarpeta);
+                return { ...res, data: (res.success) ? res.data.id : null };
             }
         } else {
             return await crearCarpetaYArchivo();
@@ -302,7 +304,7 @@ export function DriveProvider({ children }) {
      * Verifica si el paciente ya está registrado.
      * @param {String} cedula - Cédula del paciente a verificar.
      * @param {Array} datos - Lista de pacientes registrados.
-     * @returns Boolean
+     * @returns {boolean}
      */
     const verificarExistePaciente = (cedula, datos) => {
         for (const i of datos) {
@@ -317,26 +319,28 @@ export function DriveProvider({ children }) {
      * Carga los datos del archivo de pacientes desde Google Drive.
      */
     const cargarDatos = async () => {
-        let respuesta = null;
         setDescargando(true);
+        let respuesta = null;
         const res = await verificarExisteArchivoYCarpeta(token);
         if (res.success) {
+            setArchivoId(res.data);
             respuesta = await descargarContArchivo(res.data);
         } else {
             setDatos([]);
             respuesta = { success: false, error: res.error };
         }
         setDescargando(false);
+        sessionStorage.setItem("descargando-drive", "false");
 
         return respuesta;
     };
 
     /**
      * Crea una copia de los diagnósticos en Google Drive
-     * @param {String} nombreArchivo - Nombre del archivo a crear.
+     * @param {string} nombreArchivo - Nombre del archivo a crear.
      * @param {Array[JSON]} datos - Datos a guardar en el archivo.
-     * @param {String} tipo - Tipo de archivo a crear (xlsx o csv).
-     * @returns JSON
+     * @param {string} tipo - Tipo de archivo a crear (xlsx o csv).
+     * @returns {JSON}
      */
     const crearCopiaDiagnosticos = async (nombreArchivo, datos, tipo) => {
         let auxCarpeta = null;
@@ -357,11 +361,11 @@ export function DriveProvider({ children }) {
 
     /**
      * Guarda un archivo de diagnósticos en Google Drive.
-     * @param {String} nombreArchivo - Nombre del archivo a crear.
-     * @param {String} idCarpeta - ID de la carpeta donde se guardará el archivo.
+     * @param {string} nombreArchivo - Nombre del archivo a crear.
+     * @param {string} idCarpeta - ID de la carpeta donde se guardará el archivo.
      * @param {Array[JSON]} datos - Datos a guardar en el archivo.
-     * @param {String} tipo - Tipo de archivo a crear (xlsx o csv).
-     * @returns JSON
+     * @param {string} tipo - Tipo de archivo a crear (xlsx o csv).
+     * @returns {JSON}
      */
     const guardarArchivoDiagnostico = async (nombreArchivo, idCarpeta, datos, tipo) => {
         let mimeType = (tipo == "csv") ? "text/csv" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -381,7 +385,7 @@ export function DriveProvider({ children }) {
     return (
         <driveContext.Provider value={{
             anadirPaciente, descargarContArchivo, setToken, descargando, cargarDatosPaciente,
-            eliminarPaciente, cargarDatos, datos, crearCopiaDiagnosticos, token
+            eliminarPaciente, cargarDatos, datos, crearCopiaDiagnosticos, token, archivoId
         }}>
             {children}
         </driveContext.Provider>

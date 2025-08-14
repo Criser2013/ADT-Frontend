@@ -49,12 +49,14 @@ export default function DiagnosticoPacientePage() {
      * Carga de datos inicial y colocando el título de la página.
      */
     useEffect(() => {
+        const descargar = sessionStorage.getItem("descargando-drive");
         document.title = "Diagnosticar paciente";
 
-        if (drive.datos != null && !drive.descargando) {
+        if (drive.token != null && (descargar == null || descargar == "false")) {
+            sessionStorage.setItem("descargando-drive", "true");
             cargarDatosPacientes();
         }
-    }, []);
+    }, [drive.token]);
 
     /**
      * Manejador de carga de datos de los pacientes.

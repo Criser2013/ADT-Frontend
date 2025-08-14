@@ -32,7 +32,7 @@ export default function EditarPacientePage() {
             drive.setToken(auth.tokenDrive);
         }
     }, [auth.tokenDrive]);
-
+    
     /**
      * Coloca el título de la página.
      */

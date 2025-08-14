@@ -42,6 +42,7 @@ export default function VerDiagnosticosPage() {
         mostrar: false, titulo: "", mensaje: "", icono: null
     });
     const [activar2Btn, setActivar2Btn] = useState(false);
+    const [archivoDescargado, setArchivoDescargado] = useState(false);
     const [datos, setDatos] = useState([]);
     const [diagnosticos, setDiagnosticos] = useState(null);
     const [personas, setPersonas] = useState(null);
@@ -54,7 +55,7 @@ export default function VerDiagnosticosPage() {
     const [preprocesar, setPreprocesar] = useState(false);
     const [guardarDrive, setGuardarDrive] = useState(false);
     const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
+    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
     const camposVariables = (rol != CODIGO_ADMIN) ? [
         { id: "nombre", label: "Paciente", componente: null, ordenable: true },
         { id: "paciente", label: "Cédula", componente: null, ordenable: true }
@@ -136,11 +137,24 @@ export default function VerDiagnosticosPage() {
     useEffect(() => {
         document.title = rol != CODIGO_ADMIN ? "Historial de diagnósticos" : "Datos recolectados";
         const { uid } = auth.authInfo;
+        const descargar = sessionStorage.getItem("descargando-drive");
+        const exp = (descargar == null || descargar == "false");
 
-        if (rol != null && uid != null && DB != null) {
-            manejadorRecargar(auth.authInfo.user.accessToken, uid, rol, DB);
+        if (rol != null && uid != null && DB != null && drive.token != null && exp && !archivoDescargado) {
+            sessionStorage.setItem("descargando-drive", "true");
+            manejadorRecargar(drive.token, uid, rol, DB);
         }
-    }, [auth.authInfo.uid, auth.authInfo.user, rol, DB]);
+    }, [auth.authInfo.uid, drive.token, rol, DB, archivoDescargado]);
+
+    /**
+     * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
+     */
+    useEffect(() => {
+        if (navegacion.recargarPagina) {
+            setArchivoDescargado(false);
+            navegacion.setRecargarPagina(false);
+        }
+    }, [navegacion.recargarPagina]);
 
     /**
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
@@ -172,7 +186,7 @@ export default function VerDiagnosticosPage() {
      * @param {Object} db - Instancia de Firestore.
      */
     const manejadorRecargar = (token = null, usuario = null, cargo = null, db = null) => {
-        const credencial = (token == null) ? auth.authInfo.user.accessToken : token;
+        const credencial = (rol == CODIGO_ADMIN || token == null) ? auth.authInfo.user.accessToken : token;
         const uid = (usuario == null) ? auth.authInfo.uid : usuario;
         const rolUsuario = (cargo == null) ? rol : cargo;
         const BD = (db == null) ? DB : db;
@@ -202,6 +216,7 @@ export default function VerDiagnosticosPage() {
             await peticionApi(token, "admin/usuarios", "GET", null,
                 "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
             );
+        setArchivoDescargado(true);
         if (res.success && rol == CODIGO_ADMIN) {
             setPersonas(res.data.usuarios);
         } else if (res.success && rol != CODIGO_ADMIN) {
@@ -256,7 +271,7 @@ export default function VerDiagnosticosPage() {
                 clave = i.uid;
             }
 
-            aux[clave] = {nombre: i.nombre, cedula: (rol != CODIGO_ADMIN) ? i.cedula : i.uid};
+            aux[clave] = { nombre: i.nombre, cedula: (rol != CODIGO_ADMIN) ? i.cedula : i.uid };
         }
 
         for (let i = 0; i < diags.length; i++) {
@@ -417,7 +432,7 @@ export default function VerDiagnosticosPage() {
             setActivar2Btn(true);
             setModoModal(2);
             setModal({
-                mostrar: true, titulo: "Validar diagnóstico", mensaje: "", icono: <CheckCircleOutlineIcon />,
+                mostrar: true, titulo: "✏️ Validar diagnóstico", mensaje: "", icono: <CheckCircleOutlineIcon />,
             });
         };
 
