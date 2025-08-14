@@ -273,8 +273,40 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      * Activa o desactiva el botón de inicio de sesión basado en la respuesta de reCAPTCHA.
      * @param {String|null} token - Token de reCAPTCHA recibido al completar el desafío.
      */
-    const manejadorReCAPTCHA = (token) => {
-        setDesactivarBtn(!(typeof token == "string"));
+    const manejadorReCAPTCHA = async (token) => {
+        const res = (typeof token == "string");
+        if (res) {
+            verificarRespuesta(token);
+        }
+    };
+
+    /**
+     * Comprueba que la respuesta de reCAPTCHA sea que un usuario es un humano.
+     * @param {string} token - Token de ReCAPTCHA
+     */
+    const verificarRespuesta = async (token) => {
+        const res = await peticionApi("", "recaptcha", "POST", { token: token }, "Se ha producido un error al verificar el CAPTCHA. Reintentalo nuevamente.");
+
+        if (res.success) {
+            if (res.data.success) {
+                setDesactivarBtn(false);
+            } else {
+                setModal({ 
+                    mostrar: true, titulo: "❌ Error",
+                    mensaje: "No se ha podido comprobar que seas un humano. Reintenta el CAPTCHA nuevamente."
+                });
+                CAPTCHA.current.reset();
+            }
+        } else {
+            let txtError = res.error;
+            if (typeof res.error != "string") {
+                for (const i of res.error) {
+                    txtError += `${i} `;
+                }
+            }
+            CAPTCHA.current.reset();
+            setModal({ titulo: "❌ Error", mostrar: true, mensaje: txtError });
+        }
     };
 
     /**

@@ -44,6 +44,7 @@ export default function VerDiagnosticoPage() {
     const [params] = useSearchParams();
     const [cargando, setCargando] = useState(true);
     const [mostrarBtnSecundario, setMostrarBtnSecundario] = useState(true);
+    const [archivoDescargado, setArchivoDescargado] = useState(false);
     const [modoEliminar, setModoEliminar] = useState(false);
     const [popOver, setPopOver] = useState(null);
     const open = Boolean(popOver);
@@ -107,7 +108,7 @@ export default function VerDiagnosticoPage() {
         { titulo: "Conteo glóbulos blancos", valor: `${datos.personales.wbc} /µL.` },
     ], [datos.personales]);
     const listadoPestanas = useMemo(() => {
-        let tit1 = "Histotrial de diagnósticos";
+        let tit1 = "Historial de diagnósticos";
         let tit2 = `Diagnóstico-${persona.nombre}-${datos.personales.fecha}`;
 
         if (rol == CODIGO_ADMIN) {
@@ -128,7 +129,7 @@ export default function VerDiagnosticoPage() {
         }
     }, [rol, persona.nombre, datos.personales.id]);
     const id = useMemo(() => params.get("id"), [params]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
+    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -147,15 +148,32 @@ export default function VerDiagnosticoPage() {
      */
     useEffect(() => {
         const datos = location.state;
-        if (datos == null && rol != null && DB != null) {
+        if (datos == null && rol != null && DB != null && !archivoDescargado) {
             cargarDatosDiagnostico(auth.authInfo.user.accessToken);
-        } else if (datos != null && rol != null && DB != null) {
-            cargarDatosPaciente(datos.paciente);
+        } else if (datos != null && rol != null && DB != null && !archivoDescargado) {
+            sessionStorage.setItem("paciente", datos.paciente);
+            if (rol == CODIGO_ADMIN) {
+                cargarDatosMedico(auth.authInfo.user.accessToken, datos.medico);
+            } else {
+                cargarDatosPacientes();
+            }
             datos.fecha = new Timestamp(datos.fecha.seconds, datos.fecha.nanoseconds);
             setDiagOriginal({ ...datos });
             preprocesarDiag(datos);
         }
-    }, [drive.descargando, auth.authInfo.user, rol, DB]);
+    }, [drive.descargando, auth.authInfo.user, rol, archivoDescargado, DB]);
+
+    /**
+     * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
+     */
+    useEffect(() => {
+        if (navegacion.recargarPagina) {
+            setArchivoDescargado(false);
+            setCargando(true);
+            setPersona({ id: "", nombre: "" });
+            navegacion.setRecargarPagina(false);
+        }
+    }, [navegacion.recargarPagina]);
 
     /**
      * Coloca el título de la página.
@@ -170,6 +188,22 @@ export default function VerDiagnosticoPage() {
     }, [titulo]);
 
     /**
+     * Una vez se carguen los datos de los pacientes, se cargan los datos del paciente.
+     */
+    useEffect(() => {
+        const datos = sessionStorage.getItem("paciente");
+        if (drive.datos != null && archivoDescargado) {
+            cargarPaciente(datos);
+        }
+    }, [drive.datos, archivoDescargado]);
+
+    useEffect(() => {
+        if ((persona.nombre.length > 0) && (datos.personales.id.length > 0)) {
+            setCargando(false);
+        }
+    }, [datos, persona]);
+
+    /**
      * Carga los datos del diagnóstico.
      */
     const cargarDatosDiagnostico = async (token) => {
@@ -181,7 +215,8 @@ export default function VerDiagnosticoPage() {
             if (rol == CODIGO_ADMIN) {
                 await cargarDatosMedico(token, datos.data.medico);
             } else {
-                cargarDatosPaciente(datos.data.paciente);
+                sessionStorage.setItem("paciente", datos.data.paciente);
+                await cargarDatosPacientes();
             }
 
             preprocesarDiag(datos.data);
@@ -191,16 +226,40 @@ export default function VerDiagnosticoPage() {
     };
 
     /**
+     * Carga los datos de los pacientes.
+     */
+    const cargarDatosPacientes = async () => {
+        const descargar = sessionStorage.getItem("descargando-drive");
+
+        if (descargar == null || descargar == "false") {
+            sessionStorage.setItem("descargando-drive", "true");
+            let res = await drive.cargarDatos();
+
+            if (!res.success) {
+                setModal({
+                    mostrar: true, mensaje: res.error,
+                    titulo: "❌ Error al cargar los datos de los pacientes",
+                });
+                return;
+            }
+
+            setArchivoDescargado(true);
+        }
+
+    };
+
+    /**
      * Carga los datos del paciente asociado al diagnóstico.
      * @param {String} id - ID del paciente.
      */
-    const cargarDatosPaciente = (id) => {
+    const cargarPaciente = (id) => {
         const res = drive.cargarDatosPaciente(id);
         if (res.success) {
             setPersona({ ...res.data.personales });
         } else {
             setPersona({ id: id, nombre: "N/A" });
         }
+        sessionStorage.setItem("descargando-drive", "false");
     };
 
     /**
@@ -232,7 +291,6 @@ export default function VerDiagnosticoPage() {
 
         aux.fecha = dayjs(datos.fecha.toDate()).format("DD [de] MMMM [de] YYYY");
         setDatos({ personales: aux, comorbilidades: res });
-        setCargando(false);
     };
 
     /**
@@ -243,10 +301,13 @@ export default function VerDiagnosticoPage() {
      * @returns Int
      */
     const detVisualizacion = (indice) => {
-        const { orientacion, mostrarMenu, dispositivoMovil } = navegacion;
+        const { orientacion, mostrarMenu, dispositivoMovil, ancho } = navegacion;
         if (dispositivoMovil && (orientacion == "vertical" || (orientacion == "horizontal" && mostrarMenu))) {
             return 12;
-        } else {
+        } else if (!dispositivoMovil && ancho < 600) {
+            return 12;
+        }
+        else {
             return indice % 2 == 0 ? 7 : 5;
         }
     };
@@ -259,7 +320,7 @@ export default function VerDiagnosticoPage() {
         setMostrarBtnSecundario(true);
         setErrorDiagnostico(false);
         setModal({
-            titulo: "Validar diagnóstico", mensaje: "",
+            titulo: "✏️ Validar diagnóstico", mensaje: "",
             mostrar: true, txtBtn: "Validar", icono: <CheckCircleOutlineIcon />
         });
     };
@@ -293,6 +354,11 @@ export default function VerDiagnosticoPage() {
         const res = await cambiarDiagnostico({ ...diagOriginal, validado: diagnostico }, DB);
 
         if (res.success) {
+            if (location.state != null) {
+                location.state.validado = diagnostico;
+                
+            }
+
             setDatos((x) => {
                 x.personales.validado = diagnostico;
                 return { ...x };
@@ -368,7 +434,7 @@ export default function VerDiagnosticoPage() {
                     {(campo.titulo == "Sexo") ? <ChipSexo sexo={campo.valor} /> : null}
                     {(campo.titulo == "Diagnóstico modelo") ? <ChipDiagnostico diagnostico={campo.valor} /> : null}
                     {(campo.titulo == "Diagnóstico médico") ? <ChipValidado validado={campo.valor} /> : null}
-                    {(campo.titulo != "Sexo"&& campo.titulo != "Diagnóstico modelo" && campo.titulo != "Diagnóstico médico") ? (
+                    {(campo.titulo != "Sexo" && campo.titulo != "Diagnóstico modelo" && campo.titulo != "Diagnóstico médico") ? (
                         <Typography variant="body1">
                             {campo.valor}
                         </Typography>) : null}

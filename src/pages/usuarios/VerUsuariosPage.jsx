@@ -594,7 +594,7 @@ export default function VerUsuariosPage() {
                             </MenuItem>
                         </TextField>)} />
                 {mostrarTxtAdvertencia ? <Typography variant="body2">
-                    <b>¡Atención! El usuario no podrá ingresar en la aplicación.</b>
+                    ⚠️ <b>¡Atención! El usuario no podrá ingresar en la aplicación.</b>
                 </Typography> : null}
             </Stack>
         );

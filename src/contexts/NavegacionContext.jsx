@@ -33,6 +33,7 @@ export function NavegacionProvider({ children }) {
     const [orientacion, setOrientacion] = useState("horizontal");
     const [ancho, setAncho] = useState(window.viewport.segments[0].width);
     const [alto, setAlto] = useState(window.viewport.segments[0].height);
+    const [recargarPagina, setRecargarPagina] = useState(false);
     const { mode, setMode } = useColorScheme();
     const tema = useMemo(() => {
         if (mode == "system" || mode == undefined) {
@@ -135,7 +136,8 @@ export function NavegacionProvider({ children }) {
     return (
         <navegacionContext.Provider value={{
             paginaAnterior, setPaginaAnterior, callbackError, setCallbackError, mostrarMenu, setMostrarMenu, cerrandoMenu,
-            variantSidebar, setCerrandoMenu, dispositivoMovil, orientacion, ancho, alto, cambiarTema, tema
+            variantSidebar, setCerrandoMenu, dispositivoMovil, orientacion, ancho, alto, cambiarTema, tema, recargarPagina,
+            setRecargarPagina
         }}>
             {children}
         </navegacionContext.Provider>

@@ -79,9 +79,11 @@ export default function MenuUsuario() {
      * Carga los diagnósticos y los pacientes dependiendo del rol del usuario.
      */
     useEffect(() => {
+        const descargar = sessionStorage.getItem("descargando-drive");
         const { uid } = auth.authInfo;
 
-        if (uid != null && drive.token != null && DB != null) {
+        if (uid != null && drive.token != null && (descargar == null || descargar == "false") && DB != null) {
+            sessionStorage.setItem("descargando-drive", "true");
             cargarPacientes();
             cargarDiagnosticos(uid, DB);
         }
@@ -135,6 +137,7 @@ export default function MenuUsuario() {
     const cargarPacientes = async () => {
         const res = await drive.cargarDatos();
         if (!res.success) {
+            setDatosPacientes([]);
             setModal({
                 mostrar: true, mensaje: res.error,
                 titulo: "❌ Error al cargar los datos de los pacientes",

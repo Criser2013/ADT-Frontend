@@ -110,6 +110,7 @@ export default function Navbar() {
             e = { target: { checked: !modoUsuario } };
         }
         auth.cambiarModoUsuario(e.target.checked);
+        navegacion.setRecargarPagina(true);
     };
 
     return (
@@ -158,7 +159,7 @@ export default function Navbar() {
                                 },
                             },
                         }}>
-                        <Box padding="1vh 1vw" maxWidth="90vw">
+                        <Box padding="1vh 15px" maxWidth="90vw">
                             <Typography variant="h6">
                                 <b>{auth.authInfo.user != null ? auth.authInfo.user.displayName : "Usuario"}</b>
                             </Typography>
