@@ -139,7 +139,7 @@ export default function VerPacientesPage() {
      */
     const manejadorBtnAnadir = () => {
         navegacion.setPaginaAnterior("/pacientes");
-        navigate("/pacientes/anadir", { replace: true });
+        navigate("/pacientes/anadir");
     };
 
     /**
@@ -161,7 +161,7 @@ export default function VerPacientesPage() {
      */
     const manejadorClicCelda = (dato) => {
         navegacion.setPaginaAnterior("/pacientes");
-        navigate(`/pacientes/ver-paciente?id=${dato.id}`, { replace: true });
+        navigate(`/pacientes/ver-paciente?id=${dato.id}`);
     };
 
     /**

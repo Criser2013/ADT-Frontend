@@ -69,7 +69,7 @@ export default function Sidebar() {
      */
     const manejadorClicMenu = (url) => {
         navegacion.setPaginaAnterior(window.location.pathname);
-        navigate(url, { replace: true });
+        navigate(url);
 
         if (navegacion.dispositivoMovil && navegacion.orientacion == "vertical") {
             navegacion.setMostrarMenu(false);
