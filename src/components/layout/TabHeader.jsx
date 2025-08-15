@@ -21,11 +21,11 @@ export default function TabHeader({ urlPredet, titulo, pestanas, tooltip, activa
      */
     const manejadorBtnAtras = () => {
         if (navegacion.paginaAnterior != "" && navegacion.paginaAnterior != null) {
-            navigate(navegacion.paginaAnterior, { replace: true });
+            navigate(navegacion.paginaAnterior);
         } else if (urlPredet != null && urlPredet != undefined) {
-            navigate(urlPredet, { replace: true });
+            navigate(urlPredet);
         } else {
-            navigate("/menu", { replace: true });
+            navigate("/menu");
         }
     };
 
@@ -47,7 +47,7 @@ export default function TabHeader({ urlPredet, titulo, pestanas, tooltip, activa
                         {pestanas && pestanas.length > 0 ? (
                             pestanas.map((x) => {
                                 return (
-                                    <Link key={x.url} underline="hover" color="inherit" onClick={() => { navigate(x.url, { replace: true }); }} sx={{ cursor: "pointer" }}>
+                                    <Link key={x.url} underline="hover" color="inherit" onClick={() => { navigate(x.url); }} sx={{ cursor: "pointer" }}>
                                         {x.texto}
                                     </Link>
                                 );

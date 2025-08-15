@@ -47,13 +47,13 @@ export default function IniciarSesionPage() {
         }
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.ancho]);
     const centrar = useMemo(() => {
-        const { dispositivoMovil, orientacion } = navegacion;
-        if (!dispositivoMovil || (dispositivoMovil && (orientacion == "vertical"))) {
+        const { dispositivoMovil, orientacion, alto } = navegacion;
+        if ((!dispositivoMovil && (alto >= 800)) || (dispositivoMovil && (orientacion == "vertical"))) {
             return "center";
         } else {
             return null;
         }
-    }, [navegacion.dispositivoMovil, navegacion.orientacion]);
+    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.alto]);
     const temaCaptcha = useMemo(() => navegacion.tema, [navegacion.tema]);
     const fondoImg = useMemo(() => {
         return temaCaptcha === "light" ? fondoClaro : fondoOscuro;
@@ -168,7 +168,7 @@ export default function IniciarSesionPage() {
                                     <BtnTema />
                                 </IconButton>
                             </Grid>
-                            <Grid container columnSpacing={"20px"} columns={12} alignItems="center">
+                            <Grid container columnSpacing="20px" columns={12} alignItems="center">
                                 <Grid size={3}>
                                     <img src={icono} height="90vh" width="90vh" alt="derp" />
                                 </Grid>

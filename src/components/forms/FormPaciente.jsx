@@ -121,7 +121,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
             setValue("otraEnfermedad", res.data.comorbilidades.length > 0);
             setValue("otrasEnfermedades", res.data.comorbilidades);
         } else {
-            navigate("/pacientes", { replace: true });
+            navigate("/pacientes");
         }
     };
 
@@ -130,7 +130,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
      */
     const manejadorBtnModal = () => {
         if (!archivoDescargado) {
-            navigate("/pacientes", { replace: true });
+            navigate("/pacientes");
         }
         setModal({ ...modal, mostrar: false });
     };
@@ -166,7 +166,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
     const manejadorResGuardado = async (instancia, cedula) => {
         const res = await drive.anadirPaciente(instancia, !esAnadir, cedula);
         if (res.success) {
-            navigate("/pacientes", { replace: true });
+            navigate("/pacientes");
         } else {
             setModal({
                 mostrar: true,
