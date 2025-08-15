@@ -321,7 +321,7 @@ export default function VerDiagnosticosPage() {
         if (ejecutar == "true" || ejecutar == null) {
             navegacion.setPaginaAnterior("/diagnosticos");
             sessionStorage.removeItem("ejecutar-callback");
-            navigate(`/diagnosticos/ver-diagnostico?id=${dato.id}`, { replace: true });
+            navigate(`/diagnosticos/ver-diagnostico?id=${dato.id}`);
         }
     };
 

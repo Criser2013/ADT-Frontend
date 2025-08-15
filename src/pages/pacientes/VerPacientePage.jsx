@@ -149,7 +149,7 @@ export default function VerPacientePage() {
             setDatos(res.data);
             setCargando(false);
         } else {
-            navigate("/pacientes", { replace: true });
+            navigate("/pacientes");
         }
     };
 
@@ -178,7 +178,7 @@ export default function VerPacientePage() {
      */
     const manejadorBtnEditar = () => {
         navegacion.setPaginaAnterior(`/pacientes/ver-paciente?id=${datos.personales.id}`);
-        navigate(`/pacientes/editar?id=${datos.personales.id}`, { replace: true });
+        navigate(`/pacientes/editar?id=${datos.personales.id}`);
     };
 
     /**
