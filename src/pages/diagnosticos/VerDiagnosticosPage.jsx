@@ -218,6 +218,7 @@ export default function VerDiagnosticosPage() {
             );
         setArchivoDescargado(true);
         if (res.success && rol == CODIGO_ADMIN) {
+            sessionStorage.setItem("descargando-drive", "false");
             setPersonas(res.data.usuarios);
         } else if (res.success && rol != CODIGO_ADMIN) {
             return;
