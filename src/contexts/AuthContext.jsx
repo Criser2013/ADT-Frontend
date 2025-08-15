@@ -75,10 +75,10 @@ export function AuthProvider({ children }) {
      */
     useEffect(() => {
         const ruta = window.location.pathname == "/";
-        if (auth != null && scopes != null && db != null && ruta && autenticado != null) {
+        if (auth != null && scopes != null && db != null && ruta) {
             setCargando(false);
         }
-    }, [auth, db, scopes, autenticado]);
+    }, [auth, db, scopes]);
 
     /**
      * Recupera la sesión si el usuario no la ha cerrado. También refresca los tokens

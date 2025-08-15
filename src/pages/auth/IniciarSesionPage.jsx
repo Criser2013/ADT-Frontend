@@ -27,6 +27,7 @@ export default function IniciarSesionPage() {
     const credenciales = useCredenciales();
     const CAPTCHA = useRef(null);
     const [desactivarBtn, setDesactivarBtn] = useState(true);
+    const [cargandoBtn, setCargandoBtn] = useState(false);
     const [cargando, setCargando] = useState(false);
     const [modal, setModal] = useState({
         mensaje: "", mostrar: false
@@ -114,6 +115,8 @@ export default function IniciarSesionPage() {
         const res = (typeof token == "string");
         if (res) {
             verificarRespuesta(token);
+        } else {
+            setDesactivarBtn(true);
         }
     };
 
@@ -122,6 +125,7 @@ export default function IniciarSesionPage() {
      * @param {string} token - Token de ReCAPTCHA
      */
     const verificarRespuesta = async (token) => {
+        setCargandoBtn(true);
         const res = await peticionApi("", "recaptcha", "POST", { token: token }, "Se ha producido un error al verificar el CAPTCHA. Reintentalo nuevamente.");
 
         if (res.success) {
@@ -144,6 +148,7 @@ export default function IniciarSesionPage() {
             CAPTCHA.current.reset();
             setModal({ titulo: "❌ Error", mostrar: true, mensaje: txtError });
         }
+        setCargandoBtn(false);
     };
 
     /**
@@ -208,6 +213,8 @@ export default function IniciarSesionPage() {
                                             onClick={manejadorBtnIniciarSesion}
                                             variant="contained"
                                             disabled={desactivarBtn}
+                                            loading={cargandoBtn}
+                                            loadingPosition="end"
                                             sx={{ textTransform: "none" }}>
                                             {auth.authInfo.user == null ? "Iniciar sesión" : "Ir a la aplicación"}
                                         </Button>
