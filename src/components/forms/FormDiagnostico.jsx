@@ -72,6 +72,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         return credenciales.obtenerRecaptcha();
     }, [credenciales.obtenerRecaptcha()]);
     const [desactivarCampos, setDesactivarCampos] = useState(false);
+    const [cargandoBtn, setCargandoBtn] = useState(false);
     const [antTema, setAntTema] = useState(navegacion.tema);
     const desactivarCamposAux = useMemo(() => desactivarCampos || esDiagPacientes, [desactivarCampos, esDiagPacientes]);
     const txtBtnDiagnostico = useMemo(() => {
@@ -277,6 +278,8 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         const res = (typeof token == "string");
         if (res) {
             verificarRespuesta(token);
+        } else {
+            setDesactivarBtn(true);
         }
     };
 
@@ -285,6 +288,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      * @param {string} token - Token de ReCAPTCHA
      */
     const verificarRespuesta = async (token) => {
+        setCargandoBtn(true);
         const res = await peticionApi("", "recaptcha", "POST", { token: token }, "Se ha producido un error al verificar el CAPTCHA. Reintentalo nuevamente.");
 
         if (res.success) {
@@ -307,6 +311,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             CAPTCHA.current.reset();
             setModal({ titulo: "❌ Error", mostrar: true, mensaje: txtError });
         }
+        setCargandoBtn(false);
     };
 
     /**
@@ -665,7 +670,9 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                             startIcon={diagnostico.diagnosticado ? <PersonSearchIcon /> : <DiagnosticoIcono />}
                                             variant="contained"
                                             onClick={handleSubmit(onSubmit)}
+                                            loading={cargandoBtn}
                                             disabled={desactivarBtn}
+                                            loadingPosition="end"
                                             sx={{
                                                 textTransform: "none"
                                             }}>
