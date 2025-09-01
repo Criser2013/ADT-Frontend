@@ -124,11 +124,9 @@ export default function MenuUsuario() {
      * @returns {JSON}
      */
     const formatearDatosGrafico = (datos, color, etiqueta) => {
-        const json = {
+        return {
             label: etiqueta, data: datos, backgroundColor: color,
         };
-
-        return json;
     };
 
     /**

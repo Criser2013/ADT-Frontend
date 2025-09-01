@@ -29,6 +29,7 @@ import ContComorbilidades from "../../components/diagnosticos/ContComorbilidades
 import { peticionApi } from "../../services/Api";
 import { Timestamp } from "firebase/firestore";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
+import GraficoBarras from "../../components/charts/GraficoBarras";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -63,9 +64,9 @@ export default function VerDiagnosticoPage() {
             hemoglobina: "", frecRes: "", frecCard: "", fiebre: 0,
             edema: 0, edad: "", dolorToracico: 0, disnea: 0,
             disautonomicos: 0, diagnostico: 0, derrame: 0, crepitaciones: 0,
-            cirugiaReciente: 0, bebdor: 0
+            cirugiaReciente: 0, bebedor: 0
         },
-        comorbilidades: []
+        comorbilidades: [], lime: null
     });
     const [persona, setPersona] = useState({
         id: "", nombre: ""
@@ -282,7 +283,36 @@ export default function VerDiagnosticoPage() {
      */
     const preprocesarDiag = (datos) => {
         const aux = { ...datos };
+        const lime = {
+            labels: [],
+            datasets: [
+                {
+                    label: "Diagnóstico Positivo",
+                    data: [],
+                    backgroundColor: "rgba(237, 108, 2, 255)",
+                },
+                {
+                    label: "Diagnóstico Negativo",
+                    data: [],
+                    backgroundColor: "rgba(44,120,56, 2)",
+                }
+            ]
+        };
         const res = oneHotInversoOtraEnfermedad(aux);
+
+        if (datos.lime != undefined) {
+            aux.lime = aux.lime.sort((x) => x.contribucion);
+            for (const i of aux.lime) {
+                if (i.contribucion > 0) {
+                    lime.datasets[0].data.push(i.contribucion);
+                    lime.datasets[1].data.push(0);
+                } else {
+                    lime.datasets[1].data.push(Math.abs(i.contribucion));
+                    lime.datasets[0].data.push(0);
+                }
+                lime.labels.push(i.campo);
+            }
+        }
 
         for (const i of COMORBILIDADES) {
             delete aux[i];
@@ -290,7 +320,9 @@ export default function VerDiagnosticoPage() {
         dayjs.extend(customParseFormat);
 
         aux.fecha = dayjs(datos.fecha.toDate()).format("DD [de] MMMM [de] YYYY");
-        setDatos({ personales: aux, comorbilidades: res });
+        setDatos({
+            personales: aux, comorbilidades: res, lime: (datos.lime != undefined ? lime : null)
+        });
     };
 
     /**
@@ -356,7 +388,7 @@ export default function VerDiagnosticoPage() {
         if (res.success) {
             if (location.state != null) {
                 location.state.validado = diagnostico;
-                
+
             }
 
             setDatos((x) => {
@@ -550,6 +582,23 @@ export default function VerDiagnosticoPage() {
                             {camposPersonales.map((campo, index) => (
                                 <CamposTexto key={index} campo={campo} indice={index} />
                             ))}
+                            {(datos.lime != null) ? (
+                                <>
+                                    <Grid size={12} paddingTop="3vh">
+                                        <Divider />
+                                    </Grid>
+                                    <Grid size={12} paddingTop="3vh">
+                                        <Typography variant="h5" paddingBottom="2vh">
+                                            Explicación del diagnóstico del modelo
+                                        </Typography>
+                                        <Typography>
+                                            Este gráfico muestra cómo cada característica contribuye a la clasificación del diagnóstico. Una barra más alta indica que esa característica 
+                                            tuvo una mayor influencia en la decisión del modelo para esa clase.
+                                        </Typography>
+                                        <GraficoBarras titulo="Contribución de cada característica con el tipo de diagnóstico" datos={datos.lime} />
+                                    </Grid>
+                                </>
+                            ) : null}
                             <Grid size={12} paddingTop="3vh">
                                 <Divider />
                             </Grid>

@@ -227,7 +227,7 @@ export default function IniciarSesionPage() {
                                 </Typography>
                                 <br />
                                 <Typography align="center" variant="body1" marginLeft="auto" marginRight="auto">
-                                    ¿Necesitas ayuda? ¡consulta nuestro <Link href={URL_MANUAL_USUARIO}>manual de instrucciones</Link>!
+                                    ¿Necesitas ayuda? ¡consulta nuestro <Link target="_blank" href={URL_MANUAL_USUARIO}>manual de instrucciones</Link>!
                                 </Typography>
                             </Grid>
                         </Grid>

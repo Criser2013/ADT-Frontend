@@ -21,10 +21,11 @@ ChartJS.register(
  *     backgroundColor: ['red', 'blue', 'green'], - colores de las barras  
  *   }]  
  * }  
+ * @param {boolean} responsive - Indica si el gráfico debe ser responsivo
  * @param {String} modoActualizacion - Modo de actualización del gráfico (default, "none", "resize", etc).
  * @returns {JSX.Element}
  */
-export default function GraficoPastel({ titulo, datos, modoActualizacion = "default" }) {
+export default function GraficoPastel({ titulo, datos, responsive = true, modoActualizacion = "default" }) {
     const { tema, ancho } = useNavegacion();
     const tamTitulo = useMemo(() => {
         const vw = (ancho / 100); // en pixeles
@@ -43,7 +44,7 @@ export default function GraficoPastel({ titulo, datos, modoActualizacion = "defa
     }, [tema]);
 
     const opciones = useMemo(() => ({
-        responsive: true,
+        responsive: responsive,
         plugins: {
             legend: {
                 position: 'top', labels: {

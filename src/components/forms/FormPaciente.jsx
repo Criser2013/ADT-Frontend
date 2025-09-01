@@ -283,6 +283,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                                             label="Fecha de nacimiento"
                                             disableFuture={true}
                                             name="fechaNacimiento"
+                                            format="DD/MM/YYYY"
                                             onChange={field.onChange}
                                             value={field.value}
                                             slotProps={{

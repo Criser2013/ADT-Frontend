@@ -23,11 +23,14 @@ ChartJS.register(
  *     backgroundColor: ['red', 'blue', 'green'], - colores de las barras  
  *   }]  
  * }  
- * @param {Array} colores - Colores para las barras del gráfico
+ * @param {Array} responsive - Indica si el gráfico debe ser responsive
  * @param {String} modoActualizacion - Modo de actualización del gráfico (default, "none", "resize", etc).
+ * @param {Number|undefined} altura - Alto del gráfico (opcional).
+ * @param {Number|undefined} anchura - Ancho del gráfico (opcional).
  * @returns {JSX.Element}
  */
-export default function GraficoBarras({ titulo, datos, modoActualizacion = "default" }) {
+export default function GraficoBarras({ titulo, datos, responsive = true,
+    modoActualizacion = "default", altura = undefined, anchura = undefined }) {
     const { tema, ancho } = useNavegacion();
     const tamTitulo = useMemo(() => {
         const vw = (ancho / 100); // en pixeles
@@ -48,7 +51,7 @@ export default function GraficoBarras({ titulo, datos, modoActualizacion = "defa
         return tema == "dark" ? "#838383ff" : "#d3d3d3bd";
     }, [tema]);
     const opciones = useMemo(() => ({
-        responsive: true,
+        responsive: responsive,
         plugins: {
             legend: {
                 position: 'top', labels: {
@@ -80,6 +83,6 @@ export default function GraficoBarras({ titulo, datos, modoActualizacion = "defa
     }), [titulo, colorTitulo, colorMalla, tamLeyenda, tamTitulo]);
 
     return (
-        <Bar data={datos} options={opciones} updateMode={modoActualizacion} />
+        <Bar height={altura} width={anchura} data={datos} options={opciones} updateMode={modoActualizacion} />
     );
 }
