@@ -38,7 +38,7 @@ export default function MenuLayout({ children }) {
     const width = useMemo(() => {
         const { dispositivoMovil, orientacion, mostrarMenu } = navegacion;
         if ((!dispositivoMovil && !mostrarMenu)|| (dispositivoMovil && orientacion == "vertical")) {
-            return "100vw";
+            return "99vw";
         } else if (orientacion == "horizontal" && mostrarMenu) {
             return "calc(100vw - 240px - 1.9vw)";
         }

@@ -30,6 +30,7 @@ import { peticionApi } from "../../services/Api";
 import { Timestamp } from "firebase/firestore";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
 import GraficoBarras from "../../components/charts/GraficoBarras";
+import ContLime from "../../components/diagnosticos/ContLime";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -588,14 +589,9 @@ export default function VerDiagnosticoPage() {
                                         <Divider />
                                     </Grid>
                                     <Grid size={12} paddingTop="3vh">
-                                        <Typography variant="h5" paddingBottom="2vh">
-                                            Explicación del diagnóstico del modelo
-                                        </Typography>
-                                        <Typography>
-                                            Este gráfico muestra cómo cada característica contribuye a la clasificación del diagnóstico. Una barra más alta indica que esa característica 
-                                            tuvo una mayor influencia en la decisión del modelo para esa clase.
-                                        </Typography>
-                                        <GraficoBarras titulo="Contribución de cada característica con el tipo de diagnóstico" datos={datos.lime} />
+                                        <ContLime
+                                            datos={datos.lime}
+                                            responsivo={true} />
                                     </Grid>
                                 </>
                             ) : null}
@@ -604,7 +600,6 @@ export default function VerDiagnosticoPage() {
                             </Grid>
                             <Grid size={12}>
                                 <Typography variant="h5" paddingBottom="0.2vh">
-                                    Síntomas clínicos
                                 </Typography>
                             </Grid>
                             <Grid container size={12} columns={12} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
