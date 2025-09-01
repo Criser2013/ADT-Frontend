@@ -70,14 +70,14 @@ export function validarArray(array, funcEval, funcVal, callback) {
 };
 
 /**
- * TRansforma los datos del paciente a un formato adecuado para el modelo.
+ * Transforma los datos del paciente a un formato adecuado para el modelo.
  * @param {JSON} datos - JSON con los datos del paciente sin incluir las comorbildiades.
  * @param {JSON} comorbilidades - JSON OneHot con las comorbilidades del paciente.
  * @returns JSON
  */
 export function transformarDatos(datos, comorbilidades) {
     return {
-        edad: procEdad(datos.edad),
+        edad: parseInt(datos.edad, 10),
         sexo: datos.sexo,
         bebedor: procBool(datos.bebedor),
         fumador: procBool(datos.fumador),
@@ -92,18 +92,18 @@ export function transformarDatos(datos, comorbilidades) {
         hemoptisis: procBool(datos.hemoptisis),
         sintomas_disautonomicos: procBool(datos.disautonomicos),
         edema_de_m_inferiores: procBool(datos.edema),
-        frecuencia_respiratoria: procFrecRes(datos.frecRes.replace(",", ".")),
-        saturacion_de_la_sangre: procSo2(datos.so2.replace(",", ".")),
-        frecuencia_cardiaca: procFrecCard(datos.frecCard.replace(",", ".")),
-        presion_sistolica: procPresionSist(datos.presionSis.replace(",", ".")),
-        presion_diastolica: procPresionDiast(datos.presionDias.replace(",", ".")),
+        frecuencia_respiratoria: parseFloat(datos.frecRes.replace(",", ".")),
+        saturacion_de_la_sangre: parseFloat(datos.so2.replace(",", ".")),
+        frecuencia_cardiaca: parseInt(datos.frecCard.replace(",", "."), 10),
+        presion_sistolica: parseInt(datos.presionSis.replace(",", "."), 10),
+        presion_diastolica: parseInt(datos.presionDias.replace(",", "."), 10),
         fiebre: procBool(datos.fiebre),
         crepitaciones: procBool(datos.crepitaciones),
         sibilancias: procBool(datos.sibilancias),
         soplos: procBool(datos.soplos),
-        wbc: procWbc(datos.wbc.replace(",", ".")),
-        hb: procHb(datos.hemoglobina.replace(",", ".")),
-        plt: procPlt(datos.plaquetas.replace(",", ".")),
+        wbc: parseFloat(datos.wbc.replace(",", ".")),
+        hb: parseFloat(datos.hemoglobina.replace(",", ".")),
+        plt: parseInt(datos.plaquetas.replace(",", "."), 10),
         derrame: procBool(datos.derrame),
         otra_enfermedad: procBool(datos.otraEnfermedad),
         hematologica: comorbilidades["Enfermedad hematológica"],

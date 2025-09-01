@@ -112,7 +112,7 @@ describe("Validar la función 'procBool'", () => {
     });
 });
 
-describe("Validar la función 'tratarDatos'", () => {
+describe("Validar la función 'transformarDatos'", () => {
     test("CP - 73", () => {
         const params = {
             sexo: 0, bebedor: false, fumador: false,
@@ -135,15 +135,15 @@ describe("Validar la función 'tratarDatos'", () => {
             "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1
         };
         const respuesta = {
-            edad: 2, sexo: 0, bebedor: 0, fumador: 0,
+            edad: 60, sexo: 0, bebedor: 0, fumador: 0,
             "cirugia_reciente": 0, "viaje_prolongado": 0,
             tos: 0, fiebre: 0, crepitaciones: 0,
             "dolor_toracico": 1, malignidad: 0, hemoptisis: 0,
             disnea: 1, sibilancias: 0, derrame: 0,
             "TEP_TVP_previo": 0, "edema_de_m_inferiores": 0, "sintomas_disautonomicos": 0,
             "inmovilidad_de_m_inferiores": 0, "otra_enfermedad": 0, soplos: 0,
-            "presion_sistolica": 4, "presion_diastolica": 6, "frecuencia_respiratoria": 3,
-            "frecuencia_cardiaca": 4, "saturacion_de_la_sangre": 7, "plt": 4, "hb": 4, "wbc": 3,
+            "presion_sistolica": 129, "presion_diastolica": 93, "frecuencia_respiratoria": 26,
+            "frecuencia_cardiaca": 128, "saturacion_de_la_sangre": 80, "plt": 211100, "hb": 13.8, "wbc": 12300,
             "hematologica": 1, "vascular": 0,
             "pulmonar": 0, "renal": 0,
             "cardiaca": 0, "enfermedad_coronaria": 0,
