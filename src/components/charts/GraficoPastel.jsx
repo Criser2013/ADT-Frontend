@@ -66,6 +66,6 @@ export default function GraficoPastel({ titulo, datos, responsive = true, modoAc
     }), [titulo, colorTitulo, responsive, tamLeyenda, tamTitulo]);
 
     return (
-        <Pie data={datos} options={opciones} updateMode={modoActualizacion} style={{ maxHeight: "40vh" }} />
+        <Pie redraw={true} data={datos} options={opciones} updateMode={modoActualizacion} style={{ maxHeight: "40vh" }} />
     );
 };

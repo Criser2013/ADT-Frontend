@@ -14,7 +14,7 @@ export default function ContLime({ datos }) {
     const navegacion = useNavegacion();
     const ancho = useMemo(() => {
         const { dispositivoMovil, ancho } = navegacion;
-        return dispositivoMovil || (!dispositivoMovil && ancho <= 700) ? "90vw" : "65vw";
+        return dispositivoMovil || (!dispositivoMovil && ancho <= 700) ? "98vw" : "65vw";
     }, [navegacion]);
     const alto = useMemo(() => {
         const { dispositivoMovil, alto } = navegacion;
@@ -34,12 +34,12 @@ export default function ContLime({ datos }) {
                 </Typography>
             </Grid>
             <Grid display="flex" size={12} justifyContent="center">
-                {/*<Box maxHeight="65vh" width={ancho}>*/}
+                <Box display="flex" maxHeight={alto} width={ancho} justifyContent="center" alignItems="center">
                     <GraficoBarras
                         responsive={true}
                         datos={datos}
                         titulo="Contribución de cada característica con el tipo de diagnóstico" />
-                {/*</Box>*/}
+                </Box>
             </Grid>
         </Grid>
     );

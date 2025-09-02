@@ -71,7 +71,7 @@ export default function Sidebar() {
         navegacion.setPaginaAnterior(window.location.pathname);
         navigate(url);
 
-        if (navegacion.dispositivoMovil && navegacion.orientacion == "vertical") {
+        if (navegacion.variantSidebar == "temporary") {
             navegacion.setMostrarMenu(false);
         }
     };

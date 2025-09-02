@@ -95,7 +95,7 @@ export default function VerDiagnosticoPage() {
         }
 
         return campos;
-    }, [rol, datos.personales, persona.nombre]);
+    }, [rol, datos, persona.nombre]);
     const camposVitales = useMemo(() => [
         { titulo: "Presión sistólica", valor: `${datos.personales.presionSis} mmHg.` },
         { titulo: "Presión diastólica", valor: `${datos.personales.presionDias} mmHg.` },
@@ -376,6 +376,7 @@ export default function VerDiagnosticoPage() {
 
             }
 
+            window.history.replaceState({}, '');
             setDatos((x) => {
                 x.personales.validado = diagnostico;
                 return { ...x };

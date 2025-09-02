@@ -119,7 +119,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      */
     const onSubmit = (datos) => {
         if (diagnostico.diagnosticado) {
-            setModal({ mostrar: true, titulo: "ℹ️ Resultado del diagnóstico", mensaje: "" });
+            setModal({ mostrar: true, titulo: "ℹ️ Información del diagnóstico", mensaje: "" });
             return;
         }
 
@@ -696,7 +696,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 txtBtn="Cerrar"
                 iconoBtn={<CloseIcon />}
                 manejadorBtnModal={() => setModal((x) => ({ ...x, mostrar: false }))}>
-                <Grid columns={1} container spacing={1}>
+                <Grid columns={1} container spacing={1} overflow="auto">
                     <Typography variant="h5" paddingBottom="2vh">
                         Resultado
                     </Typography>
