@@ -9,7 +9,7 @@ import { COMORBILIDADES } from "../../../constants";
 import { useState, useMemo, useEffect } from "react";
 import { validarNombre, validarNumero, validarTelefono } from "../../utils/Validadores";
 import { useDrive } from "../../contexts/DriveContext";
-import { oneHotEncondingOtraEnfermedad } from "../../utils/TratarDatos";
+import { oneHotEncoderOtraEnfermedad } from "../../utils/TratarDatos";
 import { useNavigate } from "react-router";
 import TabHeader from "../layout/TabHeader";
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -140,9 +140,10 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
      */
     const guardar = (datos) => {
         const { nombre, sexo, fechaNacimiento, telefono, cedula, otraEnfermedad, otrasEnfermedades, id } = datos;
-        const oneHotComor = oneHotEncondingOtraEnfermedad(otraEnfermedad ? otrasEnfermedades : []);
+        const oneHotComor = oneHotEncoderOtraEnfermedad(otraEnfermedad ? otrasEnfermedades : []);
         const instancia = {
-            nombre, sexo, telefono, cedula, ...oneHotComor, otraEnfermedad: otraEnfermedad ? 1 : 0
+            id: null, cedula, nombre, sexo, fechaNacimiento: null, fechaCreacion: null,
+            telefono, ...oneHotComor, otraEnfermedad: otraEnfermedad ? 1 : 0
         };
 
         dayjs.extend(customParseFormat);
@@ -283,6 +284,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                                             label="Fecha de nacimiento"
                                             disableFuture={true}
                                             name="fechaNacimiento"
+                                            format="DD/MM/YYYY"
                                             onChange={field.onChange}
                                             value={field.value}
                                             slotProps={{

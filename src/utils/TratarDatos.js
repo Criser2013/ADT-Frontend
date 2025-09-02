@@ -4,9 +4,9 @@ import { COMORBILIDADES } from "../../constants";
  * Convierte la lista de comorbilidades en un JSON cuyas claves son las comorbilidades
  * y los valores son 0 o 1, dependiendo si el paciente la padece o no.
  * @param {Array} datos - Lista de comorbilidades.
- * @returns JSON
+ * @returns {JSON}
  */
-export function oneHotEncondingOtraEnfermedad(datos) {
+export function oneHotEncoderOtraEnfermedad(datos) {
     const aux = {};
 
     for (const i of COMORBILIDADES) {
@@ -23,7 +23,7 @@ export function oneHotEncondingOtraEnfermedad(datos) {
 /**
  * Elimina los datos personales de los pacientes. Solo deja los datos de comorbilidades.
  * @param {JSON} datos - JSON con los datos de los pacientes.
- * @returns JSON
+ * @returns {JSON}
  */
 export function quitarDatosPersonales(datos) {
     const aux = { ...datos };
@@ -38,9 +38,9 @@ export function quitarDatosPersonales(datos) {
 /**
  * Transforma los datos de comorbilidades codificados como one-hot a un Arrray.
  * @param {JSON} datos - JSON con las comorbilidades codificadas como one-hot.
- * @returns Array
+ * @returns {Array}
  */
-export function oneHotInversoOtraEnfermedad(datos) {
+export function oneHotDecoderOtraEnfermedad(datos) {
     const aux = [];
     for (const i of COMORBILIDADES) {
         if (datos[i] == 1) {
@@ -55,7 +55,7 @@ export function oneHotInversoOtraEnfermedad(datos) {
  * @param {Array} array - Array de datos a validar.
  * @param {Function} funcEval - Función para evaluar cada elemento del array.
  * @param {Function} funcVal - Función para validar el resultado de la evaluación.
- * @returns Boolean
+ * @returns {Boolean}
  */
 export function validarArray(array, funcEval, funcVal, callback) {
     const errores = [];
@@ -70,18 +70,18 @@ export function validarArray(array, funcEval, funcVal, callback) {
 };
 
 /**
- * TRansforma los datos del paciente a un formato adecuado para el modelo.
+ * Transforma los datos del paciente a un formato adecuado para el modelo.
  * @param {JSON} datos - JSON con los datos del paciente sin incluir las comorbildiades.
  * @param {JSON} comorbilidades - JSON OneHot con las comorbilidades del paciente.
- * @returns JSON
+ * @returns {JSON}
  */
 export function transformarDatos(datos, comorbilidades) {
     return {
-        edad: procEdad(datos.edad),
+        edad: parseInt(datos.edad, 10),
         sexo: datos.sexo,
         bebedor: procBool(datos.bebedor),
         fumador: procBool(datos.fumador),
-        cirugia_reciente: procBool(datos.cirugiaReciente),
+        proc_quirurgico_traumatismo: procBool(datos.cirugiaReciente),
         inmovilidad_de_m_inferiores: procBool(datos.inmovilidad),
         viaje_prolongado: procBool(datos.viajeProlongado),
         TEP_TVP_previo: procBool(datos.tepPrevio),
@@ -92,18 +92,18 @@ export function transformarDatos(datos, comorbilidades) {
         hemoptisis: procBool(datos.hemoptisis),
         sintomas_disautonomicos: procBool(datos.disautonomicos),
         edema_de_m_inferiores: procBool(datos.edema),
-        frecuencia_respiratoria: procFrecRes(datos.frecRes.replace(",", ".")),
-        saturacion_de_la_sangre: procSo2(datos.so2.replace(",", ".")),
-        frecuencia_cardiaca: procFrecCard(datos.frecCard.replace(",", ".")),
-        presion_sistolica: procPresionSist(datos.presionSis.replace(",", ".")),
-        presion_diastolica: procPresionDiast(datos.presionDias.replace(",", ".")),
+        frecuencia_respiratoria: parseFloat(datos.frecRes.replace(",", ".")),
+        saturacion_de_la_sangre: parseFloat(datos.so2.replace(",", ".")),
+        frecuencia_cardiaca: parseInt(datos.frecCard.replace(",", "."), 10),
+        presion_sistolica: parseInt(datos.presionSis.replace(",", "."), 10),
+        presion_diastolica: parseInt(datos.presionDias.replace(",", "."), 10),
         fiebre: procBool(datos.fiebre),
         crepitaciones: procBool(datos.crepitaciones),
         sibilancias: procBool(datos.sibilancias),
         soplos: procBool(datos.soplos),
-        wbc: procWbc(datos.wbc.replace(",", ".")),
-        hb: procHb(datos.hemoglobina.replace(",", ".")),
-        plt: procPlt(datos.plaquetas.replace(",", ".")),
+        wbc: parseFloat(datos.wbc.replace(",", ".")),
+        hb: parseFloat(datos.hemoglobina.replace(",", ".")),
+        plt: parseInt(datos.plaquetas.replace(",", "."), 10),
         derrame: procBool(datos.derrame),
         otra_enfermedad: procBool(datos.otraEnfermedad),
         hematologica: comorbilidades["Enfermedad hematológica"],
@@ -127,7 +127,7 @@ export function transformarDatos(datos, comorbilidades) {
 /**
  * Convierte un valor booleano a un entero.
  * @param {Boolean} valor 
- * @returns Integer
+ * @returns {Integer}
  */
 export function procBool(valor) {
     return valor ? 1 : 0;
@@ -167,7 +167,7 @@ export function evaluarIntervalo(valor, intervalos) {
  * 9 = (-∞ , 50)
  * 10 = [210, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procPresionSist(valor) {
     return evaluarIntervalo(valor, [
@@ -190,7 +190,7 @@ export function procPresionSist(valor) {
  * 9 = (-∞ , 40)
  * 10 = [120, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procPresionDiast(valor) {
     return evaluarIntervalo(valor, [
@@ -211,7 +211,7 @@ export function procPresionDiast(valor) {
  * 7 = (-∞ , 2000)
  * 8 = [35000, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procWbc(valor) {
     return evaluarIntervalo(valor, [
@@ -234,7 +234,7 @@ export function procWbc(valor) {
  * 9 = (-∞ , 6)
  * 10 = [22, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procHb(valor) {
     return evaluarIntervalo(valor, [
@@ -255,7 +255,7 @@ export function procHb(valor) {
  * 8 = (-∞ , 10000)
  * 9 = [700000, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procPlt(valor) {
     return evaluarIntervalo(valor, [
@@ -279,7 +279,7 @@ export function procPlt(valor) {
  * 10 = (-∞,15]
  * 11 = [60, ∞)
  * @param {String} valor - Valor a convertir
- * @returns Number
+ * @returns {Number}
  */
 export function procFrecRes(valor) {
     return evaluarIntervalo(valor, [
@@ -304,7 +304,7 @@ export function procFrecRes(valor) {
  * 11 = (-∞ , 50)
  * 12 = [100, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procSo2(valor) {
     return evaluarIntervalo(valor, [
@@ -327,7 +327,7 @@ export function procSo2(valor) {
  * 9 = (-∞ , 50)
  * 10 = [210, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procFrecCard(valor) {
     return evaluarIntervalo(valor, [
@@ -344,7 +344,7 @@ export function procFrecCard(valor) {
  * 3 = [60, 80) - 60 a 80 años.
  * 4 = [81, ∞) - Mayor de 80 años.
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procEdad(valor) {
     return evaluarIntervalo(valor, [
@@ -365,7 +365,7 @@ export function detTxtDiagnostico(diagnostico) {
         case 1:
             return "Positivo";
         default:
-            return "No diagnósticado";
+            return "No diagnosticado";
     }
 };
 
@@ -379,10 +379,10 @@ export function nombresCampos(instancia, esAdmin, preprocesar = false) {
     const datos = {
         "ID": instancia.id,
         "Edad": preprocesar ? procEdad(instancia.edad) : instancia.edad,
-        "Género": preprocesar ? instancia.sexo: (instancia.sexo == 0 ? "M" : "F"),
+        "Género": preprocesar ? instancia.sexo : (instancia.sexo == 0 ? "M" : "F"),
         "Bebedor": instancia.bebedor,
         "Fumador": instancia.fumador,
-        "Cirugía reciente": instancia.cirugiaReciente,
+        "Procedimiento Quirurgicos / Traumatismo Grave en los últimos 15 dias": instancia.cirugiaReciente,
         "Inmovilidad de M inferiores": instancia.inmovilidad,
         "Viaje prolongado": instancia.viajeProlongado,
         "TEP - TVP Previo": instancia.tepPrevio,
@@ -430,7 +430,48 @@ export function nombresCampos(instancia, esAdmin, preprocesar = false) {
         datos["Fecha"] = instancia.fecha.toDate().toLocaleDateString("es-CO");
         datos["Diagnóstico modelo"] = instancia.diagnostico;
         datos["Probabilidad"] = (instancia.probabilidad * 100).toFixed(2);
+        datos["Campos Significativos para el diagnóstico"] = JSON.stringify(instancia.lime);
     }
 
     return datos;
+};
+
+/**
+ * Genera el gráfico LIME del diagnóstico ingresado.
+ * @param {JSON} datos - Datos a procesar.
+ * @param {string} clave - Clave dentro del JSON de datos que contiene los valores LIME.
+ * @param {string} colorPositivo - Color de los atributos que contribuyen a la clase positiva.
+ * @param {string} colorNegativo - Color de los atributos que contribuyen a la clase negativa.
+ * @returns {JSON}
+ */
+export function procLime(datos, clave = "lime", colorPositivo = "rgba(237, 108, 2, 255)", colorNegativo = "rgba(44,120,56, 2)") {
+    const aux = {...datos};
+    const lime = {
+            labels: [],
+            datasets: [
+                {
+                    label: "Diagnóstico Positivo",
+                    data: [],
+                    backgroundColor: colorPositivo,
+                },
+                {
+                    label: "Diagnóstico Negativo",
+                    data: [],
+                    backgroundColor: colorNegativo,
+                }
+            ]
+        };
+    aux[clave] = aux[clave].sort((x) => x.contribucion);
+    for (const i of aux[clave]) {
+        if (i.contribucion > 0) {
+            lime.datasets[0].data.push(i.contribucion);
+            lime.datasets[1].data.push(0);
+        } else {
+            lime.datasets[1].data.push(Math.abs(i.contribucion));
+            lime.datasets[0].data.push(0);
+        }
+        lime.labels.push(i.campo);
+    };
+
+    return lime;
 };

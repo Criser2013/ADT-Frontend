@@ -69,7 +69,7 @@ export default function VerDiagnosticosPage() {
     ]);
     const camposTabla = useMemo(() => {
         return (rol != CODIGO_ADMIN) ? camposFijos.concat([{ id: "accion", label: "Acción", componente: null, ordenable: false }]) : camposFijos;
-    }, [rol]);
+    }, [rol, camposFijos]);
     const camposBusq = useMemo(() => {
         return (rol != CODIGO_ADMIN) ? ["nombre", "paciente"] : ["nombre"];
     }, [rol]);
@@ -218,7 +218,6 @@ export default function VerDiagnosticosPage() {
             );
         setArchivoDescargado(true);
         if (res.success && rol == CODIGO_ADMIN) {
-            sessionStorage.setItem("descargando-drive", "false");
             setPersonas(res.data.usuarios);
         } else if (res.success && rol != CODIGO_ADMIN) {
             return;
@@ -231,6 +230,8 @@ export default function VerDiagnosticosPage() {
             });
             setPersonas([]);
         }
+
+        sessionStorage.setItem("descargando-drive", "false");
     };
 
     /**
@@ -470,7 +471,7 @@ export default function VerDiagnosticosPage() {
 
         for (let i = 0; i < aux.length; i++) {
             // Solo se incluyen los diagnósticos validados si se requiere preprocesar y lo pide un admin
-            if (!preprocesar || (preprocesar && aux[i].validado != 2) || (rol != CODIGO_ADMIN)) {
+            if (!preprocesar || (preprocesar && aux[i].validado != 2)) {
                 aux[i].paciente = datos[i].nombre;
                 aux[i] = nombresCampos(aux[i], rol == CODIGO_ADMIN, preprocesar);
                 auxArr.push(aux[i]);
