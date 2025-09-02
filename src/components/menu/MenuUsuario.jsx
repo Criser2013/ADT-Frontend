@@ -35,10 +35,10 @@ export default function MenuUsuario() {
     const [modal, setModal] = useState({ mostrar: false, mensaje: "", titulo: "" });
     const fechaActual = useMemo(() => dayjs(), []);
     const numCols = useMemo(() => {
-        const { orientacion, dispositivoMovil } = navegacion;
-        return (dispositivoMovil && orientacion == "vertical") || (!dispositivoMovil && (navegacion.ancho < 500)) ? 1 : 2;
-    }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
+        const { orientacion, dispositivoMovil, ancho } = navegacion;
+        return (dispositivoMovil && orientacion == "vertical") || (!dispositivoMovil && (ancho <= 700)) ? 1 : 2;
+    }, [navegacion]);
+    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
     const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual), [datosDiagnosticos, fechaActual]);
     const pacientesMesActual = useMemo(() => obtenerDatosMesActual(datosPacientes, fechaActual), [datosPacientes, fechaActual]);
     const propSexoPacientes = useMemo(() => {
@@ -87,13 +87,13 @@ export default function MenuUsuario() {
             cargarPacientes();
             cargarDiagnosticos(uid, DB);
         }
-    }, [auth.authInfo.uid, drive.token, DB]);
+    }, [auth.authInfo, drive.token, DB]);
 
     /**
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
      */
     useEffect(() => {
-        if (diagnosticos != null && pacientes != null && datos == null) {
+        if (!!diagnosticos && !!pacientes && datos == null) {
             const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4, fechaActual);
             const pacientesMensuales = obtenerDatosPorMes(pacientes, "fechaCreacion", 4, fechaActual);
             const json = {
@@ -108,7 +108,7 @@ export default function MenuUsuario() {
             setDatos(json);
             setCargando(false);
         }
-    }, [diagnosticos, pacientes, datos]);
+    }, [diagnosticos, pacientes, datos, fechaActual]);
 
     useEffect(() => {
         if (drive.datos != null) {

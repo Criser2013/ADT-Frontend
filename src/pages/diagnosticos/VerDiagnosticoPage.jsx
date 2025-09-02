@@ -17,7 +17,7 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ModalAccion from "../../components/modals/ModalAccion";
 import { cambiarDiagnostico, eliminarDiagnosticos, verDiagnostico } from "../../firestore/diagnosticos-collection";
-import { oneHotInversoOtraEnfermedad, detTxtDiagnostico } from "../../utils/TratarDatos";
+import { oneHotInversoOtraEnfermedad, detTxtDiagnostico, procesarLime } from "../../utils/TratarDatos";
 import { COMORBILIDADES, DIAGNOSTICOS } from "../../../constants";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import Check from "../../components/tabs/Check";
@@ -29,7 +29,6 @@ import ContComorbilidades from "../../components/diagnosticos/ContComorbilidades
 import { peticionApi } from "../../services/Api";
 import { Timestamp } from "firebase/firestore";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
-import GraficoBarras from "../../components/charts/GraficoBarras";
 import ContLime from "../../components/diagnosticos/ContLime";
 
 /**
@@ -274,8 +273,20 @@ export default function VerDiagnosticoPage() {
         const res = await peticionApi(token, `admin/usuarios/${uid}`, "GET", null,
             "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
         );
+        let persona = { nombre: "N/A" };
 
-        setPersona((x) => ({ ...x, nombre: res.success ? res.data.nombre : res.data.correo }));
+        if (!res.success && res.data == null) {
+            setMostrarBtnSecundario(false);
+            setModal({
+                mostrar: true, titulo: "❌ Error",
+                mensaje: "Se ha producido un error al cargar los datos del médico. Recarga la página y reintenta nuevamente."
+            });
+        } else if (!res.success) {
+            persona = { nombre: res.data.correo };
+        } else {
+            persona = { nombre: res.success ? res.data.nombre : res.data.correo };
+        }
+        setPersona((x) => ({...x, ...persona }));
     };
 
     /**
@@ -284,36 +295,8 @@ export default function VerDiagnosticoPage() {
      */
     const preprocesarDiag = (datos) => {
         const aux = { ...datos };
-        const lime = {
-            labels: [],
-            datasets: [
-                {
-                    label: "Diagnóstico Positivo",
-                    data: [],
-                    backgroundColor: "rgba(237, 108, 2, 255)",
-                },
-                {
-                    label: "Diagnóstico Negativo",
-                    data: [],
-                    backgroundColor: "rgba(44,120,56, 2)",
-                }
-            ]
-        };
+        const lime = procesarLime(aux);
         const res = oneHotInversoOtraEnfermedad(aux);
-
-        if (datos.lime != undefined) {
-            aux.lime = aux.lime.sort((x) => x.contribucion);
-            for (const i of aux.lime) {
-                if (i.contribucion > 0) {
-                    lime.datasets[0].data.push(i.contribucion);
-                    lime.datasets[1].data.push(0);
-                } else {
-                    lime.datasets[1].data.push(Math.abs(i.contribucion));
-                    lime.datasets[0].data.push(0);
-                }
-                lime.labels.push(i.campo);
-            }
-        }
 
         for (const i of COMORBILIDADES) {
             delete aux[i];
@@ -589,9 +572,7 @@ export default function VerDiagnosticoPage() {
                                         <Divider />
                                     </Grid>
                                     <Grid size={12} paddingTop="3vh">
-                                        <ContLime
-                                            datos={datos.lime}
-                                            responsivo={true} />
+                                        <ContLime datos={datos.lime} responsivo={true} />
                                     </Grid>
                                 </>
                             ) : null}

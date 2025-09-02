@@ -1,6 +1,6 @@
 import {
     Grid, Button, Typography, TextField, Stack, Tooltip, Box,
-    CircularProgress, MenuItem, IconButton
+    CircularProgress, MenuItem, IconButton, Divider
 } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -12,7 +12,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ClearIcon from '@mui/icons-material/Clear';
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import { validarFloatPos, validarNumero } from "../../utils/Validadores";
-import { oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, transformarDatos } from "../../utils/TratarDatos";
+import { oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, transformarDatos, procesarLime } from "../../utils/TratarDatos";
 import ModalSimple from "../modals/ModalSimple";
 import { peticionApi } from "../../services/Api";
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
@@ -27,6 +27,7 @@ import TabHeader from "../layout/TabHeader";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm, Controller } from "react-hook-form";
 import RefreshIcon from '@mui/icons-material/Refresh';
+import ContLime from "../diagnosticos/ContLime";
 
 const valoresPredet = {
     paciente: { id: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null },
@@ -209,8 +210,12 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         } else if (success && esDiagPacientes) {
             await guardarDiagnostico(oneHotComor, datos, data);
         } else {
+            const lime = procesarLime(data);
             setDesactivarCampos(true);
-            setDiagnostico({ resultado: data.prediccion, probabilidad: data.probabilidad * 100, diagnosticado: true });
+            setDiagnostico({ 
+                resultado: data.prediccion, probabilidad: data.probabilidad * 100,
+                diagnosticado: true, lime: lime
+            });
             setModal({ mostrar: true, titulo: "ℹ️ Resultado del diagnóstico", mensaje: "" });
         }
 
@@ -295,7 +300,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             if (res.data.success) {
                 setDesactivarBtn(false);
             } else {
-                setModal({ 
+                setModal({
                     mostrar: true, titulo: "❌ Error",
                     mensaje: "No se ha podido comprobar que seas un humano. Reintenta el CAPTCHA nuevamente."
                 });
@@ -691,17 +696,23 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 txtBtn="Cerrar"
                 iconoBtn={<CloseIcon />}
                 manejadorBtnModal={() => setModal((x) => ({ ...x, mostrar: false }))}>
-                <Box>
-                    {diagnostico.resultado ? (
+                <Grid columns={1} container spacing={1}>
+                    <Typography variant="h5" paddingBottom="2vh">
+                        Resultado
+                    </Typography>
+                    <Grid size={1}>
                         <Typography variant="body1">
-                            Se ha <b>diagnosticado al paciente con TEP</b>, teniendo una probabilidad del <b>{diagnostico.probabilidad.toFixed(2)}%</b>.
+                            El paciente <b>{!diagnostico.resultado ? "no" : ""} ha sido diagnosticado con TEP</b>. La probabilidad de
+                            {!diagnostico.resultado ? "no" : ""} padecerlo es del <b>{diagnostico.probabilidad.toFixed(2)}%</b>.
                         </Typography>
-                    ) : (
-                        <Typography variant="body1">
-                            El paciente <b>no ha sido diagnosticado con TEP</b>, la probabilidad de no padecerlo es del <b>{diagnostico.probabilidad.toFixed(2) - 1}%</b>.
-                        </Typography>
-                    )}
-                </Box>
+                        <Grid size={1} paddingTop="3vh">
+                            <Divider />
+                        </Grid>
+                    </Grid>
+                    <Grid size={1}>
+                        <ContLime datos={diagnostico.lime} responsivo={true} />
+                    </Grid>
+                </Grid>
             </ModalSimple>
         </>
     );

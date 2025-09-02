@@ -379,7 +379,7 @@ export function nombresCampos(instancia, esAdmin, preprocesar = false) {
     const datos = {
         "ID": instancia.id,
         "Edad": preprocesar ? procEdad(instancia.edad) : instancia.edad,
-        "Género": preprocesar ? instancia.sexo: (instancia.sexo == 0 ? "M" : "F"),
+        "Género": preprocesar ? instancia.sexo : (instancia.sexo == 0 ? "M" : "F"),
         "Bebedor": instancia.bebedor,
         "Fumador": instancia.fumador,
         "Cirugía reciente": instancia.cirugiaReciente,
@@ -433,4 +433,44 @@ export function nombresCampos(instancia, esAdmin, preprocesar = false) {
     }
 
     return datos;
+};
+
+/**
+ * 
+ * @param {JSON} datos - Datos a procesar.
+ * @param {string} clave - Clave dentro del JSON de datos que contiene los valores LIME.
+ * @param {string} colorPositivo - Color de los atributos que contribuyen a la clase positiva.
+ * @param {string} colorNegativo - Color de los atributos que contribuyen a la clase negativa.
+ * @returns {JSON}
+ */
+export function procesarLime(datos, clave = "lime", colorPositivo = "rgba(237, 108, 2, 255)", colorNegativo = "rgba(44,120,56, 2)") {
+    const aux = {...datos};
+    const lime = {
+            labels: [],
+            datasets: [
+                {
+                    label: "Diagnóstico Positivo",
+                    data: [],
+                    backgroundColor: colorPositivo,
+                },
+                {
+                    label: "Diagnóstico Negativo",
+                    data: [],
+                    backgroundColor: colorNegativo,
+                }
+            ]
+        };
+    aux[clave] = aux[clave].sort((x) => x.contribucion);
+    for (const i of aux[clave]) {
+        if (i.contribucion > 0) {
+            lime.datasets[0].data.push(i.contribucion);
+            lime.datasets[1].data.push(0);
+        } else {
+            lime.datasets[1].data.push(Math.abs(i.contribucion));
+            lime.datasets[0].data.push(0);
+        }
+        lime.labels.push(i.campo);
+    };
+
+    return lime;
 };

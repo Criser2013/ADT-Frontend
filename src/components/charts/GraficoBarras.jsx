@@ -36,13 +36,13 @@ export default function GraficoBarras({ titulo, datos, responsive = true,
         const vw = (ancho / 100); // en pixeles
         const rem = 16;
 
-        return Math.floor(vw + (rem * 0.35));
+        return Math.max(Math.floor(vw + (rem * 0.35)), 16);
     }, [ancho]);
     const tamLeyenda = useMemo(() => {
         const vw = (ancho / 100); // en pixelesa
         const rem = 16;
 
-        return Math.floor(vw + (rem * 0.2));
+        return Math.max(Math.floor(vw + (rem * 0.2)), 12);
     }, [ancho]);
     const colorTitulo = useMemo(() => {
         return tema == "dark" ? "#ffffff" : "#000000";

@@ -25,19 +25,19 @@ ChartJS.register(
  * @param {String} modoActualizacion - Modo de actualización del gráfico (default, "none", "resize", etc).
  * @returns {JSX.Element}
  */
-export default function GraficoPastel({ titulo, datos, responsive = true, modoActualizacion = "default" }) {
+export default function GraficoPastel({ titulo, datos, responsive = true, modoActualizacion = "resize" }) {
     const { tema, ancho } = useNavegacion();
     const tamTitulo = useMemo(() => {
         const vw = (ancho / 100); // en pixeles
         const rem = 16;
 
-        return Math.floor(vw + (rem * 0.35));
+        return Math.max(Math.floor(vw + (rem * 0.35)), 16);
     }, [ancho]);
     const tamLeyenda = useMemo(() => {
         const vw = (ancho / 100); // en pixeles
         const rem = 16;
 
-        return Math.floor(vw + (rem * 0.2));
+        return Math.max(Math.floor(vw + (rem * 0.2)), 12);
     }, [ancho]);
     const colorTitulo = useMemo(() => {
         return tema == "dark" ? "#ffffff" : "#000000";
