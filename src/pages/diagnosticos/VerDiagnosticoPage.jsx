@@ -296,7 +296,7 @@ export default function VerDiagnosticoPage() {
      */
     const preprocesarDiag = (datos) => {
         const aux = { ...datos };
-        const lime = procLime(aux);
+        const lime = procLime(aux, aux.diagnostico);
         const res = oneHotDecoderOtraEnfermedad(aux);
 
         for (const i of COMORBILIDADES) {

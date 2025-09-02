@@ -440,27 +440,37 @@ export function nombresCampos(instancia, esAdmin, preprocesar = false) {
  * Genera el gráfico LIME del diagnóstico ingresado.
  * @param {JSON} datos - Datos a procesar.
  * @param {string} clave - Clave dentro del JSON de datos que contiene los valores LIME.
+ * @param {int} diagnostico - Diagnóstico del paciente (0 o 1).
  * @param {string} colorPositivo - Color de los atributos que contribuyen a la clase positiva.
  * @param {string} colorNegativo - Color de los atributos que contribuyen a la clase negativa.
  * @returns {JSON}
  */
-export function procLime(datos, clave = "lime", colorPositivo = "rgba(237, 108, 2, 255)", colorNegativo = "rgba(44,120,56, 2)") {
-    const aux = {...datos};
+export function procLime(datos, diagnostico, clave = "lime", colorPositivo = "rgba(237, 108, 2, 255)", colorNegativo = "rgba(44,120,56, 2)") {
+    let txtPositivo = "Diagnóstico positivo";
+    let txtNegativo = "Diagnóstico negativo";
+    const aux = { ...datos };
+
+    if (diagnostico == 0) {
+        txtPositivo = "Diagnóstico negativo";
+        txtNegativo = "Diagnóstico positivo";
+        colorNegativo = "rgba(237, 108, 2, 255)";
+        colorPositivo = "rgba(44,120,56, 2)";
+    }
+
     const lime = {
-            labels: [],
-            datasets: [
-                {
-                    label: "Diagnóstico Positivo",
-                    data: [],
-                    backgroundColor: colorPositivo,
-                },
-                {
-                    label: "Diagnóstico Negativo",
-                    data: [],
-                    backgroundColor: colorNegativo,
-                }
-            ]
-        };
+        labels: [],
+        datasets: [
+            {
+                label: txtPositivo, data: [],
+                backgroundColor: colorPositivo,
+            },
+            {
+                label: txtNegativo, data: [],
+                backgroundColor: colorNegativo,
+            }
+        ]
+    };
+
     aux[clave] = aux[clave].sort((x) => x.contribucion);
     for (const i of aux[clave]) {
         if (i.contribucion > 0) {

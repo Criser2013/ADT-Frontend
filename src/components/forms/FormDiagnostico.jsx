@@ -207,7 +207,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         } else if (success && esDiagPacientes) {
             await guardarDiagnostico(oneHotComor, datos, data);
         } else {
-            const lime = procLime(data);
+            const lime = procLime(data, procBool(data.prediccion));
             setDesactivarCampos(true);
             setDesactivarBtn(true);
             setDiagnostico({

@@ -282,20 +282,40 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
 
 describe("Validar que la función 'procesarLime' retorne correctamente los parámetros del gráfico", () => {
     test("CP - 89", () => {
-        const res = procLime({ lime: [{ campo: "VIH", contribucion: 51.85 }, { campo: "Hepatopatía crónica", contribucion: -48.2 }] }, "lime", "rgba(237, 108, 2, 255)", "rgba(44,120,56, 2)");
+        const res = procLime({ lime: [{ campo: "VIH", contribucion: 51.85 }, { campo: "Hepatopatía crónica", contribucion: -48.2 }] }, 1, "lime", "rgba(237, 108, 2, 255)", "rgba(44,120,56, 2)");
 
         expect(res).toEqual({
             labels: ["Hepatopatía crónica", "VIH"],
             datasets: [
                 {
-                    label: "Diagnóstico Positivo",
+                    label: "Diagnóstico positivo",
                     data: [0, 51.85],
                     backgroundColor: "rgba(237, 108, 2, 255)"
                 },
                 {
-                    label: "Diagnóstico Negativo",
+                    label: "Diagnóstico negativo",
                     data: [48.2, 0],
                     backgroundColor: "rgba(44,120,56, 2)",
+                }
+            ]
+        });
+    });
+
+    test("CP - 90", () => {
+        const res = procLime({ lime: [{ campo: "VIH", contribucion: 51.85 }, { campo: "Hepatopatía crónica", contribucion: -48.2 }] }, 0, "lime", "rgba(237, 108, 2, 255)", "rgba(44,120,56, 2)");
+
+        expect(res).toEqual({
+            labels: ["Hepatopatía crónica", "VIH"],
+            datasets: [
+                {
+                    label: "Diagnóstico negativo",
+                    data: [0, 51.85],
+                    backgroundColor: "rgba(44,120,56, 2)"
+                },
+                {
+                    label: "Diagnóstico positivo",
+                    data: [48.2, 0],
+                    backgroundColor: "rgba(237, 108, 2, 255)",
                 }
             ]
         });
