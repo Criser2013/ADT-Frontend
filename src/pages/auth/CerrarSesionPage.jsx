@@ -22,12 +22,11 @@ export default function CerrarSesionPage() {
      * Cierra la sesión del usuario y redirige a la página de inicio.
      */
     useEffect(() => {
-        const { autenticado } = auth;
-        if (autenticado != null && autenticado) {
+        if (auth.autenticado != null && auth.autenticado) {
             auth.cerrarSesion().then(() => {
                 navigate("/", { replace: true });
             });
-        } else if (autenticado != null && !autenticado) {
+        } else if (auth.autenticado != null && !auth.autenticado) {
             auth.quitarPantallaCarga();
             navigate("/", { replace: true });
         }

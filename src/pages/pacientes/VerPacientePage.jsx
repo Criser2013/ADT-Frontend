@@ -59,10 +59,10 @@ export default function VerPacientePage() {
     const listadoPestanas = useMemo(() => [
         { texto: "Lista de pacientes", url: "/pacientes" },
         { texto: `Paciente-${datos.personales.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
-    ], [datos]);
+    ], [datos.personales.nombre, location.search]);
     const mostrarComor = useMemo(() => {
         return datos.comorbilidades.length > 0;
-    }, [datos]);
+    }, [datos.comorbilidades]);
     const id = useMemo(() => params.get("id"), [params]);
 
     /**

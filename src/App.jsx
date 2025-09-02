@@ -128,7 +128,7 @@ export default function App() {
             <ModalAccion
                 abrir={modal2Btn.mostrar}
                 mensaje={modal2Btn.mensaje}
-                titulo={modal2Btn.titulo}
+                titulo="Aviso"
                 manejadorBtnPrimario={auth.requiereRefresco ? manejadorBtnReautenticar : manejadorBtnPermisos}
                 manejadorBtnSecundario={manejadorBtnCerrarSesion}
                 mostrarBtnSecundario={true}

@@ -25,7 +25,7 @@ export const SINTOMAS = [
     { texto: "Fiebre", nombre: "fiebre" },
     { texto: "Edema de miembros inferiores", nombre: "edema" },
     { texto: "Inmovilidad de miembros inferiores", nombre: "inmovilidad" },
-    { texto: "Procedimiento quirúrgico o traumatismo reciente", nombre: "cirugiaReciente" },
+    { texto: "Procedimiento quirúrgico reciente", nombre: "cirugiaReciente" },
     { texto: "Síntomas disautonómicos", nombre: "disautonomicos" },
     { texto: "Viaje prolongado", nombre: "viajeProlongado" },
     { texto: "Disnea", nombre: "disnea" },

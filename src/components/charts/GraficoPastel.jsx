@@ -21,30 +21,29 @@ ChartJS.register(
  *     backgroundColor: ['red', 'blue', 'green'], - colores de las barras  
  *   }]  
  * }  
- * @param {boolean} responsive - Indica si el gráfico debe ser responsivo
  * @param {String} modoActualizacion - Modo de actualización del gráfico (default, "none", "resize", etc).
  * @returns {JSX.Element}
  */
-export default function GraficoPastel({ titulo, datos, responsive = true, modoActualizacion = "resize" }) {
+export default function GraficoPastel({ titulo, datos, modoActualizacion = "default" }) {
     const { tema, ancho } = useNavegacion();
     const tamTitulo = useMemo(() => {
         const vw = (ancho / 100); // en pixeles
         const rem = 16;
 
-        return Math.max(Math.floor(vw + (rem * 0.35)), 16);
+        return Math.floor(vw + (rem * 0.35));
     }, [ancho]);
     const tamLeyenda = useMemo(() => {
         const vw = (ancho / 100); // en pixeles
         const rem = 16;
 
-        return Math.max(Math.floor(vw + (rem * 0.2)), 12);
+        return Math.floor(vw + (rem * 0.2));
     }, [ancho]);
     const colorTitulo = useMemo(() => {
         return tema == "dark" ? "#ffffff" : "#000000";
     }, [tema]);
 
     const opciones = useMemo(() => ({
-        responsive: responsive,
+        responsive: true,
         plugins: {
             legend: {
                 position: 'top', labels: {
@@ -63,9 +62,9 @@ export default function GraficoPastel({ titulo, datos, responsive = true, modoAc
                 borderColor: "#00000000"
             }
         }
-    }), [titulo, colorTitulo, responsive, tamLeyenda, tamTitulo]);
+    }), [titulo, colorTitulo]);
 
     return (
-        <Pie redraw={true} data={datos} options={opciones} updateMode={modoActualizacion} style={{ maxHeight: "40vh" }} />
+        <Pie data={datos} options={opciones} updateMode={modoActualizacion} style={{ maxHeight: "40vh" }} />
     );
 };

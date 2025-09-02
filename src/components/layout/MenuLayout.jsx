@@ -26,7 +26,7 @@ export default function MenuLayout({ children }) {
         } else {
             return "1.9vw";
         }
-    }, [navegacion]);
+    }, [navegacion.dispositivoMovil, navegacion.orientacion]);
     const marginMenu = useMemo(() => {
         const { dispositivoMovil, orientacion, mostrarMenu } = navegacion;
         if (dispositivoMovil && orientacion == "vertical") {
@@ -34,15 +34,15 @@ export default function MenuLayout({ children }) {
         } else if (orientacion == "horizontal" && mostrarMenu) {
             return "240px";
         }
-    }, [navegacion]);
+    }, [navegacion.dispositivoMovil, navegacion.mostrarMenu, navegacion.orientacion]);
     const width = useMemo(() => {
         const { dispositivoMovil, orientacion, mostrarMenu } = navegacion;
         if ((!dispositivoMovil && !mostrarMenu)|| (dispositivoMovil && orientacion == "vertical")) {
-            return "99vw";
+            return "100vw";
         } else if (orientacion == "horizontal" && mostrarMenu) {
             return "calc(100vw - 240px - 1.9vw)";
         }
-    }, [navegacion]);
+    }, [navegacion.dispositivoMovil, navegacion.mostrarMenu, navegacion.orientacion]);
 
     /**
      * Si hay algún error de autenticación, muestra un modal con el mensaje de error y al cerrarlo

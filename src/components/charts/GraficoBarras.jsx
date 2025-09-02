@@ -23,26 +23,23 @@ ChartJS.register(
  *     backgroundColor: ['red', 'blue', 'green'], - colores de las barras  
  *   }]  
  * }  
- * @param {Array} responsive - Indica si el gráfico debe ser responsive
+ * @param {Array} colores - Colores para las barras del gráfico
  * @param {String} modoActualizacion - Modo de actualización del gráfico (default, "none", "resize", etc).
- * @param {Number|undefined} altura - Alto del gráfico (opcional).
- * @param {Number|undefined} anchura - Ancho del gráfico (opcional).
  * @returns {JSX.Element}
  */
-export default function GraficoBarras({ titulo, datos, responsive = true,
-    modoActualizacion = "default", altura = undefined, anchura = undefined }) {
+export default function GraficoBarras({ titulo, datos, modoActualizacion = "default" }) {
     const { tema, ancho } = useNavegacion();
     const tamTitulo = useMemo(() => {
         const vw = (ancho / 100); // en pixeles
         const rem = 16;
 
-        return Math.max(Math.floor(vw + (rem * 0.35)), 16);
+        return Math.floor(vw + (rem * 0.35));
     }, [ancho]);
     const tamLeyenda = useMemo(() => {
         const vw = (ancho / 100); // en pixelesa
         const rem = 16;
 
-        return Math.max(Math.floor(vw + (rem * 0.2)), 12);
+        return Math.floor(vw + (rem * 0.2));
     }, [ancho]);
     const colorTitulo = useMemo(() => {
         return tema == "dark" ? "#ffffff" : "#000000";
@@ -51,7 +48,7 @@ export default function GraficoBarras({ titulo, datos, responsive = true,
         return tema == "dark" ? "#838383ff" : "#d3d3d3bd";
     }, [tema]);
     const opciones = useMemo(() => ({
-        responsive: responsive,
+        responsive: true,
         plugins: {
             legend: {
                 position: 'top', labels: {
@@ -80,9 +77,9 @@ export default function GraficoBarras({ titulo, datos, responsive = true,
                 }
             }
         }
-    }), [titulo, colorTitulo, colorMalla, tamLeyenda, tamTitulo, responsive]);
+    }), [titulo, colorTitulo, colorMalla, tamLeyenda, tamTitulo]);
 
     return (
-        <Bar redraw={true} height={altura} width={anchura} data={datos} options={opciones} updateMode={modoActualizacion} />
+        <Bar data={datos} options={opciones} updateMode={modoActualizacion} />
     );
 }

@@ -34,7 +34,7 @@ export default function IniciarSesionPage() {
     });
     const cargandoAuth = useMemo(() => {
         return auth.cargando || !credenciales.verSiCredsFirebaseEstancargadas();
-    }, [auth.cargando, credenciales.verSiCredsFirebaseEstancargadas]);
+    }, [auth.cargando, credenciales.verSiCredsFirebaseEstancargadas()]);
     const width = useMemo(() => {
         const { dispositivoMovil, orientacion, ancho } = navegacion;
         if (!dispositivoMovil && (ancho >= 1020)) {
@@ -46,7 +46,7 @@ export default function IniciarSesionPage() {
         } else {
             return "40vw";
         }
-    }, [navegacion]);
+    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.ancho]);
     const centrar = useMemo(() => {
         const { dispositivoMovil, orientacion, alto } = navegacion;
         if ((!dispositivoMovil && (alto >= 800)) || (dispositivoMovil && (orientacion == "vertical"))) {
@@ -54,7 +54,7 @@ export default function IniciarSesionPage() {
         } else {
             return null;
         }
-    }, [navegacion]);
+    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.alto]);
     const temaCaptcha = useMemo(() => navegacion.tema, [navegacion.tema]);
     const fondoImg = useMemo(() => {
         return temaCaptcha === "light" ? fondoClaro : fondoOscuro;
@@ -227,7 +227,7 @@ export default function IniciarSesionPage() {
                                 </Typography>
                                 <br />
                                 <Typography align="center" variant="body1" marginLeft="auto" marginRight="auto">
-                                    ¿Necesitas ayuda? ¡consulta nuestro <Link target="_blank" href={URL_MANUAL_USUARIO}>manual de instrucciones</Link>!
+                                    ¿Necesitas ayuda? ¡consulta nuestro <Link href={URL_MANUAL_USUARIO}>manual de instrucciones</Link>!
                                 </Typography>
                             </Grid>
                         </Grid>

@@ -29,7 +29,7 @@ export default function Navbar() {
     const txtRol = useMemo(() => {
         const { rol } = auth.authInfo;
         return rol == CODIGO_ADMIN ? "Administrador" : "Médico";
-    }, [auth.authInfo]);
+    }, [auth.authInfo.rol]);
     const txtToolBtnMenu = useMemo(() => {
         return navegacion.mostrarMenu ? "Cerrar menú" : "Abrir menú";
     }, [navegacion.mostrarMenu]);
@@ -40,21 +40,18 @@ export default function Navbar() {
         } else {
             return "Desactivar modo usuario";
         }
-    }, [auth.authInfo]);
+    }, [auth.authInfo.modoUsuario]);
 
     /**
      * Carga de la imagen del usuario a iniciar.
      */
     useEffect(() => {
-        const { autenticado, authInfo } = auth;
-        const { user } = authInfo;
-
-        if (autenticado && user != null) {
-            setImg(user.photoURL);
-        } else if (autenticado != null && autenticado == false) {
+        if (auth.autenticado && auth.authInfo.user != null) {
+            setImg(auth.authInfo.user.photoURL);
+        } else if (auth.autenticado != null && auth.autenticado == false) {
             navigate("/", { replace: true });
         }
-    }, [auth.authInfo, auth.autenticado]);
+    }, [auth.authInfo.user, auth.autenticado]);
 
     /**
      * Manejador de evento de clic para mostrar el PopOver de usuario.
