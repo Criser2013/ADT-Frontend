@@ -76,9 +76,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const [cargandoBtn, setCargandoBtn] = useState(false);
     const [antTema, setAntTema] = useState(navegacion.tema);
     const desactivarCamposAux = useMemo(() => desactivarCampos || esDiagPacientes, [desactivarCampos, esDiagPacientes]);
-    const txtBtnDiagnostico = useMemo(() => {
-        return diagnostico.diagnosticado ? "Ver diagnóstico" : "Diagnosticar";
-    }, [diagnostico.diagnosticado]);
     const toolBtnVaciar = useMemo(() => {
         return diagnostico.diagnosticado ? "Vaciar los campos para realizar otro diagnóstico." : "Vaciar el contenido de los campos.";
     }, [diagnostico.diagnosticado]);
@@ -212,11 +209,11 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         } else {
             const lime = procLime(data);
             setDesactivarCampos(true);
-            setDiagnostico({ 
+            setDesactivarBtn(true);
+            setDiagnostico({
                 resultado: data.prediccion, probabilidad: data.probabilidad * 100,
                 diagnosticado: true, lime: lime
             });
-            setModal({ mostrar: true, titulo: "ℹ️ Resultado del diagnóstico", mensaje: "" });
         }
 
         if (getValues("paciente").id == -1) {
@@ -656,6 +653,26 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 sitekey={reCAPTCHAApi}
                                 ref={CAPTCHA} />
                         </Grid>) : null}
+                        {(diagnostico.diagnosticado) ? (
+                            <>
+                            <Grid size={numCols} paddingTop="3vh">
+                                    <Divider />
+                                </Grid>
+                                <Grid size={numCols}>
+                                    <Typography variant="h6">
+                                        <b>Resultado</b>
+                                    </Typography>
+                                </Grid>
+                                <Grid size={numCols}>
+                                    <Typography variant="body1">
+                                        El paciente <b>{!diagnostico.resultado ? "no" : ""} ha sido diagnosticado con TEP</b>. La probabilidad de
+                                        {!diagnostico.resultado ? "no" : ""} padecerlo es del <b>{diagnostico.probabilidad.toFixed(2)}%</b>.
+                                    </Typography>
+                                </Grid>
+                                <Grid size={numCols}>
+                                    <ContLime datos={diagnostico.lime} varianteTits="h6" negritaTit={true} />
+                                </Grid>
+                            </>) : null}
                         <Grid display="flex" justifyContent="center" size={numCols}>
                             <Stack direction="row" spacing={2}>
                                 <Tooltip title={toolBtnVaciar}>
@@ -672,7 +689,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 <Tooltip title={toolBtnDiagnosticar}>
                                     <span>
                                         <Button
-                                            startIcon={diagnostico.diagnosticado ? <PersonSearchIcon /> : <DiagnosticoIcono />}
+                                            startIcon={<DiagnosticoIcono />}
                                             variant="contained"
                                             onClick={handleSubmit(onSubmit)}
                                             loading={cargandoBtn}
@@ -681,7 +698,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                             sx={{
                                                 textTransform: "none"
                                             }}>
-                                            <b>{txtBtnDiagnostico}</b>
+                                            <b>Diagnosticar</b>
                                         </Button>
                                     </span>
                                 </Tooltip>
@@ -695,25 +712,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 mensaje={modal.mensaje}
                 txtBtn="Cerrar"
                 iconoBtn={<CloseIcon />}
-                manejadorBtnModal={() => setModal((x) => ({ ...x, mostrar: false }))}>
-                <Grid columns={1} container spacing={1} overflow="auto">
-                    <Typography variant="h5" paddingBottom="2vh">
-                        Resultado
-                    </Typography>
-                    <Grid size={1}>
-                        <Typography variant="body1">
-                            El paciente <b>{!diagnostico.resultado ? "no" : ""} ha sido diagnosticado con TEP</b>. La probabilidad de
-                            {!diagnostico.resultado ? "no" : ""} padecerlo es del <b>{diagnostico.probabilidad.toFixed(2)}%</b>.
-                        </Typography>
-                        <Grid size={1} paddingTop="3vh">
-                            <Divider />
-                        </Grid>
-                    </Grid>
-                    <Grid size={1}>
-                        <ContLime datos={diagnostico.lime} responsivo={true} />
-                    </Grid>
-                </Grid>
-            </ModalSimple>
+                manejadorBtnModal={() => setModal((x) => ({ ...x, mostrar: false }))} />
         </>
     );
 };

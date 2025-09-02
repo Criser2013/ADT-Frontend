@@ -371,11 +371,6 @@ export default function VerDiagnosticoPage() {
         const res = await cambiarDiagnostico({ ...diagOriginal, validado: diagnostico }, DB);
 
         if (res.success) {
-            if (location.state != null) {
-                location.state.validado = diagnostico;
-
-            }
-
             window.history.replaceState({}, '');
             setDatos((x) => {
                 x.personales.validado = diagnostico;
@@ -572,7 +567,7 @@ export default function VerDiagnosticoPage() {
                                 <Divider />
                             </Grid>
                             <Grid size={12} paddingTop="3vh">
-                                <ContLime datos={datos.lime} responsivo={true} />
+                                <ContLime datos={datos.lime} />
                             </Grid>
                             <Grid size={12} paddingTop="3vh">
                                 <Divider />

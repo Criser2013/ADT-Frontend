@@ -6,11 +6,9 @@ import { useMemo } from "react";
 /**
  * Componente que muestra un gráfico de barras LIME de la instancia.
  * @param {JSON} datos - Datos a mostrar en el gráfico. Debe seguir la forma de los gráficos.
- * @param {number} width - Anchura del gráfico.
- * @param {number} height - Altura del gráfico.
  * @returns {JSX.Element}
  */
-export default function ContLime({ datos }) {
+export default function ContLime({ datos, varianteTits = "h5", negritaTit = false }) {
     const navegacion = useNavegacion();
     const ancho = useMemo(() => {
         const { dispositivoMovil, ancho } = navegacion;
@@ -20,25 +18,39 @@ export default function ContLime({ datos }) {
         const { dispositivoMovil, alto } = navegacion;
         return dispositivoMovil || (!dispositivoMovil && alto <= 700) ? "100vh" : "65vh";
     }, [navegacion]);
+    const responsivo = useMemo(() => {
+        const { dispositivoMovil, orientacion } = navegacion;
+        return (dispositivoMovil && orientacion == "horizontal") || !dispositivoMovil;
+    }, [navegacion]);
+    const tamGrafico = useMemo(() => {
+        if (responsivo) {
+            return { altura: undefined, anchura: undefined };
+        } else {
+            return { altura: 350, anchura:  "400%" };
+        }
+    }, [responsivo]);
+
     return (
         <Grid container columns={12}>
             <Grid size={12}>
-                <Typography variant="h5" paddingBottom="2vh">
-                    Explicación del diagnóstico del modelo
+                <Typography variant={varianteTits} paddingBottom="2vh" fontWeight={negritaTit ? "bold" : "normal"}>
+                    Explicación del diagnóstico
                 </Typography>
             </Grid>
             <Grid size={12}>
                 <Typography>
-                    Este gráfico muestra cómo cada característica contribuye a la clasificación del diagnóstico. Una barra más alta indica que esa característica
-                    tuvo una mayor influencia en la decisión del modelo para esa clase.
+                    Este gráfico muestra cómo influye cada característica en la clasificación del diagnóstico según el modelo.
                 </Typography>
             </Grid>
             <Grid display="flex" size={12} justifyContent="center">
                 <Box display="flex" maxHeight={alto} width={ancho} justifyContent="center" alignItems="center">
                     <GraficoBarras
-                        responsive={true}
+                        responsive={responsivo}
+                        altura={tamGrafico.altura}
+                        anchura={tamGrafico.anchura}
                         datos={datos}
-                        titulo="Contribución de cada característica con el tipo de diagnóstico" />
+                        modoActualizacion="resize"
+                        titulo="Contribución de cada característica" />
                 </Box>
             </Grid>
         </Grid>
