@@ -61,7 +61,7 @@ export function NavegacionProvider({ children }) {
         setMostrarMenu(!dispositivoMovil || (dispositivoMovil && orientacion == "horizontal"));
 
         detTamPantalla();
-    }, [navigator.userAgent, orientacion]);
+    }, [orientacion]);
 
     /**
      * Añade un escucha cuando la ventana cambia de tamaño.
@@ -97,7 +97,7 @@ export function NavegacionProvider({ children }) {
         setAncho(ancho);
         setAlto(alto);
 
-        if (ancho < 600 && !dispositivoMovil) {
+        if ((ancho < 600 || orientacion == "vertical") && !dispositivoMovil) {
             setVariantSidebar("temporary");
             setMostrarMenu(false);
         } else if (ancho >= 600 && !dispositivoMovil) {

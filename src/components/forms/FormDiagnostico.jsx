@@ -1,6 +1,6 @@
 import {
     Grid, Button, Typography, TextField, Stack, Tooltip, Box,
-    CircularProgress, MenuItem, IconButton
+    CircularProgress, MenuItem, IconButton, Divider
 } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -12,7 +12,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ClearIcon from '@mui/icons-material/Clear';
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import { validarFloatPos, validarNumero } from "../../utils/Validadores";
-import { oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, transformarDatos } from "../../utils/TratarDatos";
+import { oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, transformarDatos, procLime } from "../../utils/TratarDatos";
 import ModalSimple from "../modals/ModalSimple";
 import { peticionApi } from "../../services/Api";
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
@@ -27,6 +27,7 @@ import TabHeader from "../layout/TabHeader";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm, Controller } from "react-hook-form";
 import RefreshIcon from '@mui/icons-material/Refresh';
+import ContLime from "../diagnosticos/ContLime";
 
 const valoresPredet = {
     paciente: { id: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null },
@@ -70,14 +71,11 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
     const reCAPTCHAApi = useMemo(() => {
         return credenciales.obtenerRecaptcha();
-    }, [credenciales.obtenerRecaptcha()]);
+    }, [credenciales.obtenerRecaptcha]);
     const [desactivarCampos, setDesactivarCampos] = useState(false);
     const [cargandoBtn, setCargandoBtn] = useState(false);
     const [antTema, setAntTema] = useState(navegacion.tema);
     const desactivarCamposAux = useMemo(() => desactivarCampos || esDiagPacientes, [desactivarCampos, esDiagPacientes]);
-    const txtBtnDiagnostico = useMemo(() => {
-        return diagnostico.diagnosticado ? "Ver diagnóstico" : "Diagnosticar";
-    }, [diagnostico.diagnosticado]);
     const toolBtnVaciar = useMemo(() => {
         return diagnostico.diagnosticado ? "Vaciar los campos para realizar otro diagnóstico." : "Vaciar el contenido de los campos.";
     }, [diagnostico.diagnosticado]);
@@ -118,7 +116,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      */
     const onSubmit = (datos) => {
         if (diagnostico.diagnosticado) {
-            setModal({ mostrar: true, titulo: "ℹ️ Resultado del diagnóstico", mensaje: "" });
+            setModal({ mostrar: true, titulo: "ℹ️ Información del diagnóstico", mensaje: "" });
             return;
         }
 
@@ -145,7 +143,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         const pacienteSeleccionado = pacientes.find((x) => x.id == e.target.value);
 
         if (e.target.value != -1) {
-            const comorbilidades = oneHotInversoOtraEnfermedad(pacienteSeleccionado);
+            const comorbilidades = oneHotDecoderOtraEnfermedad(pacienteSeleccionado);
             setValue("sexo", pacienteSeleccionado.sexo);
             setValue("edad", dayjs().diff(dayjs(
                 pacienteSeleccionado.fechaNacimiento, "DD-MM-YYYY"), "year", false
@@ -179,7 +177,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      */
     const diagnosticar = async (datos) => {
         const aux = {};
-        const oneHotComor = oneHotEncondingOtraEnfermedad(datos.otraEnfermedad ? datos.otrasEnfermedades : []);
+        const oneHotComor = oneHotEncoderOtraEnfermedad(datos.otraEnfermedad ? datos.otrasEnfermedades : []);
         const camposTxt = ["edad", "presionSis", "presionDias", "frecRes",
             "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"];
         const camposBin = [
@@ -209,9 +207,13 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         } else if (success && esDiagPacientes) {
             await guardarDiagnostico(oneHotComor, datos, data);
         } else {
+            const lime = procLime(data, procBool(data.prediccion));
             setDesactivarCampos(true);
-            setDiagnostico({ resultado: data.prediccion, probabilidad: data.probabilidad * 100, diagnosticado: true });
-            setModal({ mostrar: true, titulo: "ℹ️ Resultado del diagnóstico", mensaje: "" });
+            setDesactivarBtn(true);
+            setDiagnostico({
+                resultado: data.prediccion, probabilidad: data.probabilidad * 100,
+                diagnosticado: true, lime: lime
+            });
         }
 
         if (getValues("paciente").id == -1) {
@@ -253,7 +255,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         const instancia = {
             id: v6(), medico: auth.authInfo.uid, ...aux, ...oneHotComor,
             probabilidad: resultado.probabilidad, diagnostico: procBool(resultado.prediccion),
-            fecha: Timestamp.now(), validado: 2, paciente: datos.paciente.id,
+            fecha: Timestamp.now(), validado: 2, paciente: datos.paciente.id, lime: resultado.lime
         };
 
         const res = await cambiarDiagnostico(instancia, credenciales.obtenerInstanciaDB());
@@ -295,7 +297,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             if (res.data.success) {
                 setDesactivarBtn(false);
             } else {
-                setModal({ 
+                setModal({
                     mostrar: true, titulo: "❌ Error",
                     mensaje: "No se ha podido comprobar que seas un humano. Reintenta el CAPTCHA nuevamente."
                 });
@@ -651,6 +653,26 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 sitekey={reCAPTCHAApi}
                                 ref={CAPTCHA} />
                         </Grid>) : null}
+                        {(diagnostico.diagnosticado) ? (
+                            <>
+                            <Grid size={numCols} paddingTop="3vh">
+                                    <Divider />
+                                </Grid>
+                                <Grid size={numCols}>
+                                    <Typography variant="h6">
+                                        <b>Resultado</b>
+                                    </Typography>
+                                </Grid>
+                                <Grid size={numCols}>
+                                    <Typography variant="body1">
+                                        El paciente <b>{!diagnostico.resultado ? "no" : ""} ha sido diagnosticado con TEP</b>. La probabilidad de
+                                        {!diagnostico.resultado ? "no" : ""} padecerlo es del <b>{diagnostico.probabilidad.toFixed(2)}%</b>.
+                                    </Typography>
+                                </Grid>
+                                <Grid size={numCols}>
+                                    <ContLime datos={diagnostico.lime} varianteTits="h6" negritaTit={true} />
+                                </Grid>
+                            </>) : null}
                         <Grid display="flex" justifyContent="center" size={numCols}>
                             <Stack direction="row" spacing={2}>
                                 <Tooltip title={toolBtnVaciar}>
@@ -667,7 +689,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 <Tooltip title={toolBtnDiagnosticar}>
                                     <span>
                                         <Button
-                                            startIcon={diagnostico.diagnosticado ? <PersonSearchIcon /> : <DiagnosticoIcono />}
+                                            startIcon={<DiagnosticoIcono />}
                                             variant="contained"
                                             onClick={handleSubmit(onSubmit)}
                                             loading={cargandoBtn}
@@ -676,7 +698,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                             sx={{
                                                 textTransform: "none"
                                             }}>
-                                            <b>{txtBtnDiagnostico}</b>
+                                            <b>Diagnosticar</b>
                                         </Button>
                                     </span>
                                 </Tooltip>
@@ -690,19 +712,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 mensaje={modal.mensaje}
                 txtBtn="Cerrar"
                 iconoBtn={<CloseIcon />}
-                manejadorBtnModal={() => setModal((x) => ({ ...x, mostrar: false }))}>
-                <Box>
-                    {diagnostico.resultado ? (
-                        <Typography variant="body1">
-                            Se ha <b>diagnosticado al paciente con TEP</b>, teniendo una probabilidad del <b>{diagnostico.probabilidad.toFixed(2)}%</b>.
-                        </Typography>
-                    ) : (
-                        <Typography variant="body1">
-                            El paciente <b>no ha sido diagnosticado con TEP</b>, la probabilidad de no padecerlo es del <b>{diagnostico.probabilidad.toFixed(2) - 1}%</b>.
-                        </Typography>
-                    )}
-                </Box>
-            </ModalSimple>
+                manejadorBtnModal={() => setModal((x) => ({ ...x, mostrar: false }))} />
         </>
     );
 };

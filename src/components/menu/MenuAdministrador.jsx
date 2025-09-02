@@ -34,30 +34,27 @@ export default function MenuAdministrador() {
     const [modal, setModal] = useState({ mostrar: false, mensaje: "", titulo: "" });
     const fechaActual = useMemo(() => dayjs(), []);
     const numCols = useMemo(() => {
-        const { orientacion, dispositivoMovil } = navegacion;
-        if ((dispositivoMovil && orientacion == "vertical") || (!dispositivoMovil && (navegacion.ancho < 500))) {
+        const { orientacion, dispositivoMovil, ancho } = navegacion;
+
+        if ((dispositivoMovil && orientacion == "vertical") || (!dispositivoMovil && (ancho <= 700))) {
             return 1;
         } else if (dispositivoMovil && orientacion == "horizontal") {
             return 2;
         } else {
             return 4;
         }
-    }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
+    }, [navegacion]);
+    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales]);
     const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual), [datosDiagnosticos, fechaActual]);
     const usuariosMesActual = useMemo(() => obtenerDatosMesActual(datosUsuarios, fechaActual), [datosUsuarios, fechaActual]);
     const colsGraficos = useMemo(() => {
         const { orientacion, dispositivoMovil, mostrarMenu } = navegacion;
-        if (dispositivoMovil && orientacion == "vertical") {
+        if ((dispositivoMovil && orientacion == "vertical") || (dispositivoMovil && orientacion == "horizontal" && !mostrarMenu)) {
             return 1;
-        } else if (dispositivoMovil && orientacion == "horizontal" && !mostrarMenu) {
-            return 1;
-        } else if (dispositivoMovil && orientacion == "horizontal" && mostrarMenu) {
-            return 2;
         } else {
             return 2;
         }
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu]);
+    }, [navegacion]);
     const cantDiagnosticos = useMemo(() => {
         return diagnosticos != null ? diagnosticos.length : 0;
     }, [diagnosticos]);
@@ -65,7 +62,7 @@ export default function MenuAdministrador() {
         return diagnosticos != null ? diagnosticos.filter(x => x.validado != 2).length : 0;
     }, [diagnosticos]);
     const propDiagnosticos = useMemo(() => {
-        const res = { Positivo: 0, Negativo: 0, "No diagnósticado": 0 };
+        const res = { Positivo: 0, Negativo: 0, "No diagnosticado": 0 };
 
         if (diagnosticos != null) {
             diagnosticos.forEach((x) => {
@@ -74,14 +71,14 @@ export default function MenuAdministrador() {
                 } else if (x.validado == 0) {
                     res.Negativo++;
                 } else {
-                    res["No diagnósticado"]++;
+                    res["No diagnosticado"]++;
                 }
             });
         }
 
         return {
-            labels: ["Positivo", "Negativo", "No diagnósticado"], datasets: [{
-                label: "Número de diagnósticos", data: [res.Positivo, res.Negativo, res["No diagnósticado"]], backgroundColor: [
+            labels: ["Positivo", "Negativo", "No diagnosticado"], datasets: [{
+                label: "Número de diagnósticos", data: [res.Positivo, res.Negativo, res["No diagnosticado"]], backgroundColor: [
                     'rgba(255, 207, 86, 0.85)', 'rgba(75, 192, 192, 0.8)', 'rgba(153, 102, 255, 0.7)'
                 ]
             }]
@@ -98,13 +95,13 @@ export default function MenuAdministrador() {
             cargarUsuarios(user.accessToken);
             cargarDiagnosticos(DB);
         }
-    }, [auth.authInfo.user, DB]);
+    }, [auth.authInfo, DB]);
 
     /**
      * Una vez se cargan los diagnósticos y los usuarios, formatea las celdas.
      */
     useEffect(() => {
-        if (diagnosticos != null && usuarios != null && datos == null) {
+        if (!!diagnosticos && !!usuarios && datos == null) {
             const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4, fechaActual);
             const usuariosMensuales = obtenerDatosPorMes(usuarios, "fecha_registro", 4, fechaActual, "DD/MM/YYYY hh:mm A");
             const json = {
@@ -119,7 +116,7 @@ export default function MenuAdministrador() {
             setDatos(json);
             setCargando(false);
         }
-    }, [diagnosticos, usuarios, datos]);
+    }, [diagnosticos, usuarios, datos, fechaActual]);
 
     /**
      * Formatea los datos del gráfico para que sean compatibles con Chart.js.
