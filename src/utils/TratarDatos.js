@@ -4,7 +4,7 @@ import { COMORBILIDADES } from "../../constants";
  * Convierte la lista de comorbilidades en un JSON cuyas claves son las comorbilidades
  * y los valores son 0 o 1, dependiendo si el paciente la padece o no.
  * @param {Array} datos - Lista de comorbilidades.
- * @returns JSON
+ * @returns {JSON}
  */
 export function oneHotEncondingOtraEnfermedad(datos) {
     const aux = {};
@@ -23,7 +23,7 @@ export function oneHotEncondingOtraEnfermedad(datos) {
 /**
  * Elimina los datos personales de los pacientes. Solo deja los datos de comorbilidades.
  * @param {JSON} datos - JSON con los datos de los pacientes.
- * @returns JSON
+ * @returns {JSON}
  */
 export function quitarDatosPersonales(datos) {
     const aux = { ...datos };
@@ -38,9 +38,9 @@ export function quitarDatosPersonales(datos) {
 /**
  * Transforma los datos de comorbilidades codificados como one-hot a un Arrray.
  * @param {JSON} datos - JSON con las comorbilidades codificadas como one-hot.
- * @returns Array
+ * @returns {Array}
  */
-export function oneHotInversoOtraEnfermedad(datos) {
+export function oneHotDecoderOtraEnfermedad(datos) {
     const aux = [];
     for (const i of COMORBILIDADES) {
         if (datos[i] == 1) {
@@ -55,7 +55,7 @@ export function oneHotInversoOtraEnfermedad(datos) {
  * @param {Array} array - Array de datos a validar.
  * @param {Function} funcEval - Función para evaluar cada elemento del array.
  * @param {Function} funcVal - Función para validar el resultado de la evaluación.
- * @returns Boolean
+ * @returns {Boolean}
  */
 export function validarArray(array, funcEval, funcVal, callback) {
     const errores = [];
@@ -73,7 +73,7 @@ export function validarArray(array, funcEval, funcVal, callback) {
  * Transforma los datos del paciente a un formato adecuado para el modelo.
  * @param {JSON} datos - JSON con los datos del paciente sin incluir las comorbildiades.
  * @param {JSON} comorbilidades - JSON OneHot con las comorbilidades del paciente.
- * @returns JSON
+ * @returns {JSON}
  */
 export function transformarDatos(datos, comorbilidades) {
     return {
@@ -127,7 +127,7 @@ export function transformarDatos(datos, comorbilidades) {
 /**
  * Convierte un valor booleano a un entero.
  * @param {Boolean} valor 
- * @returns Integer
+ * @returns {Integer}
  */
 export function procBool(valor) {
     return valor ? 1 : 0;
@@ -167,7 +167,7 @@ export function evaluarIntervalo(valor, intervalos) {
  * 9 = (-∞ , 50)
  * 10 = [210, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procPresionSist(valor) {
     return evaluarIntervalo(valor, [
@@ -190,7 +190,7 @@ export function procPresionSist(valor) {
  * 9 = (-∞ , 40)
  * 10 = [120, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procPresionDiast(valor) {
     return evaluarIntervalo(valor, [
@@ -211,7 +211,7 @@ export function procPresionDiast(valor) {
  * 7 = (-∞ , 2000)
  * 8 = [35000, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procWbc(valor) {
     return evaluarIntervalo(valor, [
@@ -234,7 +234,7 @@ export function procWbc(valor) {
  * 9 = (-∞ , 6)
  * 10 = [22, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procHb(valor) {
     return evaluarIntervalo(valor, [
@@ -255,7 +255,7 @@ export function procHb(valor) {
  * 8 = (-∞ , 10000)
  * 9 = [700000, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procPlt(valor) {
     return evaluarIntervalo(valor, [
@@ -279,7 +279,7 @@ export function procPlt(valor) {
  * 10 = (-∞,15]
  * 11 = [60, ∞)
  * @param {String} valor - Valor a convertir
- * @returns Number
+ * @returns {Number}
  */
 export function procFrecRes(valor) {
     return evaluarIntervalo(valor, [
@@ -304,7 +304,7 @@ export function procFrecRes(valor) {
  * 11 = (-∞ , 50)
  * 12 = [100, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procSo2(valor) {
     return evaluarIntervalo(valor, [
@@ -327,7 +327,7 @@ export function procSo2(valor) {
  * 9 = (-∞ , 50)
  * 10 = [210, ∞)
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procFrecCard(valor) {
     return evaluarIntervalo(valor, [
@@ -344,7 +344,7 @@ export function procFrecCard(valor) {
  * 3 = [60, 80) - 60 a 80 años.
  * 4 = [81, ∞) - Mayor de 80 años.
  * @param {String} valor - Valor a convertir.
- * @returns Number
+ * @returns {Number}
  */
 export function procEdad(valor) {
     return evaluarIntervalo(valor, [
@@ -365,7 +365,7 @@ export function detTxtDiagnostico(diagnostico) {
         case 1:
             return "Positivo";
         default:
-            return "No diagnósticado";
+            return "No diagnosticado";
     }
 };
 
@@ -430,20 +430,21 @@ export function nombresCampos(instancia, esAdmin, preprocesar = false) {
         datos["Fecha"] = instancia.fecha.toDate().toLocaleDateString("es-CO");
         datos["Diagnóstico modelo"] = instancia.diagnostico;
         datos["Probabilidad"] = (instancia.probabilidad * 100).toFixed(2);
+        datos["Campos Significativos para el diagnóstico"] = JSON.stringify(instancia.lime);
     }
 
     return datos;
 };
 
 /**
- * 
+ * Genera el gráfico LIME del diagnóstico ingresado.
  * @param {JSON} datos - Datos a procesar.
  * @param {string} clave - Clave dentro del JSON de datos que contiene los valores LIME.
  * @param {string} colorPositivo - Color de los atributos que contribuyen a la clase positiva.
  * @param {string} colorNegativo - Color de los atributos que contribuyen a la clase negativa.
  * @returns {JSON}
  */
-export function procesarLime(datos, clave = "lime", colorPositivo = "rgba(237, 108, 2, 255)", colorNegativo = "rgba(44,120,56, 2)") {
+export function procLime(datos, clave = "lime", colorPositivo = "rgba(237, 108, 2, 255)", colorNegativo = "rgba(44,120,56, 2)") {
     const aux = {...datos};
     const lime = {
             labels: [],

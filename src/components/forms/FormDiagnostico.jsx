@@ -12,7 +12,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ClearIcon from '@mui/icons-material/Clear';
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import { validarFloatPos, validarNumero } from "../../utils/Validadores";
-import { oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, transformarDatos, procesarLime } from "../../utils/TratarDatos";
+import { oneHotEncondingOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, transformarDatos, procLime } from "../../utils/TratarDatos";
 import ModalSimple from "../modals/ModalSimple";
 import { peticionApi } from "../../services/Api";
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
@@ -71,7 +71,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
     const reCAPTCHAApi = useMemo(() => {
         return credenciales.obtenerRecaptcha();
-    }, [credenciales.obtenerRecaptcha()]);
+    }, [credenciales.obtenerRecaptcha]);
     const [desactivarCampos, setDesactivarCampos] = useState(false);
     const [cargandoBtn, setCargandoBtn] = useState(false);
     const [antTema, setAntTema] = useState(navegacion.tema);
@@ -146,7 +146,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         const pacienteSeleccionado = pacientes.find((x) => x.id == e.target.value);
 
         if (e.target.value != -1) {
-            const comorbilidades = oneHotInversoOtraEnfermedad(pacienteSeleccionado);
+            const comorbilidades = oneHotDecoderOtraEnfermedad(pacienteSeleccionado);
             setValue("sexo", pacienteSeleccionado.sexo);
             setValue("edad", dayjs().diff(dayjs(
                 pacienteSeleccionado.fechaNacimiento, "DD-MM-YYYY"), "year", false
@@ -210,7 +210,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         } else if (success && esDiagPacientes) {
             await guardarDiagnostico(oneHotComor, datos, data);
         } else {
-            const lime = procesarLime(data);
+            const lime = procLime(data);
             setDesactivarCampos(true);
             setDiagnostico({ 
                 resultado: data.prediccion, probabilidad: data.probabilidad * 100,

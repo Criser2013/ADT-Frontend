@@ -63,7 +63,7 @@ export default function GraficoPastel({ titulo, datos, responsive = true, modoAc
                 borderColor: "#00000000"
             }
         }
-    }), [titulo, colorTitulo]);
+    }), [titulo, colorTitulo, responsive, tamLeyenda, tamTitulo]);
 
     return (
         <Pie data={datos} options={opciones} updateMode={modoActualizacion} style={{ maxHeight: "40vh" }} />

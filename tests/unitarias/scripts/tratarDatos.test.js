@@ -1,5 +1,5 @@
-import { expect, describe, test, jest } from '@jest/globals';
-import { detTxtDiagnostico, evaluarIntervalo, nombresCampos, oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, quitarDatosPersonales, transformarDatos } from "../../../src/utils/TratarDatos";
+import { expect, describe, test } from '@jest/globals';
+import { detTxtDiagnostico, evaluarIntervalo, nombresCampos, oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, quitarDatosPersonales, transformarDatos, procesarLime } from "../../../src/utils/TratarDatos";
 
 describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
     test("CP - 15", () => {
@@ -171,7 +171,7 @@ describe("Validar la función 'detTxtDiagnostico'", () => {
 
     test("CP - 78", () => {
         const res = detTxtDiagnostico(2);
-        expect(res).toEqual("No diagnósticado");
+        expect(res).toEqual("No diagnosticado");
     });
 });
 
@@ -199,8 +199,8 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             "Enfermedad hepática": 0, "Trombofilia": 0, "VIH": 0,
             "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
             diagnostico: 1, validado: 0, probabilidad: 0.5, fecha: mockFecha,
-            paciente: "1f073a07-6630-6d90-ac94-34c18cc96549", id: "ID"
-        }
+            paciente: "1f073a07-6630-6d90-ac94-34c18cc96549", id: "ID", lime: [{ "VIH": 51.85, "Hepatopatía crónica": -48.2 }]
+        };
 
         const respuesta = {
             "Edad": 60, "Género": "M", "Bebedor": 0, "Fumador": 0,
@@ -219,7 +219,8 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             "Urológica": 0, "Neurológica": 0,
             "Trombofilia": 0, "VIH": 0, "Paciente": "1f073a07-6630-6d90-ac94-34c18cc96549", "Probabilidad": "50.00",
             "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
-            "TEP": 0, "ID": "ID", "Fecha": "1/10/2023", "Diagnóstico modelo": 1
+            "TEP": 0, "ID": "ID", "Fecha": "1/10/2023", "Diagnóstico modelo": 1,
+            "Campos Significativos para el diagnóstico": '[{"VIH":51.85,"Hepatopatía crónica":-48.2}]'
         };
 
         const res = nombresCampos(instancia, false, false);
@@ -250,8 +251,8 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             "Enfermedad hepática": 0, "Trombofilia": 0, "VIH": 0,
             "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
             diagnostico: 1, validado: 0, probabilidad: 0.5, fecha: mockFecha,
-            paciente: "Paciente Test", id: "ID"
-        }
+            paciente: "Paciente Test", id: "ID", lime: [{ "VIH": 51.85, "Hepatopatía crónica": -48.2 }]
+        };
 
         const respuesta = {
             "Edad": 2, "Género": 0, "Bebedor": 0, "Fumador": 0,
@@ -278,3 +279,25 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
         expect(res).toEqual(respuesta);
     });
 });
+
+describe("Validar que la función 'procesarLime' retorne correctamente los parámetros del gráfico", () => {
+    test("CP - 89", () => {
+        const res = procesarLime({ lime: [{ campo: "VIH", contribucion: 51.85 }, { campo: "Hepatopatía crónica", contribucion: -48.2 }] }, "lime", "rgba(237, 108, 2, 255)", "rgba(44,120,56, 2)");
+
+        expect(res).toEqual({
+            labels: ["Hepatopatía crónica", "VIH"],
+            datasets: [
+                {
+                    label: "Diagnóstico Positivo",
+                    data: [0, 51.85],
+                    backgroundColor: "rgba(237, 108, 2, 255)"
+                },
+                {
+                    label: "Diagnóstico Negativo",
+                    data: [48.2, 0],
+                    backgroundColor: "rgba(44,120,56, 2)",
+                }
+            ]
+        });
+    });
+})

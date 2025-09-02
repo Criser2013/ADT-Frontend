@@ -142,7 +142,8 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
         const { nombre, sexo, fechaNacimiento, telefono, cedula, otraEnfermedad, otrasEnfermedades, id } = datos;
         const oneHotComor = oneHotEncondingOtraEnfermedad(otraEnfermedad ? otrasEnfermedades : []);
         const instancia = {
-            nombre, sexo, telefono, cedula, ...oneHotComor, otraEnfermedad: otraEnfermedad ? 1 : 0
+            id: null, cedula, nombre, sexo, fechaNacimiento: null, fechaCreacion: null,
+            telefono, ...oneHotComor, otraEnfermedad: otraEnfermedad ? 1 : 0
         };
 
         dayjs.extend(customParseFormat);

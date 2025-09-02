@@ -62,7 +62,7 @@ export default function MenuAdministrador() {
         return diagnosticos != null ? diagnosticos.filter(x => x.validado != 2).length : 0;
     }, [diagnosticos]);
     const propDiagnosticos = useMemo(() => {
-        const res = { Positivo: 0, Negativo: 0, "No diagnósticado": 0 };
+        const res = { Positivo: 0, Negativo: 0, "No diagnosticado": 0 };
 
         if (diagnosticos != null) {
             diagnosticos.forEach((x) => {
@@ -71,14 +71,14 @@ export default function MenuAdministrador() {
                 } else if (x.validado == 0) {
                     res.Negativo++;
                 } else {
-                    res["No diagnósticado"]++;
+                    res["No diagnosticado"]++;
                 }
             });
         }
 
         return {
-            labels: ["Positivo", "Negativo", "No diagnósticado"], datasets: [{
-                label: "Número de diagnósticos", data: [res.Positivo, res.Negativo, res["No diagnósticado"]], backgroundColor: [
+            labels: ["Positivo", "Negativo", "No diagnosticado"], datasets: [{
+                label: "Número de diagnósticos", data: [res.Positivo, res.Negativo, res["No diagnosticado"]], backgroundColor: [
                     'rgba(255, 207, 86, 0.85)', 'rgba(75, 192, 192, 0.8)', 'rgba(153, 102, 255, 0.7)'
                 ]
             }]

@@ -80,7 +80,7 @@ export default function GraficoBarras({ titulo, datos, responsive = true,
                 }
             }
         }
-    }), [titulo, colorTitulo, colorMalla, tamLeyenda, tamTitulo]);
+    }), [titulo, colorTitulo, colorMalla, tamLeyenda, tamTitulo, responsive]);
 
     return (
         <Bar height={altura} width={anchura} data={datos} options={opciones} updateMode={modoActualizacion} />

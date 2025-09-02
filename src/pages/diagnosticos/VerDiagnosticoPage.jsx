@@ -17,7 +17,7 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ModalAccion from "../../components/modals/ModalAccion";
 import { cambiarDiagnostico, eliminarDiagnosticos, verDiagnostico } from "../../firestore/diagnosticos-collection";
-import { oneHotInversoOtraEnfermedad, detTxtDiagnostico, procesarLime } from "../../utils/TratarDatos";
+import { oneHotDecoderOtraEnfermedad, detTxtDiagnostico, procLime } from "../../utils/TratarDatos";
 import { COMORBILIDADES, DIAGNOSTICOS } from "../../../constants";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import Check from "../../components/tabs/Check";
@@ -95,7 +95,7 @@ export default function VerDiagnosticoPage() {
         }
 
         return campos;
-    }, [rol, datos.personales.validado, persona.nombre]);
+    }, [rol, datos.personales, persona.nombre]);
     const camposVitales = useMemo(() => [
         { titulo: "Presión sistólica", valor: `${datos.personales.presionSis} mmHg.` },
         { titulo: "Presión diastólica", valor: `${datos.personales.presionDias} mmHg.` },
@@ -121,7 +121,7 @@ export default function VerDiagnosticoPage() {
             { texto: tit1, url: "/diagnosticos" },
             { texto: tit2, url: `/diagnosticos/ver-diagnostico${location.search}` }
         ];
-    }, [persona.nombre, datos.personales.fecha, location.search, rol]);
+    }, [persona, datos, location.search, rol]);
     const titulo = useMemo(() => {
         if (rol == CODIGO_ADMIN) {
             return persona.nombre != "" ? `Diagnóstico — ${datos.personales.id}` : "Datos del diagnóstico";
@@ -186,7 +186,7 @@ export default function VerDiagnosticoPage() {
         if (!res) {
             navigate("/diagnosticos", { replace: true });
         }
-    }, [titulo]);
+    }, [titulo, id]);
 
     /**
      * Una vez se carguen los datos de los pacientes, se cargan los datos del paciente.
@@ -295,8 +295,8 @@ export default function VerDiagnosticoPage() {
      */
     const preprocesarDiag = (datos) => {
         const aux = { ...datos };
-        const lime = procesarLime(aux);
-        const res = oneHotInversoOtraEnfermedad(aux);
+        const lime = procLime(aux);
+        const res = oneHotDecoderOtraEnfermedad(aux);
 
         for (const i of COMORBILIDADES) {
             delete aux[i];
