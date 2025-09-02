@@ -286,7 +286,8 @@ export default function VerDiagnosticoPage() {
         } else {
             persona = { nombre: res.success ? res.data.nombre : res.data.correo };
         }
-        setPersona((x) => ({...x, ...persona }));
+        sessionStorage.setItem("descargando-drive", "false");
+        setPersona((x) => ({ ...x, ...persona }));
     };
 
     /**
@@ -566,16 +567,12 @@ export default function VerDiagnosticoPage() {
                             {camposPersonales.map((campo, index) => (
                                 <CamposTexto key={index} campo={campo} indice={index} />
                             ))}
-                            {(datos.lime != null) ? (
-                                <>
-                                    <Grid size={12} paddingTop="3vh">
-                                        <Divider />
-                                    </Grid>
-                                    <Grid size={12} paddingTop="3vh">
-                                        <ContLime datos={datos.lime} responsivo={true} />
-                                    </Grid>
-                                </>
-                            ) : null}
+                            <Grid size={12} paddingTop="3vh">
+                                <Divider />
+                            </Grid>
+                            <Grid size={12} paddingTop="3vh">
+                                <ContLime datos={datos.lime} responsivo={true} />
+                            </Grid>
                             <Grid size={12} paddingTop="3vh">
                                 <Divider />
                             </Grid>

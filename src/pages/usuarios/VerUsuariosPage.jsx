@@ -97,7 +97,7 @@ export default function VerUsuariosPage() {
         } else {
             return "60vw";
         }
-    }, [navegacion.dispositivoMovil, navegacion.orientacion]);
+    }, [navegacion]);
     const numCols = useMemo(() => {
         const { dispositivoMovil, orientacion } = navegacion;
         if (dispositivoMovil && (orientacion == "vertical" || navegacion.ancho < 500)) {
@@ -105,9 +105,9 @@ export default function VerUsuariosPage() {
         } else {
             return "row";
         }
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.ancho]);
+    }, [navegacion]);
     const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB()]);
+    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
 
     /**
      * Coloca el título de la página.

@@ -1,9 +1,9 @@
 import { expect, describe, test } from '@jest/globals';
-import { detTxtDiagnostico, evaluarIntervalo, nombresCampos, oneHotEncondingOtraEnfermedad, oneHotInversoOtraEnfermedad, procBool, quitarDatosPersonales, transformarDatos, procesarLime } from "../../../src/utils/TratarDatos";
+import { detTxtDiagnostico, evaluarIntervalo, nombresCampos, oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, quitarDatosPersonales, transformarDatos, procLime } from "../../../src/utils/TratarDatos";
 
 describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
     test("CP - 15", () => {
-        const res = oneHotEncondingOtraEnfermedad(["Enfermedad vascular", "Diabetes"]);
+        const res = oneHotEncoderOtraEnfermedad(["Enfermedad vascular", "Diabetes"]);
         expect(res).toEqual({
             "Enfermedad vascular": 1, "Diabetes": 1, "Trombofilia": 0, "Enfermedad renal": 0,
             "Enfermedad pulmonar": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0,
@@ -14,7 +14,7 @@ describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
     });
 
     test("CP - 16", () => {
-        const res = oneHotEncondingOtraEnfermedad([]);
+        const res = oneHotEncoderOtraEnfermedad([]);
         expect(res).toEqual({
             "Enfermedad vascular": 0, "Diabetes": 0, "Trombofilia": 0, "Enfermedad renal": 0,
             "Enfermedad pulmonar": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0,
@@ -27,7 +27,7 @@ describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
 
 describe("Validar la función 'oneHotInversoOtraEnfermedad'", () => {
     test("CP - 51", () => {
-        const res = oneHotInversoOtraEnfermedad({
+        const res = oneHotDecoderOtraEnfermedad({
             "Enfermedad vascular": 1, "Diabetes": 1, "Trombofilia": 0, "Enfermedad renal": 0,
             "Enfermedad pulmonar": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0,
             "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
@@ -38,7 +38,7 @@ describe("Validar la función 'oneHotInversoOtraEnfermedad'", () => {
     });
 
     test("CP - 52", () => {
-        const res = oneHotInversoOtraEnfermedad({
+        const res = oneHotDecoderOtraEnfermedad({
             "Enfermedad vascular": 0, "Diabetes": 0, "Trombofilia": 0, "Enfermedad renal": 0,
             "Enfermedad pulmonar": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0,
             "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
@@ -136,7 +136,7 @@ describe("Validar la función 'transformarDatos'", () => {
         };
         const respuesta = {
             edad: 60, sexo: 0, bebedor: 0, fumador: 0,
-            "cirugia_reciente": 0, "viaje_prolongado": 0,
+            "proc_quirurgico_traumatismo": 0, "viaje_prolongado": 0,
             tos: 0, fiebre: 0, crepitaciones: 0,
             "dolor_toracico": 1, malignidad: 0, hemoptisis: 0,
             disnea: 1, sibilancias: 0, derrame: 0,
@@ -204,7 +204,7 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
 
         const respuesta = {
             "Edad": 60, "Género": "M", "Bebedor": 0, "Fumador": 0,
-            "Cirugía reciente": 0, "Viaje prolongado": 0,
+            "Procedimiento Quirurgicos / Traumatismo Grave en los últimos 15 dias": 0, "Viaje prolongado": 0,
             "Tos": 0, "Fiebre": 0, "Crepitaciones": 0,
             "Dolor toracico": 1, "Malignidad": 0, "Hemoptisis": 0,
             "Disnea": 1, "Sibilancias": 0, "Derrame": 0,
@@ -256,7 +256,7 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
 
         const respuesta = {
             "Edad": 2, "Género": 0, "Bebedor": 0, "Fumador": 0,
-            "Cirugía reciente": 0, "Viaje prolongado": 0,
+            "Procedimiento Quirurgicos / Traumatismo Grave en los últimos 15 dias": 0, "Viaje prolongado": 0,
             "Tos": 0, "Fiebre": 0, "Crepitaciones": 0,
             "Dolor toracico": 1, "Malignidad": 0, "Hemoptisis": 0,
             "Disnea": 1, "Sibilancias": 0, "Derrame": 0,
@@ -282,7 +282,7 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
 
 describe("Validar que la función 'procesarLime' retorne correctamente los parámetros del gráfico", () => {
     test("CP - 89", () => {
-        const res = procesarLime({ lime: [{ campo: "VIH", contribucion: 51.85 }, { campo: "Hepatopatía crónica", contribucion: -48.2 }] }, "lime", "rgba(237, 108, 2, 255)", "rgba(44,120,56, 2)");
+        const res = procLime({ lime: [{ campo: "VIH", contribucion: 51.85 }, { campo: "Hepatopatía crónica", contribucion: -48.2 }] }, "lime", "rgba(237, 108, 2, 255)", "rgba(44,120,56, 2)");
 
         expect(res).toEqual({
             labels: ["Hepatopatía crónica", "VIH"],

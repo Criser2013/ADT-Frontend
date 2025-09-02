@@ -12,7 +12,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ClearIcon from '@mui/icons-material/Clear';
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import { validarFloatPos, validarNumero } from "../../utils/Validadores";
-import { oneHotEncondingOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, transformarDatos, procLime } from "../../utils/TratarDatos";
+import { oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, transformarDatos, procLime } from "../../utils/TratarDatos";
 import ModalSimple from "../modals/ModalSimple";
 import { peticionApi } from "../../services/Api";
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
@@ -180,7 +180,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      */
     const diagnosticar = async (datos) => {
         const aux = {};
-        const oneHotComor = oneHotEncondingOtraEnfermedad(datos.otraEnfermedad ? datos.otrasEnfermedades : []);
+        const oneHotComor = oneHotEncoderOtraEnfermedad(datos.otraEnfermedad ? datos.otrasEnfermedades : []);
         const camposTxt = ["edad", "presionSis", "presionDias", "frecRes",
             "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"];
         const camposBin = [

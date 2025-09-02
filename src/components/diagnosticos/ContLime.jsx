@@ -1,13 +1,25 @@
 import { Box, Grid, Typography } from "@mui/material";
 import GraficoBarras from "../charts/GraficoBarras";
+import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useMemo } from "react";
 
 /**
  * Componente que muestra un gráfico de barras LIME de la instancia.
  * @param {JSON} datos - Datos a mostrar en el gráfico. Debe seguir la forma de los gráficos.
- * @param {number} ancho - Anchura del gráfico.
+ * @param {number} width - Anchura del gráfico.
+ * @param {number} height - Altura del gráfico.
  * @returns {JSX.Element}
  */
 export default function ContLime({ datos }) {
+    const navegacion = useNavegacion();
+    const ancho = useMemo(() => {
+        const { dispositivoMovil, ancho } = navegacion;
+        return dispositivoMovil || (!dispositivoMovil && ancho <= 700) ? "90vw" : "65vw";
+    }, [navegacion]);
+    const alto = useMemo(() => {
+        const { dispositivoMovil, alto } = navegacion;
+        return dispositivoMovil || (!dispositivoMovil && alto <= 700) ? "100vh" : "65vh";
+    }, [navegacion]);
     return (
         <Grid container columns={12}>
             <Grid size={12}>
@@ -22,10 +34,12 @@ export default function ContLime({ datos }) {
                 </Typography>
             </Grid>
             <Grid display="flex" size={12} justifyContent="center">
-                <GraficoBarras
-                    responsive={true}
-                    datos={datos}
-                    titulo="Contribución de cada característica con el tipo de diagnóstico" />
+                {/*<Box maxHeight="65vh" width={ancho}>*/}
+                    <GraficoBarras
+                        responsive={true}
+                        datos={datos}
+                        titulo="Contribución de cada característica con el tipo de diagnóstico" />
+                {/*</Box>*/}
             </Grid>
         </Grid>
     );

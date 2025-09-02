@@ -34,7 +34,7 @@ export default function IniciarSesionPage() {
     });
     const cargandoAuth = useMemo(() => {
         return auth.cargando || !credenciales.verSiCredsFirebaseEstancargadas();
-    }, [auth.cargando, credenciales.verSiCredsFirebaseEstancargadas()]);
+    }, [auth.cargando, credenciales.verSiCredsFirebaseEstancargadas]);
     const width = useMemo(() => {
         const { dispositivoMovil, orientacion, ancho } = navegacion;
         if (!dispositivoMovil && (ancho >= 1020)) {
@@ -46,7 +46,7 @@ export default function IniciarSesionPage() {
         } else {
             return "40vw";
         }
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.ancho]);
+    }, [navegacion]);
     const centrar = useMemo(() => {
         const { dispositivoMovil, orientacion, alto } = navegacion;
         if ((!dispositivoMovil && (alto >= 800)) || (dispositivoMovil && (orientacion == "vertical"))) {
@@ -54,7 +54,7 @@ export default function IniciarSesionPage() {
         } else {
             return null;
         }
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.alto]);
+    }, [navegacion]);
     const temaCaptcha = useMemo(() => navegacion.tema, [navegacion.tema]);
     const fondoImg = useMemo(() => {
         return temaCaptcha === "light" ? fondoClaro : fondoOscuro;

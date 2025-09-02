@@ -61,7 +61,7 @@ export function NavegacionProvider({ children }) {
         setMostrarMenu(!dispositivoMovil || (dispositivoMovil && orientacion == "horizontal"));
 
         detTamPantalla();
-    }, [navigator.userAgent, orientacion]);
+    }, [orientacion]);
 
     /**
      * Añade un escucha cuando la ventana cambia de tamaño.

@@ -6,7 +6,7 @@ import { COMORBILIDADES } from "../../constants";
  * @param {Array} datos - Lista de comorbilidades.
  * @returns {JSON}
  */
-export function oneHotEncondingOtraEnfermedad(datos) {
+export function oneHotEncoderOtraEnfermedad(datos) {
     const aux = {};
 
     for (const i of COMORBILIDADES) {
@@ -81,7 +81,7 @@ export function transformarDatos(datos, comorbilidades) {
         sexo: datos.sexo,
         bebedor: procBool(datos.bebedor),
         fumador: procBool(datos.fumador),
-        cirugia_reciente: procBool(datos.cirugiaReciente),
+        proc_quirurgico_traumatismo: procBool(datos.cirugiaReciente),
         inmovilidad_de_m_inferiores: procBool(datos.inmovilidad),
         viaje_prolongado: procBool(datos.viajeProlongado),
         TEP_TVP_previo: procBool(datos.tepPrevio),
@@ -382,7 +382,7 @@ export function nombresCampos(instancia, esAdmin, preprocesar = false) {
         "Género": preprocesar ? instancia.sexo : (instancia.sexo == 0 ? "M" : "F"),
         "Bebedor": instancia.bebedor,
         "Fumador": instancia.fumador,
-        "Cirugía reciente": instancia.cirugiaReciente,
+        "Procedimiento Quirurgicos / Traumatismo Grave en los últimos 15 dias": instancia.cirugiaReciente,
         "Inmovilidad de M inferiores": instancia.inmovilidad,
         "Viaje prolongado": instancia.viajeProlongado,
         "TEP - TVP Previo": instancia.tepPrevio,
