@@ -39,7 +39,7 @@ export default function Sidebar() {
         } else {
             return usuario;
         }
-    }, [auth.authInfo.rolVisible, auth.authInfo.modoUsuario]);
+    }, [auth.authInfo]);
     const mostrarMenu = useMemo(() => {
         return detAbrirMenu(navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion) ? "none" : "block";
     }, [navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion]);
@@ -71,7 +71,7 @@ export default function Sidebar() {
         navegacion.setPaginaAnterior(window.location.pathname);
         navigate(url);
 
-        if (navegacion.dispositivoMovil && navegacion.orientacion == "vertical") {
+        if (navegacion.variantSidebar == "temporary") {
             navegacion.setMostrarMenu(false);
         }
     };

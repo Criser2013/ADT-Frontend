@@ -17,7 +17,7 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ModalAccion from "../../components/modals/ModalAccion";
 import { cambiarDiagnostico, eliminarDiagnosticos, verDiagnostico } from "../../firestore/diagnosticos-collection";
-import { oneHotInversoOtraEnfermedad, detTxtDiagnostico } from "../../utils/TratarDatos";
+import { oneHotDecoderOtraEnfermedad, detTxtDiagnostico, procLime } from "../../utils/TratarDatos";
 import { COMORBILIDADES, DIAGNOSTICOS } from "../../../constants";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import Check from "../../components/tabs/Check";
@@ -29,6 +29,7 @@ import ContComorbilidades from "../../components/diagnosticos/ContComorbilidades
 import { peticionApi } from "../../services/Api";
 import { Timestamp } from "firebase/firestore";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
+import ContLime from "../../components/diagnosticos/ContLime";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -63,9 +64,9 @@ export default function VerDiagnosticoPage() {
             hemoglobina: "", frecRes: "", frecCard: "", fiebre: 0,
             edema: 0, edad: "", dolorToracico: 0, disnea: 0,
             disautonomicos: 0, diagnostico: 0, derrame: 0, crepitaciones: 0,
-            cirugiaReciente: 0, bebdor: 0
+            cirugiaReciente: 0, bebedor: 0
         },
-        comorbilidades: []
+        comorbilidades: [], lime: null
     });
     const [persona, setPersona] = useState({
         id: "", nombre: ""
@@ -94,7 +95,7 @@ export default function VerDiagnosticoPage() {
         }
 
         return campos;
-    }, [rol, datos.personales.validado, persona.nombre]);
+    }, [rol, datos, persona.nombre]);
     const camposVitales = useMemo(() => [
         { titulo: "Presión sistólica", valor: `${datos.personales.presionSis} mmHg.` },
         { titulo: "Presión diastólica", valor: `${datos.personales.presionDias} mmHg.` },
@@ -120,7 +121,7 @@ export default function VerDiagnosticoPage() {
             { texto: tit1, url: "/diagnosticos" },
             { texto: tit2, url: `/diagnosticos/ver-diagnostico${location.search}` }
         ];
-    }, [persona.nombre, datos.personales.fecha, location.search, rol]);
+    }, [persona, datos, location.search, rol]);
     const titulo = useMemo(() => {
         if (rol == CODIGO_ADMIN) {
             return persona.nombre != "" ? `Diagnóstico — ${datos.personales.id}` : "Datos del diagnóstico";
@@ -185,7 +186,7 @@ export default function VerDiagnosticoPage() {
         if (!res) {
             navigate("/diagnosticos", { replace: true });
         }
-    }, [titulo]);
+    }, [titulo, id]);
 
     /**
      * Una vez se carguen los datos de los pacientes, se cargan los datos del paciente.
@@ -272,8 +273,21 @@ export default function VerDiagnosticoPage() {
         const res = await peticionApi(token, `admin/usuarios/${uid}`, "GET", null,
             "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
         );
+        let persona = { nombre: "N/A" };
 
-        setPersona((x) => ({ ...x, nombre: res.success ? res.data.nombre : res.data.correo }));
+        if (!res.success && res.data == null) {
+            setMostrarBtnSecundario(false);
+            setModal({
+                mostrar: true, titulo: "❌ Error",
+                mensaje: "Se ha producido un error al cargar los datos del médico. Recarga la página y reintenta nuevamente."
+            });
+        } else if (!res.success) {
+            persona = { nombre: res.data.correo };
+        } else {
+            persona = { nombre: res.success ? res.data.nombre : res.data.correo };
+        }
+        sessionStorage.setItem("descargando-drive", "false");
+        setPersona((x) => ({ ...x, ...persona }));
     };
 
     /**
@@ -282,7 +296,8 @@ export default function VerDiagnosticoPage() {
      */
     const preprocesarDiag = (datos) => {
         const aux = { ...datos };
-        const res = oneHotInversoOtraEnfermedad(aux);
+        const lime = procLime(aux);
+        const res = oneHotDecoderOtraEnfermedad(aux);
 
         for (const i of COMORBILIDADES) {
             delete aux[i];
@@ -290,7 +305,9 @@ export default function VerDiagnosticoPage() {
         dayjs.extend(customParseFormat);
 
         aux.fecha = dayjs(datos.fecha.toDate()).format("DD [de] MMMM [de] YYYY");
-        setDatos({ personales: aux, comorbilidades: res });
+        setDatos({
+            personales: aux, comorbilidades: res, lime: (datos.lime != undefined ? lime : null)
+        });
     };
 
     /**
@@ -354,11 +371,7 @@ export default function VerDiagnosticoPage() {
         const res = await cambiarDiagnostico({ ...diagOriginal, validado: diagnostico }, DB);
 
         if (res.success) {
-            if (location.state != null) {
-                location.state.validado = diagnostico;
-                
-            }
-
+            window.history.replaceState({}, '');
             setDatos((x) => {
                 x.personales.validado = diagnostico;
                 return { ...x };
@@ -553,9 +566,14 @@ export default function VerDiagnosticoPage() {
                             <Grid size={12} paddingTop="3vh">
                                 <Divider />
                             </Grid>
+                            <Grid size={12} paddingTop="3vh">
+                                <ContLime datos={datos.lime} />
+                            </Grid>
+                            <Grid size={12} paddingTop="3vh">
+                                <Divider />
+                            </Grid>
                             <Grid size={12}>
                                 <Typography variant="h5" paddingBottom="0.2vh">
-                                    Síntomas clínicos
                                 </Typography>
                             </Grid>
                             <Grid container size={12} columns={12} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
