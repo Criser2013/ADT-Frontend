@@ -57,13 +57,14 @@ export default function VerDiagnosticosPage() {
     const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
     const camposVariables = (rol != CODIGO_ADMIN) ? [
+        { id: "id", label: "ID", componente: null, ordenable: true },
         { id: "nombre", label: "Paciente", componente: null, ordenable: true },
-        { id: "paciente", label: "Cédula", componente: null, ordenable: true }
+        { id: "paciente", label: "Cédula", componente: null, ordenable: true },
     ] : [{ id: "nombre", label: "Médico", componente: null, ordenable: true }];
     const camposFijos = camposVariables.concat([
-        { id: "fecha", label: "Fecha", componente: null, ordenable: true },
+        { id: "fecha", label: "Fecha", componente: (x) => dayjs(x.fecha).format("DD/MM/YYYY [-] hh:mm A"), ordenable: true },
         { id: "edad", label: "Edad", componente: null, ordenable: true },
-        { id: "sexo", label: "Sexo", componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true },
+        { id: "sexo", label: "Sexo", componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true},
         { id: "diagnostico", label: "Diagnóstico modelo", componente: (x) => <ChipDiagnostico diagnostico={x.diagnostico} />, ordenable: true },
         { id: "validado", label: "Diagnóstico médico", componente: (x) => <ChipValidado validado={x.validado} />, ordenable: true }
     ]);
@@ -71,7 +72,11 @@ export default function VerDiagnosticosPage() {
         return (rol != CODIGO_ADMIN) ? camposFijos.concat([{ id: "accion", label: "Acción", componente: null, ordenable: false }]) : camposFijos;
     }, [rol, camposFijos]);
     const camposBusq = useMemo(() => {
-        return (rol != CODIGO_ADMIN) ? ["nombre", "paciente"] : ["nombre"];
+        const campos = ["id", "nombre"];
+        if (rol != CODIGO_ADMIN) {
+            campos.push("paciente");
+        }
+        return campos;
     }, [rol]);
     const activarSeleccion = useMemo(() => {
         return rol == CODIGO_ADMIN;
@@ -80,7 +85,7 @@ export default function VerDiagnosticosPage() {
         return (rol != CODIGO_ADMIN) ? "Historial de diagnósticos" : "Datos recolectados";
     }, [rol]);
     const lblBusq = useMemo(() => {
-        return (rol != CODIGO_ADMIN) ? "Buscar diagnóstico por nombre o número de cédula del paciente" : "Buscar diagnóstico por nombre del médico";
+        return (rol != CODIGO_ADMIN) ? "Buscar diagnóstico por ID, nombre o número de cédula del paciente" : "Buscar diagnóstico por ID o nombre del médico";
     }, [rol]);
     const listadoPestanas = useMemo(() => {
         const txt = (rol == CODIGO_ADMIN) ? "Datos recolectados" : "Historial diagnósticos";
@@ -282,15 +287,16 @@ export default function VerDiagnosticosPage() {
             auxDiag[i].sexo = auxDiag[i].sexo == 0 ? "Masculino" : "Femenino";
             const campos = (rol != CODIGO_ADMIN) ? "paciente" : "medico";
             const persona = aux[auxDiag[i][campos]];
+            const nombre = (rol != CODIGO_ADMIN && persona == undefined) ? "Paciente" : "Usuario";
 
             if (rol != CODIGO_ADMIN) {
                 auxDiag[i].paciente = (persona != undefined) ? persona.cedula : "N/A";
             }
 
-            auxDiag[i].nombre = (persona != undefined) ? persona.nombre : "N/A";
+            auxDiag[i].nombre = (persona != undefined) ? persona.nombre : `${nombre} eliminado`;
             auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico);
-            auxDiag[i].fecha = dayjs(auxDiag[i].fecha.toDate()).format("DD/MM/YYYY");
-            auxDiag[i].accion = (auxDiag[i].validado == 2 && rol != CODIGO_ADMIN) ? <BtnValidar diagnostico={i} /> : "N/A";
+            auxDiag[i].fecha = auxDiag[i].fecha.toDate();
+            auxDiag[i].accion = (auxDiag[i].validado == 2 && rol != CODIGO_ADMIN) ? <BtnValidar diagnostico={i} /> : "";
             auxDiag[i].validado = detTxtDiagnostico(auxDiag[i].validado);
 
             delete auxDiag[i].medico;

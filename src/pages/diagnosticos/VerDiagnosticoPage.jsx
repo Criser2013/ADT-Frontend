@@ -81,6 +81,7 @@ export default function VerDiagnosticoPage() {
     }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
     const camposPersonales = useMemo(() => {
         const campos = [
+            { titulo: "ID", valor: datos.personales.id },
             { titulo: (rol == CODIGO_ADMIN) ? "Médico" : "Paciente", valor: persona.nombre },
             { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" },
             { titulo: "Edad", valor: `${datos.personales.edad} años` },
@@ -89,10 +90,6 @@ export default function VerDiagnosticoPage() {
             { titulo: "Probabilidad", valor: `${(datos.personales.probabilidad * 100).toFixed(2)}%` },
             { titulo: "Diagnóstico médico", valor: detTxtDiagnostico(datos.personales.validado) },
         ];
-
-        if (rol == CODIGO_ADMIN) {
-            campos.unshift({ titulo: "ID", valor: datos.personales.id });
-        }
 
         return campos;
     }, [rol, datos, persona.nombre]);
@@ -263,10 +260,11 @@ export default function VerDiagnosticoPage() {
      */
     const cargarPaciente = (id) => {
         const res = drive.cargarDatosPaciente(id);
+        const nombre = (rol != CODIGO_ADMIN && persona == undefined) ? "Paciente" : "Usuario";
         if (res.success) {
             setPersona({ ...res.data.personales });
         } else {
-            setPersona({ id: id, nombre: "N/A" });
+            setPersona({ id: id, nombre: `${nombre} eliminado` });
         }
         sessionStorage.setItem("descargando-drive", "false");
     };
