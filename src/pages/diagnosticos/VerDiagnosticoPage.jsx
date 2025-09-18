@@ -156,7 +156,7 @@ export default function VerDiagnosticoPage() {
             if (rol == CODIGO_ADMIN) {
                 cargarDatosMedico(auth.authInfo.user.accessToken, datos.medico);
             } else {
-                cargarDatosPacientes();
+                cargarDatosPacientes(datos.paciente == "Anónimo");
             }
             datos.fecha = new Timestamp(datos.fecha.seconds, datos.fecha.nanoseconds);
             setDiagOriginal({ ...datos });
@@ -228,23 +228,25 @@ export default function VerDiagnosticoPage() {
 
     /**
      * Carga los datos de los pacientes.
-     * @param {boolean} esDiagAnomino - Indica si el diagnóstico es anónimo.
+     * @param {boolean} esDiagAnonimo - Indica si el diagnóstico es anónimo.
      */
-    const cargarDatosPacientes = async (esDiagAnomino) => {
+    const cargarDatosPacientes = async (esDiagAnonimo) => {
         const descargar = sessionStorage.getItem("descargando-drive");
 
-        if (!esDiagAnomino) {
+        if (esDiagAnonimo) {
+            setPersona({ id: "Anónimo", nombre: "Anónimo" });
             setArchivoDescargado(true);
             return;
         }
 
-        if (descargar == null || descargar == "false") {
+        if (!esDiagAnonimo && (descargar == null || descargar == "false")) {
             sessionStorage.setItem("descargando-drive", "true");
             let res = await drive.cargarDatos();
 
             if (!res.success) {
+                setMostrarBtnSecundario(false);
                 setModal({
-                    mostrar: true, mensaje: res.error,
+                    mostrar: true, mensaje: res.error, icono: <CloseIcon />,
                     titulo: "❌ Error al cargar los datos de los pacientes",
                 });
                 return;
@@ -260,11 +262,6 @@ export default function VerDiagnosticoPage() {
      * @param {String} id - ID del paciente.
      */
     const cargarPaciente = (id) => {
-        if (id == "Anónimo"){
-            setPersona({ id: id, nombre: id });
-            return;
-        }
-
         const res = drive.cargarDatosPaciente(id);
         if (res.success) {
             setPersona({ ...res.data.personales });
@@ -289,7 +286,7 @@ export default function VerDiagnosticoPage() {
         if (!res.success && res.data == null) {
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: "❌ Error",
+                mostrar: true, titulo: "❌ Error", icono: <CloseIcon />,
                 mensaje: "Se ha producido un error al cargar los datos del médico. Recarga la página y reintenta nuevamente."
             });
         } else if (!res.success) {
@@ -315,7 +312,7 @@ export default function VerDiagnosticoPage() {
         }
         dayjs.extend(customParseFormat);
 
-        aux.fecha = dayjs(datos.fecha.toDate()).format("DD [de] MMMM [de] YYYY hh:mm A");
+        aux.fecha = dayjs(datos.fecha.toDate()).format("DD [de] MMMM [de] YYYY [a las] hh:mm A");
         setDatos({
             personales: aux, comorbilidades: res, lime: (datos.lime != undefined ? lime : null)
         });
