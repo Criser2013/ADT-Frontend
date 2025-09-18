@@ -266,6 +266,8 @@ export default function VerDiagnosticosPage() {
         const aux = {};
         const auxDiag = diags.map((d) => d);
 
+        personas.push({ id: "Anónimo", nombre: "Anónimo", cedula: "N/A", uid: "Anónimo" });
+
         for (const i of personas) {
             let clave = i.id;
 

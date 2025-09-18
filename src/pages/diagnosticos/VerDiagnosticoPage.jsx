@@ -217,7 +217,7 @@ export default function VerDiagnosticoPage() {
                 await cargarDatosMedico(token, datos.data.medico);
             } else {
                 sessionStorage.setItem("paciente", datos.data.paciente);
-                await cargarDatosPacientes();
+                await cargarDatosPacientes(datos.data.paciente == "Anónimo");
             }
 
             preprocesarDiag(datos.data);
@@ -228,9 +228,15 @@ export default function VerDiagnosticoPage() {
 
     /**
      * Carga los datos de los pacientes.
+     * @param {boolean} esDiagAnomino - Indica si el diagnóstico es anónimo.
      */
-    const cargarDatosPacientes = async () => {
+    const cargarDatosPacientes = async (esDiagAnomino) => {
         const descargar = sessionStorage.getItem("descargando-drive");
+
+        if (!esDiagAnomino) {
+            setArchivoDescargado(true);
+            return;
+        }
 
         if (descargar == null || descargar == "false") {
             sessionStorage.setItem("descargando-drive", "true");
@@ -254,6 +260,11 @@ export default function VerDiagnosticoPage() {
      * @param {String} id - ID del paciente.
      */
     const cargarPaciente = (id) => {
+        if (id == "Anónimo"){
+            setPersona({ id: id, nombre: id });
+            return;
+        }
+
         const res = drive.cargarDatosPaciente(id);
         if (res.success) {
             setPersona({ ...res.data.personales });
@@ -304,7 +315,7 @@ export default function VerDiagnosticoPage() {
         }
         dayjs.extend(customParseFormat);
 
-        aux.fecha = dayjs(datos.fecha.toDate()).format("DD [de] MMMM [de] YYYY");
+        aux.fecha = dayjs(datos.fecha.toDate()).format("DD [de] MMMM [de] YYYY hh:mm A");
         setDatos({
             personales: aux, comorbilidades: res, lime: (datos.lime != undefined ? lime : null)
         });

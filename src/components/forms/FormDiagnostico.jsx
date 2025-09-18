@@ -204,7 +204,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
 
         if (!success) {
             setModal({ mostrar: true, titulo: "❌ Error", mensaje: res.error });
-        } else if (success && esDiagPacientes) {
+        } else if (success) {
             await guardarDiagnostico(oneHotComor, datos, data);
         } else {
             const lime = procLime(data, procBool(data.prediccion));
@@ -251,17 +251,18 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 aux[i] = datos[i];
             }
         }
-
+        const paciente = esDiagPacientes ? datos.paciente.id : "Anónimo";
         const instancia = {
             id: v6(), medico: auth.authInfo.uid, ...aux, ...oneHotComor,
             probabilidad: resultado.probabilidad, diagnostico: procBool(resultado.prediccion),
-            fecha: Timestamp.now(), validado: 2, paciente: datos.paciente.id, lime: resultado.lime
+            fecha: Timestamp.now(), validado: 2, paciente: paciente, lime: resultado.lime
         };
 
         const res = await cambiarDiagnostico(instancia, credenciales.obtenerInstanciaDB());
 
         if (res.success) {
-            navegacion.setPaginaAnterior("/diagnostico-paciente");
+            const url = esDiagPacientes ? "/diagnostico-paciente" : "/diagnostico-anonimo";
+            navegacion.setPaginaAnterior(url);
             navigate(`/diagnosticos/ver-diagnostico?id=${instancia.id}`, { replace: true, state: instancia });
         } else {
             setModal({
@@ -653,7 +654,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 sitekey={reCAPTCHAApi}
                                 ref={CAPTCHA} />
                         </Grid>) : null}
-                        {(diagnostico.diagnosticado) ? (
+                        {/*(diagnostico.diagnosticado) ? (
                             <>
                             <Grid size={numCols} paddingTop="3vh">
                                     <Divider />
@@ -665,14 +666,14 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 </Grid>
                                 <Grid size={numCols}>
                                     <Typography variant="body1">
-                                        El paciente <b>{!diagnostico.resultado ? "no" : ""} ha sido diagnosticado con TEP</b>. La probabilidad de
-                                        {!diagnostico.resultado ? "no" : ""} padecerlo es del <b>{diagnostico.probabilidad.toFixed(2)}%</b>.
+                                        El paciente <b>{!diagnostico.resultado ? "no " : ""} ha sido diagnosticado con TEP</b>. La probabilidad de
+                                        {!diagnostico.resultado ? "no " : ""} padecerlo es del <b>{diagnostico.probabilidad.toFixed(2)}%</b>.
                                     </Typography>
                                 </Grid>
                                 <Grid size={numCols}>
                                     <ContLime datos={diagnostico.lime} varianteTits="h6" negritaTit={true} />
                                 </Grid>
-                            </>) : null}
+                            </>) : null*/}
                         <Grid display="flex" justifyContent="center" size={numCols}>
                             <Stack direction="row" spacing={2}>
                                 <Tooltip title={toolBtnVaciar}>
