@@ -73,7 +73,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const [antTema, setAntTema] = useState(navegacion.tema);
     const CAPTCHA = useRef(null);
     const temaCaptcha = useMemo(() => navegacion.tema, [navegacion.tema]);
-    const { setFocus, getValues, setValue, control, handleSubmit, reset, watch, formState: { errors } } = useForm({
+    const { getValues, setValue, control, handleSubmit, reset, watch, formState: { errors } } = useForm({
         defaultValues: valoresPredet, mode: "onBlur"
     });
     const otraEnfermedad = watch("otraEnfermedad");
@@ -103,20 +103,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             }, 100);
         }
     }, [antTema, temaCaptcha]);
-
-    /*useEffect(() => {
-        console.log("asd")
-
-        for (const i in errors) {
-            console.log(i, errors[i]);
-            if (!!errors[i]) {
-                console.log("focus", i);
-                setFocus(i);
-                //setFocus(i);
-                break;
-            }
-        }
-    }, [errors]);*/
 
     /**
      * Maneja el envío del formulario.
@@ -380,8 +366,8 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="sexo"
                                 control={control}
                                 rules={{
-                                    required: "Selecciona el sexo del paciente",
-                                    validate: (x) => (!esDiagPacientes && (x != 2 || "Debes seleccionar el sexo del paciente"))
+                                    required: !esDiagPacientes && "Selecciona el sexo del paciente",
+                                    validate: (x) => (esDiagPacientes || (x != 2 || "Debes seleccionar el sexo del paciente"))
                                 }}
                                 render={({ field }) => (
                                     <TextField
@@ -405,8 +391,8 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="edad"
                                 control={control}
                                 rules={{
-                                    required: "La edad es obligatoria",
-                                    validate: (value) => (!esDiagPacientes && (validarNumero(value) || "Edad inválida"))
+                                    required: !esDiagPacientes && "La edad es obligatoria",
+                                    validate: (value) => (esDiagPacientes || (validarNumero(value) || "Edad inválida"))
                                 }}
                                 render={({ field }) => (
                                     <TextField
