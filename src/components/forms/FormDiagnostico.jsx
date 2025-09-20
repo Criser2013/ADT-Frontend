@@ -1,6 +1,6 @@
 import {
     Grid, Button, Typography, TextField, Stack, Tooltip, Box,
-    CircularProgress, MenuItem, IconButton, Divider
+    CircularProgress, MenuItem, IconButton
 } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -12,10 +12,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import ClearIcon from '@mui/icons-material/Clear';
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import { validarFloatPos, validarNumero } from "../../utils/Validadores";
-import { oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, transformarDatos, procLime } from "../../utils/TratarDatos";
+import { oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, transformarDatos } from "../../utils/TratarDatos";
 import ModalSimple from "../modals/ModalSimple";
 import { peticionApi } from "../../services/Api";
-import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { cambiarDiagnostico } from "../../firestore/diagnosticos-collection";
@@ -27,7 +26,6 @@ import TabHeader from "../layout/TabHeader";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm, Controller } from "react-hook-form";
 import RefreshIcon from '@mui/icons-material/Refresh';
-import ContLime from "../diagnosticos/ContLime";
 
 const valoresPredet = {
     paciente: { id: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null },
@@ -39,7 +37,7 @@ const valoresPredet = {
     derrame: false, tepPrevio: false, edema: false, disautonomicos: false,
     inmovilidad: false, viajeProlongado: false, cirugiaReciente: false,
     otraEnfermedad: false, soplos: false,
-    otrasEnfermedades: [] // Inicializamos el array vacío
+    otrasEnfermedades: []
 };
 
 /**
@@ -57,7 +55,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const credenciales = useCredenciales();
     const navigate = useNavigate();
     const [desactivarBtn, setDesactivarBtn] = useState(true);
-    const [diagnostico, setDiagnostico] = useState({ resultado: false, probabilidad: 0, diagnosticado: false });
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({ mostrar: false, titulo: "", mensaje: "" });
     const numCols = useMemo(() => {
@@ -72,34 +69,31 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const reCAPTCHAApi = useMemo(() => {
         return credenciales.obtenerRecaptcha();
     }, [credenciales.obtenerRecaptcha]);
-    const [desactivarCampos, setDesactivarCampos] = useState(false);
     const [cargandoBtn, setCargandoBtn] = useState(false);
     const [antTema, setAntTema] = useState(navegacion.tema);
-    const desactivarCamposAux = useMemo(() => desactivarCampos || esDiagPacientes, [desactivarCampos, esDiagPacientes]);
-    const toolBtnVaciar = useMemo(() => {
-        return diagnostico.diagnosticado ? "Vaciar los campos para realizar otro diagnóstico." : "Vaciar el contenido de los campos.";
-    }, [diagnostico.diagnosticado]);
-    const toolBtnDiagnosticar = useMemo(() => {
-        return diagnostico.diagnosticado ? "Ver resultados del diagnóstico" : "Genera el diagnóstico de TEP.";
-    }, [diagnostico.diagnosticado]);
     const CAPTCHA = useRef(null);
     const temaCaptcha = useMemo(() => navegacion.tema, [navegacion.tema]);
-    const redibujarCaptcha = useMemo(() => !diagnostico.diagnosticado
-        , [diagnostico.diagnosticado]);
     const { getValues, setValue, control, handleSubmit, reset, watch, formState: { errors } } = useForm({
         defaultValues: valoresPredet, mode: "onBlur"
     });
     const otraEnfermedad = watch("otraEnfermedad");
 
+    // Quita la pantalla de carga inicial para el diagnóstico anónimo.
     useEffect(() => {
-        if (!esDiagPacientes || (esDiagPacientes && (pacientes != null))) {
+        if (!esDiagPacientes) {
+            setCargando(false);
+        }
+    }, []);
+
+    // Quita la pantalla de carga inicial cuando se tienen los datos de los pacientes.
+    useEffect(() => {
+        if (esDiagPacientes && (pacientes != null)) {
             setCargando(false);
         }
     }, [esDiagPacientes, pacientes]);
 
     // Para que se actualice el reCAPTCHA al cambiar el tema
     useEffect(() => {
-        //if (reCAPTCHAApi) {
         setAntTema(temaCaptcha);
         if (antTema != temaCaptcha) {
             setCargando(true);
@@ -115,11 +109,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      * @param {JSON} datos - Datos del formulario.
      */
     const onSubmit = (datos) => {
-        if (diagnostico.diagnosticado) {
-            setModal({ mostrar: true, titulo: "ℹ️ Información del diagnóstico", mensaje: "" });
-            return;
-        }
-
         setCargando(true);
         diagnosticar(datos);
     };
@@ -130,8 +119,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const manejadorBtnVaciar = () => {
         reset(valoresPredet);
         setDesactivarBtn(true);
-        setDesactivarCampos(false);
-        setDiagnostico({ resultado: false, probabilidad: 0, diagnosticado: false });
     };
 
     /**
@@ -174,6 +161,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
 
     /**
      * Genera el diagnóstico y muestra el resultado en un modal.
+     * @param {JSON} datos - Datos del formulario.
      */
     const diagnosticar = async (datos) => {
         const aux = {};
@@ -203,21 +191,10 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         const { success, data } = res;
 
         if (!success) {
-            setModal({ mostrar: true, titulo: "❌ Error", mensaje: res.error });
-        } else if (success && esDiagPacientes) {
-            await guardarDiagnostico(oneHotComor, datos, data);
-        } else {
-            const lime = procLime(data, procBool(data.prediccion));
-            setDesactivarCampos(true);
-            setDesactivarBtn(true);
-            setDiagnostico({
-                resultado: data.prediccion, probabilidad: data.probabilidad * 100,
-                diagnosticado: true, lime: lime
-            });
-        }
-
-        if (getValues("paciente").id == -1) {
             setCargando(false);
+            setModal({ mostrar: true, titulo: "❌ Error", mensaje: res.error });
+        } else {
+            await guardarDiagnostico(oneHotComor, datos, data);
         }
     };
 
@@ -251,19 +228,22 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 aux[i] = datos[i];
             }
         }
-
+        const paciente = esDiagPacientes ? datos.paciente.id : "Anónimo";
         const instancia = {
             id: v6(), medico: auth.authInfo.uid, ...aux, ...oneHotComor,
             probabilidad: resultado.probabilidad, diagnostico: procBool(resultado.prediccion),
-            fecha: Timestamp.now(), validado: 2, paciente: datos.paciente.id, lime: resultado.lime
+            fecha: Timestamp.now(), validado: 2, paciente: paciente, lime: resultado.lime
         };
 
         const res = await cambiarDiagnostico(instancia, credenciales.obtenerInstanciaDB());
 
         if (res.success) {
-            navegacion.setPaginaAnterior("/diagnostico-paciente");
-            navigate(`/diagnosticos/ver-diagnostico?id=${instancia.id}`, { replace: true, state: instancia });
+            const url = esDiagPacientes ? "/diagnostico-paciente" : "/diagnostico-anonimo";
+            navegacion.setPaginaAnterior(url);
+            const datos = {...instancia, paciente: paciente};
+            navigate(`/diagnosticos/ver-diagnostico?id=${instancia.id}`, { replace: true, state: datos });
         } else {
+            setCargando(false);
             setModal({
                 mostrar: true,
                 titulo: "❌ Error al guardar el diagnóstico",
@@ -386,8 +366,8 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="sexo"
                                 control={control}
                                 rules={{
-                                    required: "Selecciona el sexo del paciente",
-                                    validate: (x) => x != 2 || "Debes seleccionar el sexo del paciente"
+                                    required: !esDiagPacientes && "Selecciona el sexo del paciente",
+                                    validate: (x) => (esDiagPacientes || (x != 2 || "Debes seleccionar el sexo del paciente"))
                                 }}
                                 render={({ field }) => (
                                     <TextField
@@ -396,7 +376,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         {...field}
                                         error={!!errors.sexo}
                                         helperText={errors.sexo?.message}
-                                        disabled={desactivarCamposAux}
+                                        disabled={esDiagPacientes}
                                         fullWidth>
                                         {SEXOS.map((x) => (
                                             <MenuItem key={x.val} value={x.val}>
@@ -411,15 +391,15 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="edad"
                                 control={control}
                                 rules={{
-                                    required: "La edad es obligatoria",
-                                    validate: (value) => validarNumero(value) || "Edad inválida"
+                                    required: !esDiagPacientes && "La edad es obligatoria",
+                                    validate: (value) => (esDiagPacientes || (validarNumero(value) || "Edad inválida"))
                                 }}
                                 render={({ field }) => (
                                     <TextField
                                         label="Edad"
                                         {...field}
                                         error={!!errors.edad}
-                                        disabled={desactivarCamposAux}
+                                        disabled={esDiagPacientes}
                                         helperText={errors.edad?.message}
                                         fullWidth
                                     />
@@ -441,7 +421,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                             <Check
                                                 nombre={x.nombre}
                                                 etiqueta={x.texto}
-                                                desactivado={desactivarCampos}
                                                 activado={field.value}
                                                 manejadorCambios={field.onChange}
                                             />
@@ -469,7 +448,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         {...field}
                                         error={!!errors.presionSis}
                                         helperText={errors.presionSis?.message}
-                                        disabled={desactivarCampos}
                                         fullWidth
                                     />
                                 )}
@@ -488,7 +466,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         label="Presión diastólica (mmHg)"
                                         {...field}
                                         error={!!errors.presionDias}
-                                        disabled={desactivarCampos}
                                         helperText={errors.presionDias?.message}
                                         fullWidth />
                                 )}
@@ -507,7 +484,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         label="Frecuencia respiratoria"
                                         {...field}
                                         error={!!errors.frecRes}
-                                        disabled={desactivarCampos}
                                         helperText={errors.frecRes?.message}
                                         fullWidth />
                                 )}
@@ -526,7 +502,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         label="Frecuencia cardíaca"
                                         {...field}
                                         error={!!errors.frecCard}
-                                        disabled={desactivarCampos}
                                         helperText={errors.frecCard?.message}
                                         fullWidth />)} />
                         </Grid>
@@ -543,7 +518,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         label="Saturación de la sangre"
                                         {...field}
                                         error={!!errors.so2}
-                                        disabled={desactivarCampos}
                                         helperText={errors.so2?.message}
                                         fullWidth />)} />
                         </Grid>
@@ -565,7 +539,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         label="Conteo de plaquetas"
                                         {...field}
                                         error={!!errors.plaquetas}
-                                        disabled={desactivarCampos}
                                         helperText={errors.plaquetas?.message}
                                         fullWidth />)} />
                         </Grid>
@@ -582,7 +555,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         label="Hemoglobina"
                                         {...field}
                                         error={!!errors.hemoglobina}
-                                        disabled={desactivarCampos}
                                         helperText={errors.hemoglobina?.message}
                                         fullWidth />)} />
                         </Grid>
@@ -599,7 +571,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         label="Conteo de glóbulos blancos"
                                         {...field}
                                         error={!!errors.wbc}
-                                        disabled={desactivarCampos}
                                         helperText={errors.wbc?.message}
                                         fullWidth />)} />
                         </Grid>
@@ -617,7 +588,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         nombre="otraEnfermedad"
                                         etiqueta="El paciente padece otra enfermedad."
                                         activado={field.value}
-                                        desactivado={desactivarCamposAux}
+                                        desactivado={esDiagPacientes}
                                         manejadorCambios={field.onChange}
                                     />
                                 )}
@@ -639,43 +610,23 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                             nombre="comorbilidades"
                                             error={!!errors.otrasEnfermedades}
                                             txtError={errors.otrasEnfermedades?.message}
-                                            desactivado={desactivarCamposAux}
+                                            desactivado={esDiagPacientes}
                                             etiqueta="Padecimiento(s) del paciente"
                                         />
                                     )}
                                 />
                             </Grid>
                         ) : null}
-                        {(redibujarCaptcha) ? (<Grid size={numCols} display="flex" justifyContent="center">
+                        <Grid size={numCols} display="flex" justifyContent="center">
                             <ReCAPTCHA
                                 theme={temaCaptcha}
                                 onChange={manejadorReCAPTCHA}
                                 sitekey={reCAPTCHAApi}
                                 ref={CAPTCHA} />
-                        </Grid>) : null}
-                        {(diagnostico.diagnosticado) ? (
-                            <>
-                            <Grid size={numCols} paddingTop="3vh">
-                                    <Divider />
-                                </Grid>
-                                <Grid size={numCols}>
-                                    <Typography variant="h6">
-                                        <b>Resultado</b>
-                                    </Typography>
-                                </Grid>
-                                <Grid size={numCols}>
-                                    <Typography variant="body1">
-                                        El paciente <b>{!diagnostico.resultado ? "no" : ""} ha sido diagnosticado con TEP</b>. La probabilidad de
-                                        {!diagnostico.resultado ? "no" : ""} padecerlo es del <b>{diagnostico.probabilidad.toFixed(2)}%</b>.
-                                    </Typography>
-                                </Grid>
-                                <Grid size={numCols}>
-                                    <ContLime datos={diagnostico.lime} varianteTits="h6" negritaTit={true} />
-                                </Grid>
-                            </>) : null}
+                        </Grid>
                         <Grid display="flex" justifyContent="center" size={numCols}>
                             <Stack direction="row" spacing={2}>
-                                <Tooltip title={toolBtnVaciar}>
+                                <Tooltip title="Vaciar el contenido de los campos.">
                                     <Button
                                         startIcon={<ClearIcon />}
                                         variant="contained"
@@ -686,7 +637,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         <b>Vaciar campos</b>
                                     </Button>
                                 </Tooltip>
-                                <Tooltip title={toolBtnDiagnosticar}>
+                                <Tooltip title="Genera el diagnóstico de TEP.">
                                     <span>
                                         <Button
                                             startIcon={<DiagnosticoIcono />}
