@@ -291,6 +291,7 @@ export default function VerDiagnosticosPage() {
 
             if (rol != CODIGO_ADMIN) {
                 auxDiag[i].paciente = (persona != undefined) ? persona.cedula : "N/A";
+                auxDiag[i].id = auxDiag[i].id.replace(/-\w{28}$/, "");
             }
 
             auxDiag[i].nombre = (persona != undefined) ? persona.nombre : `${nombre} eliminado`;
@@ -330,7 +331,8 @@ export default function VerDiagnosticosPage() {
         if (ejecutar == "true" || ejecutar == null) {
             navegacion.setPaginaAnterior("/diagnosticos");
             sessionStorage.removeItem("ejecutar-callback");
-            navigate(`/diagnosticos/ver-diagnostico?id=${dato.id}`);
+            const id = (rol == CODIGO_ADMIN) ? dato.id : `${dato.id}-${auth.authInfo.uid}`;
+            navigate(`/diagnosticos/ver-diagnostico?id=${id}`);
         }
     };
 
@@ -480,6 +482,7 @@ export default function VerDiagnosticosPage() {
         for (let i = 0; i < aux.length; i++) {
             // Solo se incluyen los diagnósticos validados si se requiere preprocesar y lo pide un admin
             if (!preprocesar || (preprocesar && aux[i].validado != 2)) {
+                aux[i].id = (rol != CODIGO_ADMIN) ? aux[i].id.replace(/-\w{28}$/, "") : aux[i].id;
                 aux[i].paciente = datos[i].nombre;
                 aux[i] = nombresCampos(aux[i], rol == CODIGO_ADMIN, preprocesar);
                 auxArr.push(aux[i]);
@@ -634,6 +637,8 @@ export default function VerDiagnosticosPage() {
                             cbAccion={manejadorEliminar}
                             tooltipAccion="Eliminar diagnósticos seleccionados"
                             icono={<DeleteIcon />}
+                            campoOrdenInicial="fecha"
+                            dirOrden="asc"
                         />
                     </Grid>
                 </>)}

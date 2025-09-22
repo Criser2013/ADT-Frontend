@@ -178,7 +178,9 @@ export default function VerDiagnosticoPage() {
      */
     useEffect(() => {
         document.title = titulo;
-        const res = (id != null && id != undefined) ? validarId(id) : false;
+        const exp = /-\w{28}$/;
+        const validacion = validarId(id.replace(exp, "")) && exp.test(id);
+        const res = (id != null && id != undefined) ? validacion : false;
 
         if (!res) {
             navigate("/diagnosticos", { replace: true });
@@ -206,7 +208,6 @@ export default function VerDiagnosticoPage() {
      */
     const cargarDatosDiagnostico = async (token) => {
         const datos = await verDiagnostico(id, DB);
-
         if (datos.success && datos.data != []) {
             setDiagOriginal({ ...datos.data });
 
@@ -309,6 +310,10 @@ export default function VerDiagnosticoPage() {
             delete aux[i];
         }
         dayjs.extend(customParseFormat);
+
+        if (rol != CODIGO_ADMIN) {
+            aux.id = aux.id.replace(/-\w{28}$/, "");
+        }
 
         aux.fecha = dayjs(datos.fecha.toDate()).format("DD [de] MMMM [de] YYYY [a las] hh:mm A");
         setDatos({

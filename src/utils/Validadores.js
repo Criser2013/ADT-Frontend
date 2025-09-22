@@ -1,7 +1,7 @@
 /**
  * Valida si un texto es un nombre.
  * @param {String} val 
- * @returns Boolean
+ * @returns {Boolean}
  */
 export function validarNombre (val) {
     const exprReg = /^[ a-zA-ZñÑáéíóúÁÉÍÓÚ]+$/;
@@ -13,7 +13,7 @@ export function validarNombre (val) {
 /**
  * Valida si un texto es un número de teléfono.
  * @param {String} val 
- * @returns Boolean
+ * @returns {Boolean}
  */
 export function validarTelefono(val) {
     return validarNumero(val) && val.length >= 7 && val.length <= 10;
@@ -22,7 +22,7 @@ export function validarTelefono(val) {
 /**
  * Valida si un texto es un número natural.
  * @param {String} val 
- * @returns Boolean
+ * @returns {Boolean}
  */
 export function validarNumero(val) {
     const exprReg = /^\d+$/;
@@ -43,7 +43,7 @@ export function validarFecha(val) {
 /**
  * Valida si un texto es un número decimal positivo.
  * @param {String} val - Texto
- * @returns Boolean
+ * @returns {Boolean}
  */
 export function validarFloatPos(val) {
     val = val.replace(",",".");
@@ -55,7 +55,7 @@ export function validarFloatPos(val) {
 /**
  * Valida que un texto es un UUID.
  * @param {String} val - Texto
- * @returns Boolean
+ * @returns {Boolean}
  */
 export function validarId(val) {
     const exp = /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;

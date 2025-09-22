@@ -687,6 +687,8 @@ export default function VerUsuariosPage() {
                                 cbAccion={manejadorEliminar}
                                 tooltipAccion="Eliminar usuarios seleccionados"
                                 icono={<DeleteIcon />}
+                                campoOrdenInicial="nombre"
+                                dirOrden="asc"
                             />
                         </Grid>
                     </Grid>
