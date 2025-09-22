@@ -10,7 +10,7 @@ export const authContext = createContext();
 
 /**
  * Otorga acceso al contexto de autenticación de la aplicación.
- * @returns React.Context<AuthContextType>
+ * @returns {React.Context}
  */
 export const useAuth = () => {
     const context = useContext(authContext);
@@ -25,7 +25,7 @@ export const useAuth = () => {
 /**
  * Proveedor del contexto que permite gestionar el estado de la autenticación.
  * @param {JSX.Element} children
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export function AuthProvider({ children }) {
     // Instancia de autenticación de Firebase
@@ -133,11 +133,11 @@ export function AuthProvider({ children }) {
                 await reautenticarUsuario(currentUser);
             }
 
-            setAuthInfo((x) => ({ ...x, user: currentUser, uid: currentUser.uid }));
             setAutenticado(true);
+            setAuthInfo((x) => ({ ...x, user: currentUser, uid: currentUser.uid }));
         } else {
-            setAuthInfo({ user: null, uid: null, rol: null, modoUsuario: null, rolVisible: null });
             setAutenticado(false);
+            setAuthInfo({ user: null, uid: null, rol: null, modoUsuario: null, rolVisible: null });
 
             if (!["/", "/404"].includes(location.pathname)) {
                 location.replace("/");
@@ -179,17 +179,14 @@ export function AuthProvider({ children }) {
             setTokenDrive(oauth.accessToken);
             guardarAuthCredsSesion(oauth);
 
+            // Si no se pudo registrar al usuario, se cierra la sesión
             if (!reg.success) {
-                // Si no se pudo registrar al usuario, se cierra la sesión
                 cerrarSesion();
                 resultado = { res: true, operacion: 0, error: "No se pudo verificar si el usuario está registrado." };
             } else {
                 if (location.pathname == "/") {
                     await verDatosUsuario(res.user.uid);
                 }
-                setAutenticado(true);
-                // Al iniciar sesión correctamente, se actualiza la información del usuario
-                setAuthInfo((x) => ({ ...x, user: res.user, modoUsuario: false }));
             }
             setAuthError(resultado);
             return resultado;
@@ -235,8 +232,6 @@ export function AuthProvider({ children }) {
             if (location.pathname == "/") {
                 await verDatosUsuario(res.user.uid);
             }
-
-            setAutenticado(true);
 
             return { res: false, operacion: 2, error: "" };
         } catch (error) {
