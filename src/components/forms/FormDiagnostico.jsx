@@ -228,9 +228,11 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 aux[i] = datos[i];
             }
         }
+        const uid = auth.authInfo.uid;
+        const id = `${v6()}-${uid}`;
         const paciente = esDiagPacientes ? datos.paciente.id : "Anónimo";
         const instancia = {
-            id: v6(), medico: auth.authInfo.uid, ...aux, ...oneHotComor,
+            id: id, medico: uid, ...aux, ...oneHotComor,
             probabilidad: resultado.probabilidad, diagnostico: procBool(resultado.prediccion),
             fecha: Timestamp.now(), validado: 2, paciente: paciente, lime: resultado.lime
         };

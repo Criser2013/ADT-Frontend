@@ -37,13 +37,16 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
  * @param {Function} cbAccion - Callback para manejar la acción del botón de selección de filas.
  * @param {JSX.Element} icono - Icono a mostrar en el botón de acción de selección de filas.
  * @param {String} tooltipAccion - Texto del tooltip del botón de acción de selección de filas.
+ * @param {String|null} campoOrdenInicial - Campo por el cual se ordenarán inicialmente los datos.
+ * @param {String} dirOrden - Dirección del orden inicial ("asc" o "desc").
  * @returns {JSX.Element}
  */
 export default function Datatable({ campos, datos, lblSeleccion, campoId = "id", lblBusq = "", activarBusqueda = false,
-    activarSeleccion = true, terminoBusqueda = "", camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "" }) {
+    activarSeleccion = true, terminoBusqueda = "", camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "",
+    campoOrdenInicial = null, dirOrden = "desc" }) {
     const navegacion = useNavegacion();
-    const [orden, setOrden] = useState("desc");
-    const [campoOrden, setCampoOrden] = useState(campos[0].id);
+    const [orden, setOrden] = useState(dirOrden);
+    const [campoOrden, setCampoOrden] = useState(campoOrdenInicial != null ? campoOrdenInicial : campos[0].id);
     const [numSeleccionados, setNumSeleccionados] = useState(0);
     const [seleccionados, setSeleccionados] = useState([]);
     const [pagina, setPagina] = useState(0);
