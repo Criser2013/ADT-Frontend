@@ -32,6 +32,7 @@ VITE_DRIVE_FOLDER_NAME=<string>      # Nombre de la carpeta en Drive
 VITE_URL_MANUAL_USUARIO=<string>     # URL del manual de instrucciones para los usuarios
 VITE_URL_MANUAL_ADMIN=<string>       # URL del manual de instrucciones para los administradores
 VITE_CANT_LIM_DIAGNOSTICOS=<int>     # Cantidad de diagnósticos a partir del cual mostrar la advertencia de espacio
+VITE_URL_CONDICIONES=<string>        # URL al documento que contiene los términos y condiciones de uso de la aplicación
 ```
 
 ## Ejecución del frontend  sin backend

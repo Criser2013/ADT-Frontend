@@ -376,8 +376,17 @@ export function detTxtDiagnostico(diagnostico) {
  * @returns {JSON}
  */
 export function nombresCampos(instancia, esAdmin, preprocesar = false) {
-    const datos = {
+    let datos = {
         "ID": instancia.id,
+    };
+
+    if (!esAdmin) {
+        datos["Paciente"] = instancia.paciente;
+        datos["Fecha"] = instancia.fecha.toDate().toLocaleDateString("es-CO");
+    }
+
+    datos = {
+        ...datos,
         "Edad": preprocesar ? procEdad(instancia.edad) : instancia.edad,
         "Género": preprocesar ? instancia.sexo : (instancia.sexo == 0 ? "M" : "F"),
         "Bebedor": instancia.bebedor,
@@ -426,8 +435,6 @@ export function nombresCampos(instancia, esAdmin, preprocesar = false) {
     };
 
     if (!esAdmin) {
-        datos["Paciente"] = instancia.paciente;
-        datos["Fecha"] = instancia.fecha.toDate().toLocaleDateString("es-CO");
         datos["Diagnóstico modelo"] = instancia.diagnostico;
         datos["Probabilidad"] = (instancia.probabilidad * 100).toFixed(2);
         datos["Campos Significativos para el diagnóstico"] = JSON.stringify(instancia.lime);

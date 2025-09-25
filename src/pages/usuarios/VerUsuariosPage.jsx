@@ -209,7 +209,7 @@ export default function VerUsuariosPage() {
                     rol: datos[i].rol == CODIGO_ADMIN ? "Administrador" : "Usuario",
                     estado: datos[i].estado ? "Activo" : "Inactivo",
                     cantidad: datos[i].cantidad, ultimaConexion: datos[i].ultima_conexion,
-                    accion: datos[i].uid == uid ? "N/A" : <Botonera instancia={datos[i]} />
+                    accion: datos[i].uid == uid ? "" : <Botonera instancia={datos[i]} />
                 });
             }
         }
@@ -687,6 +687,8 @@ export default function VerUsuariosPage() {
                                 cbAccion={manejadorEliminar}
                                 tooltipAccion="Eliminar usuarios seleccionados"
                                 icono={<DeleteIcon />}
+                                campoOrdenInicial="nombre"
+                                dirOrden="asc"
                             />
                         </Grid>
                     </Grid>

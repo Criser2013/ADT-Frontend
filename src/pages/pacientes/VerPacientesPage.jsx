@@ -236,6 +236,8 @@ export default function VerPacientesPage() {
                             cbAccion={manejadorEliminar}
                             tooltipAccion="Eliminar pacientes seleccionados"
                             icono={<DeleteIcon />}
+                            campoOrdenInicial="nombre"
+                            dirOrden="asc"
                         />
                     </Grid>
                 </>)}
