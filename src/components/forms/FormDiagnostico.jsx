@@ -242,8 +242,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         if (res.success) {
             const url = esDiagPacientes ? "/diagnostico-paciente" : "/diagnostico-anonimo";
             navegacion.setPaginaAnterior(url);
-            const datos = {...instancia, paciente: paciente};
-            navigate(`/diagnosticos/ver-diagnostico?id=${instancia.id}`, { replace: true, state: datos });
+            navigate(`/diagnosticos/ver-diagnostico?id=${instancia.id}`, { replace: true });
         } else {
             setCargando(false);
             setModal({

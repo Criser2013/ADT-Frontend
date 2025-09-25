@@ -166,7 +166,7 @@ export default function VerDiagnosticosPage() {
      */
     useEffect(() => {
         if (diagnosticos != null && personas != null && (diagnosticos.length > 0 && typeof diagnosticos[0].fecha != "string")) {
-            setDatos(formatearCeldas(personas, diagnosticos.map((x) => ({ ...x }))));
+            setDatos(formatearCeldas(personas.map((x) => ({ ...x })), diagnosticos.map((x) => ({ ...x }))));
             setCargando(false);
         } else if (diagnosticos != null && personas != null && diagnosticos.length == 0) {
             setDatos([]);
