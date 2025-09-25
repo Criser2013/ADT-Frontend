@@ -7,12 +7,13 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import BtnTema from "../../components/layout/BtnTema";
-import { URL_MANUAL_USUARIO } from "../../../constants";
+import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../../constants";
 import fondoClaro from "../../assets/fondo_claro.png";
 import fondoOscuro from "../../assets/fondo_oscuro.png";
 import icono from "../../assets/icono.png";
 import ModalSimple from "../../components/modals/ModalSimple";
 import CloseIcon from "@mui/icons-material/Close";
+import Check from "../../components/tabs/Check";
 import { peticionApi } from "../../services/Api";
 
 /**
@@ -29,6 +30,8 @@ export default function IniciarSesionPage() {
     const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [cargandoBtn, setCargandoBtn] = useState(false);
     const [cargando, setCargando] = useState(false);
+    const [captchaAceptado, setCaptchaAceptado] = useState(false);
+    const [terminosAceptados, setTerminosAceptados] = useState(false);
     const [modal, setModal] = useState({
         mensaje: "", mostrar: false
     });
@@ -71,6 +74,10 @@ export default function IniciarSesionPage() {
         navegacion.setPaginaAnterior("");
     }, []);
 
+    useEffect(() => {
+        setDesactivarBtn(!(captchaAceptado && terminosAceptados));
+    }, [captchaAceptado, terminosAceptados]);
+
     /**
      * Manejador de eventos del botón para iniciar sesión.
      */
@@ -102,6 +109,7 @@ export default function IniciarSesionPage() {
         setCargando(true);
         navegacion.cambiarTema();
         setTimeout(() => {
+            setTerminosAceptados(false);
             setDesactivarBtn(true);
             setCargando(false);
         }, 100);
@@ -116,7 +124,8 @@ export default function IniciarSesionPage() {
         if (res) {
             verificarRespuesta(token);
         } else {
-            setDesactivarBtn(true);
+            setCaptchaAceptado(false);
+            //setDesactivarBtn(true);
         }
     };
 
@@ -130,7 +139,8 @@ export default function IniciarSesionPage() {
 
         if (res.success) {
             if (res.data.success) {
-                setDesactivarBtn(false);
+                setCaptchaAceptado(true);
+                //setDesactivarBtn(false);
             } else {
                 setModal({ 
                     mostrar: true, titulo: "❌ Error",
@@ -187,13 +197,13 @@ export default function IniciarSesionPage() {
                                 <Grid size={1}>
                                     <Typography align="left" variant="body1">
                                         ¡Ingresa a la aplicación y utiliza nuestro modelo de apoyo para el diagnóstico de TEP
-                                        requiriendo unos cuentos datos de laboratorio!
+                                        requiriendo unos cuantos datos de laboratorio!
                                     </Typography>
                                 </Grid>
                                 <Grid size={1}>
                                     <Typography align="left" variant="body1">
                                         Cada diagnóstico realizado es una contribución a la recolección de datos para entrenar
-                                        mejores modelos. También puedes optar por realizar diagnósticos sin compartir los datos
+                                        mejores modelos
                                     </Typography>
                                 </Grid>
                             </Grid>
@@ -204,6 +214,18 @@ export default function IniciarSesionPage() {
                                     sitekey={reCAPTCHAApi}
                                     ref={CAPTCHA} />
                             </Grid>
+                            {!auth.autenticado ? (
+                                <Grid size={12} display="flex" justifyContent="left">
+                                 <Check
+                                    activado={terminosAceptados}
+                                    manejadorCambios={(e) => setTerminosAceptados(e.target.checked)}
+                                    etiqueta={
+                                        <>
+                                        He leido y acepto la&nbsp;
+                                            <Link target="_blank" href={URL_CONDICIONES}>política de privacidad</Link>
+                                        .
+                                        </>}/>
+                            </Grid>) : null}
                             <Grid size={12} justifyContent="center" display="flex">
                                 <Tooltip title="Ingresa a la aplicación con tu cuenta de Google">
                                     <span style={{ width: "100%" }}>
@@ -216,7 +238,7 @@ export default function IniciarSesionPage() {
                                             loading={cargandoBtn}
                                             loadingPosition="end"
                                             sx={{ textTransform: "none" }}>
-                                            {auth.authInfo.user == null ? "Iniciar sesión" : "Ir a la aplicación"}
+                                            {auth.autenticado ? "Ir a la aplicación" : "Iniciar sesión"}
                                         </Button>
                                     </span>
                                 </Tooltip>
