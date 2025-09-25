@@ -145,19 +145,8 @@ export default function VerDiagnosticoPage() {
      * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
      */
     useEffect(() => {
-        const datos = location.state;
-        if (datos == null && rol != null && DB != null && !archivoDescargado) {
+        if (rol != null && DB != null && !archivoDescargado) {
             cargarDatosDiagnostico(auth.authInfo.user.accessToken);
-        } else if (datos != null && rol != null && DB != null && !archivoDescargado) {
-            sessionStorage.setItem("paciente", datos.paciente);
-            if (rol == CODIGO_ADMIN) {
-                cargarDatosMedico(auth.authInfo.user.accessToken, datos.medico);
-            } else {
-                cargarDatosPacientes(datos.paciente == "Anónimo");
-            }
-            datos.fecha = new Timestamp(datos.fecha.seconds, datos.fecha.nanoseconds);
-            setDiagOriginal({ ...datos });
-            preprocesarDiag(datos);
         }
     }, [drive.descargando, auth.authInfo.user, rol, archivoDescargado, DB]);
 
