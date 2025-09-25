@@ -43,3 +43,4 @@ export const DIAGNOSTICOS = [
     { valor: 0, texto: "Negativo" },
     { valor: 1, texto: "Positivo" }
 ];
+export const URL_CONDICIONES = import.meta.env.VITE_URL_CONDICIONES || "https://google.com";

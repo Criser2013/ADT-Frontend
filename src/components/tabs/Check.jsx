@@ -8,7 +8,7 @@ import { FormGroup, Checkbox, FormControlLabel } from "@mui/material";
  * @param {string} nombre - Nombre del checkbox
  * @param {boolean} desactivado - Indica si el checkbox está desactivado
  * @param {string} tamano - Tamaño del checkbox (small, medium, large)
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function Check({ activado, manejadorCambios, etiqueta, nombre = "", desactivado = false, tamano = "medium" }) {
     return (
