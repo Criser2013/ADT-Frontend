@@ -111,7 +111,8 @@ export default function MenuUsuario() {
     }, [diagnosticos, pacientes, datos, fechaActual]);
 
     useEffect(() => {
-        if (drive.datos != null) {
+        const descargar = sessionStorage.getItem("descargando-drive");
+        if (drive.datos != null && (descargar == "false")) {
             setPacientes(drive.datos);
         }
     }, [drive.datos]);
