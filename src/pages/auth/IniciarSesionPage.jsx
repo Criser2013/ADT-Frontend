@@ -1,6 +1,8 @@
 import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip, Paper } from "@mui/material";
 import GoogleIcon from '@mui/icons-material/Google';
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useNavegacion } from "../../contexts/NavegacionContext";
@@ -27,6 +29,7 @@ export default function IniciarSesionPage() {
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
     const CAPTCHA = useRef(null);
+    const { t } = useTranslation();
     const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [cargandoBtn, setCargandoBtn] = useState(false);
     const [cargando, setCargando] = useState(false);
@@ -70,7 +73,7 @@ export default function IniciarSesionPage() {
      * Verifica la autenticación del usuario y redirige si ya está autenticado.
      */
     useEffect(() => {
-        document.title = "Iniciar sesión - HADT";
+        document.title = t("titInicioSesion");
         navegacion.setPaginaAnterior("");
     }, []);
 
@@ -125,7 +128,6 @@ export default function IniciarSesionPage() {
             verificarRespuesta(token);
         } else {
             setCaptchaAceptado(false);
-            //setDesactivarBtn(true);
         }
     };
 
@@ -135,16 +137,15 @@ export default function IniciarSesionPage() {
      */
     const verificarRespuesta = async (token) => {
         setCargandoBtn(true);
-        const res = await peticionApi("", "recaptcha", "POST", { token: token }, "Se ha producido un error al verificar el CAPTCHA. Reintentalo nuevamente.");
+        const res = await peticionApi("", "recaptcha", "POST", { token: token }, t("errCaptchaApi"));
 
         if (res.success) {
             if (res.data.success) {
                 setCaptchaAceptado(true);
-                //setDesactivarBtn(false);
             } else {
-                setModal({ 
-                    mostrar: true, titulo: "❌ Error",
-                    mensaje: "No se ha podido comprobar que seas un humano. Reintenta el CAPTCHA nuevamente."
+                setModal({
+                    mostrar: true, titulo: t("tituloErr"),
+                    mensaje: t("errCaptcha")
                 });
                 CAPTCHA.current.reset();
             }
@@ -156,7 +157,7 @@ export default function IniciarSesionPage() {
                 }
             }
             CAPTCHA.current.reset();
-            setModal({ titulo: "❌ Error", mostrar: true, mensaje: txtError });
+            setModal({ titulo: t("tituloErr"), mostrar: true, mensaje: txtError });
         }
         setCargandoBtn(false);
     };
@@ -189,21 +190,19 @@ export default function IniciarSesionPage() {
                                 </Grid>
                                 <Grid size={9}>
                                     <Typography align="left" variant="h4" fontWeight="bold">
-                                        Herramienta de Apoyo para el diagnóstico de TEP
+                                        {t("titAplicacion")}
                                     </Typography>
                                 </Grid>
                             </Grid>
                             <Grid container columns={1} spacing={2} size={12}>
                                 <Grid size={1}>
                                     <Typography align="left" variant="body1">
-                                        ¡Ingresa a la aplicación y utiliza nuestro modelo de apoyo para el diagnóstico de TEP
-                                        requiriendo unos cuantos datos de laboratorio!
+                                        {t("txt1InicioSesion")}
                                     </Typography>
                                 </Grid>
                                 <Grid size={1}>
                                     <Typography align="left" variant="body1">
-                                        Cada diagnóstico realizado es una contribución a la recolección de datos para entrenar
-                                        mejores modelos
+                                        {t("txt2InicioSesion")}
                                     </Typography>
                                 </Grid>
                             </Grid>
@@ -216,18 +215,18 @@ export default function IniciarSesionPage() {
                             </Grid>
                             {!auth.autenticado ? (
                                 <Grid size={12} display="flex" justifyContent="left">
-                                 <Check
-                                    activado={terminosAceptados}
-                                    manejadorCambios={(e) => setTerminosAceptados(e.target.checked)}
-                                    etiqueta={
-                                        <>
-                                        He leido y acepto la&nbsp;
-                                            <Link target="_blank" href={URL_CONDICIONES}>política de privacidad</Link>
-                                        .
-                                        </>}/>
-                            </Grid>) : null}
+                                    <Check
+                                        activado={terminosAceptados}
+                                        manejadorCambios={(e) => setTerminosAceptados(e.target.checked)}
+                                        etiqueta={
+                                            <Trans i18nKey="txt4InicioSesion" t={t}>
+                                                He leído y acepto la&nbsp;
+                                                <Link target="_blank" href={URL_CONDICIONES}>política de privacidad</Link>
+                                                .
+                                            </Trans>} />
+                                </Grid>) : null}
                             <Grid size={12} justifyContent="center" display="flex">
-                                <Tooltip title="Ingresa a la aplicación con tu cuenta de Google">
+                                <Tooltip title={t("txtAyudaBtnInicioSesion")}>
                                     <span style={{ width: "100%" }}>
                                         <Button
                                             startIcon={<GoogleIcon fontSize="large" />}
@@ -238,27 +237,29 @@ export default function IniciarSesionPage() {
                                             loading={cargandoBtn}
                                             loadingPosition="end"
                                             sx={{ textTransform: "none" }}>
-                                            {auth.autenticado ? "Ir a la aplicación" : "Iniciar sesión"}
+                                            {auth.autenticado ? t("txt2BtnInicioSesion") : t("txt1BtnInicioSesion")}
                                         </Button>
                                     </span>
                                 </Tooltip>
                             </Grid>
                             <Grid size={12}>
                                 <Typography align="center" variant="body1" marginLeft="auto" marginRight="auto">
-                                    <b>¡Los datos de tus pacientes no se comparten con nosotros!</b>
+                                    <b>{t("txt3InicioSesion")}</b>
                                 </Typography>
                                 <br />
                                 <Typography align="center" variant="body1" marginLeft="auto" marginRight="auto">
-                                    ¿Necesitas ayuda? ¡consulta nuestro <Link target="_blank" href={URL_MANUAL_USUARIO}>manual de instrucciones</Link>!
+                                    <Trans i18nKey="txt5InicioSesion" t={t}>
+                                        ¿Necesitas ayuda? ¡consulta nuestro <Link target="_blank" href={URL_MANUAL_USUARIO}>manual de instrucciones</Link>!
+                                    </Trans>
                                 </Typography>
                             </Grid>
                         </Grid>
                     </Paper>
                     <ModalSimple
                         abrir={modal.mostrar}
-                        titulo={"❌ Error"}
+                        titulo={t("tituloErr")}
                         mensaje={modal.mensaje}
-                        txtBtn="Cerrar"
+                        txtBtn={t("txtBtnCerrar")}
                         iconoBtn={<CloseIcon />}
                         manejadorBtnModal={manejadorBtnModal}
                     />

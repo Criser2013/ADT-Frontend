@@ -1,0 +1,52 @@
+{
+    "en": {
+        "translation": {
+            "errCaptcha": "We couldn't verify that you're human. Please retry the CAPTCHA.",
+            "tituloErr": "❌ Error",
+            "errCaptchaApi": "An error occurred while verifying the CAPTCHA. Please try again.",
+            "titInicioSesion": "Sign In - STPED",
+            "titAplicacion": "Support Tool for PE Diagnosis",
+            "txt1InicioSesion": "Log in to the app and use our support model for PE diagnosis with just a few lab values!",
+            "txt2InicioSesion": "Each diagnosis you make contributes data to train better models.",
+            "txtAyudaBtnInicioSesion": "Log in to the app with your Google account",
+            "txt1BtnInicioSesion": "Sign In",
+            "txt2BtnInicioSesion": "Go to App",
+            "txt3InicioSesion": "Your patients' data is not shared with us!",
+            "txt4InicioSesion": "I have read and accept the <1>privacy policy</1>.",
+            "txt5InicioSesion": "Need help? Check out our <1>user manual</1>!",
+            "txtBtnCerrar": "Close",
+            "txtBtnCerrarSesion": "Sign Out",
+            "txtBtnExtenderSesion": "Extend Session",
+            "titModalSesionCaducada": "ℹ️ Session Expired",
+            "txtModalSesionCaducada": "Your session has expired, please re-authenticate to continue using the app.",
+            "titModalPermisos": "ℹ️ Insufficient Permissions",
+            "txtBtnPermisos": "Grant Permissions",
+            "txtModalPermisos": "You must grant the required permissions in your Google account to use the app."
+        }
+    },
+    "es": {
+        "translation": {
+            "errCaptcha": "No se ha podido comprobar que seas un humano. Reintenta el CAPTCHA nuevamente.",
+            "tituloErr": "❌ Error",
+            "errCaptchaApi": "Se ha producido un error al verificar el CAPTCHA. Reintentalo nuevamente.",
+            "titInicioSesion": "Iniciar sesión - HADT",
+            "titAplicacion": "Herramienta de apoyo para el diagnóstico de TEP",
+            "txt1InicioSesion": "¡Ingresa a la aplicación y utiliza nuestro modelo de apoyo para el diagnóstico de TEP requiriendo unos cuantos datos de laboratorio!",
+            "txt2InicioSesion": "Cada diagnóstico realizado es una contribución a la recolección de datos para entrenar mejores modelos",
+            "txtAyudaBtnInicioSesion": "Ingresa a la aplicación con tu cuenta de Google",
+            "txt1BtnInicioSesion": "Iniciar sesión",
+            "txt2BtnInicioSesion": "Ir a la aplicación",
+            "txt3InicioSesion": "¡Los datos de tus pacientes no se comparten con nosotros!",
+            "txt4InicioSesion": "He leído y acepto la <1>política de privacidad</1>.",
+            "txt5InicioSesion": "¿Necesitas ayuda? ¡consulta nuestro <1>manual de instrucciones</1>!",
+            "txtBtnCerrar": "Cerrar",
+            "txtBtnCerrarSesion": "Cerrar sesión",
+            "txtBtnExtenderSesion": "Extender sesión",
+            "titModalSesionCaducada": "ℹ️ La sesión ha caducado",
+            "txtModalSesionCaducada": "Tu sesión ha caducado, por favor reautentícate para continuar utilizando la aplicación.",
+            "titModalPermisos": "ℹ️ Permisos insuficientes",
+            "txtBtnPermisos": "Conceder permisos",
+            "txtModalPermisos": "Debes otorgar los permisos requeridos en tu cuenta de Google para utilizar la aplicación."
+        }
+    }
+}
