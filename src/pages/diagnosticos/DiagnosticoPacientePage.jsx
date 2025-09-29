@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import MenuLayout from "../../components/layout/MenuLayout";
 import FormDiagnostico from "../../components/forms/FormDiagnostico";
 import { useAuth } from "../../contexts/AuthContext";
 import { useDrive } from "../../contexts/DriveContext";
 import ModalSimple from "../../components/modals/ModalSimple";
 import CloseIcon from "@mui/icons-material/Close";
-
+import { useTranslation } from "react-i18next";
+import { useNavegacion } from "../../contexts/NavegacionContext";
 /**
  * Página para realizar un diagnóstico de TEP al paciente.
  * @returns {JSX.Element}
@@ -13,11 +14,13 @@ import CloseIcon from "@mui/icons-material/Close";
 export default function DiagnosticoPacientePage() {
     const auth = useAuth();
     const drive = useDrive();
+    const { idioma } = useNavegacion();
+    const { t } = useTranslation();
     const [datos, setDatos] = useState(null);
     const [modal, setModal] = useState(false);
-    const listadoPestanas = [{
-        texto: "Diagnóstico paciente", url: "/diagnostico-paciente"
-    }];
+    const listadoPestanas = useMemo(() => [{
+        texto: t("txtDiagnosticoPaciente"), url: "/diagnostico-paciente"
+    }], [idioma]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -35,28 +38,32 @@ export default function DiagnosticoPacientePage() {
      * Actualizando los datos de los pacientes cuando son descargados.
      */
     useEffect(() => {
+        const texto = t("txtSelectPaciente");
         if (drive.datos != null && drive.datos.length > 0) {
             const aux = drive.datos.map((x) => ({ ...x }));
 
-            aux.unshift({ id: -1, nombre: "Seleccionar paciente" });
+            aux.unshift({ id: -1, nombre: texto });
             setDatos(aux);
         } else if (drive.datos != null) {
-            setDatos([{ id: -1, nombre: "Seleccionar paciente" }]);
+            setDatos([{ id: -1, nombre: texto }]);
         }
     }, [drive.datos]);
 
     /**
-     * Carga de datos inicial y colocando el título de la página.
+     * Carga de datos inicial
      */
     useEffect(() => {
         const descargar = sessionStorage.getItem("descargando-drive");
-        document.title = "Diagnosticar paciente";
 
         if (drive.token != null && (descargar == null || descargar == "false")) {
             sessionStorage.setItem("descargando-drive", "true");
             cargarDatosPacientes();
         }
     }, [drive.token]);
+
+    useEffect(() => {
+        document.title = t("titDiagnosticoPaciente");
+    }, [idioma]);
 
     /**
      * Manejador de carga de datos de los pacientes.
@@ -81,17 +88,17 @@ export default function DiagnosticoPacientePage() {
     return (
         <MenuLayout>
             <FormDiagnostico
-                tituloHeader="Diagnóstico paciente"
+                tituloHeader={t("titDiagnosticoPaciente")}
                 listadoPestanas={listadoPestanas}
                 pacientes={datos}
                 manejadorRecarga={cargarDatosPacientes}
                 esDiagPacientes={true} />
             <ModalSimple
                 abrir={modal}
-                titulo="❌ Error"
+                titulo={t("titError")}
                 iconoBtn={<CloseIcon />}
-                mensaje="No se han podido cargar los datos del paciente. Recarga la página y reintenta nuevamente."
-                txtBtn="Cerrar"
+                mensaje={t("errCargarDatosPaciente")}
+                txtBtn={t("txtBtnCerrar")}
                 manejadorBtnModal={() => setModal(false)}
             />
         </MenuLayout>

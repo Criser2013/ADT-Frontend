@@ -5,6 +5,7 @@ import { useEffect, useMemo } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import fondoClaro from "../../assets/fondos/fondo_claro.png";
 import fondoOscuro from "../../assets/fondos/fondo_oscuro.png";
+import { useTranslation } from "react-i18next";
 
 /**
  * Página 404 de la aplicación.
@@ -12,6 +13,7 @@ import fondoOscuro from "../../assets/fondos/fondo_oscuro.png";
  */
 export default function Page404() {
     const auth = useAuth();
+    const { t } = useTranslation();
     const navegacion = useNavegacion();
     const navigate = useNavigate();
     const cargandoAuth = useMemo(() => {
@@ -22,8 +24,8 @@ export default function Page404() {
         }, [navegacion.tema]);
 
     useEffect(() => {
-        document.title = "Página no encontrada - 404";
-    }, []);
+        document.title = `${t("tit404")}`;
+    }, [navegacion.idioma]);
 
     /**
      * Manejador de eventos del botón para redirigir al usuario a la página principal.
@@ -46,7 +48,7 @@ export default function Page404() {
             <Box width="100%" height="100vh" display="flex" justifyContent="center" alignItems="center" sx={{ backgroundImage: `url(${fondoImg})`, backgroundSize: "cover" }}>
                 <Paper sx={{ padding: "6vh" }}>
                     <Typography variant="h3" align="center">
-                        ¡Página no encontrada!
+                        {t("tit404")}
                     </Typography>
                     <Typography variant="h1" color="primary" align="center" fontWeight="bold">
                         404
@@ -60,7 +62,7 @@ export default function Page404() {
                             textTransform: "none",
                             marginTop: "3vh"
                         }}>
-                        <b>Volver a la página principal</b>
+                        <b>{t("txt404")}</b>
                     </Button>
                 </Paper>
             </Box>)

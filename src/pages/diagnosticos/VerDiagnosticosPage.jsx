@@ -26,6 +26,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import AdvertenciaEspacio from "../../components/menu/AdvertenciaEspacio";
 import CloseIcon from "@mui/icons-material/Close";
 import { ChipDiagnostico, ChipValidado, ChipSexo } from "../../components/tabs/Chips";
+import { Trans, useTranslation } from "react-i18next";
 
 /**
  * Página para ver los diagnósticos del usuario.
@@ -34,6 +35,7 @@ import { ChipDiagnostico, ChipValidado, ChipSexo } from "../../components/tabs/C
 export default function VerDiagnosticosPage() {
     const auth = useAuth();
     const drive = useDrive();
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
@@ -56,21 +58,21 @@ export default function VerDiagnosticosPage() {
     const [guardarDrive, setGuardarDrive] = useState(false);
     const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
-    const camposVariables = (rol != CODIGO_ADMIN) ? [
+    const camposVariables = useMemo(() => (rol != CODIGO_ADMIN) ? [
         { id: "id", label: "ID", componente: null, ordenable: true },
-        { id: "nombre", label: "Paciente", componente: null, ordenable: true },
-        { id: "paciente", label: "Cédula", componente: null, ordenable: true },
-    ] : [{ id: "nombre", label: "Médico", componente: null, ordenable: true }];
-    const camposFijos = camposVariables.concat([
-        { id: "fecha", label: "Fecha", componente: (x) => dayjs(x.fecha).format("DD/MM/YYYY [-] hh:mm A"), ordenable: true },
-        { id: "edad", label: "Edad", componente: null, ordenable: true },
-        { id: "sexo", label: "Sexo", componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true},
-        { id: "diagnostico", label: "Diagnóstico modelo", componente: (x) => <ChipDiagnostico diagnostico={x.diagnostico} />, ordenable: true },
-        { id: "validado", label: "Diagnóstico médico", componente: (x) => <ChipValidado validado={x.validado} />, ordenable: true }
-    ]);
+        { id: "nombre", label: t("txtPaciente"), componente: null, ordenable: true },
+        { id: "paciente", label: t("txtCedula"), componente: null, ordenable: true },
+    ] : [{ id: "nombre", label: t("txtMedico"), componente: null, ordenable: true }], [navegacion.idioma, rol]);
+    const camposFijos = useMemo(() => camposVariables.concat([
+        { id: "fecha", label: t("txtFecha"), componente: (x) => dayjs(x.fecha).format("DD/MM/YYYY [-] hh:mm A"), ordenable: true },
+        { id: "edad", label: t("txtCampoEdad"), componente: null, ordenable: true },
+        { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true },
+        { id: "diagnostico", label: t("txtCampoDiagModelo"), componente: (x) => <ChipDiagnostico diagnostico={x.diagnostico} />, ordenable: true },
+        { id: "validado", label: t("txtCampoDiagMedico"), componente: (x) => <ChipValidado validado={x.validado} />, ordenable: true }
+    ]), [navegacion.idioma]);
     const camposTabla = useMemo(() => {
-        return (rol != CODIGO_ADMIN) ? camposFijos.concat([{ id: "accion", label: "Acción", componente: null, ordenable: false }]) : camposFijos;
-    }, [rol, camposFijos]);
+        return (rol != CODIGO_ADMIN) ? camposFijos.concat([{ id: "accion", label: t("txtAccion"), componente: null, ordenable: false }]) : camposFijos;
+    }, [rol, camposFijos, navegacion.idioma]);
     const camposBusq = useMemo(() => {
         const campos = ["id", "nombre"];
         if (rol != CODIGO_ADMIN) {
@@ -82,30 +84,30 @@ export default function VerDiagnosticosPage() {
         return rol == CODIGO_ADMIN;
     }, [rol]);
     const titulo = useMemo(() => {
-        return (rol != CODIGO_ADMIN) ? "Historial de diagnósticos" : "Datos recolectados";
-    }, [rol]);
+        return (rol != CODIGO_ADMIN) ? t("titHistorialDiagnosticos") : t("txtDatosRecolectados");
+    }, [rol, navegacion.idioma]);
     const lblBusq = useMemo(() => {
-        return (rol != CODIGO_ADMIN) ? "Buscar diagnóstico por ID, nombre o número de cédula del paciente" : "Buscar diagnóstico por ID o nombre del médico";
-    }, [rol]);
+        return (rol != CODIGO_ADMIN) ? t("txtBusqDiag") : t("txtBusqDiagAdmin");
+    }, [rol, navegacion.idioma]);
     const listadoPestanas = useMemo(() => {
-        const txt = (rol == CODIGO_ADMIN) ? "Datos recolectados" : "Historial diagnósticos";
+        const txt = (rol == CODIGO_ADMIN) ? t("txtDatosRecolectados") : t("titHistorialDiagnosticos");
         return [{ texto: txt, url: "/diagnosticos" }];
-    }, [rol]);
+    }, [rol, navegacion.idioma]);
     const desactivarBtns = useMemo(() => {
         return datos.length == 0;
     }, [datos.length]);
     const lblBtnPrimarioModal = useMemo(() => {
         switch (modoModal) {
             case 1:
-                return "Eliminar";
+                return t("txtBtnEliminar");
             case 2:
-                return "Validar";
+                return t("txtBtnValidar");
             case 3:
-                return "Exportar";
+                return t("txtBtnExportar");
             default:
-                return "Aceptar";
+                return t("txtBtnAceptar");
         }
-    }, [modoModal]);
+    }, [modoModal, navegacion.idioma]);
     const cantNoConfirmados = useMemo(() => {
         const aux = diagnosticos != null ? diagnosticos.filter((x) => x.validado == 2) : [];
         return aux.length;
@@ -115,11 +117,11 @@ export default function VerDiagnosticosPage() {
     }, [diagnosticos, cantNoConfirmados, modoModal, preprocesar]);
     const txtToolExportar = useMemo(() => {
         if (rol == CODIGO_ADMIN) {
-            return "Descarga los diagnósticos recolectados como una Hoja de Excel o CSV. También puedes crear una copia en Google Drive.";
+            return t("txtAyudaBtnExportarAdmin");
         } else {
-            return "Descarga los diagnósticos como una Hoja de Excel o CSV.";
+            return t("txtAyudaBtnExportar");
         }
-    }, [rol]);
+    }, [rol, navegacion.idioma]);
     const cantDiagnosticos = useMemo(() => {
         return (diagnosticos != null) ? diagnosticos.length : 0;
     }, [diagnosticos]);
@@ -140,7 +142,6 @@ export default function VerDiagnosticosPage() {
      * Carga los diagnósticos y los pacientes dependiendo del rol del usuario.
      */
     useEffect(() => {
-        document.title = rol != CODIGO_ADMIN ? "Historial de diagnósticos" : "Datos recolectados";
         const { uid } = auth.authInfo;
         const descargar = sessionStorage.getItem("descargando-drive");
         const exp = (descargar == null || descargar == "false");
@@ -150,6 +151,10 @@ export default function VerDiagnosticosPage() {
             manejadorRecargar(drive.token, uid, rol, DB);
         }
     }, [auth.authInfo.uid, drive.token, rol, DB, archivoDescargado]);
+
+    useEffect(() => {
+        document.title = rol != CODIGO_ADMIN ? t("titHistorialDiagnosticos") : t("txtDatosRecolectados");
+    }, [rol, navegacion.idioma]);
 
     /**
      * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
@@ -219,7 +224,7 @@ export default function VerDiagnosticosPage() {
     const cargarPacientes = async (token = "") => {
         const res = (rol != CODIGO_ADMIN) ? await drive.cargarDatos() :
             await peticionApi(token, "admin/usuarios", "GET", null,
-                "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
+                t("errCargarUsuarios")
             );
         setArchivoDescargado(true);
         if (res.success && rol == CODIGO_ADMIN) {
@@ -231,7 +236,7 @@ export default function VerDiagnosticosPage() {
             setActivar2Btn(false);
             setModal({
                 mostrar: true, mensaje: res.error, icono: <CloseIcon />,
-                titulo: `❌ Error al cargar los datos ${(rol != CODIGO_ADMIN) ? "de los pacientes" : "de los usuarios"}`,
+                titulo: `${t("titErrCargaDatos")} ${(rol != CODIGO_ADMIN) ? t("errCargaDatosSufijoPaciente") : t("errCargaDatosSufijoUsuarios")}`,
             });
             setPersonas([]);
         }
@@ -253,8 +258,8 @@ export default function VerDiagnosticosPage() {
             setModoModal(0);
             setActivar2Btn(false);
             setModal({
-                mostrar: true, titulo: "❌ Error al cargar los diagnósticos", icono: <CloseIcon />,
-                mensaje: "Ha ocurrido un error al cargar los diagnósticos. Por favor, inténtalo de nuevo más tarde."
+                mostrar: true, titulo: t("titErrCargarDiagnosticos"), icono: <CloseIcon />,
+                mensaje: t("errCargarDiagnosticos")
             });
             setCargando(false);
         }
@@ -271,7 +276,7 @@ export default function VerDiagnosticosPage() {
         const aux = {};
         const auxDiag = diags.map((d) => d);
 
-        personas.push({ id: "Anónimo", nombre: "Anónimo", cedula: "N/A", uid: "Anónimo" });
+        personas.push({ id: "Anónimo", nombre: t("txtAnonimo"), cedula: "N/A", uid: "Anónimo" });
 
         for (const i of personas) {
             let clave = i.id;
@@ -284,10 +289,10 @@ export default function VerDiagnosticosPage() {
         }
 
         for (let i = 0; i < diags.length; i++) {
-            auxDiag[i].sexo = auxDiag[i].sexo == 0 ? "Masculino" : "Femenino";
-            const campos = (rol != CODIGO_ADMIN) ? "paciente" : "medico";
+            auxDiag[i].sexo = auxDiag[i].sexo == 0 ? t("txtMasculino") : t("txtFemenino");
+            const campos = (rol != CODIGO_ADMIN) ? t("txtPaciente").toLocaleLowerCase() : t("txtMedico").toLocaleLowerCase();
             const persona = aux[auxDiag[i][campos]];
-            const nombre = (rol != CODIGO_ADMIN && persona == undefined) ? "Paciente" : "Usuario";
+            const nombre = (rol != CODIGO_ADMIN && persona == undefined) ? t("txtPaciente") : t("txtUsuario");
 
             if (rol != CODIGO_ADMIN) {
                 auxDiag[i].paciente = (persona != undefined) ? persona.cedula : "N/A";
@@ -317,8 +322,8 @@ export default function VerDiagnosticosPage() {
         setGuardarDrive(false);
         setPreprocesar(false);
         setModal({
-            mostrar: true, titulo: "⚠️ Alerta", icono: <DeleteIcon />,
-            mensaje: "¿Estás seguro de querer eliminar los diagnósticos seleccionados?"
+            mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
+            mensaje: t("txtConfirmacionEliminarDiags")
         });
     };
 
@@ -387,8 +392,8 @@ export default function VerDiagnosticosPage() {
             setModoModal(0);
             setActivar2Btn(false);
             setModal({
-                mostrar: true, titulo: "❌ Error al eliminar los diagnósticos.", icono: <CloseIcon />,
-                mensaje: "Se ha producido un error al eliminar los diagnósticos seleccionados. Por favor, inténtalo de nuevo más tarde."
+                mostrar: true, titulo: t("titErrEliminarDiagApi"), icono: <CloseIcon />,
+                mensaje: t("errEliminarDiagApi")
             });
             setCargando(false);
         }
@@ -423,8 +428,8 @@ export default function VerDiagnosticosPage() {
             setActivar2Btn(false);
             setModoModal(0);
             setModal({
-                mostrar: true, titulo: "❌ Error", icono: <CloseIcon />,
-                mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
+                mostrar: true, titulo: t("tituloError"), icono: <CloseIcon />,
+                mensaje: t("errValidarDiagnosticoApi")
             });
             setCargando(false);
         }
@@ -444,12 +449,12 @@ export default function VerDiagnosticosPage() {
             setActivar2Btn(true);
             setModoModal(2);
             setModal({
-                mostrar: true, titulo: "✏️ Validar diagnóstico", mensaje: "", icono: <CheckCircleOutlineIcon />,
+                mostrar: true, titulo: t("titValidar"), mensaje: "", icono: <CheckCircleOutlineIcon />,
             });
         };
 
         return (
-            <Tooltip title="Validar diagnóstico">
+            <Tooltip title={t("txtAyudaValidar")}>
                 <Button onClick={() => func(diagnostico)} color="primary" variant="outlined">
                     <CheckCircleOutlineIcon />
                 </Button>
@@ -477,7 +482,7 @@ export default function VerDiagnosticosPage() {
         };
         const fecha = new Date().toLocaleDateString("es-CO", opciones).replaceAll(".", "");
         const auxArr = [];
-        const nombreArchivo = preprocesar ? `${EXPORT_FILENAME}${fecha}-Preprocesados` : `${EXPORT_FILENAME}${fecha}`;
+        const nombreArchivo = preprocesar ? `${EXPORT_FILENAME}${fecha}-${t("txtPreprocesados")}` : `${EXPORT_FILENAME}${fecha}`;
 
         for (let i = 0; i < aux.length; i++) {
             // Solo se incluyen los diagnósticos validados si se requiere preprocesar y lo pide un admin
@@ -503,8 +508,8 @@ export default function VerDiagnosticosPage() {
             setModoModal(0);
             setActivar2Btn(false);
             setModal({
-                mostrar: true, titulo: "❌ Error", icono: <CloseIcon />,
-                mensaje: `No se pudo exportar el archivo. Inténtalo de nuevo más tarde: ${res.error}.`
+                mostrar: true, titulo: t("tituloError"), icono: <CloseIcon />,
+                mensaje: `${t("errExportar")} ${res.error}.`
             });
         }
     };
@@ -516,7 +521,7 @@ export default function VerDiagnosticosPage() {
         setActivar2Btn(true);
         setModoModal(3);
         setModal({
-            mostrar: true, titulo: "📁 Exportar diagnósticos",
+            mostrar: true, titulo: t("titExportar"),
             mensaje: "", icono: <FileDownloadIcon />
         });
     };
@@ -534,23 +539,23 @@ export default function VerDiagnosticosPage() {
         let valores = [];
 
         if (modoModal == 3) {
-            txt = "Selecciona el tipo de archivo a exportar:";
+            txt = t("txtSelecArchivo");
             func = setTipoArchivo;
             valor = tipoArchivo;
             valores = [
-                { valor: "xlsx", texto: "Hoja de cálculo de Excel (xlsx)" },
-                { valor: "csv", texto: "Archivo separado por comas (csv)" }
+                { valor: "xlsx", texto: `${t("txtExcel")} (xlsx)` },
+                { valor: "csv", texto: `${t("txtCsv")} (csv)` }
             ];
         } else if (modoModal == 2) {
-            txt = "Selecciona el diagnóstico de TEP del paciente:";
+            txt = t("txtValidarDiagnostico");
             func = setValidar;
             error = errorDiagnostico;
-            txtError = "Selecciona el diagnóstico definitivo del paciente";
+            txtError = t("errValidarDiagnostico");
             valor = validar;
             valores = [
-                { valor: 2, texto: "Seleccione el diagnóstico" },
-                { valor: 0, texto: "Negativo" },
-                { valor: 1, texto: "Positivo" }
+                { valor: 2, texto: t("txtSelecDiagnostico") },
+                { valor: 0, texto: t("txtNegativo") },
+                { valor: 1, texto: t("txtPositivo") }
             ];
         }
 
@@ -565,7 +570,11 @@ export default function VerDiagnosticosPage() {
                     valores={valores}>
                     {((modoModal == 3 && cantNoConfirmados > 0) && (rol == CODIGO_ADMIN) && preprocesar) ? (
                         <Typography variant="body2">
-                            <b>⚠️ ¡Atención! Hay {cantNoConfirmados} diagnóstico(s) sin validar.</b>
+                            <b>
+                                <Trans i18nKey="txtAvisoDiagsNoValidados" cantNoConfirmados={cantNoConfirmados}>
+                                    ⚠️ ¡Atención! Hay {cantNoConfirmados} diagnostico(s) sin validar.
+                                </Trans>
+                            </b>
                         </Typography>
                     ) : null}
                     {(modoModal == 3 && rol == CODIGO_ADMIN) ? (
@@ -573,12 +582,12 @@ export default function VerDiagnosticosPage() {
                             <Check
                                 activado={preprocesar}
                                 manejadorCambios={(e) => setPreprocesar(e.target.checked)}
-                                etiqueta="Preprocesar (no se exportan diagnósticos sin validar)"
+                                etiqueta={t("txtPreprocesar")}
                                 tamano="medium" />
                             <Check
                                 activado={guardarDrive}
                                 manejadorCambios={(e) => setGuardarDrive(e.target.checked)}
-                                etiqueta="Crear una copia en Google Drive"
+                                etiqueta={t("txtCopiaDrive")}
                                 tamano="medium" />
                         </>
                     ) : null}
@@ -604,7 +613,7 @@ export default function VerDiagnosticosPage() {
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh" }}>
                         <AdvertenciaEspacio rol={rol} cantidadDiagnosticos={cantDiagnosticos} />
                         <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
-                            <Tooltip title="Recargar la página">
+                            <Tooltip title={t("txtAyudaBtnRecargar")}>
                                 <IconButton onClick={() => manejadorRecargar()}>
                                     <RefreshIcon />
                                 </IconButton>
@@ -618,7 +627,7 @@ export default function VerDiagnosticosPage() {
                                         disabled={desactivarBtns}
                                         sx={{ textTransform: "none" }}
                                         startIcon={rol == CODIGO_ADMIN ? <AddToDriveIcon /> : <FileDownloadIcon />}>
-                                        <b>Exportar diagnósticos</b>
+                                        <b>{t("txtBtnExportar")}</b>
                                     </Button>
                                 </span>
                             </Tooltip>
@@ -630,12 +639,12 @@ export default function VerDiagnosticosPage() {
                             activarBusqueda={true}
                             activarSeleccion={activarSeleccion}
                             campoId="id"
-                            terminoBusqueda={""}
-                            lblSeleccion="diagnosticos seleccionados"
+                            terminoBusqueda=""
+                            lblSeleccion={t("txtSufijoDiagsSelecs")}
                             camposBusq={camposBusq}
                             cbClicCelda={manejadorClicCelda}
                             cbAccion={manejadorEliminar}
-                            tooltipAccion="Eliminar diagnósticos seleccionados"
+                            tooltipAccion={t("txtAyudaEliminarDiags")}
                             icono={<DeleteIcon />}
                             campoOrdenInicial="fecha"
                             dirOrden="asc"
@@ -652,8 +661,8 @@ export default function VerDiagnosticosPage() {
                 manejadorBtnSecundario={manejadorBtnCancelar}
                 mostrarBtnSecundario={activar2Btn}
                 txtBtnSimple={lblBtnPrimarioModal}
-                txtBtnSecundario="Cancelar"
-                txtBtnSimpleAlt="Cerrar"
+                txtBtnSecundario={t("txtBtnCancelar")}
+                txtBtnSimpleAlt={t("txtBtnCerrar")}
                 desactivarBtnPrimario={desactivarBtnModal}>
                 <CuerpoModal />
             </ModalAccion>

@@ -27,9 +27,9 @@ import { CODIGO_ADMIN } from "../../../constants";
 import { SINTOMAS } from "../../../constants";
 import ContComorbilidades from "../../components/diagnosticos/ContComorbilidades";
 import { peticionApi } from "../../services/Api";
-import { Timestamp } from "firebase/firestore";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
 import ContLime from "../../components/diagnosticos/ContLime";
+import { useTranslation } from "react-i18next";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -38,6 +38,7 @@ import ContLime from "../../components/diagnosticos/ContLime";
 export default function VerDiagnosticoPage() {
     const auth = useAuth();
     const drive = useDrive();
+    const { t } = useTranslation();
     const credenciales = useCredenciales();
     const navegacion = useNavegacion();
     const navigate = useNavigate();
@@ -51,12 +52,12 @@ export default function VerDiagnosticoPage() {
     const open = Boolean(popOver);
     const elem = open ? "simple-popover" : undefined;
     const [modal, setModal] = useState({
-        mostrar: false, mensaje: "", titulo: "", txtBtn: "Validar", icono: null
+        mostrar: false, mensaje: "", titulo: "", txtBtn: t("txtBtnValidar"), icono: null
     });
     const [datos, setDatos] = useState({
         personales: {
             id: "", fumador: 0, wbc: "", viajeProlongado: 0,
-            validado: 2, fecha: dayjs().format("DD/MM/YYYY"),
+            validado: 2, fecha: dayjs().format(t("formatoFechaPequeno")),
             sexo: 0, tos: 0, tepPrevio: 0, soplos: 0,
             so2: 0, sibilancias: 0, probabilidad: 0, presionSis: "",
             presionDias: "", plaquetas: "", otraEnfermedad: 0,
@@ -82,50 +83,50 @@ export default function VerDiagnosticoPage() {
     const camposPersonales = useMemo(() => {
         const campos = [
             { titulo: "ID", valor: datos.personales.id },
-            { titulo: (rol == CODIGO_ADMIN) ? "Médico" : "Paciente", valor: persona.nombre },
-            { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" },
-            { titulo: "Edad", valor: `${datos.personales.edad} años` },
-            { titulo: "Fecha de diagnóstico", valor: datos.personales.fecha },
-            { titulo: "Diagnóstico modelo", valor: detTxtDiagnostico(datos.personales.diagnostico) },
-            { titulo: "Probabilidad", valor: `${(datos.personales.probabilidad * 100).toFixed(2)}%` },
-            { titulo: "Diagnóstico médico", valor: detTxtDiagnostico(datos.personales.validado) },
+            { titulo: (rol == CODIGO_ADMIN) ? t("txtMedico") : t("txtPaciente"), valor: persona.nombre },
+            { titulo: t("txtCampoSexo"), valor: datos.personales.sexo == 0 ? t("txtMasculino") : t("txtFemenino") },
+            { titulo: t("txtCampoEdad"), valor: `${datos.personales.edad} años` },
+            { titulo: t("txtCampoFechaDiag"), valor: datos.personales.fecha },
+            { titulo: t("txtCampoDiagModelo"), valor: detTxtDiagnostico(datos.personales.diagnostico) },
+            { titulo: t("txtCampoProbabilidad"), valor: `${(datos.personales.probabilidad * 100).toFixed(2)}%` },
+            { titulo: t("txtCampoDiagMedico"), valor: detTxtDiagnostico(datos.personales.validado) },
         ];
 
         return campos;
-    }, [rol, datos, persona.nombre]);
+    }, [rol, datos, persona.nombre, navegacion.idioma]);
     const camposVitales = useMemo(() => [
-        { titulo: "Presión sistólica", valor: `${datos.personales.presionSis} mmHg.` },
-        { titulo: "Presión diastólica", valor: `${datos.personales.presionDias} mmHg.` },
-        { titulo: "Frecuencia cardíaca", valor: `${datos.personales.frecCard} lpm.` },
-        { titulo: "Frecuencia respiratoria", valor: `${datos.personales.frecRes} rpm.` },
-        { titulo: "Saturación de la sangre (SO2)", valor: `${datos.personales.so2} %` },
-    ], [datos.personales]);
+        { titulo: t("txtCampoPresionSist"), valor: `${datos.personales.presionSis} mmHg.` },
+        { titulo: t("txtCampoPresionDiast"), valor: `${datos.personales.presionDias} mmHg.` },
+        { titulo: t("txtCampoFrecCard"), valor: `${datos.personales.frecCard} lpm.` },
+        { titulo: t("txtCampoFrecRes"), valor: `${datos.personales.frecRes} rpm.` },
+        { titulo: t("txtCampoSO2"), valor: `${datos.personales.so2} %` },
+    ], [datos.personales, navegacion.idioma]);
     const camposExamenes = useMemo(() => [
-        { titulo: "Conteo de plaquetas", valor: `${datos.personales.plaquetas} /µL.` },
-        { titulo: "Hemoglobina", valor: `${datos.personales.hemoglobina} g/dL.` },
-        { titulo: "Conteo glóbulos blancos", valor: `${datos.personales.wbc} /µL.` },
-    ], [datos.personales]);
+        { titulo: t("txtCampoPLT"), valor: `${datos.personales.plaquetas} /µL.` },
+        { titulo: t("txtCampoHB"), valor: `${datos.personales.hemoglobina} g/dL.` },
+        { titulo: t("txtCampoWBC"), valor: `${datos.personales.wbc} /µL.` },
+    ], [datos.personales, navegacion.idioma]);
     const listadoPestanas = useMemo(() => {
-        let tit1 = "Historial de diagnósticos";
-        let tit2 = `Diagnóstico-${persona.nombre}-${datos.personales.fecha}`;
+        let tit1 = t("txtHistorialDiagnosticos");
+        let tit2 = `${t("txtDiagnostico")}-${persona.nombre}-${datos.personales.fecha}`;
 
         if (rol == CODIGO_ADMIN) {
-            tit1 = "Datos recolectados";
-            tit2 = `Diagnóstico-${datos.personales.id}`;
+            tit1 = t("txtDatosRecolectados");
+            tit2 = `${t("txtDiagnostico")} — ${datos.personales.id}`;
         }
 
         return [
             { texto: tit1, url: "/diagnosticos" },
             { texto: tit2, url: `/diagnosticos/ver-diagnostico${location.search}` }
         ];
-    }, [persona, datos, location.search, rol]);
+    }, [persona, datos, location.search, rol, navegacion.idioma]);
     const titulo = useMemo(() => {
         if (rol == CODIGO_ADMIN) {
-            return persona.nombre != "" ? `Diagnóstico — ${datos.personales.id}` : "Datos del diagnóstico";
+            return persona.nombre != "" ? `${t("txtDiagnostico")} — ${datos.personales.id}` : t("titDiagnostico");
         } else {
-            return persona.nombre != "" ? `Diagnóstico — ${persona.nombre}` : "Ver diagnóstico";
+            return persona.nombre != "" ? `${t("txtDiagnostico")} — ${persona.nombre}` : t("titVerDiagnostico");
         }
-    }, [rol, persona.nombre, datos.personales.id]);
+    }, [rol, persona.nombre, datos.personales.id, navegacion.idioma]);
     const id = useMemo(() => params.get("id"), [params]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
 
@@ -221,7 +222,8 @@ export default function VerDiagnosticoPage() {
         const descargar = sessionStorage.getItem("descargando-drive");
 
         if (esDiagAnonimo) {
-            setPersona({ id: "Anónimo", nombre: "Anónimo" });
+            const txt = t("txtAnonimo");
+            setPersona({ id: txt, nombre: txt });
             setArchivoDescargado(true);
             return;
         }
@@ -234,7 +236,7 @@ export default function VerDiagnosticoPage() {
                 setMostrarBtnSecundario(false);
                 setModal({
                     mostrar: true, mensaje: res.error, icono: <CloseIcon />,
-                    titulo: "❌ Error al cargar los datos de los pacientes",
+                    titulo: t("errTituloCargarDatosPacientes"),
                 });
                 return;
             }
@@ -250,11 +252,11 @@ export default function VerDiagnosticoPage() {
      */
     const cargarPaciente = (id) => {
         const res = drive.cargarDatosPaciente(id);
-        const nombre = (rol != CODIGO_ADMIN && persona == undefined) ? "Paciente" : "Usuario";
+        const nombre = (rol != CODIGO_ADMIN && persona == undefined) ? t("txtPaciente") : t("txtUsuario");
         if (res.success) {
             setPersona({ ...res.data.personales });
         } else {
-            setPersona({ id: id, nombre: `${nombre} eliminado` });
+            setPersona({ id: id, nombre: `${nombre} ${t("txtEliminado")}` });
         }
         sessionStorage.setItem("descargando-drive", "false");
     };
@@ -267,15 +269,15 @@ export default function VerDiagnosticoPage() {
     const cargarDatosMedico = async (token, uid) => {
         uid = encodeURIComponent(uid);
         const res = await peticionApi(token, `admin/usuarios/${uid}`, "GET", null,
-            "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
+            t("errCargarDatosUsuarios")
         );
         let persona = { nombre: "N/A" };
 
         if (!res.success && res.data == null) {
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: "❌ Error", icono: <CloseIcon />,
-                mensaje: "Se ha producido un error al cargar los datos del médico. Recarga la página y reintenta nuevamente."
+                mostrar: true, titulo: t("tituloError"), icono: <CloseIcon />,
+                mensaje: t("errCargarDatosMedico")
             });
         } else if (!res.success) {
             persona = { nombre: res.data.correo };
@@ -304,7 +306,7 @@ export default function VerDiagnosticoPage() {
             aux.id = aux.id.replace(/-\w{28}$/, "");
         }
 
-        aux.fecha = dayjs(datos.fecha.toDate()).format("DD [de] MMMM [de] YYYY [a las] hh:mm A");
+        aux.fecha = dayjs(datos.fecha.toDate()).format(t("formatoFechaCompleta"));
         setDatos({
             personales: aux, comorbilidades: res, lime: (datos.lime != undefined ? lime : null)
         });
@@ -337,8 +339,8 @@ export default function VerDiagnosticoPage() {
         setMostrarBtnSecundario(true);
         setErrorDiagnostico(false);
         setModal({
-            titulo: "✏️ Validar diagnóstico", mensaje: "",
-            mostrar: true, txtBtn: "Validar", icono: <CheckCircleOutlineIcon />
+            titulo: t("titValidar"), mensaje: "",
+            mostrar: true, txtBtn: t("txtBtnValidar"), icono: <CheckCircleOutlineIcon />
         });
     };
 
@@ -355,8 +357,8 @@ export default function VerDiagnosticoPage() {
             setCargando(false);
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: "❌ Error", icono: <CloseIcon />,
-                mensaje: "No se pudo eliminar el diagnóstico. Inténtalo de nuevo más tarde."
+                mostrar: true, titulo: t("tituloError"), icono: <CloseIcon />,
+                mensaje: t("errEliminarDiagnostico")
             });
         }
     };
@@ -379,8 +381,8 @@ export default function VerDiagnosticoPage() {
         } else {
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: "❌ Error", txtBtn: "Cerrar", icono: <CloseIcon />,
-                mensaje: "No se pudo validar el diagnóstico. Inténtalo de nuevo más tarde."
+                mostrar: true, titulo: t("tituloError"), txtBtn: t("txtBtnCerrar"), icono: <CloseIcon />,
+                mensaje: t("errValidarDiagnosticoApi")
             });
         }
         setCargando(false);
@@ -411,8 +413,8 @@ export default function VerDiagnosticoPage() {
         cerrarPopover();
         setMostrarBtnSecundario(true);
         setModal({
-            mostrar: true, titulo: "⚠️ Alerta", txtBtn: "Eliminar", icono: <DeleteIcon />,
-            mensaje: "¿Estás seguro de que deseas eliminar este diagnóstico?"
+            mostrar: true, titulo: t("titAlerta"), txtBtn: t("txtBtnEliminar"), icono: <DeleteIcon />,
+            mensaje: t("txtEliminarDiagnostico")
         });
     };
 
@@ -435,7 +437,7 @@ export default function VerDiagnosticoPage() {
      * Componente para mostrar los campos de texto.
      * @param {JSON} campos - Datos del campo.
      * @param {Int} indice - Índice del campo.
-     * @returns JSX.Element
+     * @returns {JSX.Element}
      */
     const CamposTexto = ({ campo, indice }) => {
         return (
@@ -444,10 +446,10 @@ export default function VerDiagnosticoPage() {
                     <Typography variant="body1">
                         <b>{campo.titulo}: </b>
                     </Typography>
-                    {(campo.titulo == "Sexo") ? <ChipSexo sexo={campo.valor} /> : null}
-                    {(campo.titulo == "Diagnóstico modelo") ? <ChipDiagnostico diagnostico={campo.valor} /> : null}
-                    {(campo.titulo == "Diagnóstico médico") ? <ChipValidado validado={campo.valor} /> : null}
-                    {(campo.titulo != "Sexo" && campo.titulo != "Diagnóstico modelo" && campo.titulo != "Diagnóstico médico") ? (
+                    {(campo.titulo == t("txtCampoSexo")) ? <ChipSexo sexo={campo.valor} /> : null}
+                    {(campo.titulo == t("txtCampoDiagModelo")) ? <ChipDiagnostico diagnostico={campo.valor} /> : null}
+                    {(campo.titulo == t("txtCampoDiagMedico")) ? <ChipValidado validado={campo.valor} /> : null}
+                    {(campo.titulo != t("txtCampoSexo") && campo.titulo != t("txtCampoDiagModelo") && campo.titulo != t("txtCampoDiagMedico")) ? (
                         <Typography variant="body1">
                             {campo.valor}
                         </Typography>) : null}
@@ -462,7 +464,7 @@ export default function VerDiagnosticoPage() {
      */
     const BtnValidar = () => {
         return ((datos.personales.validado == 2 && rol != CODIGO_ADMIN) ? (
-            <Tooltip title="Valida el diagnóstico del paciente.">
+            <Tooltip title={t("txtAyudaBtnValidar")}>
                 <Fab onClick={manejadorBtnEditar}
                     color="primary"
                     variant="extended"
@@ -476,16 +478,16 @@ export default function VerDiagnosticoPage() {
     /**
      * Check para mostrar los síntomas clínicos del diagnóstico.
      * @param {JSON} instancia - Datos del síntoma. 
-     * @returns JSX.Element
+     * @returns {JSX.Element}
      */
     const CheckSintoma = ({ instancia }) => {
         return (
             <Grid size={numCols}>
                 <Check
-                    nombre={instancia.nombre}
-                    etiqueta={instancia.texto}
+                    nombre={instancia}
+                    etiqueta={t(instancia)}
                     desactivado={true}
-                    activado={datos.personales[instancia.nombre]}
+                    activado={datos.personales[instancia]}
                     manejadorCambios={null} />
             </Grid>);
     };
@@ -498,9 +500,9 @@ export default function VerDiagnosticoPage() {
         return ((rol != CODIGO_ADMIN) ? (
             <FormSeleccionar
                 onChange={setDiagnostico}
-                texto="Selecciona el diagnóstico médico del paciente:"
+                texto={t("txtValidarDiagnostico")}
                 error={errorDiagnostico}
-                txtError="Selecciona el diagnóstico definitivo del paciente"
+                txtError={t("errValidarDiagnostico")}
                 valor={diagnostico}
                 valores={DIAGNOSTICOS} />) : null
         );
@@ -517,16 +519,16 @@ export default function VerDiagnosticoPage() {
                     <>
                         <TabHeader
                             urlPredet="/diagnosticos"
-                            titulo="Datos del diagnóstico"
+                            titulo={t("titDiagnostico")}
                             pestanas={listadoPestanas}
-                            tooltip="Volver a la pestaña de diagnósticos." />
+                            tooltip={t("txtVolverAtrasDiagnosticos")}/>
                         <Grid container
                             columns={12}
                             spacing={1}
                             marginTop="3vh">
                             {(rol == CODIGO_ADMIN) ? (
                                 <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
-                                    <Tooltip title="Ver más opciones.">
+                                    <Tooltip title={t("txtAyudaMasOpciones")}>
                                         <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
                                             <MoreVertIcon />
                                         </IconButton>
@@ -544,20 +546,20 @@ export default function VerDiagnosticoPage() {
                                             vertical: "top",
                                             horizontal: "center",
                                         }}>
-                                        <Tooltip title="Eliminar paciente">
+                                        <Tooltip title={t("txtAyudaEliminarDiagnostico")}>
                                             <Button
                                                 color="error"
                                                 startIcon={<DeleteIcon />}
                                                 onClick={manejadorBtnEliminar}
                                                 sx={{ textTransform: "none", padding: 2 }}>
-                                                Eliminar
+                                                {t("txtBtnEliminar")}
                                             </Button>
                                         </Tooltip>
                                     </Popover>
                                 </Grid>) : null}
                             <Grid size={12}>
                                 <Typography variant="h5" paddingBottom="2vh">
-                                    Datos personales
+                                    {t("titDatosPersonales")}
                                 </Typography>
                             </Grid>
                             {camposPersonales.map((campo, index) => (
@@ -586,7 +588,7 @@ export default function VerDiagnosticoPage() {
                             </Grid>
                             <Grid size={12} paddingBottom="2vh">
                                 <Typography variant="h5">
-                                    Signos vitales
+                                    {t("titSignosVitales")}
                                 </Typography>
                             </Grid>
                             {camposVitales.map((campo, index) => (
@@ -597,7 +599,7 @@ export default function VerDiagnosticoPage() {
                             </Grid>
                             <Grid size={12}>
                                 <Typography variant="h5" paddingBottom="2vh">
-                                    Exámenes de laboratorio
+                                    {t("titExamenes")}
                                 </Typography>
                             </Grid>
                             {camposExamenes.map((campo, index) => (
@@ -608,7 +610,7 @@ export default function VerDiagnosticoPage() {
                             </Grid>
                             <Grid size={12}>
                                 <Typography variant="h5" paddingBottom="1vh">
-                                    Condiciones médicas preexistentes
+                                    {t("titComor")}
                                 </Typography>
                             </Grid>
                             {(datos.comorbilidades.length > 0) ? (
@@ -618,7 +620,7 @@ export default function VerDiagnosticoPage() {
                             ) : (
                                 <Grid size={5}>
                                     <Typography variant="body1">
-                                        <b>No se registraron comorbilidades.</b>
+                                        <b>{t("txtNoComor")}</b>
                                     </Typography>
                                 </Grid>
                             )}
@@ -635,9 +637,9 @@ export default function VerDiagnosticoPage() {
                     manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
                     mostrarBtnSecundario={mostrarBtnSecundario}
                     txtBtnSimple={modal.txtBtn}
-                    txtBtnSecundario="Cancelar"
+                    txtBtnSecundario={t("txtBtnCancelar")}
                     iconoBtnSecundario={<CloseIcon />}
-                    txtBtnSimpleAlt="Cerrar">
+                    txtBtnSimpleAlt={t("txtBtnCerrar")}>
                     <CuerpoModal />
                 </ModalAccion>
             </MenuLayout>

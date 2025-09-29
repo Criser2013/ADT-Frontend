@@ -18,25 +18,10 @@ export const SEXOS = [
     { texto: "Femenino", val: 1 }
 ];
 export const CODIGO_ADMIN = 1001;
-export const SINTOMAS = [
-    { texto: "Fumador", nombre: "fumador" },
-    { texto: "Bebedor", nombre: "bebedor" },
-    { texto: "Tos", nombre: "tos" },
-    { texto: "Fiebre", nombre: "fiebre" },
-    { texto: "Edema de miembros inferiores", nombre: "edema" },
-    { texto: "Inmovilidad de miembros inferiores", nombre: "inmovilidad" },
-    { texto: "Procedimiento quirúrgico o traumatismo reciente", nombre: "cirugiaReciente" },
-    { texto: "Síntomas disautonómicos", nombre: "disautonomicos" },
-    { texto: "Viaje prolongado", nombre: "viajeProlongado" },
-    { texto: "Disnea", nombre: "disnea" },
-    { texto: "Sibilancias", nombre: "sibilancias" },
-    { texto: "Crepitaciones", nombre: "crepitaciones" },
-    { texto: "Derrame", nombre: "derrame" },
-    { texto: "Malignidad", nombre: "malignidad" },
-    { texto: "Hemoptisis", nombre: "hemoptisis" },
-    { texto: "Dolor torácico", nombre: "dolorToracico" },
-    { texto: "TEP - TVP previo", nombre: "tepPrevio" },
-    { texto: "Soplos", nombre: "soplos" }
+export const SINTOMAS = [ "fumador", "bebedor", "tos", "fiebre", "edema",
+    "inmovilidad", "cirugiaReciente", "disautonomicos", "viajeProlongado",
+    "disnea", "sibilancias", "crepitaciones", "derrame", "malignidad",
+    "hemoptisis", "dolorToracico", "tepPrevio", "soplos"
 ];
 export const DIAGNOSTICOS = [
     { valor: 2, texto: "Seleccione el diagnóstico" },
