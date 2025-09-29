@@ -4,8 +4,8 @@ import { useState } from "react";
 import TranslateIcon from '@mui/icons-material/Translate';
 import CheckIcon from '@mui/icons-material/Check';
 import { useNavegacion } from "../../contexts/NavegacionContext";
-import iconoEspanol from "../../assets/icono_espanol.svg";
-import iconoIngles from "../../assets/icono_ingles.svg";
+import iconoEspanol from "../../assets/iconos/icono_espanol.svg";
+import iconoIngles from "../../assets/iconos/icono_ingles.svg";
 
 /**
  * Componente que permite seleccionar el idioma de la aplicación.

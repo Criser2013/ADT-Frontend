@@ -10,9 +10,9 @@ import { useCredenciales } from "../../contexts/CredencialesContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import BtnTema from "../../components/layout/BtnTema";
 import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../../constants";
-import fondoClaro from "../../assets/fondo_claro.png";
-import fondoOscuro from "../../assets/fondo_oscuro.png";
-import icono from "../../assets/icono.png";
+import fondoClaro from "../../assets/fondos/fondo_claro.png";
+import fondoOscuro from "../../assets/fondos/fondo_oscuro.png";
+import icono from "../../assets/iconos/icono.png";
 import ModalSimple from "../../components/modals/ModalSimple";
 import CloseIcon from "@mui/icons-material/Close";
 import Check from "../../components/tabs/Check";
@@ -74,7 +74,6 @@ export default function IniciarSesionPage() {
      * Verifica la autenticación del usuario y redirige si ya está autenticado.
      */
     useEffect(() => {
-        document.title = t("titInicioSesion");
         navegacion.setPaginaAnterior("");
     }, []);
 
@@ -82,9 +81,26 @@ export default function IniciarSesionPage() {
         setDesactivarBtn(!(captchaAceptado && terminosAceptados));
     }, [captchaAceptado, terminosAceptados]);
 
+    /**
+     * Ejecuta una función mientras se cambia el idioma o el tema.
+     * @param {Function} funcion - Función a ejecutar.
+     */
+    const reiniciarPagina = (funcion = null) => {
+        setCargando(true);
+        if (funcion != null) {
+            funcion();
+        }
+        setTimeout(() => {
+            setTerminosAceptados(false);
+            setDesactivarBtn(true);
+            setCargando(false);
+        }, 100);
+    };
+
     useEffect(() => {
+        document.title = t("titInicioSesion");
         if (CAPTCHA.current != null) {
-            CAPTCHA.current.reset();
+            reiniciarPagina();
         }
     }, [navegacion.idioma]);
 
@@ -110,19 +126,6 @@ export default function IniciarSesionPage() {
             });
         }
         setDesactivarBtn(true);
-    };
-
-    /**
-     * Manejador de eventos del botón para cambiar tema.
-     */
-    const manejadorBtnCambiarTema = () => {
-        setCargando(true);
-        navegacion.cambiarTema();
-        setTimeout(() => {
-            setTerminosAceptados(false);
-            setDesactivarBtn(true);
-            setCargando(false);
-        }, 100);
     };
 
     /**
@@ -188,7 +191,7 @@ export default function IniciarSesionPage() {
                         <Grid columns={12} spacing={2} container>
                             <Grid container columns={2} size={12} display="flex" justifyContent="space-between" alignItems="center">
                                 <SelectIdioma />
-                                <IconButton aria-label="delete" onClick={manejadorBtnCambiarTema} size="large">
+                                <IconButton aria-label="delete" onClick={() => reiniciarPagina(navegacion.cambiarTema)} size="large">
                                     <BtnTema />
                                 </IconButton>
                             </Grid>
