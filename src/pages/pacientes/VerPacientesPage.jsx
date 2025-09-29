@@ -4,6 +4,7 @@ import Datatable from "../../components/tabs/Datatable";
 import TabHeader from "../../components/layout/TabHeader";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useEffect, useMemo, useState } from "react";
@@ -25,9 +26,10 @@ export default function VerPacientesPage() {
     const drive = useDrive();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
-    const listadoPestanas = [{
-        texto: "Lista de pacientes", url: "/pacientes"
-    }];
+    const { t } = useTranslation();
+    const listadoPestanas = useMemo(() => [{
+        texto: t("txtListaPacientes"), url: "/pacientes"
+    }], [navegacion.idioma]);
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({
         mostrar: false, titulo: "", mensaje: "", icono: null
@@ -36,12 +38,12 @@ export default function VerPacientesPage() {
     const [datos, setDatos] = useState([]);
     const [seleccionados, setSeleccionados] = useState([]);
     const campos = useMemo(() => [
-        { id: "cedula", label: "Cédula", componente: null, ordenable: true},
-        { id: "nombre", label: "Nombre", componente: null, ordenable: true},
-        { id: "sexo", label: "Sexo", componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true},
-        { id: "edad", label: "Edad", componente: null, ordenable: true},
-        { id: "telefono", label: "Teléfono", componente: null, ordenable: true},
-    ], []);
+        { id: "cedula", label: t("txtCedula"), componente: null, ordenable: true},
+        { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true},
+        { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true},
+        { id: "edad", label: t("txtEdad"), componente: null, ordenable: true},
+        { id: "telefono", label: t("txtTelefono"), componente: null, ordenable: true},
+    ], [navegacion.idioma]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -57,13 +59,16 @@ export default function VerPacientesPage() {
 
     useEffect(() => {
         const descargar = sessionStorage.getItem("descargando-drive");
-        document.title = "Lista de pacientes";
 
         if (drive.token != null && (descargar == null || descargar == "false")) {
             sessionStorage.setItem("descargando-drive", "true");
             manejadorRecargar();
         }
     }, [drive.token]);
+
+    useEffect(() => {
+        document.title = t("txtListaPacientes");
+    }, [navegacion.idioma]);
 
     /**
      * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
@@ -122,7 +127,7 @@ export default function VerPacientesPage() {
     const formatearCeldas = (datos) => {
         dayjs.extend(customParseFormat);
         return datos.map((dato) => {
-            const sexo = (dato.sexo == 0) ? "Masculino" : "Femenino";
+            const sexo = (dato.sexo == 0) ? t("txtMasculino") : t("txtFemenino");
 
             return {
             id: dato.id, nombre: dato.nombre, cedula: dato.cedula,
@@ -150,8 +155,8 @@ export default function VerPacientesPage() {
         setSeleccionados(seleccionados);
         setEliminar(true);
         setModal({
-            mostrar: true, titulo: "⚠️ Alerta", icono: <DeleteIcon />,
-            mensaje: "¿Estás seguro de querer eliminar a los pacientes seleccionados?"
+            mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
+            mensaje: t("txtEliminarPacientes")
         });
     };
 
@@ -186,7 +191,7 @@ export default function VerPacientesPage() {
         if (!res.success) {
             setModal({
                 mostrar: true, icono: <CloseIcon />,
-                titulo: "❌ Error al eliminar los pacientes.",
+                titulo: t("errTitEliminarPacientes"),
                 mensaje: res.error
             });
         }
@@ -203,38 +208,38 @@ export default function VerPacientesPage() {
                 <>
                     <TabHeader
                         activarBtnAtras={false}
-                        titulo="Lista de pacientes"
+                        titulo={t("txtListaPacientes")}
                         pestanas={listadoPestanas} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh" }}>
                         <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
-                            <Tooltip title="Recargar la página">
+                            <Tooltip title={t("txtAyudaBtnRecargarPagina")}>
                                 <IconButton onClick={() => manejadorRecargar()}>
                                     <RefreshIcon />
                                 </IconButton>
                             </Tooltip>
-                            <Tooltip title="Añade un nuevo paciente a la lista">
+                            <Tooltip title={t("txtAyudaBtnAnadirPaciente")}>
                                 <Button
                                     variant="contained"
                                     color="primary"
                                     onClick={manejadorBtnAnadir}
                                     sx={{ textTransform: "none" }}
                                     startIcon={<AddIcon />}>
-                                    <b>Añadir paciente</b>
+                                    <b>{t("txtBtnAnadirPaciente")}</b>
                                 </Button>
                             </Tooltip>
                         </Grid>
                         <Datatable
                             campos={campos}
                             datos={datos}
-                            lblBusq="Buscar paciente por nombre o número de cédula"
+                            lblBusq={t("txtBusqPaciente")}
                             activarBusqueda={true}
                             campoId="id"
                             terminoBusqueda={""}
-                            lblSeleccion="pacientes seleccionados"
+                            lblSeleccion={t("txtSufijoPacientesSeleccionados")}
                             camposBusq={["nombre", "cedula"]}
                             cbClicCelda={manejadorClicCelda}
                             cbAccion={manejadorEliminar}
-                            tooltipAccion="Eliminar pacientes seleccionados"
+                            tooltipAccion={t("txtAyudaBtnEliminarPacientes")}
                             icono={<DeleteIcon />}
                             campoOrdenInicial="nombre"
                             dirOrden="asc"
@@ -250,9 +255,9 @@ export default function VerPacientesPage() {
                 mostrarBtnSecundario={eliminar}
                 iconoBtnPrincipal={modal.icono}
                 iconoBtnSecundario={<CloseIcon />}
-                txtBtnSimple="Eliminar"
-                txtBtnSecundario="Cancelar"
-                txtBtnSimpleAlt="Cerrar" />
+                txtBtnSimple={t("txtBtnEliminar")}
+                txtBtnSecundario={t("txtBtnCancelar")}
+                txtBtnSimpleAlt={t("txtBtnCerrar")} />
         </MenuLayout>
     );
 };

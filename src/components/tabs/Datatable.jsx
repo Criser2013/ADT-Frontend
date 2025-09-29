@@ -11,6 +11,7 @@ import { visuallyHidden } from "@mui/utils";
 import { obtenerComparadorStrNum } from "../../utils/Ordenamiento";
 import { buscar } from "../../utils/Busqueda";
 import { useNavegacion } from "../../contexts/NavegacionContext";
+import { t } from "i18next";
 
 /**
  * Datatable con paginación, ordenamiento y selección de filas.
@@ -241,7 +242,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                         ),
                                         endAdornment: (busqueda.length > 0) ? (
                                             <InputAdornment position="end">
-                                                <Tooltip title="Limpiar cuadro de búsqueda">
+                                                <Tooltip title={t("txtVaciarBusq")}>
                                                     <IconButton onClick={manejadorBtnLimpiarBusq}>
                                                         <ClearIcon />
                                                     </IconButton>
@@ -298,7 +299,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                         align="center" component="th"
                                         width="100%" colSpan={campos.length + 1}
                                         sx={{ padding: "10vh 0vw" }}>
-                                        {busqueda.length > 0 ? "No se encontraron resultados para la búsqueda." : "No hay datos para mostrar."}
+                                        {busqueda.length > 0 ? t("txtNoResBusq") : t("txtNoDatosTabla")}
                                     </Typography>
                                 </TableRow>
                             ) : null}
@@ -354,8 +355,8 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                     page={pagina}
                     onPageChange={cambiarPagina}
                     onRowsPerPageChange={cambiarFilasPorPagina}
-                    labelRowsPerPage="Filas por página"
-                    labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count !== -1 ? count : `más de ${to}`}`}
+                    labelRowsPerPage={t("txtFilasPorPag")}
+                    labelDisplayedRows={({ from, to, count }) => t("txtPagina", {from: from, to: to, count: (count !== -1) ? count : t("txtPagina2", { to: to })})}
                 />
             </Paper>
         </Box>

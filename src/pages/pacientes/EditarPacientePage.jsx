@@ -5,6 +5,8 @@ import FormPaciente from "../../components/forms/FormPaciente";
 import MenuLayout from "../../components/layout/MenuLayout";
 import { useNavigate, useSearchParams } from "react-router";
 import { validarId } from "../../utils/Validadores";
+import { useTranslations } from "i18next";
+import { useNavegacion } from "../../contexts/NavegacionContext";
 
 /**
  * Página para editar los datos de un paciente.
@@ -13,6 +15,8 @@ import { validarId } from "../../utils/Validadores";
 export default function EditarPacientePage() {
     const auth = useAuth();
     const drive = useDrive();
+    const { t } = useTranslations();
+    const { idioma } = useNavegacion();
     const navigate = useNavigate();
     const [params] = useSearchParams();
     const listadoPestanas = [
@@ -37,7 +41,6 @@ export default function EditarPacientePage() {
      * Coloca el título de la página.
      */
     useEffect(() => {
-        document.title = `Editar paciente`;
         const res = (id != null && id != undefined) ? validarId(id) : false;
 
         if (!res) {
@@ -45,13 +48,16 @@ export default function EditarPacientePage() {
         }
     }, []);
 
+    useEffect(() => {
+        document.title = t("titEditarPaciente");
+    }, [idioma]);
 
     return (
         <MenuLayout>
             <FormPaciente
                 listadoPestanas={listadoPestanas}
                 esAnadir={false}
-                titPestana="Editar paciente"
+                titPestana={t("titEditarPaciente")}
                 id={id} />
         </MenuLayout>
     );

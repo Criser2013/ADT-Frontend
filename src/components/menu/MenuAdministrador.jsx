@@ -16,6 +16,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { peticionApi } from "../../services/Api";
 import AdvertenciaEspacio from "./AdvertenciaEspacio";
 import CloseIcon from "@mui/icons-material/Close";
+import { useTranslation } from "react-i18next";
 
 /**
  * Menú principal para los administradores. Muestra la cantidad de diagnósticos y usuarios nuevos.
@@ -25,6 +26,7 @@ export default function MenuAdministrador() {
     const auth = useAuth();
     const credenciales = useCredenciales();
     const navegacion = useNavegacion();
+    const { t } = useTranslation();
     const [cargando, setCargando] = useState(true);
     const [usuarios, setUsuarios] = useState(null);
     const [diagnosticos, setDiagnosticos] = useState(null);
@@ -77,13 +79,13 @@ export default function MenuAdministrador() {
         }
 
         return {
-            labels: ["Positivo", "Negativo", "No diagnosticado"], datasets: [{
-                label: "Número de diagnósticos", data: [res.Positivo, res.Negativo, res["No diagnosticado"]], backgroundColor: [
+            labels: [t("txtPositivo"), t("txtNegativo"), t("txtNoDiagnosticado")], datasets: [{
+                label: t("txtNumDiags"), data: [res.Positivo, res.Negativo, res["No diagnosticado"]], backgroundColor: [
                     'rgba(255, 207, 86, 0.85)', 'rgba(75, 192, 192, 0.8)', 'rgba(153, 102, 255, 0.7)'
                 ]
             }]
         };
-    }, [diagnosticos]);
+    }, [diagnosticos, navegacion.idioma]);
 
     /**
      * Carga los diagnósticos y los usuarios.
@@ -106,8 +108,8 @@ export default function MenuAdministrador() {
             const usuariosMensuales = obtenerDatosPorMes(usuarios, "fecha_registro", 4, fechaActual, "DD/MM/YYYY hh:mm A");
             const json = {
                 datasets: [
-                    formatearDatosGrafico(diagnosticosMensuales, 'rgba(255, 99, 132, 0.5)', "Diagnósticos realizados"),
-                    formatearDatosGrafico(usuariosMensuales, 'rgba(54, 162, 235, 0.5)', "Nuevos usuarios"),
+                    formatearDatosGrafico(diagnosticosMensuales, 'rgba(255, 99, 132, 0.5)', t("txtDiagnosticosRealizados")),
+                    formatearDatosGrafico(usuariosMensuales, 'rgba(54, 162, 235, 0.5)', t("txtNuevosUsuarios")),
                 ]
             };
 
@@ -116,7 +118,7 @@ export default function MenuAdministrador() {
             setDatos(json);
             setCargando(false);
         }
-    }, [diagnosticos, usuarios, datos, fechaActual]);
+    }, [diagnosticos, usuarios, datos, fechaActual, navegacion.idioma]);
 
     /**
      * Formatea los datos del gráfico para que sean compatibles con Chart.js.
@@ -137,11 +139,11 @@ export default function MenuAdministrador() {
      * Carga los datos de los usuarios
      */
     const cargarUsuarios = async (token) => {
-        const res = await peticionApi(token, "admin/usuarios", "GET", null, "No se pudo cargar la lista de usuarios. Reintenta más tarde.");
+        const res = await peticionApi(token, "admin/usuarios", "GET", null, t("errCargarDatosUsuarios"));
         if (!res.success) {
             setModal({
                 mostrar: true, mensaje: res.error,
-                titulo: "❌ Error al cargar los datos de los usuarios.",
+                titulo: t("errTitCargarDatosUsuarios"),
             });
             setUsuarios([]);
         } else {
@@ -159,8 +161,8 @@ export default function MenuAdministrador() {
             setDiagnosticos(res.data);
         } else {
             setModal({
-                mostrar: true, titulo: "❌ Error al cargar los diagnósticos",
-                mensaje: "Ha ocurrido un error al cargar los diagnósticos. Por favor, inténtalo de nuevo más tarde."
+                mostrar: true, titulo: t("titErrCargarDiagnosticos"),
+                mensaje: t("errCargarDatosDiagnosticos")
             });
             setDiagnosticos([]);
         }
@@ -184,43 +186,43 @@ export default function MenuAdministrador() {
                     <AdvertenciaEspacio rol={1001} cantidadDiagnosticos={cantDiagnosticos} />
                     <Grid size={4}>
                         <Typography variant="h4" fontStyle="bold" align="left">
-                            Bienvenido, {auth.authInfo.user.displayName}
+                            {t("txtBienvenida", { nombre: auth.authInfo.user.displayName })}
                         </Typography>
                         <Divider sx={{ padding: "1vh 0vw" }} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
                         <TarjetaMenuPrincipal
-                            titulo="Diagnósticos realizados este mes"
+                            titulo={t("txtDiagnosticosEsteMes")}
                             altura="100%"
                             valor={diagnosticosMesActual}
                             icono={<DiagnosticoIcono sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
                         <TarjetaMenuPrincipal
-                            titulo="Usuarios nuevos este mes"
+                            titulo={t("txtNuevosUsuariosEsteMes")}
                             altura="100%"
                             valor={usuariosMesActual}
                             icono={<PersonIcon sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
                         <TarjetaMenuPrincipal
-                            titulo="Diagnósticos recolectados"
+                            titulo={t("txtDiagnosticosRecolectados")}
                             altura="100%"
                             valor={cantDiagnosticos}
                             icono={<DatosIcono sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
                         <TarjetaMenuPrincipal
-                            titulo="Diagnósticos validados"
+                            titulo={t("txtDiagnosticosValidos")}
                             altura="100%"
                             valor={cantDiagnosticosConfir}
                             icono={<CheckCircleIcon sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={colsGraficos} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vw">
-                        <GraficoBarras titulo="Cifras de los últimos 5 meses" datos={datos} />
+                        <GraficoBarras titulo={t("titGraficoBarrasMenu")} datos={datos} />
                     </Grid>
                     <Grid size={colsGraficos} display="flex" justifyContent="center" alignItems="center" height="40vh" padding="0vh 1.5vw">
-                        <GraficoPastel titulo="Distribución de los diagnósticos" datos={propDiagnosticos} />
+                        <GraficoPastel titulo={t("titGraficoPastelMenuAdmin")} datos={propDiagnosticos} />
                     </Grid>
                 </Grid>
             )}
@@ -228,7 +230,7 @@ export default function MenuAdministrador() {
                 abrir={modal.mostrar}
                 mensaje={modal.mensaje}
                 titulo={modal.titulo}
-                txtBtn="Cerrar"
+                txtBtn={t("txtBtnCerrar")}
                 iconoBtn={<CloseIcon />}
                 manejadorBtnModal={manejadorBtnModal} />
         </>

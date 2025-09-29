@@ -22,6 +22,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { Controller, useForm } from "react-hook-form";
 import SaveIcon from '@mui/icons-material/Save';
 import { ChipEstado, ChipRol } from "../../components/tabs/Chips";
+import { Trans, useTranslation } from "react-i18next";
 
 /**
  * Página que muestra la lista de usuarios.
@@ -32,9 +33,10 @@ export default function VerUsuariosPage() {
     const navigate = useNavigate();
     const credenciales = useCredenciales();
     const navegacion = useNavegacion();
-    const listadoPestanas = [{
-        texto: "Lista de usuarios", url: "/usuarios"
-    }];
+    const { t } = useTranslation();
+    const listadoPestanas = useMemo(() => [{
+        texto: t("titListaUsuarios"), url: "/usuarios"
+    }], [navegacion.idioma]);
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({
         mostrar: false, titulo: "", mensaje: "", icono: null
@@ -55,17 +57,17 @@ export default function VerUsuariosPage() {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
     const campos = useMemo(() => [
-        { id: "nombre", label: "Nombre", componente: null, ordenable: true },
-        { id: "correo", label: "Correo", componente: null, ordenable: true },
-        { id: "rol", label: "Rol", componente: (x) => <ChipRol rol={x.rol} />, ordenable: true },
-        { id: "ultimaConexion", label: "Última conexión", componente: null, ordenable: true },
-        { id: "cantidad", label: "Diagnósticos", componente: null, ordenable: true },
-        { id: "estado", label: "Estado", componente: (x) => <ChipEstado estado={x.estado} /> },
-        { id: "accion", label: "Acción", ordenable: false, componente: null }
-    ], []);
+        { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
+        { id: "correo", label: t("txtCorreo"), componente: null, ordenable: true },
+        { id: "rol", label: t("txtRol"), componente: (x) => <ChipRol rol={x.rol} />, ordenable: true },
+        { id: "ultimaConexion", label: t("txtUltimaConexion"), componente: null, ordenable: true },
+        { id: "cantidad", label: t("txtDiagnosticos"), componente: null, ordenable: true },
+        { id: "estado", label: t("txtEstado"), componente: (x) => <ChipEstado estado={x.estado} /> },
+        { id: "accion", label: t("txtAcción"), ordenable: false, componente: null }
+    ], [navegacion.idioma]);
     const txtBtnModal = useMemo(() => {
-        return modoModal == 3 ? "Guardar" : "Eliminar";
-    }, [modoModal]);
+        return modoModal == 3 ? t("txtBtnGuardar") : t("txtBtnEliminar");
+    }, [modoModal, navegacion.idioma]);
     const desactivarCampos = useMemo(() => {
         const { uid } = auth.authInfo;
         if (seleccionado != null) {
@@ -80,14 +82,14 @@ export default function VerUsuariosPage() {
     const usuario = useMemo(() => {
         const datos = seleccionado != null ? seleccionado : { nombre: "", correo: "", rol: 0, estado: true, ultimaConexion: "", cantidad: 0 };
         return [
-            { nombre: "Nombre", valor: datos.nombre },
-            { nombre: "Correo", valor: datos.correo },
-            { nombre: "Rol", valor: datos.rol },
-            { nombre: "Estado", valor: datos.estado ? "Inactivo" : "Activo" },
-            { nombre: "Última conexión", valor: datos.ultimaConexion },
-            { nombre: "Diagnósticos aportados", valor: datos.cantidad },
+            { nombre: t("txtNombre"), valor: datos.nombre },
+            { nombre: t("txtCorreo"), valor: datos.correo },
+            { nombre: t("txtRol"), valor: datos.rol },
+            { nombre: t("txtEstado"), valor: datos.estado ? t("txtInactivo") : t("txtActivo") },
+            { nombre: t("txtUltimaConexion"), valor: datos.ultimaConexion },
+            { nombre: t("txtDiagAportados"), valor: datos.cantidad },
         ];
-    }, [seleccionado]);
+    }, [seleccionado, navegacion.idioma]);
     const tamForm = useMemo(() => {
         const { dispositivoMovil, orientacion } = navegacion;
         if (!dispositivoMovil) {
@@ -113,14 +115,16 @@ export default function VerUsuariosPage() {
      * Coloca el título de la página.
      */
     useEffect(() => {
-        document.title = "Lista de usuarios";
-
         if (auth.authInfo.user != null && rol != null && rol == CODIGO_ADMIN) {
             manejadorRecargar(auth.authInfo.user.accessToken);
         } else if (rol != null && rol != CODIGO_ADMIN) {
             navigate("/menu", { replace: true });
         }
     }, [rol, auth.authInfo.user]);
+
+    useEffect(() => {
+        document.title = t("titListaUsuarios");
+    }, [navegacion.idioma]);
 
     /**
      * Cuando se cargan los médicos y diagnósticos, se cuentan los diagnósticos por médico
@@ -139,14 +143,14 @@ export default function VerUsuariosPage() {
      */
     const cargarUsuarios = async (token) => {
         const res = await peticionApi(token, "admin/usuarios", "GET", null,
-            "Ha ocurrido un error al cargar los usuarios. Por favor reintenta nuevamente."
+            t("errCargarUsuarios")
         );
         if (!res.success) {
             setUsuarios([]);
             setModoModal(2);
             setModal({
                 mostrar: true, mensaje: res.error, icono: <CloseIcon />,
-                titulo: "❌ Error al cargar los datos",
+                titulo: t("titErrCargaDatos"),
             });
         } else {
             setUsuarios(res.data.usuarios);
@@ -163,7 +167,7 @@ export default function VerUsuariosPage() {
             setModoModal(2);
             setModal({
                 mostrar: true, mensaje: res.error, icono: <CloseIcon />,
-                titulo: "❌ Error al cargar los diagnósticos",
+                titulo: t("titErrCargarDiagnosticos"),
             });
         } else {
             setDiagnosticos(res.data);
@@ -206,8 +210,8 @@ export default function VerUsuariosPage() {
             if (datos[i].rol != "N/A") {
                 aux.push({
                     uid: datos[i].uid, nombre: datos[i].nombre, correo: datos[i].correo,
-                    rol: datos[i].rol == CODIGO_ADMIN ? "Administrador" : "Usuario",
-                    estado: datos[i].estado ? "Activo" : "Inactivo",
+                    rol: datos[i].rol == CODIGO_ADMIN ? t("txtAdministrador") : t("txtUsuario"),
+                    estado: datos[i].estado ? t("txtActivo") : t("txtInactivo"),
                     cantidad: datos[i].cantidad, ultimaConexion: datos[i].ultima_conexion,
                     accion: datos[i].uid == uid ? "" : <Botonera instancia={datos[i]} />
                 });
@@ -225,8 +229,8 @@ export default function VerUsuariosPage() {
         setSeleccionados(seleccionados);
         setModoModal(1);
         setModal({
-            mostrar: true, titulo: "⚠️ Alerta", icono: <DeleteIcon />,
-            mensaje: "¿Estás seguro de querer eliminar a los pacientes seleccionados?"
+            mostrar: true, titulo: t("txtAlerta"), icono: <DeleteIcon />,
+            mensaje: t("txtEliminarUsuarios")
         });
     };
 
@@ -238,11 +242,11 @@ export default function VerUsuariosPage() {
         const ejecutar = sessionStorage.getItem("ejecutar-callback");
         if (ejecutar == "true" || ejecutar == null) {
             const aux = { ...dato };
-            aux.estado = aux.estado == "Activo" ? false : true;
+            aux.estado = aux.estado == t("txtActivo") ? false : true;
             setSeleccionado(aux);
             setModoModal(4);
             setModal({
-                mostrar: true, titulo: "ℹ️ Detalles del usuario", mensaje: "", icono: <CloseIcon />
+                mostrar: true, titulo: t("titDetallesUsuario"), mensaje: "", icono: <CloseIcon />
             });
         }
     };
@@ -315,16 +319,13 @@ export default function VerUsuariosPage() {
         if (res) {
             setSeleccionado(null);
             cambiarValoresUsuario({ uid: "", nombre: "", correo: "", rol: 0, estado: true });
-            /*setNuevosDatos({
-                uid: "", nombre: "", rol: 0, estado: true
-            });*/
 
             manejadorRecargar();
         } else {
             setModoModal(2);
             setModal({
-                mostrar: true, titulo: "❌ Error al actualizar el usuario.", icono: <CloseIcon />,
-                mensaje: "Se ha producido un error al actualizar el usuario seleccionado. Por favor, inténtalo de nuevo más tarde."
+                mostrar: true, titulo: t("errTitActualizarUsuario"), icono: <CloseIcon />,
+                mensaje: t("errActualizarUsuario")
             });
             setCargando(false);
         }
@@ -341,8 +342,8 @@ export default function VerUsuariosPage() {
             setTimeout(() => {
                 setModoModal(2);
                 setModal({
-                    mostrar: true, titulo: "⚠️ Alerta", icono: <CloseIcon />,
-                    mensaje: "No puedes eliminarte a ti mismo. Por favor, selecciona otros usuarios."
+                    mostrar: true, titulo: t("titAlerta"), icono: <CloseIcon />,
+                    mensaje: t("errAutoEliminado")
                 });
                 setCargando(false);
             }, 500);
@@ -418,15 +419,15 @@ export default function VerUsuariosPage() {
             if (!exitoTodas) {
                 setModoModal(2);
                 setModal({
-                    mostrar: true, titulo: "⚠️ Error al eliminar algunos usuarios.", icono: <CloseIcon />,
-                    mensaje: "Algunos usuarios no se pudieron eliminar. Por favor, revisa los registros."
+                    mostrar: true, titulo: t("errTitEliminarAlgunosUsuarios"), icono: <CloseIcon />,
+                    mensaje: t("errEliminarAlgunosUsuarios")
                 });
             }
         } else {
             setModoModal(2);
             setModal({
-                mostrar: true, titulo: "❌ Error al eliminar los usuarios.", icono: <CloseIcon />,
-                mensaje: "Se ha producido un error al eliminar los usuarios seleccionados. Por favor, inténtalo de nuevo más tarde."
+                mostrar: true, titulo: t("errTitEliminarUsuarios"), icono: <CloseIcon />,
+                mensaje: t("errEliminarUsuarios")
             });
             setCargando(false);
         }
@@ -438,17 +439,17 @@ export default function VerUsuariosPage() {
      */
     const manejadorBtnEliminar = (instancia) => {
         sessionStorage.setItem("ejecutar-callback", "false");
-        const rol = instancia.rol == CODIGO_ADMIN ? "administrador" : "usuario";
+        const rol = instancia.rol == CODIGO_ADMIN ? t("txtAdministrador").toLowerCase() : t("txtUsuario").toLocaleLowerCase();
         setSeleccionado(instancia);
         setModoModal(0);
         setModal({
-            mostrar: true, titulo: "⚠️ Alerta", icono: <DeleteIcon />,
-            mensaje: (<>
+            mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
+            mensaje: (<Trans i18nKey="txtEliminarUsuario">
                 ¿Estás seguro de querer eliminar al usuario {instancia.nombre} ({instancia.correo}) — {rol}?
                 <br />
                 <br />
                 <b>ADVERTENCIA:</b> Se bloqueará su acceso a la aplicación <b>permanentemente</b>
-            </>)
+            </Trans>)
         });
     };
 
@@ -470,7 +471,7 @@ export default function VerUsuariosPage() {
         cambiarValoresUsuario(instancia);
         setModoModal(3);
         setModal({
-            mostrar: true, titulo: "✏️ Editar usuario", mensaje: "", icono: <SaveIcon />
+            mostrar: true, titulo: t("titEditarUsuario"), mensaje: "", icono: <SaveIcon />
         });
     };
 
@@ -489,7 +490,7 @@ export default function VerUsuariosPage() {
      */
     const BtnEliminar = ({ instancia }) => {
         return (
-            <Tooltip title="Eliminar usuario">
+            <Tooltip title={t("txtAyudaBtnEliminarUsuario")}>
                 <Button
                     variant="outlined"
                     color="error"
@@ -508,7 +509,7 @@ export default function VerUsuariosPage() {
      */
     const BtnEditar = ({ instancia }) => {
         return (
-            <Tooltip title="Editar usuario">
+            <Tooltip title={t("txtAyudaBtnEditarUsuario")}>
                 <Button
                     variant="outlined"
                     color="primary"
@@ -542,7 +543,7 @@ export default function VerUsuariosPage() {
                     control={control}
                     render={({ field }) => (
                         <TextField
-                            label="Nombre"
+                            label={t("txtNombre")}
                             variant="outlined"
                             disabled
                             fullWidth
@@ -552,7 +553,7 @@ export default function VerUsuariosPage() {
                     control={control}
                     render={({ field }) => (
                         <TextField
-                            label="Correo electrónico"
+                            label={t("txtCorreoElectronico")}
                             variant="outlined"
                             disabled
                             fullWidth
@@ -563,16 +564,16 @@ export default function VerUsuariosPage() {
                     render={({ field }) => (
                         <TextField
                             select
-                            label="Rol"
+                            label={t("txtRol")}
                             variant="outlined"
                             disabled={desactivarCampos}
                             {...field}
                             fullWidth>
                             <MenuItem value={0}>
-                                Usuario
+                                {t("txtUsuario")}
                             </MenuItem>
                             <MenuItem value={CODIGO_ADMIN}>
-                                Administrador
+                                {t("txtAdministrador")}
                             </MenuItem>
                         </TextField>)} />
                 <Controller
@@ -580,21 +581,21 @@ export default function VerUsuariosPage() {
                     control={control}
                     render={({ field }) => (
                         <TextField
-                            label="Estado"
+                            label={t("txtEstado")}
                             variant="outlined"
                             fullWidth
                             select
                             disabled={desactivarCampos}
                             {...field}>
                             <MenuItem value={false}>
-                                Inactivo
+                                {t("txtEstadoInactivo")}
                             </MenuItem>
                             <MenuItem value={true}>
-                                Activo
+                                {t("txtEstadoActivo")}
                             </MenuItem>
                         </TextField>)} />
                 {mostrarTxtAdvertencia ? <Typography variant="body2">
-                    ⚠️ <b>¡Atención! El usuario no podrá ingresar en la aplicación.</b>
+                    ⚠️ <b>{t("txtAdvertenciaDesactivarUsuario")}</b>
                 </Typography> : null}
             </Stack>
         );
@@ -627,11 +628,11 @@ export default function VerUsuariosPage() {
                             <Typography variant="body1" fontWeight="bold">
                                 {x.nombre}:
                             </Typography>
-                            {(x.nombre == "Rol") ? <ChipRol rol={x.valor} /> : null}
-                            {(x.nombre == "Estado") ? <ChipEstado estado={x.valor} /> : null}
-                            {(!["Rol", "Estado"].includes(x.nombre)) ? (
+                            {(x.nombre == t("txtRol")) ? <ChipRol rol={x.valor} /> : null}
+                            {(x.nombre == t("txtEstado")) ? <ChipEstado estado={x.valor} /> : null}
+                            {(![t("txtRol"), t("txtEstado")].includes(x.nombre)) ? (
                                 <Typography variant="body1">
-                                    {i == 4 ? dayjs(x.valor, "DD/MM/YYYY hh:mm A").format(`DD [de] MMMM [de] YYYY [a las] hh:mm A`) : x.valor}.
+                                    {i == 4 ? dayjs(x.valor, t("formatoFechaHoraPequeno")).format(t("formatoFechaCompleta")) : x.valor}.
                                 </Typography>) : null}
                         </Stack>
                     );
@@ -663,11 +664,11 @@ export default function VerUsuariosPage() {
                 <>
                     <TabHeader
                         activarBtnAtras={false}
-                        titulo="Lista de usuarios"
+                        titulo={t("txtListaUsuarios")}
                         pestanas={listadoPestanas} />
                     <Grid container columns={1} spacing={3} width="100%" sx={{ marginTop: "3vh" }}>
                         <Grid display="flex" size={1} justifyContent="end">
-                            <Tooltip title="Recargar datos">
+                            <Tooltip title={t("txtAyudaBtnRecargar")}>
                                 <IconButton onClick={() => manejadorRecargar()}>
                                     <RefreshIcon />
                                 </IconButton>
@@ -677,15 +678,15 @@ export default function VerUsuariosPage() {
                             <Datatable
                                 campos={campos}
                                 datos={datos}
-                                lblBusq="Buscar usuario por nombre o correo electrónico"
+                                lblBusq={t("txtBusqUsuario")}
                                 activarBusqueda={true}
                                 campoId="uid"
                                 terminoBusqueda={""}
-                                lblSeleccion="usuarios seleccionados"
+                                lblSeleccion={t("txtSufijoUsuariosSelecs")}
                                 camposBusq={["nombre", "correo"]}
                                 cbClicCelda={manejadorClicCelda}
                                 cbAccion={manejadorEliminar}
-                                tooltipAccion="Eliminar usuarios seleccionados"
+                                tooltipAccion={t("txtAyudaBtnEliminarUsuarios")}
                                 icono={<DeleteIcon />}
                                 campoOrdenInicial="nombre"
                                 dirOrden="asc"
@@ -703,8 +704,8 @@ export default function VerUsuariosPage() {
                 manejadorBtnSecundario={manejadorBtnCancelar}
                 mostrarBtnSecundario={modoModal != 2 && modoModal != 4}
                 txtBtnSimple={txtBtnModal}
-                txtBtnSecundario="Cancelar"
-                txtBtnSimpleAlt="Cerrar">
+                txtBtnSecundario={t("txtBtnCancelar")}
+                txtBtnSimpleAlt={t("txtBtnCerrar")}>
                 <CuerpoModal />
             </ModalAccion>
         </MenuLayout>

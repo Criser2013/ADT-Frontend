@@ -19,6 +19,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import ModalAccion from "../../components/modals/ModalAccion";
 import ContComorbilidades from "../../components/diagnosticos/ContComorbilidades";
 import { ChipSexo } from "../../components/tabs/Chips";
+import { useTranslation } from "react-i18next";
 
 /**
  * Página para ver los datos de un paciente.
@@ -28,6 +29,7 @@ export default function VerPacientePage() {
     const auth = useAuth();
     const drive = useDrive();
     const navegacion = useNavegacion();
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [params] = useSearchParams();
     const [cargando, setCargando] = useState(true);
@@ -49,17 +51,17 @@ export default function VerPacientePage() {
     });
     const padding = useMemo(() => !navegacion.dispositivoMovil ? "2vh" : "0vh", [navegacion.dispositivoMovil]);
     const campos = useMemo(() => [
-        { titulo: "Nombre", valor: datos.personales.nombre },
-        { titulo: "Cédula", valor: datos.personales.cedula },
-        { titulo: "Fecha de nacimiento", valor: datos.personales.fechaNacimiento },
-        { titulo: "Edad", valor: `${datos.personales.edad} años` },
-        { titulo: "Teléfono", valor: datos.personales.telefono },
-        { titulo: "Sexo", valor: datos.personales.sexo == 0 ? "Masculino" : "Femenino" }
-    ], [datos.personales]);
+        { titulo: t("txtNombre"), valor: datos.personales.nombre },
+        { titulo: t("txtCedula"), valor: datos.personales.cedula },
+        { titulo: t("txtFechaNacimiento"), valor: datos.personales.fechaNacimiento },
+        { titulo: t("txtEdad"), valor: `${datos.personales.edad} años` },
+        { titulo: t("txtTelefono"), valor: datos.personales.telefono },
+        { titulo: t("txtSexo"), valor: datos.personales.sexo == 0 ? t("txtMasculino") : t("txtFemenino") }
+    ], [datos.personales, navegacion.idioma]);
     const listadoPestanas = useMemo(() => [
-        { texto: "Lista de pacientes", url: "/pacientes" },
-        { texto: `Paciente-${datos.personales.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
-    ], [datos]);
+        { texto: t("txtListaPacientes"), url: "/pacientes" },
+        { texto: `${t("txtPaciente")}-${datos.personales.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
+    ], [datos, navegacion.idioma]);
     const mostrarComor = useMemo(() => {
         return datos.comorbilidades.length > 0;
     }, [datos]);
@@ -96,7 +98,7 @@ export default function VerPacientePage() {
      * Coloca el título de la página.
      */
     useEffect(() => {
-        document.title = `${datos.personales.nombre != "" ? `Paciente — ${datos.personales.nombre}` : "Ver paciente"}`;
+        document.title = `${datos.personales.nombre != "" ? `${t("txtPaciente")} — ${datos.personales.nombre}` : t("txtVerPaciente")}`;
         const res = (id != null && id != undefined) ? validarId(id) : false;
 
         if (!res) {
@@ -125,7 +127,7 @@ export default function VerPacientePage() {
         if (!res.success) {
             setModal({
                 mostrar: true, mensaje: res.error,
-                titulo: "❌ Error al cargar los datos de los pacientes",
+                titulo: t("errTitCargarDatosPacientes"),
             });
             return;
         }
@@ -145,7 +147,7 @@ export default function VerPacientePage() {
             );
             res.data.personales.fechaNacimiento = dayjs(
                 res.data.personales.fechaNacimiento, "DD-MM-YYYY"
-            ).format("DD [de] MMMM [de] YYYY");
+            ).format(t("formatoFechaCompletaSinHora"));
             setDatos(res.data);
             setCargando(false);
         } else {
@@ -191,7 +193,7 @@ export default function VerPacientePage() {
             navigate("/pacientes", { replace: true });
         } else {
             setCargando(false);
-            setModal({ mostrar: true, titulo: "❌ Error", mensaje: res.error, icono: <CloseIcon /> });
+            setModal({ mostrar: true, titulo: t("tituloError"), mensaje: res.error, icono: <CloseIcon /> });
         }
     };
 
@@ -218,8 +220,8 @@ export default function VerPacientePage() {
         cerrarPopover();
         setModoEliminar(true);
         setModal({
-            mostrar: true, titulo: "⚠️ Alerta", icono: <DeleteIcon />,
-            mensaje: "¿Estás seguro de que deseas eliminar este paciente?"
+            mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
+            mensaje: t("txtEliminarPaciente")
         });
     };
 
@@ -249,16 +251,16 @@ export default function VerPacientePage() {
                     <>
                         <TabHeader
                             urlPredet="/pacientes"
-                            titulo="Datos del paciente"
+                            titulo={t("titDatosPaciente")}
                             pestanas={listadoPestanas}
-                            tooltip="Volver a la pestaña de pacientes" />
+                            tooltip={t("txtAtrasDatosPaciente")} />
                         <Grid container
                             columns={12}
                             spacing={1}
                             paddingRight={padding}
                             marginTop="3vh">
                             <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
-                                <Tooltip title="Ver más opciones.">
+                                <Tooltip title={t("txtMasOpciones")}>
                                     <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
                                         <MoreVertIcon />
                                     </IconButton>
@@ -276,13 +278,13 @@ export default function VerPacientePage() {
                                         vertical: "top",
                                         horizontal: "center",
                                     }}>
-                                    <Tooltip title="Eliminar paciente">
+                                    <Tooltip title={t("txtAyudaEliminarPaciente")}>
                                         <Button
                                             color="error"
                                             startIcon={<DeleteIcon />}
                                             onClick={manejadorBtnEliminar}
                                             sx={{ textTransform: "none", padding: 2 }}>
-                                            Eliminar
+                                            {t("txtBtnEliminar")}
                                         </Button>
                                     </Tooltip>
                                 </Popover>
@@ -293,7 +295,7 @@ export default function VerPacientePage() {
                                         <Typography variant="body1">
                                             <b>{campo.titulo}: </b>
                                         </Typography>
-                                        {(campo.titulo == "Sexo") ? <ChipSexo sexo={campo.valor} /> : (
+                                        {(campo.titulo == t("txtCampoSexo")) ? <ChipSexo sexo={campo.valor} /> : (
                                             <Typography variant="body1">
                                                 {campo.valor}
                                             </Typography>)}
@@ -305,7 +307,7 @@ export default function VerPacientePage() {
                             </Grid>
                             <Grid size={12}>
                                 <Typography variant="h6">
-                                    <b>Condiciones médicas preexistentes</b>
+                                    <b>{t("titComor")}</b>
                                 </Typography>
                             </Grid>
                             {mostrarComor ? (
@@ -315,12 +317,12 @@ export default function VerPacientePage() {
                             ) : (
                                 <Grid size={12}>
                                     <Typography variant="body1">
-                                        <b>No se han registrado comorbilidades.</b>
+                                        <b>{t("txtNoComor")}</b>
                                     </Typography>
                                 </Grid>
                             )}
                         </Grid>
-                        <Tooltip title="Ve al formulario para editar los datos del paciente">
+                        <Tooltip title={t("txtAyudaBtnEditarPaciente")}>
                             <Fab onClick={manejadorBtnEditar}
                                 color="primary"
                                 variant="extended"
@@ -340,9 +342,9 @@ export default function VerPacientePage() {
                     manejadorBtnPrimario={manejadorBtnModal}
                     manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
                     mostrarBtnSecundario={modoEliminar}
-                    txtBtnSimple="Eliminar"
-                    txtBtnSecundario="Cancelar"
-                    txtBtnSimpleAlt="Cerrar" />
+                    txtBtnSimple={t("txtBtnEliminar")}
+                    txtBtnSecundario={t("txtBtnCancelar")}
+                    txtBtnSimpleAlt={t("txtBtnCerrar")} />
             </MenuLayout>
         </>
     );

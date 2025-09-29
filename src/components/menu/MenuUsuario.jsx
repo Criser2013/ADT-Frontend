@@ -15,6 +15,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
 import { Timestamp } from "firebase/firestore";
+import { useTranslation } from "react-i18next";
 
 /**
  * Menú principal para los usuarios. Muestra la cantidad de pacientes y diagnósticos registrados este mes y
@@ -25,6 +26,7 @@ export default function MenuUsuario() {
     const auth = useAuth();
     const credenciales = useCredenciales();
     const navegacion = useNavegacion();
+    const { t } = useTranslation();
     const drive = useDrive();
     const [cargando, setCargando] = useState(true);
     const [pacientes, setPacientes] = useState(null);
@@ -55,13 +57,13 @@ export default function MenuUsuario() {
         }
 
         return {
-            labels: ["Masculino", "Femenino"], datasets: [{
-                label: "Número de pacientes", data: [res.Masculino, res.Femenino], backgroundColor: [
+            labels: [t("txtMasculino"), t("txtFemenino")], datasets: [{
+                label: t("txtNumPacientes"), data: [res.Masculino, res.Femenino], backgroundColor: [
                     '#263b9886', '#f3736c96'
                 ]
             }]
         };
-    }, [pacientes]);
+    }, [pacientes, navegacion.idioma]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -98,8 +100,8 @@ export default function MenuUsuario() {
             const pacientesMensuales = obtenerDatosPorMes(pacientes, "fechaCreacion", 4, fechaActual);
             const json = {
                 datasets: [
-                    formatearDatosGrafico(diagnosticosMensuales, 'rgba(255, 99, 132, 0.5)', "Diagnósticos realizados"),
-                    formatearDatosGrafico(pacientesMensuales, 'rgba(54, 162, 235, 0.5)', "Nuevos pacientes"),
+                    formatearDatosGrafico(diagnosticosMensuales, 'rgba(255, 99, 132, 0.5)', t("txtDiagnosticosRealizados")),
+                    formatearDatosGrafico(pacientesMensuales, 'rgba(54, 162, 235, 0.5)', t("txtNuevosPacientes")),
                 ]
             };
 
@@ -108,7 +110,7 @@ export default function MenuUsuario() {
             setDatos(json);
             setCargando(false);
         }
-    }, [diagnosticos, pacientes, datos, fechaActual]);
+    }, [diagnosticos, pacientes, datos, fechaActual, navegacion.idioma]);
 
     useEffect(() => {
         const descargar = sessionStorage.getItem("descargando-drive");
@@ -139,7 +141,7 @@ export default function MenuUsuario() {
             setDatosPacientes([]);
             setModal({
                 mostrar: true, mensaje: res.error,
-                titulo: "❌ Error al cargar los datos de los pacientes",
+                titulo: t("errTitCargarDatosPacientes"),
             });
         }
     };
@@ -163,8 +165,8 @@ export default function MenuUsuario() {
             setDiagnosticos(res.data);
         } else {
             setModal({
-                mostrar: true, titulo: "❌ Error al cargar los diagnósticos",
-                mensaje: "Ha ocurrido un error al cargar los diagnósticos. Por favor, inténtalo de nuevo más tarde."
+                mostrar: true, titulo: t("titErrCargarDiagnosticos"),
+                mensaje: t("msgErrCargarDiagnosticos")
             });
         }
     };
@@ -186,29 +188,29 @@ export default function MenuUsuario() {
                 <Grid columns={numCols} container spacing={2}>
                     <Grid size={2}>
                         <Typography variant="h4" align="left">
-                            Bienvenido, {auth.authInfo.user.displayName}
+                            {t("txtBievenida", { nombre: auth.authInfo.user.displayName })}
                         </Typography>
                         <Divider sx={{ padding: "1vh 0vw" }} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
                         <TarjetaMenuPrincipal
-                            titulo="Diagnósticos realizados este mes"
+                            titulo={t("txtDiagnosticosMes")}
                             altura="100%"
                             valor={diagnosticosMesActual}
                             icono={<DiagnosticoIcono sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
                         <TarjetaMenuPrincipal
-                            titulo="Pacientes registrados este mes"
+                            titulo={t("txtPacientesMes")}
                             altura="100%"
                             valor={pacientesMesActual}
                             icono={<PersonIcon sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vw">
-                        <GraficoBarras titulo="Cifras de los últimos 5 meses" datos={datos} />
+                        <GraficoBarras titulo={t("titGraficoBarrasMenu")} datos={datos} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vw">
-                        <GraficoPastel titulo="Distribución de pacientes por sexo" datos={propSexoPacientes} />
+                        <GraficoPastel titulo={t("titGraficoPastelMenuUsuario")} datos={propSexoPacientes} />
                     </Grid>
                 </Grid>
             )}
@@ -216,7 +218,7 @@ export default function MenuUsuario() {
                 abrir={modal.mostrar}
                 mensaje={modal.mensaje}
                 titulo={modal.titulo}
-                txtBtn="Cerrar"
+                txtBtn={t("txtBtnCerrar")}
                 iconoBtn={<CloseIcon />}
                 manejadorBtnModal={manejadorBtnModal} />
         </>

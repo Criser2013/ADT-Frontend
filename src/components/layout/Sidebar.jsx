@@ -8,6 +8,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import PeopleIcon from '@mui/icons-material/People';
 import { useMemo } from "react";
 import { CODIGO_ADMIN } from "../../../constants";
+import { useTranslation } from "react-i18next";
 
 /**
  * Menú de navegación lateral de la aplicación.
@@ -17,19 +18,20 @@ export default function Sidebar() {
     const navegacion = useNavegacion();
     const navigate = useNavigate();
     const auth = useAuth();
+    const { t } = useTranslation();
     const filas = useMemo(() => {
         const { rolVisible, modoUsuario } = auth.authInfo;
         const usuario = [
-            { txt: "Menú principal", icono: <HomeIcon />, ruta: "/menu" },
-            { txt: "Pacientes", icono: <ListPacienteIcono />, ruta: "/pacientes" },
-            { txt: "Diagnosticar paciente", icono: <DiagnosticoIcono />, ruta: "/diagnostico-paciente" },
-            { txt: "Diagnóstico anónimo", icono: <DiagAnonimoIcono />, ruta: "/diagnostico-anonimo" },
-            { txt: "Historial de diagnósticos", icono: <HistDiagnosticoIcono />, ruta: "/diagnosticos" },
+            { txt: t("titMenu"), icono: <HomeIcon />, ruta: "/menu" },
+            { txt: t("txtPacientes"), icono: <ListPacienteIcono />, ruta: "/pacientes" },
+            { txt: t("titDiagnosticoPaciente"), icono: <DiagnosticoIcono />, ruta: "/diagnostico-paciente" },
+            { txt: t("titDiagnosticoAnonimo"), icono: <DiagAnonimoIcono />, ruta: "/diagnostico-anonimo" },
+            { txt: t("txtHistorialDiagnosticos"), icono: <HistDiagnosticoIcono />, ruta: "/diagnosticos" },
         ];
         const admin = [
-            { txt: "Menú principal", icono: <HomeIcon />, ruta: "/menu" },
-            { txt: "Datos recolectados", icono: <DatosIcono />, ruta: "/diagnosticos" },
-            { txt: "Usuarios", icono: <PeopleIcon />, ruta: "/usuarios" },
+            { txt: t("titMenu"), icono: <HomeIcon />, ruta: "/menu" },
+            { txt: t("txtDatosRecolectados"), icono: <DatosIcono />, ruta: "/diagnosticos" },
+            { txt: t("txtUsuarios"), icono: <PeopleIcon />, ruta: "/usuarios" },
         ];
 
         if (rolVisible != null && (rolVisible != CODIGO_ADMIN || modoUsuario)) {
