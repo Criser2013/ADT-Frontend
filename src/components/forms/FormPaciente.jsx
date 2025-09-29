@@ -19,6 +19,8 @@ import ModalSimple from "../modals/ModalSimple";
 import { Controller, useForm } from "react-hook-form";
 import Check from "../tabs/Check";
 import { v6 } from "uuid";
+import { useTranslation } from "react-i18next";
+import { useNavegacion } from "../../contexts/NavegacionContext";
 
 /**
  * Componente que representa el formularios para añadir/editar los datos de
@@ -30,7 +32,9 @@ import { v6 } from "uuid";
  */
 export default function FormPaciente({ listadoPestanas, titPestana, id = "", esAnadir = true }) {
     const drive = useDrive();
+    const navegacion = useNavegacion();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [cargando, setCargando] = useState(true);
     const [archivoDescargado, setArchivoDescargado] = useState(false);
     const [modal, setModal] = useState({
@@ -38,10 +42,10 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
     });
     const fechaActual = useMemo(() => dayjs(), []);
     const sexos = useMemo(() => [
-        { texto: "Seleccione el sexo", val: 2 },
-        { texto: "Masculino", val: 0 },
-        { texto: "Femenino", val: 1 }
-    ], []);
+        { texto: t("txtSelecSexo"), val: 2 },
+        { texto: t("txtMasculino"), val: 0 },
+        { texto: t("txtFemenino"), val: 1 }
+    ], [navegacion.idioma]);
     const { setValue, control, handleSubmit, watch, formState: { errors } } = useForm({
         defaultValues: {
             id: id, "nombre": "", "cedula": "", "sexo": 2, "telefono": "",
@@ -94,7 +98,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
         if (!res.success) {
             setModal({
                 mostrar: true, mensaje: res.error,
-                titulo: "❌ Error al cargar los datos de los pacientes",
+                titulo: t("errTitCargarDatosPacientes")
             });
             return;
         }
@@ -170,9 +174,8 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
             navigate("/pacientes");
         } else {
             setModal({
-                mostrar: true,
-                titulo: "❌ Error al añadir paciente",
-                mensaje: res.error
+                mostrar: true, mensaje: res.error,
+                titulo: t("errTitAnadirPaciente"),
             });
             setCargando(false);
         }
@@ -190,7 +193,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                         urlPredet="/pacientes"
                         titulo={titPestana}
                         pestanas={listadoPestanas}
-                        tooltip="Volver a la pestaña de pacientes" />
+                        tooltip={t("txtAtrasDatosPaciente")} />
                     <Grid container columns={2} spacing={1} rowSpacing={2} paddingTop="2vh" overflow="auto" paddingRight="0.5vw">
                         <Grid size={2}>
                             <Typography variant="h5">
@@ -202,13 +205,13 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                                 name="nombre"
                                 control={control}
                                 rules={{
-                                    required: "Ingresa el nombre del paciente",
-                                    validate: (x) => validarNombre(x) || "Debes ingresar el nombre del paciente"
+                                    required: t("errCampoObligatorio"),
+                                    validate: (x) => validarNombre(x) || t("errNombrePaciente")
                                 }}
                                 render={({ field }) => (
                                     <TextField
                                         fullWidth
-                                        label="Nombre"
+                                        label={t("txtNombre")}
                                         {...field}
                                         error={!!errors.nombre}
                                         helperText={errors.nombre?.message}
@@ -219,13 +222,13 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                                 name="cedula"
                                 control={control}
                                 rules={{
-                                    required: "Ingresa la cédula del paciente",
-                                    validate: (x) => (validarNumero(x) && x.length > 6) || "Debes ingresar un número de cédula válido"
+                                    required: t("errCampoObligatorio"),
+                                    validate: (x) => (validarNumero(x) && x.length > 6) || t("errCedula")
                                 }}
                                 render={({ field }) => (
                                     <TextField
                                         fullWidth
-                                        label="Número de cédula"
+                                        label={t("txtCedula")}
                                         {...field}
                                         error={!!errors.cedula}
                                         helperText={errors.cedula?.message}
@@ -236,13 +239,13 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                                 name="sexo"
                                 control={control}
                                 rules={{
-                                    required: "Selecciona el sexo del paciente",
-                                    validate: (x) => x != 2 || "Debes seleccionar el sexo del paciente"
+                                    required: t("errCampoObligatorio"),
+                                    validate: (x) => x != 2 || t("errSexoPaciente")
                                 }}
                                 render={({ field }) => (
                                     <TextField
                                         select
-                                        label="Sexo"
+                                        label={t("txtCampoSexo")}
                                         {...field}
                                         error={!!errors.sexo}
                                         helperText={errors.sexo?.message}
@@ -259,13 +262,13 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                                 name="telefono"
                                 control={control}
                                 rules={{
-                                    required: "Ingresa el teléfono del paciente",
-                                    validate: (x) => validarTelefono(x) || "Debes ingresar un número de teléfono válido (entre 8 y 10 dígitos)."
+                                    required: t("errCampoObligatorio"),
+                                    validate: (x) => validarTelefono(x) || t("errTelefono")
                                 }}
                                 render={({ field }) => (
                                     <TextField
                                         fullWidth
-                                        label="Teléfono"
+                                        label={t("txtTelefono")}
                                         {...field}
                                         error={!!errors.telefono}
                                         helperText={errors.telefono?.message} />)} />
@@ -276,12 +279,12 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                                     name="fechaNacimiento"
                                     control={control}
                                     rules={{
-                                        required: "Selecciona la fecha de nacimiento del paciente",
-                                        validate: (x) => (x != null && !x.isAfter(fechaActual)) || "La fecha de nacimiento debe ser anterior a la fecha actual"
+                                        required: t("errCampoObligatorio"),
+                                        validate: (x) => (x != null && !x.isAfter(fechaActual)) || t("errFechaNacimiento")
                                     }}
                                     render={({ field }) => (
                                         <DatePicker
-                                            label="Fecha de nacimiento"
+                                            label={t("txtFechaNacimiento")}
                                             disableFuture={true}
                                             name="fechaNacimiento"
                                             format="DD/MM/YYYY"
@@ -298,7 +301,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                         </Grid>
                         <Grid size={2}>
                             <Typography variant="h5">
-                                <b>Condiciones médicas preexistentes</b>
+                                <b>{t("titComor")}</b>
                             </Typography>
                         </Grid>
                         <Grid size={2}>
@@ -308,7 +311,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                                 render={({ field }) => (
                                     <Check
                                         nombre="otraEnfermedad"
-                                        etiqueta="El paciente padece otra enfermedad"
+                                        etiqueta={t("txtOtraEnfermedad")}
                                         activado={field.value}
                                         manejadorCambios={field.onChange} />)} />
                         </Grid>
@@ -318,7 +321,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                                     name="otrasEnfermedades"
                                     control={control}
                                     rules={{
-                                        required: otraEnfermedad ? "Selecciona al menos un padecimiento" : false
+                                        required: otraEnfermedad ? t("errComor") : false
                                     }}
                                     render={({ field }) => (
                                         <SelectChip
@@ -328,12 +331,12 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                                             nombre="otrasEnfermedades"
                                             error={!!errors.otrasEnfermedades}
                                             txtError={errors.otrasEnfermedades?.message}
-                                            etiqueta="Padecimiento(s) del paciente"
+                                            etiqueta={t("txtComorbilidades")}
                                         />)} />
                             </Grid>
                         ) : null}
                         <Grid display="flex" justifyContent="center" size={12}>
-                            <Tooltip title="Guarda los datos del paciente.">
+                            <Tooltip title={t("txtAyudaBtnGuardarPaciente")}>
                                 <Button
                                     startIcon={<SaveIcon />}
                                     variant="contained"
@@ -341,7 +344,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                                     sx={{
                                         textTransform: "none"
                                     }}>
-                                    <b>Guardar</b>
+                                    <b>{t("txtBtnGuardar")}</b>
                                 </Button>
                             </Tooltip>
                         </Grid>
@@ -351,7 +354,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                 abrir={modal.mostrar}
                 titulo={modal.titulo}
                 mensaje={modal.mensaje}
-                txtBtn="Cerrar"
+                txtBtn={t("txtBtnCerrar")}
                 iconoBtn={<CloseIcon />}
                 manejadorBtnModal={manejadorBtnModal}
             />
