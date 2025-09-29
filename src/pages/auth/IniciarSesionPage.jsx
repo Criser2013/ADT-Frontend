@@ -17,6 +17,7 @@ import ModalSimple from "../../components/modals/ModalSimple";
 import CloseIcon from "@mui/icons-material/Close";
 import Check from "../../components/tabs/Check";
 import { peticionApi } from "../../services/Api";
+import SelectIdioma from "../../components/tabs/SelectIdioma";
 
 /**
  * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.
@@ -80,6 +81,12 @@ export default function IniciarSesionPage() {
     useEffect(() => {
         setDesactivarBtn(!(captchaAceptado && terminosAceptados));
     }, [captchaAceptado, terminosAceptados]);
+
+    useEffect(() => {
+        if (CAPTCHA.current != null) {
+            CAPTCHA.current.reset();
+        }
+    }, [navegacion.idioma]);
 
     /**
      * Manejador de eventos del botón para iniciar sesión.
@@ -179,7 +186,8 @@ export default function IniciarSesionPage() {
                 <Box display="flex" justifyContent="end" alignItems="center" height="100vh" sx={{ backgroundImage: `url(${fondoImg})`, backgroundSize: "cover" }}>
                     <Paper sx={{ width: width, padding: "4vh", overflow: "auto", height: "100%", display: "flex", alignItems: centrar }}>
                         <Grid columns={12} spacing={2} container>
-                            <Grid size={12} display="flex" justifyContent="end">
+                            <Grid container columns={2} size={12} display="flex" justifyContent="space-between" alignItems="center">
+                                <SelectIdioma />
                                 <IconButton aria-label="delete" onClick={manejadorBtnCambiarTema} size="large">
                                     <BtnTema />
                                 </IconButton>
@@ -211,6 +219,7 @@ export default function IniciarSesionPage() {
                                     theme={temaCaptcha}
                                     onChange={manejadorReCAPTCHA}
                                     sitekey={reCAPTCHAApi}
+                                    hl={navegacion.idioma}
                                     ref={CAPTCHA} />
                             </Grid>
                             {!auth.autenticado ? (

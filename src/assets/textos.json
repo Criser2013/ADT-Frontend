@@ -21,7 +21,8 @@
             "txtModalSesionCaducada": "Your session has expired, please re-authenticate to continue using the app.",
             "titModalPermisos": "ℹ️ Insufficient Permissions",
             "txtBtnPermisos": "Grant Permissions",
-            "txtModalPermisos": "You must grant the required permissions in your Google account to use the app."
+            "txtModalPermisos": "You must grant the required permissions in your Google account to use the app.",
+            "txtAyudaSelectIdioma": "Select the app language"
         }
     },
     "es": {
@@ -46,7 +47,8 @@
             "txtModalSesionCaducada": "Tu sesión ha caducado, por favor reautentícate para continuar utilizando la aplicación.",
             "titModalPermisos": "ℹ️ Permisos insuficientes",
             "txtBtnPermisos": "Conceder permisos",
-            "txtModalPermisos": "Debes otorgar los permisos requeridos en tu cuenta de Google para utilizar la aplicación."
+            "txtModalPermisos": "Debes otorgar los permisos requeridos en tu cuenta de Google para utilizar la aplicación.",
+            "txtAyudaSelectIdioma": "Selecciona el idioma de la aplicación"
         }
     }
 }
