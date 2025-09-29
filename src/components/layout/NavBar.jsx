@@ -13,6 +13,7 @@ import { CODIGO_ADMIN, URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../../con
 import ArticleIcon from '@mui/icons-material/Article';
 import SwitchLabel from "../tabs/SwitchLabel";
 import { useTranslation } from "react-i18next";
+import SelectIdioma from "../tabs/SelectIdioma";
 
 /**
  * Barra de navegación superior.
@@ -129,6 +130,7 @@ export default function Navbar() {
                     </Tooltip>
                     <Typography variant="h6"><b>HADT</b></Typography>
                     <Stack direction="row" spacing={1}>
+                        <SelectIdioma />
                         <IconButton color="inherit" onClick={manejadorBtnTema}>
                             <BtnTema />
                         </IconButton>

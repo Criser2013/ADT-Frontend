@@ -41,7 +41,7 @@ export default function Sidebar() {
         } else {
             return usuario;
         }
-    }, [auth.authInfo]);
+    }, [auth.authInfo, navegacion.idioma]);
     const mostrarMenu = useMemo(() => {
         return detAbrirMenu(navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion) ? "none" : "block";
     }, [navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion]);

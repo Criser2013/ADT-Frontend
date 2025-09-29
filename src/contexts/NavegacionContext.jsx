@@ -1,6 +1,7 @@
 import { createContext, useState, useContext, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useColorScheme } from "@mui/material/styles";
+import dayjs from "dayjs";
 
 export const navegacionContext = createContext();
 
@@ -141,6 +142,7 @@ export function NavegacionProvider({ children }) {
      * @param {string} idioma 
      */
     const cambiarIdioma = (idioma) => {
+        dayjs.locale(idioma);
         i18n.changeLanguage(idioma);
     };
 

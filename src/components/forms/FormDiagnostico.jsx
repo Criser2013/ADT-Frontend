@@ -26,11 +26,11 @@ import TabHeader from "../layout/TabHeader";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm, Controller } from "react-hook-form";
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { useTranslation } from "react-i18next";
-import t from "i18next";
+import { useTranslation  } from "react-i18next";
+import i18next from '../../../i18n';
 
 const valoresPredet = {
-    paciente: { id: -1, nombre: t("txtSelectPaciente"), edad: "", sexo: 2, fechaNacimiento: null },
+    paciente: { id: -1, nombre: i18next.t("txtSelectPaciente"), edad: "", sexo: 2, fechaNacimiento: null },
     sexo: 2, edad: "", presionSis: "", presionDias: "", frecRes: "",
     frecCard: "", so2: "", plaquetas: "", hemoglobina: "", wbc: "",
     fumador: false, bebedor: false, tos: false, fiebre: false,
@@ -409,14 +409,14 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                         </Grid>
                         <Grid container size={numCols} columns={numCols} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
                             {SINTOMAS.map((x) => (
-                                <Grid size={1} key={x.nombre}>
+                                <Grid size={1} key={x}>
                                     <Controller
-                                        name={x.nombre}
+                                        name={x}
                                         control={control}
                                         render={({ field }) => (
                                             <Check
-                                                nombre={x.nombre}
-                                                etiqueta={t(x.nombre)}
+                                                nombre={x}
+                                                etiqueta={t(x)}
                                                 activado={field.value}
                                                 manejadorCambios={field.onChange}
                                             />
@@ -459,7 +459,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 }}
                                 render={({ field }) => (
                                     <TextField
-                                        label={`${t("txtCampoPresionDias")} (mmHg)`}
+                                        label={`${t("txtCampoPresionDiast")} (mmHg)`}
                                         {...field}
                                         error={!!errors.presionDias}
                                         helperText={errors.presionDias?.message}
@@ -532,7 +532,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 }}
                                 render={({ field }) => (
                                     <TextField
-                                        label={t("txtCampoPlaquetas")}
+                                        label={t("txtCampoPLT")}
                                         {...field}
                                         error={!!errors.plaquetas}
                                         helperText={errors.plaquetas?.message}

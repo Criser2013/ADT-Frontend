@@ -28,7 +28,7 @@ export default function VerPacientesPage() {
     const navegacion = useNavegacion();
     const { t } = useTranslation();
     const listadoPestanas = useMemo(() => [{
-        texto: t("txtListaPacientes"), url: "/pacientes"
+        texto: t("titListaPacientes"), url: "/pacientes"
     }], [navegacion.idioma]);
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({
@@ -41,7 +41,7 @@ export default function VerPacientesPage() {
         { id: "cedula", label: t("txtCedula"), componente: null, ordenable: true},
         { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true},
         { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true},
-        { id: "edad", label: t("txtEdad"), componente: null, ordenable: true},
+        { id: "edad", label: t("txtCampoEdad"), componente: null, ordenable: true},
         { id: "telefono", label: t("txtTelefono"), componente: null, ordenable: true},
     ], [navegacion.idioma]);
 
@@ -67,7 +67,7 @@ export default function VerPacientesPage() {
     }, [drive.token]);
 
     useEffect(() => {
-        document.title = t("txtListaPacientes");
+        document.title = t("titListaPacientes");
     }, [navegacion.idioma]);
 
     /**
@@ -208,11 +208,11 @@ export default function VerPacientesPage() {
                 <>
                     <TabHeader
                         activarBtnAtras={false}
-                        titulo={t("txtListaPacientes")}
+                        titulo={t("titListaPacientes")}
                         pestanas={listadoPestanas} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh" }}>
                         <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
-                            <Tooltip title={t("txtAyudaBtnRecargarPagina")}>
+                            <Tooltip title={t("txtAyudaBtnRecargar")}>
                                 <IconButton onClick={() => manejadorRecargar()}>
                                     <RefreshIcon />
                                 </IconButton>

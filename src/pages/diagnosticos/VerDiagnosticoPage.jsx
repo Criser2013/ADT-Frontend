@@ -580,7 +580,7 @@ export default function VerDiagnosticoPage() {
                             </Grid>
                             <Grid container size={12} columns={12} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
                                 {SINTOMAS.map((x) => (
-                                    <CheckSintoma instancia={x} key={x.nombre} />
+                                    <CheckSintoma instancia={x} key={x} />
                                 ))}
                             </Grid>
                             <Grid size={12} paddingTop="3vh">

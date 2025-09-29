@@ -36,7 +36,7 @@ export async function peticionApi(token, ruta, metodo, cuerpo = null, txtError =
     } catch {
         return {
             success: false, data: null,
-            error: txtError != "" ? txtError : "Ha ocurrido un error. Por favor reintenta nuevamente."
+            error: txtError != "" ? txtError : "Something went wrong, try again."
         };
     }
 };

@@ -5,7 +5,7 @@ import FormPaciente from "../../components/forms/FormPaciente";
 import MenuLayout from "../../components/layout/MenuLayout";
 import { useNavigate, useSearchParams } from "react-router";
 import { validarId } from "../../utils/Validadores";
-import { useTranslations } from "i18next";
+import { useTranslation } from "react-i18next";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 
 /**
@@ -15,7 +15,7 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
 export default function EditarPacientePage() {
     const auth = useAuth();
     const drive = useDrive();
-    const { t } = useTranslations();
+    const { t } = useTranslation();
     const { idioma } = useNavegacion();
     const navigate = useNavigate();
     const [params] = useSearchParams();

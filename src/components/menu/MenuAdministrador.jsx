@@ -79,7 +79,7 @@ export default function MenuAdministrador() {
         }
 
         return {
-            labels: [t("txtPositivo"), t("txtNegativo"), t("txtNoDiagnosticado")], datasets: [{
+            labels: [t("txtPositivo"), t("txtNegativo"), t("txtNoValidado")], datasets: [{
                 label: t("txtNumDiags"), data: [res.Positivo, res.Negativo, res["No diagnosticado"]], backgroundColor: [
                     'rgba(255, 207, 86, 0.85)', 'rgba(75, 192, 192, 0.8)', 'rgba(153, 102, 255, 0.7)'
                 ]
@@ -192,14 +192,14 @@ export default function MenuAdministrador() {
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
                         <TarjetaMenuPrincipal
-                            titulo={t("txtDiagnosticosEsteMes")}
+                            titulo={t("txtDiagnosticosMes")}
                             altura="100%"
                             valor={diagnosticosMesActual}
                             icono={<DiagnosticoIcono sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
                         <TarjetaMenuPrincipal
-                            titulo={t("txtNuevosUsuariosEsteMes")}
+                            titulo={t("txtUsuariosMes")}
                             altura="100%"
                             valor={usuariosMesActual}
                             icono={<PersonIcon sx={{ fontSize: "4.5vh" }} />} />

@@ -14,13 +14,13 @@ export default function BtnTema() {
 
     if (tema == "light") {
         return (
-            <Tooltip title={t("txtAyudaBtnCambiarTemaOscuro")}>
+            <Tooltip title={t("txtAyudaBtnTemaOscuro")}>
                 <DarkModeIcon color="inherit" />
             </Tooltip>
         );
     } else {
         return (
-            <Tooltip title={t("txtAyudaBtnCambiarTemaClaro")}>
+            <Tooltip title={t("txtAyudaBtnTemaClaro")}>
                 <LightModeIcon color="inherit" />
             </Tooltip>
         );

@@ -26,7 +26,7 @@
             "tit404": "Page not found!",
             "txt404": "Return to main page",
             "titMenu": "Main Menu",
-            "titDiagnosticoAnonimo": "Diagnóstico anónimo",
+            "titDiagnosticoAnonimo": "Diagnóstico anónimo"
         }
     },
     "es": {
@@ -204,7 +204,7 @@
             "errEliminarAlgunosUsuarios": "Algunos no se pudieron eliminar. Por favor, revisa los registros.",
             "errTitEliminarUsuarios": "❌ Error al eliminar los usuarios.",
             "errEliminarUsuarios": "Se ha producido un error al eliminar los usuarios seleccionados. Por favor, inténtalo de nuevo más tarde.",
-            "txtEliminarUsuario": "¿Estás seguro de querer eliminar al usuario {{instancia.nombre}} ({{instancia.correo}}) — {{rol}}? <1 /><1 /><1>ADVERTENCIA:</1> Se bloqueará su acceso a la aplicación <1>permanentemente</1>",
+            "txtEliminarUsuario": "¿Estás seguro de querer eliminar al usuario {{instancia.nombre}} ({{instancia.correo}}) — {{rol}}? <1 /><1 /><3>ADVERTENCIA:</3> Se bloqueará su acceso a la aplicación <5>permanentemente</5>",
             "titEditarUsuario": "✏️ Editar usuario",
             "txtAyudaBtnEliminarUsuario": "Eliminar usuario",
             "txtAyudaBtnEditarUsuario": "Editar usuario",
@@ -286,7 +286,25 @@
             "errTelefono": "Debes ingresar un número de teléfono válido (de entre 8 y 10 caracteres)",
             "errFechaNacimiento": "Debes ingresar una fecha de nacimiento menor a la fecha actual",
             "txtAyudaBtnGuardarPaciente": "Guardar los datos del paciente",
-            ""
+            "errVerificarRegistro": "No se pudo verificar si el usuario está registrado.",
+            "errIniciarSesion": "Error al iniciar sesión. Reintenta nuevamente.",
+            "errReautenticar": "Error al refrescar los permisos. Reintenta nuevamente.",
+            "errCerrarSesion": "No se ha podido cerrar la sesión. Reintenta nuevamente.",
+            "errPermisos": "Debes otorgar los permisos requeridos en tu cuenta de Google para utilizar la aplicación.",
+            "errUsuarioBaneado": "Este usuario ha sido deshabilitado. Para más información, contacta al administrador de la aplicación.",
+            "errSesionIniciada": "Ya tienes una sesión iniciada con el usuario '{{usuario}}' ({{correo}}). Cierra la sesión antes de iniciar con otro usuario.",
+            "errArchivoInexistente": "Archivo no encontrado.",
+            "errLeearArchivo": "Se ha producido un error al leer el archivo.",
+            "errVerificarArchivo": "Se ha producido un error al verificar o crear el archivo y la carpeta. Reintente nuevamente.",
+            "errPacienteDuplicado": "Ya existe un paciente con ese número de cédula. Por favor, verifica los datos.",
+            "errPacienteInexistente": "Paciente no encontrado.",
+            "errCargaResumible": "Carga resumible incompleta",
+            "errCreds": "Credenciales inválidas, reintente nuevamente.",
+            "errCargaVencida": "Sesión de carga resumible vencida",
+            "errEspacioDrive": "¡No hay espacio disponible en tu cuenta de Google Drive!",
+            "errLimPeticiones": "Límite de peticiones alcanzado. Reintente en 1 minuto.",
+            "errEstrucArchivoInvalida": "El archivo no tiene la estructura correcta o contiene datos invalidos.",
+            "txtNoValidado": "No validado"
         }
     }
 }

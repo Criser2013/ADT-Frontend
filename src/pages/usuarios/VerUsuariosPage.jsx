@@ -63,7 +63,7 @@ export default function VerUsuariosPage() {
         { id: "ultimaConexion", label: t("txtUltimaConexion"), componente: null, ordenable: true },
         { id: "cantidad", label: t("txtDiagnosticos"), componente: null, ordenable: true },
         { id: "estado", label: t("txtEstado"), componente: (x) => <ChipEstado estado={x.estado} /> },
-        { id: "accion", label: t("txtAcción"), ordenable: false, componente: null }
+        { id: "accion", label: t("txtAccion"), ordenable: false, componente: null }
     ], [navegacion.idioma]);
     const txtBtnModal = useMemo(() => {
         return modoModal == 3 ? t("txtBtnGuardar") : t("txtBtnEliminar");
@@ -229,7 +229,7 @@ export default function VerUsuariosPage() {
         setSeleccionados(seleccionados);
         setModoModal(1);
         setModal({
-            mostrar: true, titulo: t("txtAlerta"), icono: <DeleteIcon />,
+            mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
             mensaje: t("txtEliminarUsuarios")
         });
     };
@@ -444,7 +444,9 @@ export default function VerUsuariosPage() {
         setModoModal(0);
         setModal({
             mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
-            mensaje: (<Trans i18nKey="txtEliminarUsuario">
+            mensaje: (//t("txtEliminarUsuario", { rol: rol, nombre: instancia.nombre, correo: instancia.correo })
+            <Trans i18nKey="txtEliminarUsuario" values={{ instancia, rol }} components={{ 1: <br />, 3: <b />, 5: <b /> }}>
+                
                 ¿Estás seguro de querer eliminar al usuario {instancia.nombre} ({instancia.correo}) — {rol}?
                 <br />
                 <br />
@@ -588,10 +590,10 @@ export default function VerUsuariosPage() {
                             disabled={desactivarCampos}
                             {...field}>
                             <MenuItem value={false}>
-                                {t("txtEstadoInactivo")}
+                                {t("txtInactivo")}
                             </MenuItem>
                             <MenuItem value={true}>
-                                {t("txtEstadoActivo")}
+                                {t("txtActivo")}
                             </MenuItem>
                         </TextField>)} />
                 {mostrarTxtAdvertencia ? <Typography variant="body2">
@@ -664,7 +666,7 @@ export default function VerUsuariosPage() {
                 <>
                     <TabHeader
                         activarBtnAtras={false}
-                        titulo={t("txtListaUsuarios")}
+                        titulo={t("titListaUsuarios")}
                         pestanas={listadoPestanas} />
                     <Grid container columns={1} spacing={3} width="100%" sx={{ marginTop: "3vh" }}>
                         <Grid display="flex" size={1} justifyContent="end">

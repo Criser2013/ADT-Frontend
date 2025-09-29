@@ -54,12 +54,12 @@ export default function VerPacientePage() {
         { titulo: t("txtNombre"), valor: datos.personales.nombre },
         { titulo: t("txtCedula"), valor: datos.personales.cedula },
         { titulo: t("txtFechaNacimiento"), valor: datos.personales.fechaNacimiento },
-        { titulo: t("txtEdad"), valor: `${datos.personales.edad} años` },
+        { titulo: t("txtCampoEdad"), valor: `${datos.personales.edad} años` },
         { titulo: t("txtTelefono"), valor: datos.personales.telefono },
-        { titulo: t("txtSexo"), valor: datos.personales.sexo == 0 ? t("txtMasculino") : t("txtFemenino") }
+        { titulo: t("txtCampoSexo"), valor: datos.personales.sexo == 0 ? t("txtMasculino") : t("txtFemenino") }
     ], [datos.personales, navegacion.idioma]);
     const listadoPestanas = useMemo(() => [
-        { texto: t("txtListaPacientes"), url: "/pacientes" },
+        { texto: t("titListaPacientes"), url: "/pacientes" },
         { texto: `${t("txtPaciente")}-${datos.personales.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
     ], [datos, navegacion.idioma]);
     const mostrarComor = useMemo(() => {
@@ -260,7 +260,7 @@ export default function VerPacientePage() {
                             paddingRight={padding}
                             marginTop="3vh">
                             <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
-                                <Tooltip title={t("txtMasOpciones")}>
+                                <Tooltip title={t("txtAyudaMasOpciones")}>
                                     <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
                                         <MoreVertIcon />
                                     </IconButton>

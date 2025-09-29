@@ -24,17 +24,17 @@ function clasificarError(res, cuerpo) {
         case res.status == 200 || res.status == 201:
             return { success: true, data: cuerpo, error: null };
         case res.status == 403 && cuerpo.error.message == "Rate Limit Exceeded":
-            return { success: false, data: [], error: `Límite de peticiones alcanzado. Reintente en 1 minuto.` };
+            return { success: false, data: [], error: `errLimPeticiones` };
         case res.status == 403 && cuerpo.error.message.includes("Drive storage quota has been exceeded"):
-            return { success: false, data: [], error: `¡No hay espacio en tu cuenta de Google Drive disponible!` };
+            return { success: false, data: [], error: `errEspacioDrive` };
         case res.status == 308 && cuerpo.error.message.includes("Resume Incomplete"):
-            return { success: false, data: [], error: `Carga resumible incompleta` };
+            return { success: false, data: [], error: `errCargaResumible` };
         case res.status == 404 && cuerpo.error.message.includes("Not found"):
-            return { success: false, data: [], error: `Sesión de carga resumible vencida` };
+            return { success: false, data: [], error: `errCargaVencida` };
         case res.status == 404 && cuerpo.error.message.includes("File not found"):
-            return { success: false, data: [], error: `Archivo no encontrado` };
+            return { success: false, data: [], error: `errArchivoInexistente` };
         case res.status == 401 && cuerpo.error.message.includes("invalid authentication credentials"):
-            return { success: false, data: [], error: `Credenciales inválidas, reintente nuevamente.` };
+            return { success: false, data: [], error: `errCreds` };
         default:
             return { success: false, data: [], error: `${res.status} ${cuerpo}` };
     }

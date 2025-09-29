@@ -188,7 +188,7 @@ export default function MenuUsuario() {
                 <Grid columns={numCols} container spacing={2}>
                     <Grid size={2}>
                         <Typography variant="h4" align="left">
-                            {t("txtBievenida", { nombre: auth.authInfo.user.displayName })}
+                            {t("txtBienvenida", { nombre: auth.authInfo.user.displayName })}
                         </Typography>
                         <Divider sx={{ padding: "1vh 0vw" }} />
                     </Grid>

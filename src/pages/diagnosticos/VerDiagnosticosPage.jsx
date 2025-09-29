@@ -26,7 +26,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import AdvertenciaEspacio from "../../components/menu/AdvertenciaEspacio";
 import CloseIcon from "@mui/icons-material/Close";
 import { ChipDiagnostico, ChipValidado, ChipSexo } from "../../components/tabs/Chips";
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 
 /**
  * Página para ver los diagnósticos del usuario.
@@ -84,13 +84,13 @@ export default function VerDiagnosticosPage() {
         return rol == CODIGO_ADMIN;
     }, [rol]);
     const titulo = useMemo(() => {
-        return (rol != CODIGO_ADMIN) ? t("titHistorialDiagnosticos") : t("txtDatosRecolectados");
+        return (rol != CODIGO_ADMIN) ? t("txtHistorialDiagnosticos") : t("txtDatosRecolectados");
     }, [rol, navegacion.idioma]);
     const lblBusq = useMemo(() => {
         return (rol != CODIGO_ADMIN) ? t("txtBusqDiag") : t("txtBusqDiagAdmin");
     }, [rol, navegacion.idioma]);
     const listadoPestanas = useMemo(() => {
-        const txt = (rol == CODIGO_ADMIN) ? t("txtDatosRecolectados") : t("titHistorialDiagnosticos");
+        const txt = (rol == CODIGO_ADMIN) ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos");
         return [{ texto: txt, url: "/diagnosticos" }];
     }, [rol, navegacion.idioma]);
     const desactivarBtns = useMemo(() => {
@@ -153,7 +153,7 @@ export default function VerDiagnosticosPage() {
     }, [auth.authInfo.uid, drive.token, rol, DB, archivoDescargado]);
 
     useEffect(() => {
-        document.title = rol != CODIGO_ADMIN ? t("titHistorialDiagnosticos") : t("txtDatosRecolectados");
+        document.title = rol != CODIGO_ADMIN ? t("txtHistorialDiagnosticos") : t("txtDatosRecolectados");
     }, [rol, navegacion.idioma]);
 
     /**
@@ -290,14 +290,14 @@ export default function VerDiagnosticosPage() {
 
         for (let i = 0; i < diags.length; i++) {
             auxDiag[i].sexo = auxDiag[i].sexo == 0 ? t("txtMasculino") : t("txtFemenino");
-            const campos = (rol != CODIGO_ADMIN) ? t("txtPaciente").toLocaleLowerCase() : t("txtMedico").toLocaleLowerCase();
+            const campos = (rol != CODIGO_ADMIN) ? "paciente" : "medico";
             const persona = aux[auxDiag[i][campos]];
             const nombre = (rol != CODIGO_ADMIN && persona == undefined) ? t("txtPaciente") : t("txtUsuario");
-
             if (rol != CODIGO_ADMIN) {
                 auxDiag[i].paciente = (persona != undefined) ? persona.cedula : "N/A";
                 auxDiag[i].id = auxDiag[i].id.replace(/-\w{28}$/, "");
             }
+            
 
             auxDiag[i].nombre = (persona != undefined) ? persona.nombre : `${nombre} eliminado`;
             auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico);
@@ -571,9 +571,7 @@ export default function VerDiagnosticosPage() {
                     {((modoModal == 3 && cantNoConfirmados > 0) && (rol == CODIGO_ADMIN) && preprocesar) ? (
                         <Typography variant="body2">
                             <b>
-                                <Trans i18nKey="txtAvisoDiagsNoValidados" cantNoConfirmados={cantNoConfirmados}>
-                                    ⚠️ ¡Atención! Hay {cantNoConfirmados} diagnostico(s) sin validar.
-                                </Trans>
+                                {t("txtAvisoDiagsNoValidados", { cantNoConfirmados })}
                             </b>
                         </Typography>
                     ) : null}
