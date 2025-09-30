@@ -1,5 +1,5 @@
 import { Grid, Box, CircularProgress, Typography, Divider } from "@mui/material";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCredenciales } from "../../contexts/CredencialesContext";
@@ -47,8 +47,10 @@ export default function MenuAdministrador() {
         }
     }, [navegacion]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales]);
-    const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual), [datosDiagnosticos, fechaActual]);
-    const usuariosMesActual = useMemo(() => obtenerDatosMesActual(datosUsuarios, fechaActual), [datosUsuarios, fechaActual]);
+    const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual, navegacion.idioma)
+    , [datosDiagnosticos, fechaActual, navegacion.idioma]);
+    const usuariosMesActual = useMemo(() => obtenerDatosMesActual(datosUsuarios, fechaActual, navegacion.idioma)
+    , [datosUsuarios, fechaActual, navegacion.idioma]);
     const colsGraficos = useMemo(() => {
         const { orientacion, dispositivoMovil, mostrarMenu } = navegacion;
         if ((dispositivoMovil && orientacion == "vertical") || (dispositivoMovil && orientacion == "horizontal" && !mostrarMenu)) {
@@ -100,25 +102,44 @@ export default function MenuAdministrador() {
     }, [auth.authInfo, DB]);
 
     /**
+     * Actualiza el gráfico de barras con los datos de diagnósticos y usuarios.
+     * @param {Array} diagnosticos - Lista de diagnósticos
+     * @param {Array} usuarios - Lista de usuarios
+     */
+    const actualizarGraficoBarras = (diagnosticos, usuarios) => {
+        const idioma =  localStorage.getItem("i18nextLng");
+        const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4, fechaActual, "DD-MM-YYYY", idioma);
+        const usuariosMensuales = obtenerDatosPorMes(usuarios, "fecha_registro", 4, fechaActual, "DD/MM/YYYY hh:mm A", idioma);
+        const json = {
+            datasets: [
+                formatearDatosGrafico(diagnosticosMensuales, 'rgba(255, 99, 132, 0.5)', t("txtDiagnosticosRealizados")),
+                formatearDatosGrafico(usuariosMensuales, 'rgba(54, 162, 235, 0.5)', t("txtNuevosUsuarios")),
+            ]
+        };
+
+        setDatosDiagnosticos(diagnosticosMensuales);
+        setDatosUsuarios(usuariosMensuales);
+        setDatos(json);
+    };
+
+    /**
      * Una vez se cargan los diagnósticos y los usuarios, formatea las celdas.
      */
     useEffect(() => {
         if (!!diagnosticos && !!usuarios && datos == null) {
-            const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4, fechaActual, "DD-MM-YYYY", navegacion.idioma);
-            const usuariosMensuales = obtenerDatosPorMes(usuarios, "fecha_registro", 4, fechaActual, "DD/MM/YYYY hh:mm A", navegacion.idioma);
-            const json = {
-                datasets: [
-                    formatearDatosGrafico(diagnosticosMensuales, 'rgba(255, 99, 132, 0.5)', t("txtDiagnosticosRealizados")),
-                    formatearDatosGrafico(usuariosMensuales, 'rgba(54, 162, 235, 0.5)', t("txtNuevosUsuarios")),
-                ]
-            };
-
-            setDatosDiagnosticos(diagnosticosMensuales);
-            setDatosUsuarios(usuariosMensuales);
-            setDatos(json);
+            actualizarGraficoBarras(diagnosticos, usuarios);
             setCargando(false);
         }
-    }, [diagnosticos, usuarios, datos, fechaActual, navegacion.idioma]);
+    }, [diagnosticos, usuarios, datos, fechaActual]);
+
+    /**
+     * Requerido para actualizar los textos del gráfico al cambiar el idioma.
+     */
+    useEffect(() => {
+        if (diagnosticos != null && usuarios != null) {
+            actualizarGraficoBarras(diagnosticos, usuarios);
+        }
+    }, [navegacion.idioma]);
 
     /**
      * Formatea los datos del gráfico para que sean compatibles con Chart.js.
@@ -175,6 +196,14 @@ export default function MenuAdministrador() {
         setModal({ ...modal, mostrar: false });
     };
 
+    /**
+     * Componente necesario para actualizar el gráfico cuando cambia el idioma. Sino se deja así
+     * las etiquetas se actualizan de forma retrasada, no en el momento que se cambia el idioma.
+     */
+    const GraficoMeses = useCallback(() => {
+        return <GraficoBarras titulo={t("titGraficoBarrasMenu")} datos={datos} />;
+    }, [datos]);
+
     return (
         <>
             {cargando ? (
@@ -219,7 +248,7 @@ export default function MenuAdministrador() {
                             icono={<CheckCircleIcon sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={colsGraficos} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vw">
-                        <GraficoBarras titulo={t("titGraficoBarrasMenu")} datos={datos} />
+                        <GraficoMeses />
                     </Grid>
                     <Grid size={colsGraficos} display="flex" justifyContent="center" alignItems="center" height="40vh" padding="0vh 1.5vw">
                         <GraficoPastel titulo={t("titGraficoPastelMenuAdmin")} datos={propDiagnosticos} />

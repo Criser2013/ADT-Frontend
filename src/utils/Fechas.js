@@ -63,10 +63,10 @@ export function obtenerMesActualStr (fecha, idioma = "es") {
  * @param {Dayjs} fecha - Fecha para obtener el mes actual. Si no se proporciona, se usa la fecha actual.
  * @returns {Number}
  */
-export function obtenerDatosMesActual(datos, fecha) {
+export function obtenerDatosMesActual(datos, fecha, idioma = "es") {
     if (datos == null || Object.keys(datos).length === 0) {
         return 0;
     } else {
-        return datos[obtenerMesActualStr(fecha)];
+        return datos[obtenerMesActualStr(fecha, idioma)];
     }
 }

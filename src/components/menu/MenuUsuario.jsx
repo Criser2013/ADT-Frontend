@@ -1,5 +1,5 @@
 import { Grid, Box, CircularProgress, Typography, Divider } from "@mui/material";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useDrive } from "../../contexts/DriveContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -41,8 +41,10 @@ export default function MenuUsuario() {
         return (dispositivoMovil && orientacion == "vertical") || (!dispositivoMovil && (ancho <= 700)) ? 1 : 2;
     }, [navegacion]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
-    const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual), [datosDiagnosticos, fechaActual]);
-    const pacientesMesActual = useMemo(() => obtenerDatosMesActual(datosPacientes, fechaActual), [datosPacientes, fechaActual]);
+    const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual, navegacion.idioma)
+    , [datosDiagnosticos, fechaActual, navegacion.idioma]);
+    const pacientesMesActual = useMemo(() => obtenerDatosMesActual(datosPacientes, fechaActual, navegacion.idioma)
+    , [datosPacientes, fechaActual, navegacion.idioma]);
     const propSexoPacientes = useMemo(() => {
         const res = { Masculino: 0, Femenino: 0 };
 
@@ -91,26 +93,42 @@ export default function MenuUsuario() {
         }
     }, [auth.authInfo, drive.token, DB]);
 
+     /**
+     * Actualiza el gráfico de barras con los datos de diagnósticos y usuarios.
+     * @param {Array} diagnosticos - Lista de diagnósticos
+     * @param {Array} pacientes - Lista de pacientes
+     */
+    const actualizarGraficoBarras = (diagnosticos, pacientes) => {
+        const idioma =  localStorage.getItem("i18nextLng");
+        const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4, fechaActual, "DD-MM-YYYY", idioma);
+        const pacientesMensuales = obtenerDatosPorMes(pacientes, "fechaCreacion", 4, fechaActual, "DD-MM-YYYY", idioma);
+        const json = {
+            datasets: [
+                formatearDatosGrafico(diagnosticosMensuales, 'rgba(255, 99, 132, 0.5)', t("txtDiagnosticosRealizados")),
+                formatearDatosGrafico(pacientesMensuales, 'rgba(54, 162, 235, 0.5)', t("txtNuevosPacientes")),
+            ]
+        };
+
+        setDatosDiagnosticos(diagnosticosMensuales);
+        setDatosPacientes(pacientesMensuales);
+        setDatos(json);
+    };
+
     /**
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
      */
     useEffect(() => {
         if (!!diagnosticos && !!pacientes && datos == null) {
-            const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4, fechaActual, "DD-MM-YYYY", navegacion.idioma);
-            const pacientesMensuales = obtenerDatosPorMes(pacientes, "fechaCreacion", 4, fechaActual, "DD-MM-YYYY", navegacion.idioma);
-            const json = {
-                datasets: [
-                    formatearDatosGrafico(diagnosticosMensuales, 'rgba(255, 99, 132, 0.5)', t("txtDiagnosticosRealizados")),
-                    formatearDatosGrafico(pacientesMensuales, 'rgba(54, 162, 235, 0.5)', t("txtNuevosPacientes")),
-                ]
-            };
-
-            setDatosDiagnosticos(diagnosticosMensuales);
-            setDatosPacientes(pacientesMensuales);
-            setDatos(json);
-            setCargando(false);
+           actualizarGraficoBarras(diagnosticos, pacientes);
+           setCargando(false);
         }
-    }, [diagnosticos, pacientes, datos, fechaActual, navegacion.idioma]);
+    }, [diagnosticos, pacientes, datos, fechaActual]);
+
+    useEffect(() => {
+        if (diagnosticos != null && pacientes != null) {
+            actualizarGraficoBarras(diagnosticos, pacientes);
+        }
+    }, [navegacion.idioma]);
 
     useEffect(() => {
         const descargar = sessionStorage.getItem("descargando-drive");
@@ -178,6 +196,14 @@ export default function MenuUsuario() {
         setModal({ ...modal, mostrar: false });
     };
 
+    /**
+     * Componente necesario para actualizar el gráfico cuando cambia el idioma. Sino se deja así
+     * las etiquetas se actualizan de forma retrasada, no en el momento que se cambia el idioma.
+     */
+    const GraficoMeses = useCallback(() => {
+        return <GraficoBarras titulo={t("titGraficoBarrasMenu")} datos={datos} />;
+    }, [datos]);
+
     return (
         <>
             {cargando ? (
@@ -207,7 +233,7 @@ export default function MenuUsuario() {
                             icono={<PersonIcon sx={{ fontSize: "4.5vh" }} />} />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vw">
-                        <GraficoBarras titulo={t("titGraficoBarrasMenu")} datos={datos} />
+                        <GraficoMeses />
                     </Grid>
                     <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vw">
                         <GraficoPastel titulo={t("titGraficoPastelMenuUsuario")} datos={propSexoPacientes} />
