@@ -214,7 +214,7 @@ export default function VerDiagnosticoPage() {
     };
 
     useEffect(() => {
-        if (drive.token != null && diagOriginal != {}) {
+        if (drive.token != null && diagOriginal != {} && rol != CODIGO_ADMIN) {
             cargarDatosPacientes();
         }
     }, [drive.token, diagOriginal]);
