@@ -13,9 +13,9 @@ export const URL_MANUAL_USUARIO = import.meta.env.VITE_URL_MANUAL_USUARIO || "ht
 export const URL_MANUAL_ADMIN = import.meta.env.VITE_URL_MANUAL_ADMIN || "https://www.google.com";
 export const CANT_LIM_DIAGNOSTICOS = parseInt(import.meta.env.VITE_CANT_LIM_DIAGNOSTICOS) || 1500;
 export const SEXOS = [
-    { texto: "Seleccione el sexo", val: 2 },
-    { texto: "Masculino", val: 0 },
-    { texto: "Femenino", val: 1 }
+    { texto: "txtSelecSexo", val: 2 },
+    { texto: "txtMasculino", val: 0 },
+    { texto: "txtFemenino", val: 1 }
 ];
 export const CODIGO_ADMIN = 1001;
 export const SINTOMAS = ["fumador", "bebedor", "tos", "fiebre", "edema",
@@ -24,9 +24,9 @@ export const SINTOMAS = ["fumador", "bebedor", "tos", "fiebre", "edema",
     "hemoptisis", "dolorToracico", "tepPrevio", "soplos"
 ];
 export const DIAGNOSTICOS = [
-    { valor: 2, texto: "Seleccione el diagnóstico" },
-    { valor: 0, texto: "Negativo" },
-    { valor: 1, texto: "Positivo" }
+    { valor: 2, texto: "txtSelecDiagnostico" },
+    { valor: 0, texto: "txtNegativo" },
+    { valor: 1, texto: "txtPositivo" }
 ];
 export const URL_CONDICIONES = import.meta.env.VITE_URL_CONDICIONES || "https://google.com";
 export const CAMPOS_BIN = [

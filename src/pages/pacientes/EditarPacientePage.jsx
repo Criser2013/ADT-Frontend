@@ -20,8 +20,8 @@ export default function EditarPacientePage() {
     const navigate = useNavigate();
     const [params] = useSearchParams();
     const listadoPestanas = [
-        { texto: "Lista de pacientes", url: "/pacientes" },
-        { texto: "Editar paciente", url: `/pacientes/editar${location.search}` }
+        { texto: t("titListaPacientes"), url: "/pacientes" },
+        { texto: t("titEditarPaciente"), url: `/pacientes/editar${location.search}` }
     ];
     const id = params.get("id");
 

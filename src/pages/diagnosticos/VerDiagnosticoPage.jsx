@@ -85,11 +85,11 @@ export default function VerDiagnosticoPage() {
             { titulo: "ID", valor: datos.personales.id },
             { titulo: (rol == CODIGO_ADMIN) ? t("txtMedico") : t("txtPaciente"), valor: persona.nombre },
             { titulo: t("txtCampoSexo"), valor: datos.personales.sexo == 0 ? t("txtMasculino") : t("txtFemenino") },
-            { titulo: t("txtCampoEdad"), valor: `${datos.personales.edad} años` },
+            { titulo: t("txtCampoEdad"), valor: `${datos.personales.edad} ${t("txtSufijoEdad")}` },
             { titulo: t("txtCampoFechaDiag"), valor: datos.personales.fecha },
-            { titulo: t("txtCampoDiagModelo"), valor: detTxtDiagnostico(datos.personales.diagnostico) },
+            { titulo: t("txtCampoDiagModelo"), valor: detTxtDiagnostico(datos.personales.diagnostico, navegacion.idioma) },
             { titulo: t("txtCampoProbabilidad"), valor: `${(datos.personales.probabilidad * 100).toFixed(2)}%` },
-            { titulo: t("txtCampoDiagMedico"), valor: detTxtDiagnostico(datos.personales.validado) },
+            { titulo: t("txtCampoDiagMedico"), valor: detTxtDiagnostico(datos.personales.validado, navegacion.idioma) },
         ];
 
         return campos;
@@ -205,7 +205,7 @@ export default function VerDiagnosticoPage() {
                 await cargarDatosMedico(token, datos.data.medico);
             } else {
                 sessionStorage.setItem("paciente", datos.data.paciente);
-                await cargarDatosPacientes(datos.data.paciente == "Anónimo");
+                await cargarDatosPacientes();
             }
 
             preprocesarDiag(datos.data);
@@ -216,19 +216,11 @@ export default function VerDiagnosticoPage() {
 
     /**
      * Carga los datos de los pacientes.
-     * @param {boolean} esDiagAnonimo - Indica si el diagnóstico es anónimo.
      */
-    const cargarDatosPacientes = async (esDiagAnonimo) => {
+    const cargarDatosPacientes = async () => {
         const descargar = sessionStorage.getItem("descargando-drive");
 
-        if (esDiagAnonimo) {
-            const txt = t("txtAnonimo");
-            setPersona({ id: txt, nombre: txt });
-            setArchivoDescargado(true);
-            return;
-        }
-
-        if (!esDiagAnonimo && (descargar == null || descargar == "false")) {
+        if (descargar == null || descargar == "false") {
             sessionStorage.setItem("descargando-drive", "true");
             let res = await drive.cargarDatos();
 
@@ -251,8 +243,15 @@ export default function VerDiagnosticoPage() {
      * @param {String} id - ID del paciente.
      */
     const cargarPaciente = (id) => {
+        if (id == "Anónimo") {
+            setPersona({ id: "Anónimo", nombre: t("txtAnonimo") });
+            sessionStorage.setItem("descargando-drive", "false");
+            setArchivoDescargado(true);
+            return;
+        }
+
         const res = drive.cargarDatosPaciente(id);
-        const nombre = (rol != CODIGO_ADMIN && persona == undefined) ? t("txtPaciente") : t("txtUsuario");
+        const nombre = (rol != CODIGO_ADMIN) ? t("txtPaciente") : t("txtUsuario");
         if (res.success) {
             setPersona({ ...res.data.personales });
         } else {
@@ -276,7 +275,7 @@ export default function VerDiagnosticoPage() {
         if (!res.success && res.data == null) {
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: t("tituloError"), icono: <CloseIcon />,
+                mostrar: true, titulo: t("tituloErr"), icono: <CloseIcon />,
                 mensaje: t("errCargarDatosMedico")
             });
         } else if (!res.success) {
@@ -357,7 +356,7 @@ export default function VerDiagnosticoPage() {
             setCargando(false);
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: t("tituloError"), icono: <CloseIcon />,
+                mostrar: true, titulo: t("tituloErr"), icono: <CloseIcon />,
                 mensaje: t("errEliminarDiagnostico")
             });
         }
@@ -381,7 +380,7 @@ export default function VerDiagnosticoPage() {
         } else {
             setMostrarBtnSecundario(false);
             setModal({
-                mostrar: true, titulo: t("tituloError"), txtBtn: t("txtBtnCerrar"), icono: <CloseIcon />,
+                mostrar: true, titulo: t("tituloErr"), txtBtn: t("txtBtnCerrar"), icono: <CloseIcon />,
                 mensaje: t("errValidarDiagnosticoApi")
             });
         }
@@ -470,7 +469,7 @@ export default function VerDiagnosticoPage() {
                     variant="extended"
                     sx={{ textTransform: "none", display: "flex", position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
                     <CheckCircleOutlineIcon sx={{ mr: 1 }} />
-                    <b>Validar</b>
+                    <b>{t("txtBtnValidar")}</b>
                 </Fab>
             </Tooltip>) : null);
     };
@@ -576,6 +575,7 @@ export default function VerDiagnosticoPage() {
                             </Grid>
                             <Grid size={12}>
                                 <Typography variant="h5" paddingBottom="0.2vh">
+                                    {t("titSintomasClinicos")}
                                 </Typography>
                             </Grid>
                             <Grid container size={12} columns={12} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>

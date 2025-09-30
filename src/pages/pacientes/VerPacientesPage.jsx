@@ -175,7 +175,7 @@ export default function VerPacientesPage() {
     const manejadorBtnModal = async () => {
         if (eliminar) {
             setCargando(true);
-            eliminarPacientes(seleccionados);
+            await eliminarPacientes(seleccionados);
         }
 
         setModal({ ...modal, mostrar: false });
@@ -235,7 +235,7 @@ export default function VerPacientesPage() {
                             activarBusqueda={true}
                             campoId="id"
                             terminoBusqueda={""}
-                            lblSeleccion={t("txtSufijoPacientesSeleccionados")}
+                            lblSeleccion={t("txtSufijoPacientesSelecs")}
                             camposBusq={["nombre", "cedula"]}
                             cbClicCelda={manejadorClicCelda}
                             cbAccion={manejadorEliminar}

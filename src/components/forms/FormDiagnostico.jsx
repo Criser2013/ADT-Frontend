@@ -161,7 +161,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             for (const i of CAMPOS_TXT) {
                 setValue(i, "");
             }
-            for (const i of CAMPOS_BIN) {
+            for (const i of CAMPOS_BIN.slice(1)) {
                 setValue(i, false);
             }
             setValue("otrasEnfermedades", []);
@@ -194,7 +194,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
 
         if (!success) {
             setCargando(false);
-            setModal({ mostrar: true, titulo: t("tituloError"), mensaje: res.error });
+            setModal({ mostrar: true, titulo: t("tituloErr"), mensaje: res.error });
         } else {
             await guardarDiagnostico(oneHotComor, datos, data);
         }
@@ -274,7 +274,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 setDesactivarBtn(false);
             } else {
                 setModal({
-                    mostrar: true, titulo: t("tituloError"),
+                    mostrar: true, titulo: t("tituloErr"),
                     mensaje: t("errCaptcha")
                 });
                 CAPTCHA.current.reset();
@@ -287,7 +287,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 }
             }
             CAPTCHA.current.reset();
-            setModal({ titulo: t("tituloError"), mostrar: true, mensaje: txtError });
+            setModal({ titulo: t("tituloErr"), mostrar: true, mensaje: txtError });
         }
         setCargandoBtn(false);
     };
@@ -376,7 +376,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         fullWidth>
                                         {SEXOS.map((x) => (
                                             <MenuItem key={x.val} value={x.val}>
-                                                {x.texto}
+                                                {t(x.texto)}
                                             </MenuItem>
                                         ))}
                                     </TextField>
@@ -618,7 +618,8 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 theme={temaCaptcha}
                                 onChange={manejadorReCAPTCHA}
                                 sitekey={reCAPTCHAApi}
-                                ref={CAPTCHA} />
+                                ref={CAPTCHA}
+                                hl={navegacion.idioma} />
                         </Grid>
                         <Grid display="flex" justifyContent="center" size={numCols}>
                             <Stack direction="row" spacing={2}>

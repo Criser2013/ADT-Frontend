@@ -299,11 +299,11 @@ export default function VerDiagnosticosPage() {
             }
             
 
-            auxDiag[i].nombre = (persona != undefined) ? persona.nombre : `${nombre} eliminado`;
-            auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico);
+            auxDiag[i].nombre = (persona != undefined) ? persona.nombre : `${nombre} ${t("txtEliminado")}`;
+            auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico, navegacion.idioma);
             auxDiag[i].fecha = auxDiag[i].fecha.toDate();
             auxDiag[i].accion = (auxDiag[i].validado == 2 && rol != CODIGO_ADMIN) ? <BtnValidar diagnostico={i} /> : "";
-            auxDiag[i].validado = detTxtDiagnostico(auxDiag[i].validado);
+            auxDiag[i].validado = detTxtDiagnostico(auxDiag[i].validado, navegacion.idioma);
 
             delete auxDiag[i].medico;
         }
@@ -428,7 +428,7 @@ export default function VerDiagnosticosPage() {
             setActivar2Btn(false);
             setModoModal(0);
             setModal({
-                mostrar: true, titulo: t("tituloError"), icono: <CloseIcon />,
+                mostrar: true, titulo: t("tituloErr"), icono: <CloseIcon />,
                 mensaje: t("errValidarDiagnosticoApi")
             });
             setCargando(false);
@@ -489,7 +489,7 @@ export default function VerDiagnosticosPage() {
             if (!preprocesar || (preprocesar && aux[i].validado != 2)) {
                 aux[i].id = (rol != CODIGO_ADMIN) ? aux[i].id.replace(/-\w{28}$/, "") : aux[i].id;
                 aux[i].paciente = datos[i].nombre;
-                aux[i] = nombresCampos(aux[i], rol == CODIGO_ADMIN, preprocesar);
+                aux[i] = nombresCampos(aux[i], rol == CODIGO_ADMIN, preprocesar, navegacion.idioma);
                 auxArr.push(aux[i]);
             }
         }
@@ -508,7 +508,7 @@ export default function VerDiagnosticosPage() {
             setModoModal(0);
             setActivar2Btn(false);
             setModal({
-                mostrar: true, titulo: t("tituloError"), icono: <CloseIcon />,
+                mostrar: true, titulo: t("tituloErr"), icono: <CloseIcon />,
                 mensaje: `${t("errExportar")} ${res.error}.`
             });
         }

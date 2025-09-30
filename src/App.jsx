@@ -34,7 +34,14 @@ export default function App() {
      * cuando se cargan las credenciales.
     */
     useEffect(() => {
-        import("dayjs/locale/es").then(() => dayjs.locale("es"));
+        import("dayjs/locale/es").then(() => {
+            const idioma = localStorage.getItem("i18nextLng");
+            if (idioma != null) {
+                dayjs.locale(idioma);
+            } else {
+                dayjs.locale("es");
+            }
+        });
         auth.setAuth(credenciales.obtenerInstanciaAuth());
         auth.setDb(credenciales.obtenerInstanciaDB());
         auth.setScopes(credenciales.scopesDrive);
@@ -48,12 +55,12 @@ export default function App() {
 
         let compsModal = {
             mostrar: !auth.permisos, mensaje: t("txtModalPermisos"),
-            titulo: t("titModalPersmisos"), txtBtn: t("txtBtnPermisos"), icono: <IconoPermisos />
+            titulo: t("titModalPermisos"), txtBtn: t("txtBtnPermisos"), icono: <IconoPermisos />
         };
         if (auth.requiereRefresco) {
             compsModal = {
                 mostrar: true, titulo: t("titModalSesionCaducada"), txtBtn: t("txtBtnExtenderSesion"),
-                mensaje: t("mensajeModalSesionCaducada"),
+                mensaje: t("txtModalSesionCaducada"),
                 icono: <UpdateIcon />
             };
         }
@@ -142,7 +149,7 @@ export default function App() {
             />
             <ModalSimple
                 abrir={modal.mostrar}
-                titulo={t("txtError")}
+                titulo={t("tituloErr")}
                 mensaje={modal.mensaje}
                 manejadorBtnModal={manejadorBtnModal}
                 txtBtn={t("txtBtnCerrar")}

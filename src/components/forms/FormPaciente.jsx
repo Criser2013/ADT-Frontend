@@ -197,7 +197,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                     <Grid container columns={2} spacing={1} rowSpacing={2} paddingTop="2vh" overflow="auto" paddingRight="0.5vw">
                         <Grid size={2}>
                             <Typography variant="h5">
-                                <b>Datos personales</b>
+                                <b>{t("titDatosPersonales")}</b>
                             </Typography>
                         </Grid>
                         <Grid size={2}>
@@ -240,7 +240,7 @@ export default function FormPaciente({ listadoPestanas, titPestana, id = "", esA
                                 control={control}
                                 rules={{
                                     required: t("errCampoObligatorio"),
-                                    validate: (x) => x != 2 || t("errSexoPaciente")
+                                    validate: (x) => x != 2 || t("errValidarSexo")
                                 }}
                                 render={({ field }) => (
                                     <TextField

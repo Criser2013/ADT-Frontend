@@ -33,7 +33,7 @@ export default function SelectChip({ valor, listaValores, manejadorCambios, nomb
                 renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                         {selected.map((value) => (
-                            <Chip key={value} label={value} />
+                            <Chip key={value} label={t(value)} />
                         ))}
                     </Box>
                 )}>

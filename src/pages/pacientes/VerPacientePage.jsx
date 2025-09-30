@@ -54,7 +54,7 @@ export default function VerPacientePage() {
         { titulo: t("txtNombre"), valor: datos.personales.nombre },
         { titulo: t("txtCedula"), valor: datos.personales.cedula },
         { titulo: t("txtFechaNacimiento"), valor: datos.personales.fechaNacimiento },
-        { titulo: t("txtCampoEdad"), valor: `${datos.personales.edad} años` },
+        { titulo: t("txtCampoEdad"), valor: `${datos.personales.edad} ${t("txtSufijoEdad")}` },
         { titulo: t("txtTelefono"), valor: datos.personales.telefono },
         { titulo: t("txtCampoSexo"), valor: datos.personales.sexo == 0 ? t("txtMasculino") : t("txtFemenino") }
     ], [datos.personales, navegacion.idioma]);
@@ -193,7 +193,7 @@ export default function VerPacientePage() {
             navigate("/pacientes", { replace: true });
         } else {
             setCargando(false);
-            setModal({ mostrar: true, titulo: t("tituloError"), mensaje: res.error, icono: <CloseIcon /> });
+            setModal({ mostrar: true, titulo: t("tituloErr"), mensaje: res.error, icono: <CloseIcon /> });
         }
     };
 
@@ -328,7 +328,7 @@ export default function VerPacientePage() {
                                 variant="extended"
                                 sx={{ textTransform: "none", display: "flex", position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
                                 <EditIcon sx={{ mr: 1 }} />
-                                <b>Editar</b>
+                                <b>{t("txtBtnEditar")}</b>
                             </Fab>
                         </Tooltip>
                     </>

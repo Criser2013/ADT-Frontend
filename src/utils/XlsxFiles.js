@@ -33,12 +33,14 @@ export function crearArchivoXlsx (datos, tipo = "xlsx") {
  * @param {String} nombreArchivo - Nombre de archivo a sobreescribir. De forma predeterminada es "HADT - Diagnósticos.xlsx".
  * @param {String} tipo - Tipo de archivo. Predeterminadamente es "xlsx", pero puede ser "csv".
  * se coloca el nombre del archivo en la constante EXPORT_FILENAME.
- * @returns JSON
+ * @param {String} idioma - Idioma para el archivo.
+ * @returns {JSON}
  */
-export function descargarArchivoXlsx (datos, nombreArchivo = EXPORT_FILENAME, tipo = "xlsx") {
+export function descargarArchivoXlsx (datos, nombreArchivo = EXPORT_FILENAME, tipo = "xlsx", idioma = "es") {
     try {
+        const txt = idioma == "es" ? "Diagnósticos" : "Diagnoses";
         const ws = utils.json_to_sheet(datos);
-        const wb = utils.book_new(ws, "Diagnósticos");
+        const wb = utils.book_new(ws, txt);
 
         writeFile(wb, `${nombreArchivo}.${tipo}`, {
             bookType: tipo, cellDates: true, compression: true
@@ -66,7 +68,7 @@ export function leerArchivoXlsx (archivo, idioma) {
         }
 
         return { success: false, data: [], error: {
-            code: 401, message: textos[idioma].errEstrucArchivoInvalida,
+            code: 401, message: textos[idioma].translation.errEstrucArchivoInvalida,
         } };
     } catch (error) {
         return { success: false, data: null, error: error };

@@ -104,8 +104,8 @@ export default function MenuAdministrador() {
      */
     useEffect(() => {
         if (!!diagnosticos && !!usuarios && datos == null) {
-            const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4, fechaActual);
-            const usuariosMensuales = obtenerDatosPorMes(usuarios, "fecha_registro", 4, fechaActual, "DD/MM/YYYY hh:mm A");
+            const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4, fechaActual, "DD-MM-YYYY", navegacion.idioma);
+            const usuariosMensuales = obtenerDatosPorMes(usuarios, "fecha_registro", 4, fechaActual, "DD/MM/YYYY hh:mm A", navegacion.idioma);
             const json = {
                 datasets: [
                     formatearDatosGrafico(diagnosticosMensuales, 'rgba(255, 99, 132, 0.5)', t("txtDiagnosticosRealizados")),

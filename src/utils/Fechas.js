@@ -8,16 +8,19 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
  * @param {Number} numMesesAtras - Número de meses hacia atrás sin contar el mes actual.
  * @param {Dayjs} fechaActual - Fecha actual para calcular los meses.
  * @param {String} formatoFecha - Formato de la fecha si es una cadena, por defecto "DD-MM-YYYY".
+ * @param {String} idioma - Idioma para los nombres de los meses, por defecto "es" (español). Opciones: "es", "en".
  * @returns {JSON[Number]}
  */
-export function obtenerDatosPorMes(datos, clave, numMesesAtras, fechaActual, formatoFecha = "DD-MM-YYYY") {
-    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+export function obtenerDatosPorMes(datos, clave, numMesesAtras, fechaActual, formatoFecha = "DD-MM-YYYY", idioma = "es") {
+    const meses = { es: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+        , en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] 
+    };
     const res = {};
     const fechaFinal = fechaActual.subtract(numMesesAtras, "month");
     const mes = fechaFinal.month();
 
     for (let i = 0; i < numMesesAtras + 1; i++) {
-        res[meses[mes + i]] = 0;
+        res[meses[idioma][mes + i]] = 0;
     }
 
     datos.forEach((x) => {
@@ -33,8 +36,8 @@ export function obtenerDatosPorMes(datos, clave, numMesesAtras, fechaActual, for
             mes = fecha.getMonth();
         }
 
-        if (res[meses[mes]] != undefined) {
-            res[meses[mes]] += 1;
+        if (res[meses[idioma][mes]] != undefined) {
+            res[meses[idioma][mes]] += 1;
         }
     });
 
@@ -44,11 +47,14 @@ export function obtenerDatosPorMes(datos, clave, numMesesAtras, fechaActual, for
 /**
  * Obtiene el nombre del mes actual.
  * @param {Dayjs} fecha - Fecha para obtener el mes actual. Si no se proporciona, se usa la fecha actual.
+ * @param {String} idioma - Idioma para el nombre del mes, por defecto "es" (español). Opciones: "es", "en".
  * @returns {String}
  */
-export function obtenerMesActualStr (fecha) {
-    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    return meses[fecha.get("month")];
+export function obtenerMesActualStr (fecha, idioma = "es") {
+    const meses = { es: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+        en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    };
+    return meses[idioma][fecha.get("month")];
 }
 
 /**

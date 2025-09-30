@@ -3,7 +3,7 @@
      * @param {Boolean} mostrarMenu - Estado del menú
      * @param {Boolean} dispositivoMovil - Si el usuario está en un dispositivo móvil
      * @param {String} orientacion - Orientación de la pantalla ("horizontal" o
-     * @returns Boolean
+     * @returns {Boolean}
      */
 export function detAbrirMenu(mostrarMenu, dispositivoMovil, orientacion) {
     if (!mostrarMenu && (dispositivoMovil && orientacion == "vertical")) {
