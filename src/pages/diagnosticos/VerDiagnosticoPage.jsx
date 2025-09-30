@@ -228,7 +228,7 @@ export default function VerDiagnosticoPage() {
                 setMostrarBtnSecundario(false);
                 setModal({
                     mostrar: true, mensaje: res.error, icono: <CloseIcon />,
-                    titulo: t("errTituloCargarDatosPacientes"),
+                    titulo: t("errTitCargarDatosPacientes"),
                 });
                 return;
             }

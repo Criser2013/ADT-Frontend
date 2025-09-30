@@ -44,22 +44,24 @@ export function DriveProvider({ children }) {
      * @returns {JSON}
      */
     const verificarExisteArchivo = async (nombre, esCarpeta = false, carpeta = "") => {
-        let params = `name='${nombre}' and trashed=false`;
+        if (token != null) {
+            let params = `name='${nombre}' and trashed=false`;
 
-        if (esCarpeta) {
-            params += ` and mimeType='application/vnd.google-apps.folder'`;
-        } else {
-            params += ` and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' and '${carpeta}' in parents`;
-        }
+            if (esCarpeta) {
+                params += ` and mimeType='application/vnd.google-apps.folder'`;
+            } else {
+                params += ` and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' and '${carpeta}' in parents`;
+            }
 
-        const busq = await buscarArchivo(params, token);
+            const busq = await buscarArchivo(params, token);
 
-        if (busq.success && busq.data.files.length > 0) {
-            return { success: true, data: busq.data, error: null };
-        } else if (busq.success && busq.data.length === 0) {
-            return { success: false, data: null, error: t("errArchivoInexistente") };
-        } else {
-            return { success: false, data: null, error: t(busq.error) };
+            if (busq.success && busq.data.files.length > 0) {
+                return { success: true, data: busq.data, error: null };
+            } else if (busq.success && busq.data.length === 0) {
+                return { success: false, data: null, error: t("errArchivoInexistente") };
+            } else {
+                return { success: false, data: null, error: t(busq.error) };
+            }
         }
     };
 
@@ -72,18 +74,20 @@ export function DriveProvider({ children }) {
      * @returns {JSON}
      */
     const crearArchivoMeta = async (nombre, esCarpeta = false, carpeta = "", mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") => {
-        const res = await crearArchivo({
-            name: nombre, parents: !esCarpeta ? [carpeta] : [],
-            mimeType: mimeType
-        }, token, esCarpeta);
+        if (token != null) {
+            const res = await crearArchivo({
+                name: nombre, parents: !esCarpeta ? [carpeta] : [],
+                mimeType: mimeType
+            }, token, esCarpeta);
 
-        if (res.success && !esCarpeta) {
-            setArchivoId(res.data.id);
-            return { success: true, data: res.data };
-        } else if (res.success && esCarpeta) {
-            return { success: true, data: res.data };
-        } else {
-            return {...res, error: t(res.error) };
+            if (res.success && !esCarpeta) {
+                setArchivoId(res.data.id);
+                return { success: true, data: res.data };
+            } else if (res.success && esCarpeta) {
+                return { success: true, data: res.data };
+            } else {
+                return { ...res, error: t(res.error) };
+            }
         }
     };
 
@@ -104,7 +108,7 @@ export function DriveProvider({ children }) {
                     setArchivoId(res.data.id);
                     return res;
                 } else if (!res.success && !res.error.includes("Carga resumible")) {
-                    return {...res, error: t("errCargaResumible")};
+                    return { ...res, error: t("errCargaResumible") };
                 } else {
                     reintentos--;
                 }
@@ -356,7 +360,7 @@ export function DriveProvider({ children }) {
             }
             auxCarpeta = res.data.id;
         } else {
-            const id =  existe.success ? existe.data.files[0].id : auxCarpeta;
+            const id = existe.success ? existe.data.files[0].id : auxCarpeta;
             return await guardarArchivoDiagnostico(nombreArchivo, id, datos, tipo);
         }
     };

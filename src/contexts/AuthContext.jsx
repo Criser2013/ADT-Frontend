@@ -402,6 +402,13 @@ export function AuthProvider({ children }) {
     };
 
     /**
+     * Coloca el indicador de carga sobre toda la aplicación (solo se utiliza en casos especiales).
+     */
+    const mostrarPantallaCarga = () => {
+        setCargando(true);
+    };
+
+    /**
      * Permite activar o desactivar el modo de usuario de los administradores.
      * @param {Boolean} modo - Modo de usuario (false - desactivado, true - activado).
      */
@@ -425,7 +432,7 @@ export function AuthProvider({ children }) {
         <authContext.Provider value={{
             useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive,
             setScopes, cerrarSesion, iniciarSesionGoogle, reautenticarUsuario, permisos, autenticado,
-            requiereRefresco, quitarPantallaCarga, cambiarModoUsuario
+            requiereRefresco, quitarPantallaCarga, cambiarModoUsuario, mostrarPantallaCarga
         }}>
             {children}
         </authContext.Provider>

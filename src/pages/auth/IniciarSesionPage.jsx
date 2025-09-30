@@ -97,13 +97,6 @@ export default function IniciarSesionPage() {
         }, 100);
     };
 
-    useEffect(() => {
-        document.title = t("titInicioSesion");
-        if (CAPTCHA.current != null) {
-            reiniciarPagina();
-        }
-    }, [navegacion.idioma]);
-
     /**
      * Manejador de eventos del botón para iniciar sesión.
      */

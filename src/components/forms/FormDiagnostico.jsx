@@ -110,13 +110,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     };
 
     useEffect(() => {
-        document.title = t("titInicioSesion");
-        if (CAPTCHA.current != null) {
-            reiniciarPagina();
-        }
-    }, [navegacion.idioma]);
-
-    useEffect(() => {
         setAntTema(temaCaptcha);
         if (antTema != temaCaptcha) {
             reiniciarPagina();
