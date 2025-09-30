@@ -44,24 +44,22 @@ export function DriveProvider({ children }) {
      * @returns {JSON}
      */
     const verificarExisteArchivo = async (nombre, esCarpeta = false, carpeta = "") => {
-        if (token != null) {
-            let params = `name='${nombre}' and trashed=false`;
+        let params = `name='${nombre}' and trashed=false`;
 
-            if (esCarpeta) {
-                params += ` and mimeType='application/vnd.google-apps.folder'`;
-            } else {
-                params += ` and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' and '${carpeta}' in parents`;
-            }
+        if (esCarpeta) {
+            params += ` and mimeType='application/vnd.google-apps.folder'`;
+        } else {
+            params += ` and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' and '${carpeta}' in parents`;
+        }
 
-            const busq = await buscarArchivo(params, token);
+        const busq = await buscarArchivo(params, token);
 
-            if (busq.success && busq.data.files.length > 0) {
-                return { success: true, data: busq.data, error: null };
-            } else if (busq.success && busq.data.length === 0) {
-                return { success: false, data: null, error: t("errArchivoInexistente") };
-            } else {
-                return { success: false, data: null, error: t(busq.error) };
-            }
+        if (busq.success && busq.data.files.length > 0) {
+            return { success: true, data: busq.data, error: null };
+        } else if (busq.success && busq.data.length === 0) {
+            return { success: false, data: null, error: t("errArchivoInexistente") };
+        } else {
+            return { success: false, data: null, error: t(busq.error) };
         }
     };
 
@@ -74,20 +72,18 @@ export function DriveProvider({ children }) {
      * @returns {JSON}
      */
     const crearArchivoMeta = async (nombre, esCarpeta = false, carpeta = "", mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") => {
-        if (token != null) {
-            const res = await crearArchivo({
-                name: nombre, parents: !esCarpeta ? [carpeta] : [],
-                mimeType: mimeType
-            }, token, esCarpeta);
+        const res = await crearArchivo({
+            name: nombre, parents: !esCarpeta ? [carpeta] : [],
+            mimeType: mimeType
+        }, token, esCarpeta);
 
-            if (res.success && !esCarpeta) {
-                setArchivoId(res.data.id);
-                return { success: true, data: res.data };
-            } else if (res.success && esCarpeta) {
-                return { success: true, data: res.data };
-            } else {
-                return { ...res, error: t(res.error) };
-            }
+        if (res.success && !esCarpeta) {
+            setArchivoId(res.data.id);
+            return { success: true, data: res.data };
+        } else if (res.success && esCarpeta) {
+            return { success: true, data: res.data };
+        } else {
+            return { ...res, error: t(res.error) };
         }
     };
 
@@ -123,22 +119,20 @@ export function DriveProvider({ children }) {
      * @returns {JSON}
      */
     const descargarContArchivo = async (archivoId) => {
-        if (token != null) {
-            setDescargando(true);
-            const pet = await descargarArchivo(archivoId, token);
+        setDescargando(true);
+        const pet = await descargarArchivo(archivoId, token);
 
-            if (pet.success) {
-                const datosArchivo = leerArchivoXlsx(pet.data, i18n.language);
-                if (datosArchivo.success) {
-                    setDatos(datosArchivo.data);
-                    return { success: true, data: null };
-                }
-                setDatos([]);
-                return { success: false, error: t("errLeerArchivo") };
-            } else {
-                setDatos([]);
-                return { success: false, error: t(pet.error) };
+        if (pet.success) {
+            const datosArchivo = leerArchivoXlsx(pet.data, i18n.language);
+            if (datosArchivo.success) {
+                setDatos(datosArchivo.data);
+                return { success: true, data: null };
             }
+            setDatos([]);
+            return { success: false, error: t("errLeerArchivo") };
+        } else {
+            setDatos([]);
+            return { success: false, error: t(pet.error) };
         }
     };
 

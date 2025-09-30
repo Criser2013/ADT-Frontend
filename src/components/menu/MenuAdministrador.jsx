@@ -160,7 +160,7 @@ export default function MenuAdministrador() {
      * Carga los datos de los usuarios
      */
     const cargarUsuarios = async (token) => {
-        const res = await peticionApi(token, "admin/usuarios", "GET", null, t("errCargarDatosUsuarios"));
+        const res = await peticionApi(token, "admin/usuarios", "GET", null, t("errCargarDatosUsuarios"), navegacion.idioma);
         if (!res.success) {
             setModal({
                 mostrar: true, mensaje: res.error,

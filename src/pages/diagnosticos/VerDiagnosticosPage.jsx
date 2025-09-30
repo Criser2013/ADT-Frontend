@@ -16,7 +16,6 @@ import { peticionApi } from "../../services/Api";
 import { detTxtDiagnostico, nombresCampos } from "../../utils/TratarDatos";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { descargarArchivoXlsx } from "../../utils/XlsxFiles";
-import { EXPORT_FILENAME } from "../../../constants";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FormSeleccionar from "../../components/forms/FormSeleccionar";
 import { CODIGO_ADMIN } from "../../../constants";
@@ -224,7 +223,7 @@ export default function VerDiagnosticosPage() {
     const cargarPacientes = async (token = "") => {
         const res = (rol != CODIGO_ADMIN) ? await drive.cargarDatos() :
             await peticionApi(token, "admin/usuarios", "GET", null,
-                t("errCargarUsuarios")
+                t("errCargarUsuarios"), navegacion.idioma
             );
         setArchivoDescargado(true);
         if (res.success && rol == CODIGO_ADMIN) {
@@ -480,9 +479,9 @@ export default function VerDiagnosticosPage() {
             weekday: "long", year: "numeric", month: "long",
             day: "numeric", hour: "numeric", minute: "numeric"
         };
-        const fecha = new Date().toLocaleDateString("es-CO", opciones).replaceAll(".", "");
+        const fecha = new Date().toLocaleDateString(navegacion.idioma, opciones).replaceAll(".", "");
         const auxArr = [];
-        const nombreArchivo = preprocesar ? `${EXPORT_FILENAME}${fecha}-${t("txtPreprocesados")}` : `${EXPORT_FILENAME}${fecha}`;
+        const nombreArchivo = preprocesar ? `HADT ${t("txtDiagnosticos")} — ${fecha}-${t("txtPreprocesados")}` : `HADT ${t("txtDiagnosticos")} — ${fecha}`;
 
         for (let i = 0; i < aux.length; i++) {
             // Solo se incluyen los diagnósticos validados si se requiere preprocesar y lo pide un admin

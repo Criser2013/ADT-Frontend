@@ -205,7 +205,7 @@ export default function VerDiagnosticoPage() {
                 await cargarDatosMedico(token, datos.data.medico);
             } else {
                 sessionStorage.setItem("paciente", datos.data.paciente);
-                await cargarDatosPacientes();
+                //await cargarDatosPacientes();
             }
 
             preprocesarDiag(datos.data);
@@ -213,6 +213,14 @@ export default function VerDiagnosticoPage() {
             navigate("/diagnosticos", { replace: true });
         }
     };
+
+    useEffect(() => {
+        const id = sessionStorage.getItem("paciente");
+
+        if (drive.token != null && id != null && diagOriginal != {}) {
+            cargarDatosPacientes();
+        }
+    }, [drive.token, diagOriginal]);
 
     /**
      * Carga los datos de los pacientes.
@@ -268,7 +276,7 @@ export default function VerDiagnosticoPage() {
     const cargarDatosMedico = async (token, uid) => {
         uid = encodeURIComponent(uid);
         const res = await peticionApi(token, `admin/usuarios/${uid}`, "GET", null,
-            t("errCargarDatosUsuarios")
+            t("errCargarDatosUsuarios"), navegacion.idioma
         );
         let persona = { nombre: "N/A" };
 

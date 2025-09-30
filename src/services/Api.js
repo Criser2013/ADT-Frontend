@@ -7,15 +7,17 @@ import { API_URL } from "../../constants";
  * @param {String} ruta - Ruta del API a consultar.
  * @param {JSON} cuerpo - Cuerpo de la petición (opcional).
  * @param {String} txtError - Mensaje de error a mostrar en caso de fallo
+ * @param {String} idioma - Idioma actual de la aplicación.
  * @returns JSON
  */
-export async function peticionApi(token, ruta, metodo, cuerpo = null, txtError = "") {
+export async function peticionApi(token, ruta, metodo, cuerpo = null, txtError = "", idioma = "es") {
     try {
         let opciones = {
             method: metodo,
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
+                "Authorization": `Bearer ${token}`,
+                "Language": idioma
             },
         };
 

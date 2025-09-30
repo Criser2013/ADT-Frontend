@@ -7,7 +7,6 @@ export const COMORBILIDADES = ["Enfermedad vascular", "Trombofilia", "Enfermedad
     "Diabetes", "Hipertensión arterial", "Hepatopatía crónica", "Enfermedad hematológica", "VIH", "Enfermedad cardíaca",
     "Enfermedad coronaria", "Enfermedad endocrina", "Enfermedad gastrointestinal", "Enfermedad urológica", "Enfermedad neurológica",
 ];
-export const EXPORT_FILENAME = `HADT Diagnósticos — `;
 export const DRIVE_FOLDER_NAME = import.meta.env.VITE_DRIVE_FOLDER_NAME || "HADT: Herramienta para apoyar el diagnóstico de TEP";
 export const URL_MANUAL_USUARIO = import.meta.env.VITE_URL_MANUAL_USUARIO || "https://www.youtube.com";
 export const URL_MANUAL_ADMIN = import.meta.env.VITE_URL_MANUAL_ADMIN || "https://www.google.com";

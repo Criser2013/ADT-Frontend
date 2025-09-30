@@ -140,7 +140,7 @@ export default function IniciarSesionPage() {
      */
     const verificarRespuesta = async (token) => {
         setCargandoBtn(true);
-        const res = await peticionApi("", "recaptcha", "POST", { token: token }, t("errCaptchaApi"));
+        const res = await peticionApi("", "recaptcha", "POST", { token: token }, t("errCaptchaApi"), navegacion.idioma);
 
         if (res.success) {
             if (res.data.success) {

@@ -143,7 +143,7 @@ export default function VerUsuariosPage() {
      */
     const cargarUsuarios = async (token) => {
         const res = await peticionApi(token, "admin/usuarios", "GET", null,
-            t("errCargarUsuarios")
+            t("errCargarUsuarios"), navegacion.idioma
         );
         if (!res.success) {
             setUsuarios([]);
@@ -371,7 +371,7 @@ export default function VerUsuariosPage() {
         usuarios.forEach((x, i) => {
             x = encodeURIComponent(x);
             x = x.replaceAll(".", "%2E");
-            peticiones[i] = peticionApi(token, `admin/usuarios/${x}?desactivar=${estado}`, "PATCH");
+            peticiones[i] = peticionApi(token, `admin/usuarios/${x}?desactivar=${estado}`, "PATCH", null, "", navegacion.idioma);
         });
 
         for (let i = 0; i < peticiones.length; i++) {

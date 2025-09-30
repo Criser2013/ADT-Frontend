@@ -1,5 +1,5 @@
 import { utils, writeXLSX, read, writeFile } from "xlsx";
-import { COMORBILIDADES, EXPORT_FILENAME } from "../../constants";
+import { COMORBILIDADES } from "../../constants";
 import { validarFecha, validarId, validarNombre, validarNumero, validarTelefono } from "./Validadores";
 import textos from "../assets/textos/textos.json";
 
@@ -36,7 +36,7 @@ export function crearArchivoXlsx (datos, tipo = "xlsx") {
  * @param {String} idioma - Idioma para el archivo.
  * @returns {JSON}
  */
-export function descargarArchivoXlsx (datos, nombreArchivo = EXPORT_FILENAME, tipo = "xlsx", idioma = "es") {
+export function descargarArchivoXlsx (datos, nombreArchivo, tipo = "xlsx", idioma = "es") {
     try {
         const txt = idioma == "es" ? "Diagnósticos" : "Diagnoses";
         const ws = utils.json_to_sheet(datos);
