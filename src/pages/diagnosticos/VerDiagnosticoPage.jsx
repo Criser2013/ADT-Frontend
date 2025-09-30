@@ -205,7 +205,6 @@ export default function VerDiagnosticoPage() {
                 await cargarDatosMedico(token, datos.data.medico);
             } else {
                 sessionStorage.setItem("paciente", datos.data.paciente);
-                //await cargarDatosPacientes();
             }
 
             preprocesarDiag(datos.data);
@@ -215,9 +214,7 @@ export default function VerDiagnosticoPage() {
     };
 
     useEffect(() => {
-        const id = sessionStorage.getItem("paciente");
-
-        if (drive.token != null && id != null && diagOriginal != {}) {
+        if (drive.token != null && diagOriginal != {}) {
             cargarDatosPacientes();
         }
     }, [drive.token, diagOriginal]);
