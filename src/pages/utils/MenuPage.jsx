@@ -4,6 +4,8 @@ import MenuLayout from "../../components/layout/MenuLayout";
 import { CODIGO_ADMIN } from "../../../constants";
 import MenuUsuario from "../../components/menu/MenuUsuario";
 import MenuAdministrador from "../../components/menu/MenuAdministrador";
+import { useTranslation } from "react-i18next";
+import { useNavegacion } from "../../contexts/NavegacionContext";
 
 /**
  * Página del menú principal de la aplicación.
@@ -11,11 +13,13 @@ import MenuAdministrador from "../../components/menu/MenuAdministrador";
  */
 export default function MenuPage() {
     const auth = useAuth();
+    const { t } = useTranslation();
+    const { idioma } = useNavegacion();
     const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
 
     useEffect(() => {
-        document.title = "Menú principal";
-    }, []);
+        document.title = t("titMenu");
+    }, [idioma]);
 
     return (
         <MenuLayout>

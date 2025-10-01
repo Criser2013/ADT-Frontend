@@ -7,40 +7,33 @@ export const COMORBILIDADES = ["Enfermedad vascular", "Trombofilia", "Enfermedad
     "Diabetes", "Hipertensión arterial", "Hepatopatía crónica", "Enfermedad hematológica", "VIH", "Enfermedad cardíaca",
     "Enfermedad coronaria", "Enfermedad endocrina", "Enfermedad gastrointestinal", "Enfermedad urológica", "Enfermedad neurológica",
 ];
-export const EXPORT_FILENAME = `HADT Diagnósticos — `;
 export const DRIVE_FOLDER_NAME = import.meta.env.VITE_DRIVE_FOLDER_NAME || "HADT: Herramienta para apoyar el diagnóstico de TEP";
 export const URL_MANUAL_USUARIO = import.meta.env.VITE_URL_MANUAL_USUARIO || "https://www.youtube.com";
 export const URL_MANUAL_ADMIN = import.meta.env.VITE_URL_MANUAL_ADMIN || "https://www.google.com";
 export const CANT_LIM_DIAGNOSTICOS = parseInt(import.meta.env.VITE_CANT_LIM_DIAGNOSTICOS) || 1500;
 export const SEXOS = [
-    { texto: "Seleccione el sexo", val: 2 },
-    { texto: "Masculino", val: 0 },
-    { texto: "Femenino", val: 1 }
+    { texto: "txtSelecSexo", val: 2 },
+    { texto: "txtMasculino", val: 0 },
+    { texto: "txtFemenino", val: 1 }
 ];
 export const CODIGO_ADMIN = 1001;
-export const SINTOMAS = [
-    { texto: "Fumador", nombre: "fumador" },
-    { texto: "Bebedor", nombre: "bebedor" },
-    { texto: "Tos", nombre: "tos" },
-    { texto: "Fiebre", nombre: "fiebre" },
-    { texto: "Edema de miembros inferiores", nombre: "edema" },
-    { texto: "Inmovilidad de miembros inferiores", nombre: "inmovilidad" },
-    { texto: "Procedimiento quirúrgico o traumatismo reciente", nombre: "cirugiaReciente" },
-    { texto: "Síntomas disautonómicos", nombre: "disautonomicos" },
-    { texto: "Viaje prolongado", nombre: "viajeProlongado" },
-    { texto: "Disnea", nombre: "disnea" },
-    { texto: "Sibilancias", nombre: "sibilancias" },
-    { texto: "Crepitaciones", nombre: "crepitaciones" },
-    { texto: "Derrame", nombre: "derrame" },
-    { texto: "Malignidad", nombre: "malignidad" },
-    { texto: "Hemoptisis", nombre: "hemoptisis" },
-    { texto: "Dolor torácico", nombre: "dolorToracico" },
-    { texto: "TEP - TVP previo", nombre: "tepPrevio" },
-    { texto: "Soplos", nombre: "soplos" }
+export const SINTOMAS = ["fumador", "bebedor", "tos", "fiebre", "edema",
+    "inmovilidad", "cirugiaReciente", "disautonomicos", "viajeProlongado",
+    "disnea", "sibilancias", "crepitaciones", "derrame", "malignidad",
+    "hemoptisis", "dolorToracico", "tepPrevio", "soplos"
 ];
 export const DIAGNOSTICOS = [
-    { valor: 2, texto: "Seleccione el diagnóstico" },
-    { valor: 0, texto: "Negativo" },
-    { valor: 1, texto: "Positivo" }
+    { valor: 2, texto: "txtSelecDiagnostico" },
+    { valor: 0, texto: "txtNegativo" },
+    { valor: 1, texto: "txtPositivo" }
 ];
 export const URL_CONDICIONES = import.meta.env.VITE_URL_CONDICIONES || "https://google.com";
+export const CAMPOS_BIN = [
+    "sexo", "fumador", "bebedor", "tos", "fiebre", "crepitaciones",
+    "dolorToracico", "malignidad", "hemoptisis", "disnea", "sibilancias",
+    "derrame", "tepPrevio", "edema", "disautonomicos", "inmovilidad",
+    "viajeProlongado", "cirugiaReciente", "otraEnfermedad", "soplos"
+];
+
+export const CAMPOS_TXT = ["edad", "presionSis", "presionDias", "frecRes",
+    "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"];

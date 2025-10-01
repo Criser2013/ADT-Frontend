@@ -1,4 +1,5 @@
 import { Box, Chip } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 /**
  * Contenedor que muestra una lista de comorbilidades como chips. Es de solo lectura.
@@ -6,6 +7,8 @@ import { Box, Chip } from "@mui/material";
  * @returns {JSX.Element}
  */
 export default function ContComorbilidades({ comorbilidades }) {
+    const { t } = useTranslation();
+
     return (
         <Box
             borderColor="blue"
@@ -16,7 +19,7 @@ export default function ContComorbilidades({ comorbilidades }) {
             {comorbilidades.map((x) => (
                 <Chip
                     key={x}
-                    label={x}
+                    label={t(x)}
                     size="medium" />
             ))}
         </Box>);

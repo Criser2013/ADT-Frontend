@@ -1,4 +1,5 @@
 import { Stack, Typography, TextField, MenuItem } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 /**
  * Formulario para seleccionar un valor de una lista.
@@ -11,6 +12,7 @@ import { Stack, Typography, TextField, MenuItem } from "@mui/material";
  * @returns {JSX.Element}
  */
 export default function FormSeleccionar({ texto, onChange, error, txtError, valor, valores, children }) {
+    const { t } = useTranslation();
     return (
         <Stack orientation="column" spacing={2} width="100%">
             <Typography variant="body1">
@@ -26,7 +28,7 @@ export default function FormSeleccionar({ texto, onChange, error, txtError, valo
                 {valores.map((x) => {
                     return (
                         <MenuItem key={x.valor} value={x.valor}>
-                            {x.texto}
+                            {t(x.texto)}
                         </MenuItem>
                     );
                 })}

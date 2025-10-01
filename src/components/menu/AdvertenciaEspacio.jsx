@@ -1,5 +1,6 @@
 import { Alert } from "@mui/material";
 import { CODIGO_ADMIN, CANT_LIM_DIAGNOSTICOS } from "../../../constants";
+import { useTranslation } from "react-i18next";
 
 /**
  * Alerta de espacio de almacenamiento.
@@ -8,10 +9,11 @@ import { CODIGO_ADMIN, CANT_LIM_DIAGNOSTICOS } from "../../../constants";
  * @returns {JSX.Element}
  */
 export default function AdvertenciaEspacio({ rol, cantidadDiagnosticos }) {
+    const { t } = useTranslation();
     return (
         ((rol == CODIGO_ADMIN) && (cantidadDiagnosticos >= CANT_LIM_DIAGNOSTICOS)) ? (
             <Alert severity="warning">
-                Tu almacenamiento está por agotarse. Para evitar pérdidas, se recomienda respaldar o exportar la información y eliminar diagnósticos antiguos.
+                {t("txtEspacio")}
             </Alert>
         ) : null
     );

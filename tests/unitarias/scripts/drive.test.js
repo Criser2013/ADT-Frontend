@@ -68,7 +68,7 @@ describe("Validar la funcion 'descargarArchivo'", () => {
             })
         });
         const res = await descargarArchivo("archivo1", "token");
-        expect(res).toEqual({ success: false, data: [], error: "Archivo no encontrado" });
+        expect(res).toEqual({ success: false, data: [], error: "errArchivoInexistente" });
         expect(global.fetch).toHaveBeenCalledTimes(1);
         expect(global.fetch).toHaveBeenCalledWith(
             "https://www.googleapis.com/drive/v3/files/archivo1?alt=media&source=downloadUrl", {
@@ -239,7 +239,7 @@ describe("Validar la funcion 'crearArchivo'", () => {
         }, "token", true);
 
         expect(res).toEqual({
-            success: false, data: [], error: "Límite de peticiones alcanzado. Reintente en 1 minuto."
+            success: false, data: [], error: "errLimPeticiones"
         });
 
         expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -324,7 +324,7 @@ describe("Validar la funcion 'buscarArchivo'", () => {
         );
 
         expect(res).toEqual({
-            success: false, data: [], error: "Credenciales inválidas, reintente nuevamente."
+            success: false, data: [], error: "errCreds"
         });
 
         expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -422,7 +422,7 @@ describe("Validar la funcion 'subirArchivoResumible'", () => {
         );
 
         expect(res).toEqual({
-            success: false, data: [], error: "Carga resumible incompleta"
+            success: false, data: [], error: "errCargaResumible"
         });
 
         expect(global.fetch).toHaveBeenCalledTimes(1);

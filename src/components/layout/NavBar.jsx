@@ -12,6 +12,8 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { CODIGO_ADMIN, URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../../constants";
 import ArticleIcon from '@mui/icons-material/Article';
 import SwitchLabel from "../tabs/SwitchLabel";
+import { useTranslation } from "react-i18next";
+import SelectIdioma from "../tabs/SelectIdioma";
 
 /**
  * Barra de navegación superior.
@@ -19,6 +21,7 @@ import SwitchLabel from "../tabs/SwitchLabel";
  */
 export default function Navbar() {
     const auth = useAuth();
+    const { t } = useTranslation();
     const navegacion = useNavegacion();
     const navigate = useNavigate();
     const [popOver, setPopOver] = useState(null);
@@ -28,19 +31,19 @@ export default function Navbar() {
     const rol = useMemo(() => auth.authInfo.rol, [auth.authInfo.rol]);
     const txtRol = useMemo(() => {
         const { rol } = auth.authInfo;
-        return rol == CODIGO_ADMIN ? "Administrador" : "Médico";
-    }, [auth.authInfo]);
+        return rol == CODIGO_ADMIN ? t("txtAdministrador") : t("txtMedico");
+    }, [auth.authInfo, navegacion.idioma]);
     const txtToolBtnMenu = useMemo(() => {
-        return navegacion.mostrarMenu ? "Cerrar menú" : "Abrir menú";
-    }, [navegacion.mostrarMenu]);
+        return navegacion.mostrarMenu ? t("txtCerrarMenu") : t("txtAbrirMenu");
+    }, [navegacion.mostrarMenu, navegacion.idioma]);
     const txtSwitch = useMemo(() => {
         const { modoUsuario } = auth.authInfo;
         if (modoUsuario === false) {
-            return "Activar modo usuario";
+            return t("txtActivarModoUsuario");
         } else {
-            return "Desactivar modo usuario";
+            return t("txtDesactivarModoUsuario");
         }
-    }, [auth.authInfo]);
+    }, [auth.authInfo, navegacion.idioma]);
 
     /**
      * Carga de la imagen del usuario a iniciar.
@@ -127,17 +130,18 @@ export default function Navbar() {
                     </Tooltip>
                     <Typography variant="h6"><b>HADT</b></Typography>
                     <Stack direction="row" spacing={1}>
+                        <SelectIdioma />
                         <IconButton color="inherit" onClick={manejadorBtnTema}>
                             <BtnTema />
                         </IconButton>
-                        <Tooltip title="Ver manual de instrucciones">
+                        <Tooltip title={t("txtAyudaBtnManual")}>
                             <IconButton color="inherit" onClick={manejadorBtnInstrucciones}>
                                 <ArticleIcon />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title="Ver opciones de usuario">
+                        <Tooltip title={t("txtAyudaAvatar")}>
                             <IconButton onClick={manejadorMousePopOver} color="inherit" aria-describedby={idPopOver}>
-                                <Avatar alt={auth.authInfo.user != null ? auth.authInfo.user.displayName : "Usuario"} src={img}>
+                                <Avatar alt={auth.authInfo.user != null ? auth.authInfo.user.displayName : t("txtUsuario")} src={img}>
                                     {img === "" ? <AccountCircleIcon sx={{ height: 47, width: 47 }} /> : null}
                                 </Avatar>
                                 <ArrowDropDownIcon color="inherit" />
@@ -164,13 +168,13 @@ export default function Navbar() {
                         }}>
                         <Box padding="1vh 15px" maxWidth="90vw">
                             <Typography variant="h6">
-                                <b>{auth.authInfo.user != null ? auth.authInfo.user.displayName : "Usuario"}</b>
+                                <b>{auth.authInfo.user != null ? auth.authInfo.user.displayName : t("txtUsuario")}</b>
                             </Typography>
                             <Typography variant="body2" maxWidth="100%">
                                 <b>{txtRol}</b>
                             </Typography>
                             <Typography variant="body2" color="textSecondary" maxWidth="100%">
-                                <span><b>Correo: </b> {auth.authInfo.user != null ? auth.authInfo.user.email : "Correo@correo.com"}</span>
+                                <span><b>{t("txtCorreo")}: </b> {auth.authInfo.user != null ? auth.authInfo.user.email : "Correo@correo.com"}</span>
                             </Typography>
                         </Box>
                         <Divider />
@@ -188,7 +192,7 @@ export default function Navbar() {
                             <Stack direction="row" spacing={1} display="flex" alignItems="center">
                                 <LogoutIcon />
                                 <Typography variant="body1" sx={{ p: 0.5 }}>
-                                    Cerrar sesión
+                                    {t("txtBtnCerrarSesion")}
                                 </Typography>
                             </Stack>
                         </MenuItem>

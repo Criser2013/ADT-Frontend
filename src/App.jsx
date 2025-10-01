@@ -3,6 +3,7 @@ import { useAuth } from "./contexts/AuthContext";
 import { useCredenciales } from "./contexts/CredencialesContext";
 import { useEffect, useState } from "react";
 import { useNavegacion } from "./contexts/NavegacionContext";
+import { useTranslation } from "react-i18next";
 import ModalSimple from "./components/modals/ModalSimple";
 import ModalAccion from "./components/modals/ModalAccion";
 import CloseIcon from "@mui/icons-material/Close";
@@ -18,6 +19,7 @@ import UpdateIcon from '@mui/icons-material/Update';
  */
 export default function App() {
     const auth = useAuth();
+    const { t } = useTranslation();
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
     const [modal, setModal] = useState({
@@ -32,7 +34,14 @@ export default function App() {
      * cuando se cargan las credenciales.
     */
     useEffect(() => {
-        import("dayjs/locale/es").then(() => dayjs.locale("es"));
+        import("dayjs/locale/es").then(() => {
+            const idioma = localStorage.getItem("i18nextLng");
+            if (idioma != null) {
+                dayjs.locale(idioma);
+            } else {
+                dayjs.locale("es");
+            }
+        });
         auth.setAuth(credenciales.obtenerInstanciaAuth());
         auth.setDb(credenciales.obtenerInstanciaDB());
         auth.setScopes(credenciales.scopesDrive);
@@ -45,13 +54,13 @@ export default function App() {
         }
 
         let compsModal = {
-            mostrar: !auth.permisos, mensaje: "Debes otorgar los permisos requeridos en tu cuenta de Google para utilizar la aplicación.",
-            titulo: "ℹ️ Permisos insuficientes", txtBtn: "Conceder permisos", icono: <IconoPermisos />
+            mostrar: !auth.permisos, mensaje: t("txtModalPermisos"),
+            titulo: t("titModalPermisos"), txtBtn: t("txtBtnPermisos"), icono: <IconoPermisos />
         };
         if (auth.requiereRefresco) {
             compsModal = {
-                mostrar: true, titulo: "ℹ️ La sesión ha caducado", txtBtn: "Extender sesión",
-                mensaje: "Tu sesión ha caducado, por favor reautentícate para continuar utilizando la aplicación.",
+                mostrar: true, titulo: t("titModalSesionCaducada"), txtBtn: t("txtBtnExtenderSesion"),
+                mensaje: t("txtModalSesionCaducada"),
                 icono: <UpdateIcon />
             };
         }
@@ -133,17 +142,17 @@ export default function App() {
                 manejadorBtnSecundario={manejadorBtnCerrarSesion}
                 mostrarBtnSecundario={true}
                 txtBtnSimple={modal2Btn.txtBtn}
-                txtBtnSecundario="Cerrar sesión"
+                txtBtnSecundario={t("txtBtnCerrarSesion")}
                 iconoBtnSecundario={<LogoutIcon />}
                 iconoBtnPrincipal={modal2Btn.icono}
                 txtBtnSimpleAlt={modal2Btn.txtBtn}
             />
             <ModalSimple
                 abrir={modal.mostrar}
-                titulo="❌ Error"
+                titulo={t("tituloErr")}
                 mensaje={modal.mensaje}
                 manejadorBtnModal={manejadorBtnModal}
-                txtBtn="Cerrar"
+                txtBtn={t("txtBtnCerrar")}
                 iconoBtn={<CloseIcon />}
             />
         </span>
