@@ -3,6 +3,7 @@ import { crearArchivoXlsx, leerArchivoXlsx } from "../utils/XlsxFiles";
 import { crearArchivo, buscarArchivo, crearCargaResumible, subirArchivoResumible, descargarArchivo } from "../services/Drive";
 import { DRIVE_FILENAME, DRIVE_FOLDER_NAME } from "../../constants";
 import { oneHotDecoderOtraEnfermedad, quitarDatosPersonales } from "../utils/TratarDatos";
+import { useTranslation } from "react-i18next";
 
 export const driveContext = createContext();
 
@@ -28,6 +29,7 @@ export function DriveProvider({ children }) {
     const [datos, setDatos] = useState(null);
     const [token, setToken] = useState(null);
     const [descargando, setDescargando] = useState(true);
+    const { t, i18n } = useTranslation();
 
     /* Colocar un useEffect para actualizar los datos cuando se cambie el token provoca errores
        si un usuario no tiene archivo de pacientes o la carpeta de la app se creará una nueva. Desde
@@ -55,9 +57,9 @@ export function DriveProvider({ children }) {
         if (busq.success && busq.data.files.length > 0) {
             return { success: true, data: busq.data, error: null };
         } else if (busq.success && busq.data.length === 0) {
-            return { success: false, data: null, error: "Archivo no encontrado" };
+            return { success: false, data: null, error: t("errArchivoInexistente") };
         } else {
-            return { success: false, data: null, error: busq.error };
+            return { success: false, data: null, error: t(busq.error) };
         }
     };
 
@@ -81,7 +83,7 @@ export function DriveProvider({ children }) {
         } else if (res.success && esCarpeta) {
             return { success: true, data: res.data };
         } else {
-            return res;
+            return { ...res, error: t(res.error) };
         }
     };
 
@@ -101,8 +103,8 @@ export function DriveProvider({ children }) {
                 if (res.success) {
                     setArchivoId(res.data.id);
                     return res;
-                } else if (!res.success && !res.error.includes("Carga resumible incompleta")) {
-                    return res;
+                } else if (!res.success && !res.error.includes("Carga resumible")) {
+                    return { ...res, error: t("errCargaResumible") };
                 } else {
                     reintentos--;
                 }
@@ -117,22 +119,20 @@ export function DriveProvider({ children }) {
      * @returns {JSON}
      */
     const descargarContArchivo = async (archivoId) => {
-        if (token != null) {
-            setDescargando(true);
-            const pet = await descargarArchivo(archivoId, token);
+        setDescargando(true);
+        const pet = await descargarArchivo(archivoId, token);
 
-            if (pet.success) {
-                const datosArchivo = leerArchivoXlsx(pet.data);
-                if (datosArchivo.success) {
-                    setDatos(datosArchivo.data);
-                    return { success: true, data: null };
-                }
-                setDatos([]);
-                return { success: false, error: "Se ha producido un error al leer el archivo." };
-            } else {
-                setDatos([]);
-                return { success: false, error: pet.error };
+        if (pet.success) {
+            const datosArchivo = leerArchivoXlsx(pet.data, i18n.language);
+            if (datosArchivo.success) {
+                setDatos(datosArchivo.data);
+                return { success: true, data: null };
             }
+            setDatos([]);
+            return { success: false, error: t("errLeerArchivo") };
+        } else {
+            setDatos([]);
+            return { success: false, error: t(pet.error) };
         }
     };
 
@@ -147,19 +147,19 @@ export function DriveProvider({ children }) {
         const existe = await verificarExisteArchivoYCarpeta();
 
         if (!existe.success) {
-            return { success: false, error: "Se ha producido un error al verificar o crear el archivo y la carpeta. Reintente nuevamente." };
+            return { success: false, error: t("errVerificarArchivo") };
         } else {
             const pet = await descargarArchivo(archivoId, token);
             if (!pet.success) {
                 return { success: false, error: pet.error };
             }
 
-            tabla = leerArchivoXlsx(pet.data).data;
+            tabla = leerArchivoXlsx(pet.data, i18n.language).data;
         }
 
         const yaExiste = verificarExistePaciente(instancia.cedula, tabla);
         if (yaExiste && (!esEditar || (esEditar && instancia.cedula != prevCedula))) {
-            return { success: false, error: "Ya hay un paciente registrado con ese número de cédula." };
+            return { success: false, error: t("errPacienteDuplicado") };
         }
 
         if (esEditar) {
@@ -194,13 +194,13 @@ export function DriveProvider({ children }) {
         const existe = await verificarExisteArchivoYCarpeta();
 
         if (!existe.success) {
-            return { success: false, error: "Se ha producido un error al verificar o crear el archivo y la carpeta. Reintente nuevamente." };
+            return { success: false, error: t("errVerificarArchivo") };
         } else {
             const pet = await descargarArchivo(archivoId, token);
             if (!pet.success) {
                 return { success: false, error: pet.error };
             }
-            tabla = leerArchivoXlsx(pet.data).data;
+            tabla = leerArchivoXlsx(pet.data, i18n.language).data;
         }
 
         if (varios) {
@@ -221,7 +221,7 @@ export function DriveProvider({ children }) {
         } else {
             const indice = tabla.findIndex((paciente) => paciente.id == id);
             if (indice == -1) {
-                return { success: false, error: "Paciente no encontrado" };
+                return { success: false, error: t("errPacienteInexistente") };
             } else {
                 tabla.splice(indice, 1);
             }
@@ -264,11 +264,11 @@ export function DriveProvider({ children }) {
         let idArchivo = null;
         const petCrearCarp = await crearArchivoMeta(DRIVE_FOLDER_NAME, true);
         if (!petCrearCarp.success) {
-            return { success: false, error: petCrearCarp.error };
+            return { success: false, error: t(petCrearCarp.error) };
         }
         const petCrearArch = await crearArchivoMeta(DRIVE_FILENAME, false, petCrearCarp.data.id);
         if (!petCrearArch.success) {
-            return { success: false, error: petCrearArch.error };
+            return { success: false, error: t(petCrearArch.error) };
         } else {
             setArchivoId(petCrearArch.data.id);
             idArchivo = petCrearArch.data.id;
@@ -354,7 +354,7 @@ export function DriveProvider({ children }) {
             }
             auxCarpeta = res.data.id;
         } else {
-            const id =  existe.success ? existe.data.files[0].id : auxCarpeta;
+            const id = existe.success ? existe.data.files[0].id : auxCarpeta;
             return await guardarArchivoDiagnostico(nombreArchivo, id, datos, tipo);
         }
     };

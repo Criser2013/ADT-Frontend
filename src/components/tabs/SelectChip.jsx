@@ -1,4 +1,5 @@
 import { FormControl, InputLabel, Select, Box, OutlinedInput, MenuItem, FormHelperText, Chip } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 /**
  * Componente de selección múltiple con chips.
@@ -13,6 +14,7 @@ import { FormControl, InputLabel, Select, Box, OutlinedInput, MenuItem, FormHelp
  * @returns {JSX.Element}
  */
 export default function SelectChip({ valor, listaValores, manejadorCambios, nombre, error, txtError, etiqueta, desactivado = false }) {
+    const { t } = useTranslation();
     return (
         <FormControl sx={{ width: "100%" }}>
             <InputLabel id="select-chip-tag">
@@ -31,7 +33,7 @@ export default function SelectChip({ valor, listaValores, manejadorCambios, nomb
                 renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                         {selected.map((value) => (
-                            <Chip key={value} label={value} />
+                            <Chip key={value} label={t(value)} />
                         ))}
                     </Box>
                 )}>
@@ -39,7 +41,7 @@ export default function SelectChip({ valor, listaValores, manejadorCambios, nomb
                     <MenuItem
                         key={x}
                         value={x}>
-                        {x}
+                        {t(x)}
                     </MenuItem>
                 ))}
             </Select>

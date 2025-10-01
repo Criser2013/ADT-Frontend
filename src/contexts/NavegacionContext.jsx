@@ -1,4 +1,5 @@
 import { createContext, useState, useContext, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useColorScheme } from "@mui/material/styles";
 
 export const navegacionContext = createContext();
@@ -35,6 +36,8 @@ export function NavegacionProvider({ children }) {
     const [alto, setAlto] = useState(window.viewport.segments[0].height);
     const [recargarPagina, setRecargarPagina] = useState(false);
     const { mode, setMode } = useColorScheme();
+    const { i18n } = useTranslation();
+    const idioma = useMemo(() => i18n.language, [i18n.language]);
     const tema = useMemo(() => {
         if (mode == "system" || mode == undefined) {
             if (window.matchMedia("(prefers-color-scheme: light)").matches) {
@@ -133,11 +136,20 @@ export function NavegacionProvider({ children }) {
         }
     };
 
+    /**
+     * Cambia el idioma de la aplicación.
+     * @param {string} idioma 
+     */
+    const cambiarIdioma = (idioma) => {
+        i18n.changeLanguage(idioma);
+        location.reload();
+    };
+
     return (
         <navegacionContext.Provider value={{
             paginaAnterior, setPaginaAnterior, callbackError, setCallbackError, mostrarMenu, setMostrarMenu, cerrandoMenu,
             variantSidebar, setCerrandoMenu, dispositivoMovil, orientacion, ancho, alto, cambiarTema, tema, recargarPagina,
-            setRecargarPagina
+            setRecargarPagina, idioma, cambiarIdioma
         }}>
             {children}
         </navegacionContext.Provider>

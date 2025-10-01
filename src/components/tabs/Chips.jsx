@@ -1,6 +1,7 @@
 import { Chip } from "@mui/material";
 import { useMemo } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useTranslation } from "react-i18next";
 
 /**
  * Chip para mostrar el rol del usuario.
@@ -8,7 +9,8 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
  * @returns {JSX.Element}
  */
 export function ChipRol ({ rol }) {
-    return <Chips valor={rol} fnColor={(valor) => (valor === "Administrador" ? "error" : "success")} />;
+    const { t } = useTranslation();
+    return <Chips valor={rol} fnColor={(valor) => (valor === t("txtAdministrador") ? "error" : "success")} />;
 }
 
 /**
@@ -17,7 +19,8 @@ export function ChipRol ({ rol }) {
  * @returns {JSX.Element}
  */
 export function ChipSexo({ sexo }) {
-    return <Chips valor={sexo} fnColor={(valor) => (valor === "Masculino" ? "info" : "secondary")} />;
+    const { t } = useTranslation();
+    return <Chips valor={sexo} fnColor={(valor) => (valor === t("txtMasculino") ? "info" : "secondary")} />;
 }
 
 /**
@@ -26,7 +29,8 @@ export function ChipSexo({ sexo }) {
  * @returns {JSX.Element}
  */
 export function ChipDiagnostico({ diagnostico }) {
-    return <Chips valor={diagnostico} fnColor={(valor) => (valor === "Positivo" ? "warning" : "success")} />;
+    const { t } = useTranslation();
+    return <Chips valor={diagnostico} fnColor={(valor) => (valor === t("txtPositivo") ? "warning" : "success")} />;
 }
 
 /**
@@ -35,10 +39,11 @@ export function ChipDiagnostico({ diagnostico }) {
  * @returns {JSX.Element}
  */
 export function ChipValidado({ validado }) {
+    const { t } = useTranslation();
     let color = "error";
-    if (validado === "Negativo") {
+    if (validado === t("txtNegativo")) {
         color = "success";
-    } else if (validado === "Positivo") {
+    } else if (validado === t("txtPositivo")) {
         color = "warning";
     }
     return <Chips valor={validado} fnColor={() => color} />;
@@ -50,7 +55,8 @@ export function ChipValidado({ validado }) {
  * @returns {JSX.Element}
  */
 export function ChipEstado({ estado }) {
-    return <Chips valor={estado} fnColor={(valor) => (valor === "Activo" ? "success" : "error")} />;
+    const { t } = useTranslation();
+    return <Chips valor={estado} fnColor={(valor) => (valor === t("txtActivo") ? "success" : "error")} />;
 }
 
 /**

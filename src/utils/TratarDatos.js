@@ -1,4 +1,5 @@
 import { COMORBILIDADES } from "../../constants";
+import textos from "../assets/textos/textos.json";
 
 /**
  * Convierte la lista de comorbilidades en un JSON cuyas claves son las comorbilidades
@@ -358,14 +359,15 @@ export function procEdad(valor) {
  * @param {Integer} diagnostico 
  * @returns {String}
  */
-export function detTxtDiagnostico(diagnostico) {
+export function detTxtDiagnostico(diagnostico, idioma = "es") {
+    const txt = textos[idioma].translation;
     switch (diagnostico) {
         case 0:
-            return "Negativo";
+            return txt.txtNegativo;
         case 1:
-            return "Positivo";
+            return txt.txtPositivo;
         default:
-            return "No diagnosticado";
+            return txt.txtNoValidado;
     }
 };
 
@@ -373,70 +375,73 @@ export function detTxtDiagnostico(diagnostico) {
  * Transforma una instancia de la base de datos al formato de campos de Excel.
  * @param {JSON} instancia - Instancia de diagnóstico.
  * @param {Boolean} esAdmin - Indica si el usuario es administrador.
+ * @param {Boolean} preprocesar - Indica si se deben preprocesar los datos (convertir a rangos).
+ * @param {String} idioma - Idioma para los textos, por defecto "es" (español). Opciones: "es", "en".
  * @returns {JSON}
  */
-export function nombresCampos(instancia, esAdmin, preprocesar = false) {
+export function nombresCampos(instancia, esAdmin, preprocesar = false, idioma = "es") {
+    const traducciones = textos[idioma].translation;
     let datos = {
         "ID": instancia.id,
     };
 
     if (!esAdmin) {
-        datos["Paciente"] = instancia.paciente;
-        datos["Fecha"] = instancia.fecha.toDate().toLocaleDateString("es-CO");
+        datos[traducciones.txtPaciente] = instancia.paciente;
+        datos[traducciones.txtFecha] = instancia.fecha.toDate().toLocaleDateString(idioma);
     }
 
     datos = {
         ...datos,
-        "Edad": preprocesar ? procEdad(instancia.edad) : instancia.edad,
-        "Género": preprocesar ? instancia.sexo : (instancia.sexo == 0 ? "M" : "F"),
-        "Bebedor": instancia.bebedor,
-        "Fumador": instancia.fumador,
-        "Procedimiento Quirurgicos / Traumatismo Grave en los últimos 15 dias": instancia.cirugiaReciente,
-        "Inmovilidad de M inferiores": instancia.inmovilidad,
-        "Viaje prolongado": instancia.viajeProlongado,
-        "TEP - TVP Previo": instancia.tepPrevio,
-        "Malignidad": instancia.malignidad,
-        "Disnea": instancia.disnea,
-        "Dolor toracico": instancia.dolorToracico,
-        "Tos": instancia.tos,
-        "Hemoptisis": instancia.hemoptisis,
-        "Síntomas disautonomicos": instancia.disautonomicos,
-        "Edema de M inferiores": instancia.edema,
-        "Frecuencia respiratoria": preprocesar ? procFrecRes(instancia.frecRes) : instancia.frecRes,
-        "Saturación de la sangre": preprocesar ? procSo2(instancia.so2) : instancia.so2,
-        "Frecuencia cardíaca": preprocesar ? procFrecCard(instancia.frecCard) : instancia.frecCard,
-        "Presión sistólica": preprocesar ? procPresionSist(instancia.presionSis) : instancia.presionSis,
-        "Presión diastólica": preprocesar ? procPresionDiast(instancia.presionDias) : instancia.presionDias,
-        "Fiebre": instancia.fiebre,
-        "Crepitaciones": instancia.crepitaciones,
-        "Sibilancias": instancia.sibilancias,
-        "Soplos": instancia.soplos,
-        "WBC": preprocesar ? procWbc(instancia.wbc) : instancia.wbc,
-        "HB": preprocesar ? procHb(instancia.hemoglobina) : instancia.hemoglobina,
-        "PLT": preprocesar ? procPlt(instancia.plaquetas) : instancia.plaquetas,
-        "Derrame": instancia.derrame,
-        "Otra Enfermedad": instancia.otraEnfermedad,
-        "Hematologica": instancia["Enfermedad hematológica"],
-        "Cardíaca": instancia["Enfermedad cardíaca"],
-        "Enfermedad coronaria": instancia["Enfermedad coronaria"],
-        "Diabetes Mellitus": instancia["Diabetes"],
-        "Endocrina": instancia["Enfermedad endocrina"],
-        "Gastrointestinal": instancia["Enfermedad gastrointestinal"],
-        "Hepatopatía crónica": instancia["Hepatopatía crónica"],
-        "Hipertensión arterial": instancia["Hipertensión arterial"],
-        "Neurológica": instancia["Enfermedad neurológica"],
-        "Pulmonar": instancia["Enfermedad pulmonar"],
-        "Renal": instancia["Enfermedad renal"],
-        "Trombofilia": instancia["Trombofilia"],
-        "Urológica": instancia["Enfermedad urológica"],
-        "Vascular": instancia["Enfermedad vascular"],
-        "VIH": instancia["VIH"],
-        "TEP": (instancia.validado != 2) ? instancia.validado : "N/A",
+        [traducciones.txtCampoEdad]: preprocesar ? procEdad(instancia.edad) : instancia.edad,
+        [traducciones.txtCampoSexo]: preprocesar ? instancia.sexo : (instancia.sexo == 0 ? "M" : "F"),
+        [traducciones.bebedor]: instancia.bebedor,
+        [traducciones.fumador]: instancia.fumador,
+        [traducciones.cirugiaReciente]: instancia.cirugiaReciente,
+        [traducciones.inmovilidad]: instancia.inmovilidad,
+        [traducciones.viajeProlongado]: instancia.viajeProlongado,
+        [traducciones.tepPrevio]: instancia.tepPrevio,
+        [traducciones.malignidad]: instancia.malignidad,
+        [traducciones.disnea]: instancia.disnea,
+        [traducciones.dolorToracico]: instancia.dolorToracico,
+        [traducciones.tos]: instancia.tos,
+        [traducciones.hemoptisis]: instancia.hemoptisis,
+        [traducciones.disautonomicos]: instancia.disautonomicos,
+        [traducciones.edema]: instancia.edema,
+        [traducciones.txtCampoFrecRes]: preprocesar ? procFrecRes(instancia.frecRes) : instancia.frecRes,
+        [traducciones.txtCampoSO2]: preprocesar ? procSo2(instancia.so2) : instancia.so2,
+        [traducciones.txtCampoFrecCard]: preprocesar ? procFrecCard(instancia.frecCard) : instancia.frecCard,
+        [traducciones.txtCampoPresionSist]: preprocesar ? procPresionSist(instancia.presionSis) : instancia.presionSis,
+        [traducciones.txtCampoPresionDiast]: preprocesar ? procPresionDiast(instancia.presionDias) : instancia.presionDias,
+        [traducciones.fiebre]: instancia.fiebre,
+        [traducciones.crepitaciones]: instancia.crepitaciones,
+        [traducciones.sibilancias]: instancia.sibilancias,
+        [traducciones.soplos]: instancia.soplos,
+        [traducciones.txtCampoWBC]: preprocesar ? procWbc(instancia.wbc) : instancia.wbc,
+        [traducciones.txtCampoHB]: preprocesar ? procHb(instancia.hemoglobina) : instancia.hemoglobina,
+        [traducciones.txtCampoPLT]: preprocesar ? procPlt(instancia.plaquetas) : instancia.plaquetas,
+        [traducciones.derrame]: instancia.derrame,
+        [traducciones.txtCampoOtraEnfermedad]: instancia.otraEnfermedad,
+        [traducciones["Enfermedad hematológica"]]: instancia["Enfermedad hematológica"],
+        [traducciones["Enfermedad cardíaca"]]: instancia["Enfermedad cardíaca"],
+        [traducciones["Enfermedad coronaria"]]: instancia["Enfermedad coronaria"],
+        [traducciones["Diabetes"]]: instancia["Diabetes"],
+        [traducciones["Enfermedad endocrina"]]: instancia["Enfermedad endocrina"],
+        [traducciones["Enfermedad gastrointestinal"]]: instancia["Enfermedad gastrointestinal"],
+        [traducciones["Hepatopatía crónica"]]: instancia["Hepatopatía crónica"],
+        [traducciones["Hipertensión arterial"]]: instancia["Hipertensión arterial"],
+        [traducciones["Enfermedad neurológica"]]: instancia["Enfermedad neurológica"],
+        [traducciones["Enfermedad pulmonar"]]: instancia["Enfermedad pulmonar"],
+        [traducciones["Enfermedad renal"]]: instancia["Enfermedad renal"],
+        [traducciones["Trombofilia"]]: instancia["Trombofilia"],
+        [traducciones["Enfermedad urológica"]]: instancia["Enfermedad urológica"],
+        [traducciones["Enfermedad vascular"]]: instancia["Enfermedad vascular"],
+        [traducciones["VIH"]]: instancia["VIH"],
+        [traducciones.txtTep]: (instancia.validado != 2) ? instancia.validado : "N/A",
     };
 
     if (!esAdmin) {
-        datos["Diagnóstico modelo"] = instancia.diagnostico;
-        datos["Probabilidad"] = (instancia.probabilidad * 100).toFixed(2);
+        datos[traducciones.txtCampoDiagModelo] = instancia.diagnostico;
+        datos[traducciones.txtCampoProbabilidad] = (instancia.probabilidad * 100).toFixed(2);
         datos["Campos Significativos para el diagnóstico"] = JSON.stringify(instancia.lime);
     }
 

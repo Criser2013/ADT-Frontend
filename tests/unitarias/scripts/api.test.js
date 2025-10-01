@@ -19,7 +19,8 @@ describe("Validar la funcion 'peticionAPI'", () => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Bearer token"
+                "Authorization": "Bearer token",
+                "Language": "es"
             },
             body: JSON.stringify({ vih: 0, edad: 1, trombofilia: 2 })
         });
@@ -42,7 +43,8 @@ describe("Validar la funcion 'peticionAPI'", () => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Bearer token invalido"
+                "Authorization": "Bearer token invalido",
+                "Language": "es"
             },
             body: JSON.stringify({ vih: 0, edad: 1, trombofilia: 2 })
         });
@@ -62,7 +64,8 @@ describe("Validar la funcion 'peticionAPI'", () => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Bearer token invalido"
+                "Authorization": "Bearer token invalido",
+                "Language": "es"
             },
             body: JSON.stringify({ vih: 0, edad: 1, trombofilia: 2 })
         });

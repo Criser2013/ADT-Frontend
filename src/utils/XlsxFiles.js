@@ -1,6 +1,7 @@
 import { utils, writeXLSX, read, writeFile } from "xlsx";
-import { COMORBILIDADES, EXPORT_FILENAME } from "../../constants";
+import { COMORBILIDADES } from "../../constants";
 import { validarFecha, validarId, validarNombre, validarNumero, validarTelefono } from "./Validadores";
+import textos from "../assets/textos/textos.json";
 
 /**
  * Genera un archivo en memoria XLSX a partir de un Array de JSON.
@@ -32,12 +33,14 @@ export function crearArchivoXlsx (datos, tipo = "xlsx") {
  * @param {String} nombreArchivo - Nombre de archivo a sobreescribir. De forma predeterminada es "HADT - Diagnósticos.xlsx".
  * @param {String} tipo - Tipo de archivo. Predeterminadamente es "xlsx", pero puede ser "csv".
  * se coloca el nombre del archivo en la constante EXPORT_FILENAME.
- * @returns JSON
+ * @param {String} idioma - Idioma para el archivo.
+ * @returns {JSON}
  */
-export function descargarArchivoXlsx (datos, nombreArchivo = EXPORT_FILENAME, tipo = "xlsx") {
+export function descargarArchivoXlsx (datos, nombreArchivo, tipo = "xlsx", idioma = "es") {
     try {
+        const txt = idioma == "es" ? "Diagnósticos" : "Diagnoses";
         const ws = utils.json_to_sheet(datos);
-        const wb = utils.book_new(ws, "Diagnósticos");
+        const wb = utils.book_new(ws, txt);
 
         writeFile(wb, `${nombreArchivo}.${tipo}`, {
             bookType: tipo, cellDates: true, compression: true
@@ -52,9 +55,10 @@ export function descargarArchivoXlsx (datos, nombreArchivo = EXPORT_FILENAME, ti
 /**
  * Lee un archivo XLSX y lo convierte a un Array de JSON.
  * @param {Uint8Array} archivo - Archivo XLSX a leer.
+ * @param {String} idioma - Idioma para los mensajes de error.
  * @returns Array[JSON]
  */
-export function leerArchivoXlsx (archivo) {
+export function leerArchivoXlsx (archivo, idioma) {
     try {
         const data = read(archivo, { type: "buffer" });
         const json = utils.sheet_to_json(data.Sheets["Datos"]);
@@ -64,7 +68,7 @@ export function leerArchivoXlsx (archivo) {
         }
 
         return { success: false, data: [], error: {
-            code: 401, message: "El archivo no tiene la estructura correcta o contiene datos inválidos.",
+            code: 401, message: textos[idioma].translation.errEstrucArchivoInvalida,
         } };
     } catch (error) {
         return { success: false, data: null, error: error };

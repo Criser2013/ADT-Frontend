@@ -2,6 +2,7 @@ import { Link, Breadcrumbs, Stack, Typography, Box, IconButton, Tooltip, Divider
 import { useNavigate } from "react-router-dom";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import WestIcon from '@mui/icons-material/West';
+import { useTranslation } from "react-i18next";
 
 /**
  * Header de las pestañas CRUD.
@@ -15,6 +16,7 @@ import WestIcon from '@mui/icons-material/West';
 export default function TabHeader({ urlPredet, titulo, pestanas, tooltip, activarBtnAtras = true }) {
     const navigate = useNavigate();
     const navegacion = useNavegacion();
+    const { t } = useTranslation();
 
     /**
      * Manejador de eventos del botón "Atrás".
@@ -34,7 +36,7 @@ export default function TabHeader({ urlPredet, titulo, pestanas, tooltip, activa
             <Stack direction="row" spacing={1}>
                 {activarBtnAtras ? (
                     <Tooltip
-                        title={(tooltip != null && tooltip != undefined) ? tooltip : "Volver a la página anterior"}>
+                        title={(tooltip != null && tooltip != undefined) ? tooltip : t("txtVolverAtras")}>
                         <IconButton onClick={manejadorBtnAtras}>
                             <WestIcon />
                         </IconButton>

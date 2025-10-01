@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import Check from "../tabs/Check";
 import SelectChip from "../tabs/SelectChip";
-import { COMORBILIDADES, SEXOS, SINTOMAS } from "../../../constants";
+import { CAMPOS_BIN, CAMPOS_TXT, COMORBILIDADES, SEXOS, SINTOMAS } from "../../../constants";
 import CloseIcon from "@mui/icons-material/Close";
 import ClearIcon from '@mui/icons-material/Clear';
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
@@ -26,9 +26,11 @@ import TabHeader from "../layout/TabHeader";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm, Controller } from "react-hook-form";
 import RefreshIcon from '@mui/icons-material/Refresh';
+import { useTranslation  } from "react-i18next";
+import i18next from '../../../i18n';
 
 const valoresPredet = {
-    paciente: { id: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null },
+    paciente: { id: -1, nombre: i18next.t("txtSelectPaciente"), edad: "", sexo: 2, fechaNacimiento: null },
     sexo: 2, edad: "", presionSis: "", presionDias: "", frecRes: "",
     frecCard: "", so2: "", plaquetas: "", hemoglobina: "", wbc: "",
     fumador: false, bebedor: false, tos: false, fiebre: false,
@@ -53,6 +55,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const auth = useAuth();
     const navegacion = useNavegacion();
     const credenciales = useCredenciales();
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [cargando, setCargando] = useState(true);
@@ -93,16 +96,25 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     }, [esDiagPacientes, pacientes]);
 
     // Para que se actualice el reCAPTCHA al cambiar el tema
+
+    /**
+     * Ejecuta una función mientras se cambia el idioma o el tema.
+     * @param {Function} funcion - Función a ejecutar.
+     */
+    const reiniciarPagina = () => {
+        setCargando(true);
+        setTimeout(() => {
+            setDesactivarBtn(true);
+            setCargando(false);
+        }, 100);
+    };
+
     useEffect(() => {
         setAntTema(temaCaptcha);
         if (antTema != temaCaptcha) {
-            setCargando(true);
-            setTimeout(() => {
-                setCargando(false);
-                setDesactivarBtn(true);
-            }, 100);
+            reiniciarPagina();
         }
-    }, [antTema, temaCaptcha]);
+    }, [antTema, temaCaptcha, navegacion.tema]);
 
     /**
      * Maneja el envío del formulario.
@@ -138,19 +150,11 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             setValue("otrasEnfermedades", comorbilidades);
             setValue("otraEnfermedad", pacienteSeleccionado.otraEnfermedad);
         } else {
-            const camposTxt = ["edad", "presionSis", "presionDias", "frecRes",
-                "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"];
-            const camposBin = [
-                "fumador", "bebedor", "tos", "fiebre", "crepitaciones",
-                "dolorToracico", "malignidad", "hemoptisis", "disnea", "sibilancias",
-                "derrame", "tepPrevio", "edema", "disautonomicos", "inmovilidad",
-                "viajeProlongado", "cirugiaReciente", "otraEnfermedad", "soplos"
-            ];
             setValue("sexo", 2);
-            for (const i of camposTxt) {
+            for (const i of CAMPOS_TXT) {
                 setValue(i, "");
             }
-            for (const i of camposBin) {
+            for (const i of CAMPOS_BIN.slice(1)) {
                 setValue(i, false);
             }
             setValue("otrasEnfermedades", []);
@@ -166,33 +170,24 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const diagnosticar = async (datos) => {
         const aux = {};
         const oneHotComor = oneHotEncoderOtraEnfermedad(datos.otraEnfermedad ? datos.otrasEnfermedades : []);
-        const camposTxt = ["edad", "presionSis", "presionDias", "frecRes",
-            "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"];
-        const camposBin = [
-            "sexo", "fumador", "bebedor", "tos", "fiebre", "crepitaciones",
-            "dolorToracico", "malignidad", "hemoptisis", "disnea", "sibilancias",
-            "derrame", "tepPrevio", "edema", "disautonomicos", "inmovilidad",
-            "viajeProlongado", "cirugiaReciente", "otraEnfermedad", "soplos"
-        ];
 
-        for (let i = 0; i < camposBin.length; i++) {
-            if (i < camposTxt.length) {
-                aux[camposTxt[i]] = datos[camposTxt[i]];
+        for (let i = 0; i < CAMPOS_BIN.length; i++) {
+            if (i < CAMPOS_TXT.length) {
+                aux[CAMPOS_TXT[i]] = datos[CAMPOS_TXT[i]];
             }
 
-            aux[camposBin[i]] = datos[camposBin[i]];
+            aux[CAMPOS_BIN[i]] = datos[CAMPOS_BIN[i]];
         }
-
 
         const cuerpo = transformarDatos(aux, oneHotComor);
         const res = await peticionApi(auth.authInfo.user.accessToken, "diagnosticar", "POST", cuerpo,
-            "Ha ocurrido un error al generar el diagnóstico. Por favor reintenta nuevamente."
+            t("errorDiagnostico"), navegacion.idioma
         );
         const { success, data } = res;
 
         if (!success) {
             setCargando(false);
-            setModal({ mostrar: true, titulo: "❌ Error", mensaje: res.error });
+            setModal({ mostrar: true, titulo: t("tituloErr"), mensaje: res.error });
         } else {
             await guardarDiagnostico(oneHotComor, datos, data);
         }
@@ -206,22 +201,15 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      */
     const guardarDiagnostico = async (oneHotComor, datos, resultado) => {
         const aux = {};
-        const camposTxt = ["edad", "presionSis", "presionDias", "frecRes",
-            "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"];
-        const camposBin = [
-            "sexo", "fumador", "bebedor", "tos", "fiebre", "crepitaciones",
-            "dolorToracico", "malignidad", "hemoptisis", "disnea", "sibilancias",
-            "derrame", "tepPrevio", "edema", "disautonomicos", "inmovilidad",
-            "viajeProlongado", "cirugiaReciente", "otraEnfermedad", "soplos"
-        ];
+        
 
         // Convirtiendo los booleanos a 0 y 1
-        for (const i of camposBin) {
+        for (const i of CAMPOS_BIN) {
             aux[i] = procBool(datos[i]);
         }
 
         // Transformando los datos de texto a números
-        for (const i of camposTxt) {
+        for (const i of CAMPOS_TXT) {
             if (typeof datos[i] == "string") {
                 aux[i] = parseFloat(datos[i].replace(",", "."));
             } else {
@@ -247,8 +235,8 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             setCargando(false);
             setModal({
                 mostrar: true,
-                titulo: "❌ Error al guardar el diagnóstico",
-                mensaje: `No se pudo guardar el diagnóstico: ${res.data}.`
+                titulo: t("errTitGuardarDiag"),
+                mensaje: t("errGuardarDiag", { error: res.data })
             });
         }
     };
@@ -272,15 +260,15 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      */
     const verificarRespuesta = async (token) => {
         setCargandoBtn(true);
-        const res = await peticionApi("", "recaptcha", "POST", { token: token }, "Se ha producido un error al verificar el CAPTCHA. Reintentalo nuevamente.");
+        const res = await peticionApi("", "recaptcha", "POST", { token: token }, t("errCaptchaApi"), navegacion.idioma);
 
         if (res.success) {
             if (res.data.success) {
                 setDesactivarBtn(false);
             } else {
                 setModal({
-                    mostrar: true, titulo: "❌ Error",
-                    mensaje: "No se ha podido comprobar que seas un humano. Reintenta el CAPTCHA nuevamente."
+                    mostrar: true, titulo: t("tituloErr"),
+                    mensaje: t("errCaptcha")
                 });
                 CAPTCHA.current.reset();
             }
@@ -292,7 +280,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 }
             }
             CAPTCHA.current.reset();
-            setModal({ titulo: "❌ Error", mostrar: true, mensaje: txtError });
+            setModal({ titulo: t("tituloErr"), mostrar: true, mensaje: txtError });
         }
         setCargandoBtn(false);
     };
@@ -304,7 +292,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         setCargando(true);
 
         if (getValues("paciente").id != -1) {
-            setValue("paciente", { id: -1, nombre: "Seleccionar paciente", edad: "", sexo: 2, fechaNacimiento: null });
+            setValue("paciente", { id: -1, nombre: t("txtSelecPaciente"), edad: "", sexo: 2, fechaNacimiento: null });
             setValue("sexo", 2);
             setValue("edad", "");
         }
@@ -325,7 +313,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                     <Grid container columns={numCols} spacing={2} sx={{ marginTop: "3vh" }}>
                         <Grid size={numCols}>
                             <Typography variant="h6">
-                                <b>Datos personales</b>
+                                <b>{t("titDatosPersonales")}</b>
                             </Typography>
                         </Grid>
                         {esDiagPacientes ? (
@@ -335,13 +323,13 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         name="paciente"
                                         control={control}
                                         rules={{
-                                            required: "Debes seleccionar un paciente",
-                                            validate: (x) => x.id != -1 || "Debes seleccionar un paciente"
+                                            required: t("errValidarPaciente"),
+                                            validate: (x) => x.id != -1 || t("errValidarPaciente")
                                         }}
                                         render={({ field }) => (
                                             <TextField
                                                 select
-                                                label="Paciente"
+                                                label={t("txtPaciente")}
                                                 {...field}
                                                 value={field.value.id}
                                                 onChange={manejadorCambiosPaciente}
@@ -354,7 +342,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                                     </MenuItem>
                                                 ))}
                                             </TextField>)} />
-                                    <Tooltip title="Volver a cargar los datos de los pacientes">
+                                    <Tooltip title={t("txtBtnRecargarPacientes")}>
                                         <IconButton onClick={() => manejadorRecarga(manejadorBtnRecargar, setCargando)}>
                                             <RefreshIcon fontSize="medium" />
                                         </IconButton>
@@ -367,13 +355,13 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="sexo"
                                 control={control}
                                 rules={{
-                                    required: !esDiagPacientes && "Selecciona el sexo del paciente",
-                                    validate: (x) => (esDiagPacientes || (x != 2 || "Debes seleccionar el sexo del paciente"))
+                                    required: !esDiagPacientes && t("errValidarSexo"),
+                                    validate: (x) => (esDiagPacientes || (x != 2 || t("errValidarSexo")))
                                 }}
                                 render={({ field }) => (
                                     <TextField
                                         select
-                                        label="Sexo"
+                                        label={t("txtCampoSexo")}
                                         {...field}
                                         error={!!errors.sexo}
                                         helperText={errors.sexo?.message}
@@ -381,7 +369,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         fullWidth>
                                         {SEXOS.map((x) => (
                                             <MenuItem key={x.val} value={x.val}>
-                                                {x.texto}
+                                                {t(x.texto)}
                                             </MenuItem>
                                         ))}
                                     </TextField>
@@ -392,12 +380,12 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="edad"
                                 control={control}
                                 rules={{
-                                    required: !esDiagPacientes && "La edad es obligatoria",
-                                    validate: (value) => (esDiagPacientes || (validarNumero(value) || "Edad inválida"))
+                                    required: !esDiagPacientes && t("errValidarEdad"),
+                                    validate: (value) => (esDiagPacientes || (validarNumero(value) || t("errValidarEdad")))
                                 }}
                                 render={({ field }) => (
                                     <TextField
-                                        label="Edad"
+                                        label={t("txtCampoEdad")}
                                         {...field}
                                         error={!!errors.edad}
                                         disabled={esDiagPacientes}
@@ -409,19 +397,19 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                         </Grid>
                         <Grid size={numCols}>
                             <Typography variant="h6">
-                                <b>Síntomas clínicos</b>
+                                <b>{t("titSintomasClinicos")}</b>
                             </Typography>
                         </Grid>
                         <Grid container size={numCols} columns={numCols} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
                             {SINTOMAS.map((x) => (
-                                <Grid size={1} key={x.nombre}>
+                                <Grid size={1} key={x}>
                                     <Controller
-                                        name={x.nombre}
+                                        name={x}
                                         control={control}
                                         render={({ field }) => (
                                             <Check
-                                                nombre={x.nombre}
-                                                etiqueta={x.texto}
+                                                nombre={x}
+                                                etiqueta={t(x)}
                                                 activado={field.value}
                                                 manejadorCambios={field.onChange}
                                             />
@@ -432,7 +420,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                         </Grid>
                         <Grid size={numCols}>
                             <Typography variant="h6">
-                                <b>Signos vitales</b>
+                                <b>{t("titSignosVitales")}</b>
                             </Typography>
                         </Grid>
                         <Grid size={1}>
@@ -440,12 +428,12 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="presionSis"
                                 control={control}
                                 rules={{
-                                    required: "La presión sistólica es obligatoria",
-                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                    required: t("errCampoObligatorio"),
+                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
                                 }}
                                 render={({ field }) => (
                                     <TextField
-                                        label="Presión sistólica (mmHg)"
+                                        label={`${t("txtCampoPresionSist")} (mmHg)`}
                                         {...field}
                                         error={!!errors.presionSis}
                                         helperText={errors.presionSis?.message}
@@ -459,12 +447,12 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="presionDias"
                                 control={control}
                                 rules={{
-                                    required: "La presión diastólica es obligatoria",
-                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                    required: t("errCampoObligatorio"),
+                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
                                 }}
                                 render={({ field }) => (
                                     <TextField
-                                        label="Presión diastólica (mmHg)"
+                                        label={`${t("txtCampoPresionDiast")} (mmHg)`}
                                         {...field}
                                         error={!!errors.presionDias}
                                         helperText={errors.presionDias?.message}
@@ -477,12 +465,12 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="frecRes"
                                 control={control}
                                 rules={{
-                                    required: "La frecuencia respiratoria es obligatoria",
-                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                    required: t("errCampoObligatorio"),
+                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
                                 }}
                                 render={({ field }) => (
                                     <TextField
-                                        label="Frecuencia respiratoria"
+                                        label={t("txtCampoFrecRes")}
                                         {...field}
                                         error={!!errors.frecRes}
                                         helperText={errors.frecRes?.message}
@@ -495,12 +483,12 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="frecCard"
                                 control={control}
                                 rules={{
-                                    required: "La frecuencia cardíaca es obligatoria",
-                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                    required: t("errCampoObligatorio"),
+                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
                                 }}
                                 render={({ field }) => (
                                     <TextField
-                                        label="Frecuencia cardíaca"
+                                        label={t("txtCampoFrecCard")}
                                         {...field}
                                         error={!!errors.frecCard}
                                         helperText={errors.frecCard?.message}
@@ -511,12 +499,12 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="so2"
                                 control={control}
                                 rules={{
-                                    required: "La saturación de oxígeno es obligatoria",
-                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                    required: t("errCampoObligatorio"),
+                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
                                 }}
                                 render={({ field }) => (
                                     <TextField
-                                        label="Saturación de la sangre"
+                                        label={t("txtCampoSO2")}
                                         {...field}
                                         error={!!errors.so2}
                                         helperText={errors.so2?.message}
@@ -524,7 +512,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                         </Grid>
                         <Grid size={numCols}>
                             <Typography variant="h6">
-                                <b>Exámenes de laboratorio</b>
+                                <b>{t("titExamenes")}</b>
                             </Typography>
                         </Grid>
                         <Grid size={1}>
@@ -532,12 +520,12 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="plaquetas"
                                 control={control}
                                 rules={{
-                                    required: "El conteo de plaquetas es obligatorio",
-                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                    required: t("errCampoObligatorio"),
+                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
                                 }}
                                 render={({ field }) => (
                                     <TextField
-                                        label="Conteo de plaquetas"
+                                        label={t("txtCampoPLT")}
                                         {...field}
                                         error={!!errors.plaquetas}
                                         helperText={errors.plaquetas?.message}
@@ -548,12 +536,12 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="hemoglobina"
                                 control={control}
                                 rules={{
-                                    required: "La hemoglobina es obligatoria",
-                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                    required: t("errCampoObligatorio"),
+                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
                                 }}
                                 render={({ field }) => (
                                     <TextField
-                                        label="Hemoglobina"
+                                        label={t("txtCampoHB")}
                                         {...field}
                                         error={!!errors.hemoglobina}
                                         helperText={errors.hemoglobina?.message}
@@ -564,12 +552,12 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 name="wbc"
                                 control={control}
                                 rules={{
-                                    required: "El conteo de glóbulos blancos es obligatorio",
-                                    validate: (value) => validarFloatPos(value) || "Solo debes ingresar números positivos"
+                                    required: t("errCampoObligatorio"),
+                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
                                 }}
                                 render={({ field }) => (
                                     <TextField
-                                        label="Conteo de glóbulos blancos"
+                                        label={t("txtCampoWBC")}
                                         {...field}
                                         error={!!errors.wbc}
                                         helperText={errors.wbc?.message}
@@ -577,7 +565,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                         </Grid>
                         <Grid size={numCols}>
                             <Typography variant="h6">
-                                <b>Condiciones médicas preexistentes</b>
+                                <b>{t("titComor")}</b>
                             </Typography>
                         </Grid>
                         <Grid size={numCols}>
@@ -587,7 +575,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 render={({ field }) => (
                                     <Check
                                         nombre="otraEnfermedad"
-                                        etiqueta="El paciente padece otra enfermedad."
+                                        etiqueta={t("txtOtraEnfermedad")}
                                         activado={field.value}
                                         desactivado={esDiagPacientes}
                                         manejadorCambios={field.onChange}
@@ -601,7 +589,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                     name="otrasEnfermedades"
                                     control={control}
                                     rules={{
-                                        required: otraEnfermedad ? "Selecciona al menos un padecimiento" : false,
+                                        required: otraEnfermedad ? t("errComor") : false,
                                     }}
                                     render={({ field }) => (
                                         <SelectChip
@@ -612,7 +600,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                             error={!!errors.otrasEnfermedades}
                                             txtError={errors.otrasEnfermedades?.message}
                                             desactivado={esDiagPacientes}
-                                            etiqueta="Padecimiento(s) del paciente"
+                                            etiqueta={t("txtComorbilidades")}
                                         />
                                     )}
                                 />
@@ -623,11 +611,12 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 theme={temaCaptcha}
                                 onChange={manejadorReCAPTCHA}
                                 sitekey={reCAPTCHAApi}
-                                ref={CAPTCHA} />
+                                ref={CAPTCHA}
+                                hl={navegacion.idioma} />
                         </Grid>
                         <Grid display="flex" justifyContent="center" size={numCols}>
                             <Stack direction="row" spacing={2}>
-                                <Tooltip title="Vaciar el contenido de los campos.">
+                                <Tooltip title={t("txtAyudaBtnVaciar")}>
                                     <Button
                                         startIcon={<ClearIcon />}
                                         variant="contained"
@@ -635,10 +624,10 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         sx={{
                                             textTransform: "none"
                                         }}>
-                                        <b>Vaciar campos</b>
+                                        <b>{t("txtBtnVaciar")}</b>
                                     </Button>
                                 </Tooltip>
-                                <Tooltip title="Genera el diagnóstico de TEP.">
+                                <Tooltip title={t("txtAyudaBtnDiagnosticar")}>
                                     <span>
                                         <Button
                                             startIcon={<DiagnosticoIcono />}
@@ -650,7 +639,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                             sx={{
                                                 textTransform: "none"
                                             }}>
-                                            <b>Diagnosticar</b>
+                                            <b>{t("txtBtnDiagnosticar")}</b>
                                         </Button>
                                     </span>
                                 </Tooltip>
@@ -662,7 +651,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 abrir={modal.mostrar}
                 titulo={modal.titulo}
                 mensaje={modal.mensaje}
-                txtBtn="Cerrar"
+                txtBtn={t("txtBtnCerrar")}
                 iconoBtn={<CloseIcon />}
                 manejadorBtnModal={() => setModal((x) => ({ ...x, mostrar: false }))} />
         </>

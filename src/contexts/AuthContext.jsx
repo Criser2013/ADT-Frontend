@@ -5,6 +5,7 @@ import { verUsuario } from "../firestore/usuarios-collection";
 import { cambiarUsuario, verSiEstaRegistrado } from "../firestore/usuarios-collection";
 import { FirebaseError } from "firebase/app";
 import { CODIGO_ADMIN } from "../../constants";
+import { useTranslation } from "react-i18next";
 
 export const authContext = createContext();
 
@@ -28,6 +29,7 @@ export const useAuth = () => {
  * @returns {JSX.Element}
  */
 export function AuthProvider({ children }) {
+    const { t } = useTranslation();
     // Instancia de autenticación de Firebase
     const [auth, setAuth] = useState(null);
     // Instancia de la base de datos de Firebase
@@ -182,7 +184,7 @@ export function AuthProvider({ children }) {
             // Si no se pudo registrar al usuario, se cierra la sesión
             if (!reg.success) {
                 cerrarSesion();
-                resultado = { res: true, operacion: 0, error: "No se pudo verificar si el usuario está registrado." };
+                resultado = { res: true, operacion: 0, error: t("errVerificarRegistro") };
             } else {
                 if (location.pathname == "/") {
                     await verDatosUsuario(res.user.uid);
@@ -192,7 +194,7 @@ export function AuthProvider({ children }) {
             return resultado;
         } catch (error) {
             manejadorErroresAuth(error, 0, null);
-            return { res: true, operacion: 0, error: "Error al iniciar sesión. Reintenta nuevamente." };
+            return { res: true, operacion: 0, error: t("errIniciarSesion") };
         } finally {
             setCargando(false);
         }
@@ -238,7 +240,7 @@ export function AuthProvider({ children }) {
             // Necesario por si cierra el popup de Google antes de reautenticarse cuando el token caduca
             setRequiereRefresco(requiereRefresco);
             manejadorErroresAuth(error, 2, usuario);
-            return { res: true, operacion: 2, error: "Error al refrescar los permisos. Reintenta nuevamente." };
+            return { res: true, operacion: 2, error: t("errReautenticar") };
         } finally {
             setCargando(false);
         }
@@ -264,7 +266,7 @@ export function AuthProvider({ children }) {
             setAuthError({ res: false, operacion: 1, error: "" });
         } catch (error) {
             console.error(error);
-            setAuthError({ res: true, operacion: 1, error: "No se ha podido cerrar sesión. Reintente nuevamente." });
+            setAuthError({ res: true, operacion: 1, error: t("errCerrarSesion") });
         }
 
         setCargando(false);
@@ -370,24 +372,24 @@ export function AuthProvider({ children }) {
                 break;
             case "auth/user-cancelled":
                 // Esto es cuando el usuario cancela la autenticación y no otorga los permisos
-                setAuthError({ res: true, operacion: codigo, error: "Debes otorgar los permisos requeridos para usar la aplicación." });
+                setAuthError({ res: true, operacion: codigo, error: t("errPermisos") });
                 break;
             case "auth/user-mismatch":
                 // Esto es cuando el usuario que intenta iniciar sesión no coincide con el usuario actual
                 setAuthError({
                     res: true, operacion: codigo,
-                    error: `Ya tienes una sesión iniciada con el usuario: "${usuario.displayName}" (${usuario.email}).`
+                    error: t("errSesionIniciada", { usuario: usuario.displayName, correo: usuario.email })
                 });
                 break;
             case "auth/user-disabled":
                 setAuthError({
                     res: true, operacion: codigo,
-                    error: `Este usuario ha sido deshabilitado. Para más información, contacta al administrador de la aplicación.`
+                    error: t("errUsuarioBaneado")
                 });
                 break;
             default:
                 console.error("Error de autenticación:", error);
-                setAuthError({ res: true, operacion: codigo, error: "Error al iniciar sesión. Reintenta nuevamente." });
+                setAuthError({ res: true, operacion: codigo, error: t("errIniciarSesion") });
                 break;
         }
     };
@@ -397,6 +399,13 @@ export function AuthProvider({ children }) {
      */
     const quitarPantallaCarga = () => {
         setCargando(false);
+    };
+
+    /**
+     * Coloca el indicador de carga sobre toda la aplicación (solo se utiliza en casos especiales).
+     */
+    const mostrarPantallaCarga = () => {
+        setCargando(true);
     };
 
     /**
@@ -423,7 +432,7 @@ export function AuthProvider({ children }) {
         <authContext.Provider value={{
             useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive,
             setScopes, cerrarSesion, iniciarSesionGoogle, reautenticarUsuario, permisos, autenticado,
-            requiereRefresco, quitarPantallaCarga, cambiarModoUsuario
+            requiereRefresco, quitarPantallaCarga, cambiarModoUsuario, mostrarPantallaCarga
         }}>
             {children}
         </authContext.Provider>

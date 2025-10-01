@@ -2,6 +2,7 @@ import { Box, Grid, Typography } from "@mui/material";
 import GraficoBarras from "../charts/GraficoBarras";
 import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 /**
  * Componente que muestra un gráfico de barras LIME de la instancia.
@@ -10,6 +11,7 @@ import { useMemo } from "react";
  */
 export default function ContLime({ datos, varianteTits = "h5", negritaTit = false }) {
     const navegacion = useNavegacion();
+    const { t } = useTranslation();
     const ancho = useMemo(() => {
         const { dispositivoMovil, ancho } = navegacion;
         return dispositivoMovil || (!dispositivoMovil && ancho <= 700) ? "98vw" : "65vw";
@@ -29,17 +31,31 @@ export default function ContLime({ datos, varianteTits = "h5", negritaTit = fals
             return { altura: 350, anchura:  "400%" };
         }
     }, [responsivo]);
+    const datosGrafico = useMemo(() => {
+        const aux = [];
+        for (const i of datos.labels) {
+            const auxi = i.split(/=|<=|=>|<|>/).map((x) => x.trim());
+            aux.push(i.replace(auxi[0], t(auxi[0])));
+        }
+        datos.labels = aux;
+
+        for (let i = 0; i < 2; i++) {
+            datos.datasets[i].label = t(datos.datasets[i].label);
+        }
+
+        return datos;
+    }, [datos, navegacion.idioma]);
 
     return (
         <Grid container columns={12}>
             <Grid size={12}>
                 <Typography variant={varianteTits} paddingBottom="2vh" fontWeight={negritaTit ? "bold" : "normal"}>
-                    Explicación del diagnóstico
+                    {t("titExplicacion")}
                 </Typography>
             </Grid>
             <Grid size={12}>
                 <Typography>
-                    Este gráfico muestra cómo influye cada característica en la clasificación del diagnóstico según el modelo.
+                    {t("txtExplicacion")}
                 </Typography>
             </Grid>
             <Grid display="flex" size={12} justifyContent="center">
@@ -48,9 +64,9 @@ export default function ContLime({ datos, varianteTits = "h5", negritaTit = fals
                         responsive={responsivo}
                         altura={tamGrafico.altura}
                         anchura={tamGrafico.anchura}
-                        datos={datos}
+                        datos={datosGrafico}
                         modoActualizacion="resize"
-                        titulo="Contribución de cada característica" />
+                        titulo={t("titLime")} />
                 </Box>
             </Grid>
         </Grid>

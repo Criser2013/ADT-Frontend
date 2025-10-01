@@ -171,7 +171,7 @@ describe("Validar la función 'detTxtDiagnostico'", () => {
 
     test("CP - 78", () => {
         const res = detTxtDiagnostico(2);
-        expect(res).toEqual("No diagnosticado");
+        expect(res).toEqual("No validado");
     });
 });
 
@@ -203,22 +203,22 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
         };
 
         const respuesta = {
-            "Edad": 60, "Género": "M", "Bebedor": 0, "Fumador": 0,
-            "Procedimiento Quirurgicos / Traumatismo Grave en los últimos 15 dias": 0, "Viaje prolongado": 0,
+            "Edad": 60, "Sexo": "M", "Bebedor": 0, "Fumador": 0,
+            "Procedimiento quirúrgico o traumatismo reciente": 0, "Viaje prolongado": 0,
             "Tos": 0, "Fiebre": 0, "Crepitaciones": 0,
-            "Dolor toracico": 1, "Malignidad": 0, "Hemoptisis": 0,
+            "Dolor torácico": 1, "Malignidad": 0, "Hemoptisis": 0,
             "Disnea": 1, "Sibilancias": 0, "Derrame": 0,
-            "TEP - TVP Previo": 0, "Edema de M inferiores": 0, "Síntomas disautonomicos": 0,
-            "Inmovilidad de M inferiores": 0, "Otra Enfermedad": 0, "Soplos": 0,
+            "TEP - TVP previo": 0, "Edema de miembros inferiores": 0, "Síntomas disautonómicos": 0,
+            "Inmovilidad de miembros inferiores": 0, "Otra enfermedad": 0, "Soplos": 0,
             "Presión sistólica": 129, "Presión diastólica": 93, "Frecuencia respiratoria": 26,
-            "Frecuencia cardíaca": 128, "Saturación de la sangre": 80, "PLT": 211100, "HB": 13.8, "WBC": 12300,
-            "Hematologica": 1, "Vascular": 0,
-            "Pulmonar": 0, "Renal": 0,
-            "Cardíaca": 0, "Enfermedad coronaria": 0,
-            "Endocrina": 0, "Gastrointestinal": 0,
-            "Urológica": 0, "Neurológica": 0,
+            "Frecuencia cardíaca": 128, "Saturación de la sangre (SO2)": 80, "Conteo de plaquetas": 211100, "Hemoglobina": 13.8, "Conteo glóbulos blancos": 12300,
+            "Enfermedad hematológica": 1, "Enfermedad vascular": 0,
+            "Enfermedad pulmonar": 0, "Enfermedad renal": 0,
+            "Enfermedad cardíaca": 0, "Enfermedad coronaria": 0,
+            "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
+            "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
             "Trombofilia": 0, "VIH": 0, "Paciente": "1f073a07-6630-6d90-ac94-34c18cc96549", "Probabilidad": "50.00",
-            "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
+            "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
             "TEP": 0, "ID": "ID", "Fecha": "1/10/2023", "Diagnóstico modelo": 1,
             "Campos Significativos para el diagnóstico": '[{"VIH":51.85,"Hepatopatía crónica":-48.2}]'
         };
@@ -255,22 +255,22 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
         };
 
         const respuesta = {
-            "Edad": 2, "Género": 0, "Bebedor": 0, "Fumador": 0,
-            "Procedimiento Quirurgicos / Traumatismo Grave en los últimos 15 dias": 0, "Viaje prolongado": 0,
+            "Edad": 2, "Sexo": 0, "Bebedor": 0, "Fumador": 0,
+            "Procedimiento quirúrgico o traumatismo reciente": 0, "Viaje prolongado": 0,
             "Tos": 0, "Fiebre": 0, "Crepitaciones": 0,
-            "Dolor toracico": 1, "Malignidad": 0, "Hemoptisis": 0,
+            "Dolor torácico": 1, "Malignidad": 0, "Hemoptisis": 0,
             "Disnea": 1, "Sibilancias": 0, "Derrame": 0,
-            "TEP - TVP Previo": 0, "Edema de M inferiores": 0, "Síntomas disautonomicos": 0,
-            "Inmovilidad de M inferiores": 0, "Otra Enfermedad": 0, "Soplos": 0,
+            "TEP - TVP previo": 0, "Edema de miembros inferiores": 0, "Síntomas disautonómicos": 0,
+            "Inmovilidad de miembros inferiores": 0, "Otra enfermedad": 0, "Soplos": 0,
             "Presión sistólica": 4, "Presión diastólica": 6, "Frecuencia respiratoria": 3,
-            "Frecuencia cardíaca": 4, "Saturación de la sangre": 7, "PLT": 4, "HB": 4, "WBC": 3,
-            "Hematologica": 1, "Vascular": 0,
-            "Pulmonar": 0, "Renal": 0,
-            "Cardíaca": 0, "Enfermedad coronaria": 0,
-            "Endocrina": 0, "Gastrointestinal": 0,
-            "Urológica": 0, "Neurológica": 0,
+            "Frecuencia cardíaca": 4, "Saturación de la sangre (SO2)": 7, "Conteo de plaquetas": 4, "Hemoglobina": 4, "Conteo glóbulos blancos": 3,
+            "Enfermedad hematológica": 1, "Enfermedad vascular": 0,
+            "Enfermedad pulmonar": 0, "Enfermedad renal": 0,
+            "Enfermedad cardíaca": 0, "Enfermedad coronaria": 0,
+            "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
+            "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
             "Trombofilia": 0, "VIH": 0,
-            "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
+            "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
             "TEP": 0, "ID": "ID"
         };
 
