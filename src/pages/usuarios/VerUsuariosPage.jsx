@@ -87,6 +87,7 @@ export default function VerUsuariosPage() {
             { nombre: t("txtRol"), valor: datos.rol },
             { nombre: t("txtEstado"), valor: datos.estado ? t("txtInactivo") : t("txtActivo") },
             { nombre: t("txtUltimaConexion"), valor: datos.ultimaConexion },
+            { nombre: t("txtFechaRegistro"), valor: datos.registro },
             { nombre: t("txtDiagAportados"), valor: datos.cantidad },
         ];
     }, [seleccionado, navegacion.idioma]);
@@ -200,7 +201,7 @@ export default function VerUsuariosPage() {
     /**
      * Formatea el rol, estado y elimina los usuarios eliminados.
      * @param {Array} datos - Lista de datos
-     * @returns Array
+     * @returns {Array}
      */
     const formatearCeldas = (datos) => {
         const { uid } = auth.authInfo;
@@ -212,6 +213,7 @@ export default function VerUsuariosPage() {
                     uid: datos[i].uid, nombre: datos[i].nombre, correo: datos[i].correo,
                     rol: datos[i].rol == CODIGO_ADMIN ? t("txtAdministrador") : t("txtUsuario"),
                     estado: datos[i].estado ? t("txtActivo") : t("txtInactivo"),
+                    registro: datos[i].fecha_registro,
                     cantidad: datos[i].cantidad, ultimaConexion: datos[i].ultima_conexion,
                     accion: datos[i].uid == uid ? "" : <Botonera instancia={datos[i]} />
                 });
@@ -444,9 +446,8 @@ export default function VerUsuariosPage() {
         setModoModal(0);
         setModal({
             mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
-            mensaje: (//t("txtEliminarUsuario", { rol: rol, nombre: instancia.nombre, correo: instancia.correo })
+            mensaje: (
             <Trans i18nKey="txtEliminarUsuario" values={{ instancia, rol }} components={{ 1: <br />, 3: <b />, 5: <b /> }}>
-                
                 ¿Estás seguro de querer eliminar al usuario {instancia.nombre} ({instancia.correo}) — {rol}?
                 <br />
                 <br />
@@ -634,7 +635,7 @@ export default function VerUsuariosPage() {
                             {(x.nombre == t("txtEstado")) ? <ChipEstado estado={x.valor} /> : null}
                             {(![t("txtRol"), t("txtEstado")].includes(x.nombre)) ? (
                                 <Typography variant="body1">
-                                    {i == 4 ? dayjs(x.valor, t("formatoFechaHoraPequeno")).format(t("formatoFechaCompleta")) : x.valor}.
+                                    {(i == 4 || i == 5) ? dayjs(x.valor, "DD/MM/YYYY hh:mm A").format(t("formatoFechaCompleta")) : x.valor}.
                                 </Typography>) : null}
                         </Stack>
                     );

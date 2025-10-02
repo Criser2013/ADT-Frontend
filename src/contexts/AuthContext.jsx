@@ -29,7 +29,7 @@ export const useAuth = () => {
  * @returns {JSX.Element}
  */
 export function AuthProvider({ children }) {
-    const { t } = useTranslation();
+    const { i18n, t } = useTranslation();
     // Instancia de autenticación de Firebase
     const [auth, setAuth] = useState(null);
     // Instancia de la base de datos de Firebase
@@ -158,6 +158,7 @@ export function AuthProvider({ children }) {
         try {
             let provider = new GoogleAuthProvider();
 
+            provider.setDefaultLanguage(i18n.language);
             // Se añaden los permisos necesarios para usar Drive
             for (const i of scopes) {
                 provider.addScope(i);
@@ -209,6 +210,7 @@ export function AuthProvider({ children }) {
         try {
             let provider = new GoogleAuthProvider();
 
+            provider.setDefaultLanguage(i18n.language);
             // Se añaden los permisos necesarios para usar Drive
             for (const i of scopes) {
                 provider.addScope(i);

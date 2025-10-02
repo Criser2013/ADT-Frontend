@@ -98,7 +98,7 @@ export default function VerPacientePage() {
      * Coloca el título de la página.
      */
     useEffect(() => {
-        document.title = `${datos.personales.nombre != "" ? `${t("txtPaciente")} — ${datos.personales.nombre}` : t("txtVerPaciente")}`;
+        document.title = `${datos.personales.nombre != "" ? `${t("txtPaciente")} — ${datos.personales.nombre}` : t("titVerPaciente")}`;
         const res = (id != null && id != undefined) ? validarId(id) : false;
 
         if (!res) {
