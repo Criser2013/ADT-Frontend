@@ -312,7 +312,9 @@
             "Derrame": "Stroke",
             "Otra Enfermedad": "Other Disease",
             "titLime": "Contribution of each feature",
-            "txtFechaRegistro": "Registration date"
+            "txtFechaRegistro": "Registration date",
+            "formatoCalendario": "MM/DD/YYYY",
+            "formatoFechaHoraResumida": "MM/DD/YYYY [-] hh:mm A"
         }
     },
     "es": {
@@ -628,7 +630,9 @@
             "Derrame": "Derrame",
             "Otra Enfermedad": "Otra enfermedad",
             "titLime": "Contribución de cada característica",
-            "txtFechaRegistro": "Fecha de registro"
+            "txtFechaRegistro": "Fecha de registro",
+            "formatoCalendario": "DD/MM/YYYY",
+            "formatoFechaHoraResumida": "DD/MM/YYYY [-] hh:mm A"
         }
     }
 }
