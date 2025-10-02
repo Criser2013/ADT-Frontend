@@ -444,9 +444,8 @@ export default function VerUsuariosPage() {
         setModoModal(0);
         setModal({
             mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
-            mensaje: (//t("txtEliminarUsuario", { rol: rol, nombre: instancia.nombre, correo: instancia.correo })
+            mensaje: (
             <Trans i18nKey="txtEliminarUsuario" values={{ instancia, rol }} components={{ 1: <br />, 3: <b />, 5: <b /> }}>
-                
                 ¿Estás seguro de querer eliminar al usuario {instancia.nombre} ({instancia.correo}) — {rol}?
                 <br />
                 <br />
@@ -634,7 +633,7 @@ export default function VerUsuariosPage() {
                             {(x.nombre == t("txtEstado")) ? <ChipEstado estado={x.valor} /> : null}
                             {(![t("txtRol"), t("txtEstado")].includes(x.nombre)) ? (
                                 <Typography variant="body1">
-                                    {i == 4 ? dayjs(x.valor, t("formatoFechaHoraPequeno")).format(t("formatoFechaCompleta")) : x.valor}.
+                                    {i == 4 ? dayjs(x.valor, "DD/MM/YYYY hh:mm A").format(t("formatoFechaCompleta")) : x.valor}.
                                 </Typography>) : null}
                         </Stack>
                     );
