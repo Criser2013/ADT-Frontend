@@ -311,7 +311,8 @@
             "PLT": "PLT",
             "Derrame": "Stroke",
             "Otra Enfermedad": "Other Disease",
-            "titLime": "Contribution of each feature"
+            "titLime": "Contribution of each feature",
+            "txtFechaRegistro": "Registration date"
         }
     },
     "es": {
@@ -626,7 +627,8 @@
             "PLT": "PLT",
             "Derrame": "Derrame",
             "Otra Enfermedad": "Otra enfermedad",
-            "titLime": "Contribución de cada característica"
+            "titLime": "Contribución de cada característica",
+            "txtFechaRegistro": "Fecha de registro"
         }
     }
 }
