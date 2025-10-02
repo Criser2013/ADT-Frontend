@@ -30,6 +30,7 @@ import { peticionApi } from "../../services/Api";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
 import ContLime from "../../components/diagnosticos/ContLime";
 import { useTranslation } from "react-i18next";
+import { DatosIcono } from "../../components/icons/IconosSidebar";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -201,6 +202,11 @@ export default function VerDiagnosticoPage() {
         if (datos.success && datos.data != []) {
             setDiagOriginal({ ...datos.data });
 
+            if (rol != CODIGO_ADMIN && datos.data.medico != auth.authInfo.uid) {
+                volverPestanaAnterior();
+                return;
+            }
+
             if (rol == CODIGO_ADMIN) {
                 await cargarDatosMedico(token, datos.data.medico);
             } else {
@@ -209,7 +215,7 @@ export default function VerDiagnosticoPage() {
 
             preprocesarDiag(datos.data);
         } else if (DB != null && !datos.success) {
-            navigate("/diagnosticos", { replace: true });
+            volverPestanaAnterior();
         }
     };
 
@@ -317,11 +323,23 @@ export default function VerDiagnosticoPage() {
     };
 
     /**
+     * Vuelve a la pestaña anterior cuando el diagnóstico no existe o el usuario no tiene permisos para verlo.
+     * Se requiere el timeout porque sino hay condiciones de carrera con el sessionStorage y navigate.
+     */
+    const volverPestanaAnterior = () => {
+        setTimeout(() => {
+            sessionStorage.removeItem("paciente");
+            sessionStorage.setItem("descargando-drive", "false");
+            navigate("/diagnosticos", { replace: true });
+        }, 100);
+    };
+
+    /**
      * Determina el tamaño del elemento dentro de la malla.
      * Si se visualiza desde un dispositivo movil en orientación horizontal y el menú o en escritorio,
      * se ajusta el contenido a 2 columnas, en caso contrario se deja en 1 columna.
      * @param {Int} indice 
-     * @returns Int
+     * @returns {Int}
      */
     const detVisualizacion = (indice) => {
         const { orientacion, mostrarMenu, dispositivoMovil, ancho } = navegacion;
@@ -525,7 +543,7 @@ export default function VerDiagnosticoPage() {
                             urlPredet="/diagnosticos"
                             titulo={t("titDiagnostico")}
                             pestanas={listadoPestanas}
-                            tooltip={t("txtVolverAtrasDiagnosticos")}/>
+                            tooltip={t("txtVolverAtrasDiagnosticos")} />
                         <Grid container
                             columns={12}
                             spacing={1}

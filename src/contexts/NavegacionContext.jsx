@@ -37,7 +37,7 @@ export function NavegacionProvider({ children }) {
     const [recargarPagina, setRecargarPagina] = useState(false);
     const { mode, setMode } = useColorScheme();
     const { i18n } = useTranslation();
-    const idioma = useMemo(() => i18n.language, [i18n.language]);
+    const idioma = useMemo(() => i18n.language.split("-")[0], [i18n.language]);
     const tema = useMemo(() => {
         if (mode == "system" || mode == undefined) {
             if (window.matchMedia("(prefers-color-scheme: light)").matches) {
