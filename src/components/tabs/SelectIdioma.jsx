@@ -50,7 +50,7 @@ export default function SelectIdioma() {
                     onClick={manejadorMousePopOver}
                     color="inherit"
                     startIcon={<TranslateIcon fontSize="large" />}>
-                    {idioma}
+                    {idioma.toUpperCase()}
                 </Button>
             </Tooltip>
             <Popover

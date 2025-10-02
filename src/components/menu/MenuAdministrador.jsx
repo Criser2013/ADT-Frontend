@@ -107,9 +107,8 @@ export default function MenuAdministrador() {
      * @param {Array} usuarios - Lista de usuarios
      */
     const actualizarGraficoBarras = (diagnosticos, usuarios) => {
-        const idioma =  localStorage.getItem("i18nextLng");
-        const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4, fechaActual, "DD-MM-YYYY", idioma);
-        const usuariosMensuales = obtenerDatosPorMes(usuarios, "fecha_registro", 4, fechaActual, "DD/MM/YYYY hh:mm A", idioma);
+        const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4, fechaActual, "DD-MM-YYYY", navegacion.idioma);
+        const usuariosMensuales = obtenerDatosPorMes(usuarios, "fecha_registro", 4, fechaActual, "DD/MM/YYYY hh:mm A", navegacion.idioma);
         const json = {
             datasets: [
                 formatearDatosGrafico(diagnosticosMensuales, 'rgba(255, 99, 132, 0.5)', t("txtDiagnosticosRealizados")),
