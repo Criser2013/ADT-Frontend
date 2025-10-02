@@ -78,6 +78,10 @@ export default function IniciarSesionPage() {
     }, []);
 
     useEffect(() => {
+        document.title = t("titInicioSesion");
+    }, [navegacion.idioma]);
+
+    useEffect(() => {
         setDesactivarBtn(!(captchaAceptado && terminosAceptados));
     }, [captchaAceptado, terminosAceptados]);
 
@@ -100,25 +104,29 @@ export default function IniciarSesionPage() {
     /**
      * Manejador de eventos del botón para iniciar sesión.
      */
-    const manejadorBtnIniciarSesion = async () => {
+    const manejadorBtnIniciarSesion = () => {
         const { user } = auth.authInfo;
 
         if (user == null) {
-            await auth.iniciarSesionGoogle().then((x) => {
-                const res = (x.res == false) && (x.operacion == 0);
-                if (res) {
-                    navigate("/menu", { replace: true });
-                }
-            });
+            auth.iniciarSesionGoogle().then((x) => manejadorRespuesta(x, 0));
         } else {
-            auth.reautenticarUsuario(user).then((x) => {
-                const res = (x.res == false) && (x.operacion == 2);
-                if (res) {
-                    navigate("/menu", { replace: true });
-                }
-            });
+            auth.reautenticarUsuario(user).then((x) => manejadorRespuesta(x, 2));
         }
         setDesactivarBtn(true);
+    };
+
+    /**
+     * Manejador de la respuesta de la operación de inicio de sesión.
+     * @param {JSON} respuesta - Respuesta de la operación.
+     * @param {int} codigo - Código de operación esperada.
+     */
+    const manejadorRespuesta = (respuesta, codigo) => {
+        const res = (respuesta.res == false) && (respuesta.operacion == codigo);
+        if (res) {
+            navigate("/menu", { replace: true });
+        } else {
+            setCaptchaAceptado(false);
+        }
     };
 
     /**
@@ -151,6 +159,7 @@ export default function IniciarSesionPage() {
                     mensaje: t("errCaptcha")
                 });
                 CAPTCHA.current.reset();
+                setCaptchaAceptado(false);
             }
         } else {
             let txtError = res.error;
@@ -160,6 +169,7 @@ export default function IniciarSesionPage() {
                 }
             }
             CAPTCHA.current.reset();
+            setCaptchaAceptado(false);
             setModal({ titulo: t("tituloErr"), mostrar: true, mensaje: txtError });
         }
         setCargandoBtn(false);
