@@ -63,12 +63,12 @@ export default function VerDiagnosticosPage() {
         { id: "paciente", label: t("txtCedula"), componente: null, ordenable: true },
     ] : [{ id: "nombre", label: t("txtMedico"), componente: null, ordenable: true }], [navegacion.idioma, rol]);
     const camposFijos = useMemo(() => camposVariables.concat([
-        { id: "fecha", label: t("txtFecha"), componente: (x) => dayjs(x.fecha).format("DD/MM/YYYY [-] hh:mm A"), ordenable: true },
+        { id: "fecha", label: t("txtFecha"), componente: (x) => dayjs(x.fecha).format(t("formatoFechaHoraResumida")), ordenable: true },
         { id: "edad", label: t("txtCampoEdad"), componente: null, ordenable: true },
         { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true },
         { id: "diagnostico", label: t("txtCampoDiagModelo"), componente: (x) => <ChipDiagnostico diagnostico={x.diagnostico} />, ordenable: true },
         { id: "validado", label: t("txtCampoDiagMedico"), componente: (x) => <ChipValidado validado={x.validado} />, ordenable: true }
-    ]), [navegacion.idioma]);
+    ]), [camposVariables, navegacion.idioma]);
     const camposTabla = useMemo(() => {
         return (rol != CODIGO_ADMIN) ? camposFijos.concat([{ id: "accion", label: t("txtAccion"), componente: null, ordenable: false }]) : camposFijos;
     }, [rol, camposFijos, navegacion.idioma]);
@@ -437,7 +437,7 @@ export default function VerDiagnosticosPage() {
     /**
      * Botón para validar diagnóstico
      * @param {JSON} diagnostico - Diagnóstico a validar.
-     * @returns JSX.Element
+     * @returns {JSX.Element}
      */
     const BtnValidar = (diagnostico) => {
         const func = (x) => {
