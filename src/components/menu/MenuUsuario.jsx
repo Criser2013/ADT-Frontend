@@ -16,6 +16,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
 import { Timestamp } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
+import { AES, enc } from "crypto-js";
+import { AES_KEY } from "../../../constants";
 
 /**
  * Menú principal para los usuarios. Muestra la cantidad de pacientes y diagnósticos registrados este mes y
@@ -73,7 +75,8 @@ export default function MenuUsuario() {
     useEffect(() => {
         const token = sessionStorage.getItem("session-tokens");
         if (token != null) {
-            drive.setToken(JSON.parse(token).accessToken);
+            const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
+            drive.setToken(tokens.accessToken);
         } else if (auth.tokenDrive != null) {
             drive.setToken(auth.tokenDrive);
         }
