@@ -34,6 +34,6 @@ export const CAMPOS_BIN = [
     "derrame", "tepPrevio", "edema", "disautonomicos", "inmovilidad",
     "viajeProlongado", "cirugiaReciente", "otraEnfermedad", "soplos"
 ];
-
 export const CAMPOS_TXT = ["edad", "presionSis", "presionDias", "frecRes",
     "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"];
+export const AES_KEY = import.meta.env.VITE_CLAVE_AES;

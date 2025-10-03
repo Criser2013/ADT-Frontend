@@ -4,8 +4,9 @@ import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebas
 import { verUsuario } from "../firestore/usuarios-collection";
 import { cambiarUsuario, verSiEstaRegistrado } from "../firestore/usuarios-collection";
 import { FirebaseError } from "firebase/app";
-import { CODIGO_ADMIN } from "../../constants";
+import { AES_KEY, CODIGO_ADMIN } from "../../constants";
 import { useTranslation } from "react-i18next";
+import { AES, enc  } from "crypto-js";
 
 export const authContext = createContext();
 
@@ -332,7 +333,7 @@ export function AuthProvider({ children }) {
         const valores = sessionStorage.getItem("session-tokens");
 
         if (valores != null) {
-            const tokens = JSON.parse(valores);
+            const tokens = JSON.parse(AES.decrypt(valores, AES_KEY).toString(enc.Utf8));
             setTokenDrive(tokens.accessToken);
             verificarPermisos(tokens.scopesDrive, scopes);
 
@@ -356,7 +357,8 @@ export function AuthProvider({ children }) {
      * @param {JSON} tokens - Credenciales OAuth de Google.
      */
     const guardarAuthCredsSesion = (tokens) => {
-        sessionStorage.setItem("session-tokens", JSON.stringify(tokens));
+        const res = AES.encrypt(JSON.stringify(tokens), AES_KEY).toString();
+        sessionStorage.setItem("session-tokens", res);
     };
 
     /**

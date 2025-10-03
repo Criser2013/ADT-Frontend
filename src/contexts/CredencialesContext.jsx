@@ -2,8 +2,9 @@ import { createContext, useState, useContext, useEffect } from "react";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { API_URL, ENTORNO } from "../../constants";
+import { AES_KEY, API_URL, ENTORNO } from "../../constants";
 import Cookies from "js-cookie";
+import { AES, enc } from "crypto-js";
 
 export const credencialesContext = createContext();
 
@@ -23,7 +24,7 @@ export const useCredenciales = () => {
  * Proveedor del contexto que permite gestionar las credenciales de Firebase
  * de la aplicación.
  * @param {JSX.Element} children
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export function CredencialesProvider({ children }) {
 
@@ -128,14 +129,15 @@ export function CredencialesProvider({ children }) {
      * @param {Array} scopes - Scopes de acceso a Google Drive.
      */
     const almacenarCredenciales = (firebaseCreds, scopes) => {
-        Cookies.set("session-credentials", JSON.stringify(firebaseCreds));
+        const json = AES.encrypt(JSON.stringify(firebaseCreds), AES_KEY).toString();
+        Cookies.set("session-credentials", json);
         Cookies.set("session-drive-scopes", scopes);
     };
 
     /**
      * Carga las credenciales de los servicios desde las cookies.
      * Devuelve el resultado de las operación.
-     * @returns Boolean
+     * @returns {Boolean}
      */
     const cargarCredsCookies = () => {
         const firebaseCreds = Cookies.get("session-credentials");
@@ -143,7 +145,7 @@ export function CredencialesProvider({ children }) {
         let res = (firebaseCreds != undefined && firebaseCreds != null);
 
         if (res && (driveScopes != undefined && driveScopes != null)) {
-            const creds = JSON.parse(firebaseCreds);
+            const creds = JSON.parse(AES.decrypt(firebaseCreds, AES_KEY).toString(enc.Utf8));
 
             setScopesDrive(driveScopes.split(","));
             setCredsInfo((x) => ({ ...x, ...creds }));
@@ -160,7 +162,7 @@ export function CredencialesProvider({ children }) {
 
     /**
      * Obtiene la instancia de Firestore.
-     * @returns Object
+     * @returns {Object}
      */
     const obtenerInstanciaDB = () => {
         return credsInfo.db;
@@ -168,7 +170,7 @@ export function CredencialesProvider({ children }) {
 
     /**
      * Obtiene la instancia de autenticación de Firebase.
-     * @returns Object
+     * @returns {Object}
      */
     const obtenerInstanciaAuth = () => {
         return credsInfo.auth;
@@ -176,7 +178,7 @@ export function CredencialesProvider({ children }) {
 
     /**
      * Verificar si las credenciales de Firebase están cargadas.
-     * @returns Boolean
+     * @returns {Boolean}
      */
     const verSiCredsFirebaseEstancargadas = () => {
         return credsInfo.app != null && credsInfo.db != null && credsInfo.auth != null;
@@ -184,7 +186,7 @@ export function CredencialesProvider({ children }) {
 
     /**
      * Obtiene la clave de reCAPTCHA de las credenciales.
-     * @returns String
+     * @returns {String}
      */
     const obtenerRecaptcha = () => {
         return credsInfo.reCAPTCHA;

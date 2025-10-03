@@ -30,7 +30,8 @@ import { peticionApi } from "../../services/Api";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
 import ContLime from "../../components/diagnosticos/ContLime";
 import { useTranslation } from "react-i18next";
-import { DatosIcono } from "../../components/icons/IconosSidebar";
+import { AES, enc } from "crypto-js";
+import { AES_KEY } from "../../../constants";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -137,7 +138,8 @@ export default function VerDiagnosticoPage() {
     useEffect(() => {
         const token = sessionStorage.getItem("session-tokens");
         if (token != null) {
-            drive.setToken(JSON.parse(token).accessToken);
+            const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
+            drive.setToken(tokens.accessToken);
         } else if (auth.tokenDrive != null) {
             drive.setToken(auth.tokenDrive);
         }
