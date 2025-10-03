@@ -7,6 +7,8 @@ import { useNavigate, useSearchParams } from "react-router";
 import { validarId } from "../../utils/Validadores";
 import { useTranslation } from "react-i18next";
 import { useNavegacion } from "../../contexts/NavegacionContext";
+import { AES, enc } from "crypto-js";
+import { AES_KEY } from "../../../constants";
 
 /**
  * Página para editar los datos de un paciente.
@@ -31,7 +33,8 @@ export default function EditarPacientePage() {
     useEffect(() => {
         const token = sessionStorage.getItem("session-tokens");
         if (token != null) {
-            drive.setToken(JSON.parse(token).accessToken);
+            const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
+            drive.setToken(tokens.accessToken);
         } else if (auth.tokenDrive != null) {
             drive.setToken(auth.tokenDrive);
         }

@@ -7,6 +7,9 @@ import ModalSimple from "../../components/modals/ModalSimple";
 import CloseIcon from "@mui/icons-material/Close";
 import { useTranslation } from "react-i18next";
 import { useNavegacion } from "../../contexts/NavegacionContext";
+import { AES, enc } from "crypto-js";
+import { AES_KEY } from "../../../constants";
+
 /**
  * Página para realizar un diagnóstico de TEP al paciente.
  * @returns {JSX.Element}
@@ -28,11 +31,13 @@ export default function DiagnosticoPacientePage() {
     useEffect(() => {
         const token = sessionStorage.getItem("session-tokens");
         if (token != null) {
-            drive.setToken(JSON.parse(token).accessToken);
+            const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
+            drive.setToken(tokens.accessToken);
         } else if (auth.tokenDrive != null) {
             drive.setToken(auth.tokenDrive);
         }
     }, [auth.tokenDrive]);
+
 
     /**
      * Actualizando los datos de los pacientes cuando son descargados.

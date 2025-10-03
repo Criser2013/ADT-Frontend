@@ -26,6 +26,8 @@ import AdvertenciaEspacio from "../../components/menu/AdvertenciaEspacio";
 import CloseIcon from "@mui/icons-material/Close";
 import { ChipDiagnostico, ChipValidado, ChipSexo } from "../../components/tabs/Chips";
 import { useTranslation } from "react-i18next";
+import { AES, enc } from "crypto-js";
+import { AES_KEY } from "../../../constants";
 
 /**
  * Página para ver los diagnósticos del usuario.
@@ -131,7 +133,8 @@ export default function VerDiagnosticosPage() {
     useEffect(() => {
         const token = sessionStorage.getItem("session-tokens");
         if (token != null) {
-            drive.setToken(JSON.parse(token).accessToken);
+            const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
+            drive.setToken(tokens.accessToken);
         } else if (auth.tokenDrive != null) {
             drive.setToken(auth.tokenDrive);
         }

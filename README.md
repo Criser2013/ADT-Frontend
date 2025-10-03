@@ -33,6 +33,7 @@ VITE_URL_MANUAL_USUARIO=<string>     # URL del manual de instrucciones para los 
 VITE_URL_MANUAL_ADMIN=<string>       # URL del manual de instrucciones para los administradores
 VITE_CANT_LIM_DIAGNOSTICOS=<int>     # Cantidad de diagnósticos a partir del cual mostrar la advertencia de espacio
 VITE_URL_CONDICIONES=<string>        # URL al documento que contiene los términos y condiciones de uso de la aplicación
+VITE_AES_KEY=<string>                # Clave AES utilizada para encriptar las credenciales
 ```
 
 ## Ejecución del frontend  sin backend

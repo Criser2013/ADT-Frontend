@@ -16,6 +16,8 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import CloseIcon from "@mui/icons-material/Close";
 import { ChipSexo } from "../../components/tabs/Chips";
+import { AES, enc } from "crypto-js";
+import { AES_KEY } from "../../../constants";
 
 /**
  * Página para ver la lista de pacientes.
@@ -51,7 +53,8 @@ export default function VerPacientesPage() {
     useEffect(() => {
         const token = sessionStorage.getItem("session-tokens");
         if (token != null) {
-            drive.setToken(JSON.parse(token).accessToken);
+            const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
+            drive.setToken(tokens.accessToken);
         } else if (auth.tokenDrive != null) {
             drive.setToken(auth.tokenDrive);
         }
