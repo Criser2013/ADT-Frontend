@@ -149,10 +149,11 @@ export default function VerDiagnosticoPage() {
      * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
      */
     useEffect(() => {
-        if (rol != null && DB != null && !archivoDescargado) {
+        const exp = (rol != CODIGO_ADMIN || persona.nombre == "");
+        if (rol != null && DB != null && exp) {
             cargarDatosDiagnostico(auth.authInfo.user.accessToken);
         }
-    }, [drive.descargando, auth.authInfo.user, rol, archivoDescargado, DB]);
+    }, [drive.descargando, auth.authInfo.user, rol, persona, DB]);
 
     /**
      * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
@@ -223,10 +224,10 @@ export default function VerDiagnosticoPage() {
     };
 
     useEffect(() => {
-        if (drive.token != null && diagOriginal != {} && rol != CODIGO_ADMIN) {
+        if (drive.token != null && rol != CODIGO_ADMIN) {
             cargarDatosPacientes();
         }
-    }, [drive.token, diagOriginal]);
+    }, [drive.token, rol]);
 
     /**
      * Carga los datos de los pacientes.
@@ -260,7 +261,6 @@ export default function VerDiagnosticoPage() {
         if (id == "Anónimo") {
             setPersona({ id: "Anónimo", nombre: t("txtAnonimo") });
             sessionStorage.setItem("descargando-drive", "false");
-            setArchivoDescargado(true);
             return;
         }
 

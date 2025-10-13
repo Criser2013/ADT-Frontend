@@ -57,7 +57,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const credenciales = useCredenciales();
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const [desactivarBtn, setDesactivarBtn] = useState(false);
+    const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({ mostrar: false, titulo: "", mensaje: "" });
     const numCols = useMemo(() => {
