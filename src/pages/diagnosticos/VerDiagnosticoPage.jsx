@@ -396,7 +396,12 @@ export default function VerDiagnosticoPage() {
         setCargando(true);
         setErrorDiagnostico(false);
         const DB = credenciales.obtenerInstanciaDB();
-        const res = await cambiarDiagnostico(diagOriginal.medico, { ...diagOriginal, validado: diagnostico }, DB);
+        const { id, medico } = diagOriginal;
+
+        delete diagOriginal.id;
+        delete diagOriginal.medico;
+
+        const res = await cambiarDiagnostico(id, medico, { ...diagOriginal, validado: diagnostico }, DB);
 
         if (res.success) {
             window.history.replaceState({}, '');
