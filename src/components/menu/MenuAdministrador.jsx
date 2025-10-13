@@ -182,7 +182,7 @@ export default function MenuAdministrador() {
         } else {
             setModal({
                 mostrar: true, titulo: t("titErrCargarDiagnosticos"),
-                mensaje: t("errCargarDatosDiagnosticos")
+                mensaje: t("errCargarDiagnosticos")
             });
             setDiagnosticos([]);
         }

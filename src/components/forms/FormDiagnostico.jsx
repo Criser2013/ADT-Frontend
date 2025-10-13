@@ -220,17 +220,17 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         const id = `${v6()}-${uid}`;
         const paciente = esDiagPacientes ? datos.paciente.id : "Anónimo";
         const instancia = {
-            id: id, medico: uid, ...aux, ...oneHotComor,
+            ...aux, ...oneHotComor,
             probabilidad: resultado.probabilidad, diagnostico: procBool(resultado.prediccion),
             fecha: Timestamp.now(), validado: 2, paciente: paciente, lime: resultado.lime
         };
 
-        const res = await cambiarDiagnostico(instancia, credenciales.obtenerInstanciaDB());
+        const res = await cambiarDiagnostico(id, uid, instancia, credenciales.obtenerInstanciaDB());
 
         if (res.success) {
             const url = esDiagPacientes ? "/diagnostico-paciente" : "/diagnostico-anonimo";
             navegacion.setPaginaAnterior(url);
-            navigate(`/diagnosticos/ver-diagnostico?id=${instancia.id}`, { replace: true });
+            navigate(`/diagnosticos/ver-diagnostico?id=${id}`, { replace: true });
         } else {
             setCargando(false);
             setModal({

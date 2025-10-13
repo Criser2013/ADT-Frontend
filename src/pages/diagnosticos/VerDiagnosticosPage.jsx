@@ -63,7 +63,9 @@ export default function VerDiagnosticosPage() {
         { id: "id", label: "ID", componente: null, ordenable: true },
         { id: "nombre", label: t("txtPaciente"), componente: null, ordenable: true },
         { id: "paciente", label: t("txtCedula"), componente: null, ordenable: true },
-    ] : [{ id: "nombre", label: t("txtMedico"), componente: null, ordenable: true }], [navegacion.idioma, rol]);
+    ] : [
+        { id: "id", label: "ID", componente: null, ordenable: true },
+        { id: "nombre", label: t("txtMedico"), componente: null, ordenable: true }], [navegacion.idioma, rol]);
     const camposFijos = useMemo(() => camposVariables.concat([
         { id: "fecha", label: t("txtFecha"), componente: (x) => dayjs(x.fecha).format(t("formatoFechaHoraResumida")), ordenable: true },
         { id: "edad", label: t("txtCampoEdad"), componente: null, ordenable: true },
@@ -379,7 +381,8 @@ export default function VerDiagnosticosPage() {
         }
 
         diagnosticos.forEach((x, i) => {
-            peticiones[i] = eliminarDiagnosticos(x, DB);
+            const uid = x.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
+            peticiones[i] = eliminarDiagnosticos(uid[1], x, DB);
         });
 
         for (let i = 0; i < peticiones.length; i++) {
@@ -421,7 +424,12 @@ export default function VerDiagnosticosPage() {
      */
     const validarDiagnostico = async (indice) => {
         setCargando(true);
-        const res = await cambiarDiagnostico({ ...diagnosticos[indice.diagnostico], validado: validar }, DB);
+        const diagnostico = diagnosticos[indice.diagnostico];
+        const { id, medico } = diagnostico;
+        delete diagnostico.id;
+        delete diagnostico.medico;
+
+        const res = await cambiarDiagnostico(id, medico, { ...diagnostico, validado: validar }, DB);
 
         if (res.success) {
             cargarDiagnosticos(auth.authInfo.uid, rol, DB);
