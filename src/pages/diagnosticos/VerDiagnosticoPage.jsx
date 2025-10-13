@@ -149,10 +149,11 @@ export default function VerDiagnosticoPage() {
      * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
      */
     useEffect(() => {
-        if (rol != null && DB != null && !archivoDescargado) {
+        const exp = (rol != CODIGO_ADMIN || persona.nombre == "");
+        if (rol != null && DB != null && exp) {
             cargarDatosDiagnostico(auth.authInfo.user.accessToken);
         }
-    }, [drive.descargando, auth.authInfo.user, rol, archivoDescargado, DB]);
+    }, [drive.descargando, auth.authInfo.user, rol, persona, DB]);
 
     /**
      * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
@@ -200,7 +201,8 @@ export default function VerDiagnosticoPage() {
      * Carga los datos del diagnóstico.
      */
     const cargarDatosDiagnostico = async (token) => {
-        const datos = await verDiagnostico(id, DB);
+        const uid = id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
+        const datos = await verDiagnostico(uid[1], id, DB);
         if (datos.success && datos.data != []) {
             setDiagOriginal({ ...datos.data });
 
@@ -222,10 +224,10 @@ export default function VerDiagnosticoPage() {
     };
 
     useEffect(() => {
-        if (drive.token != null && diagOriginal != {} && rol != CODIGO_ADMIN) {
+        if (drive.token != null && rol != CODIGO_ADMIN) {
             cargarDatosPacientes();
         }
-    }, [drive.token, diagOriginal]);
+    }, [drive.token, rol]);
 
     /**
      * Carga los datos de los pacientes.
@@ -259,7 +261,6 @@ export default function VerDiagnosticoPage() {
         if (id == "Anónimo") {
             setPersona({ id: "Anónimo", nombre: t("txtAnonimo") });
             sessionStorage.setItem("descargando-drive", "false");
-            setArchivoDescargado(true);
             return;
         }
 
@@ -305,7 +306,7 @@ export default function VerDiagnosticoPage() {
      * @param {JSON} datos - Datos del diagnóstico.
      */
     const preprocesarDiag = (datos) => {
-        const aux = { ...datos };
+        const aux = { ...datos, lime: datos.lime.map((x) => x) };
         const lime = procLime(aux, aux.diagnostico);
         const res = oneHotDecoderOtraEnfermedad(aux);
 
@@ -372,7 +373,8 @@ export default function VerDiagnosticoPage() {
      * Realiza la petición para eliminar el diagnóstico del paciente.
      */
     const eliminarDiagnostico = async () => {
-        const res = await eliminarDiagnosticos(id, DB);
+        const uid = id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
+        const res = await eliminarDiagnosticos(uid[1], id, DB);
 
         if (res.success) {
             navegacion.setPaginaAnterior("/diagnosticos");
@@ -394,7 +396,13 @@ export default function VerDiagnosticoPage() {
         setCargando(true);
         setErrorDiagnostico(false);
         const DB = credenciales.obtenerInstanciaDB();
-        const res = await cambiarDiagnostico({ ...diagOriginal, validado: diagnostico }, DB);
+        const { id, medico } = diagOriginal;
+        const aux = { ...diagOriginal };
+
+        delete aux.id;
+        delete aux.medico;
+
+        const res = await cambiarDiagnostico(id, medico, { ...aux, validado: diagnostico }, DB);
 
         if (res.success) {
             window.history.replaceState({}, '');

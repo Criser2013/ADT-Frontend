@@ -186,8 +186,9 @@ export default function MenuUsuario() {
         } else {
             setModal({
                 mostrar: true, titulo: t("titErrCargarDiagnosticos"),
-                mensaje: t("msgErrCargarDiagnosticos")
+                mensaje: t("errCargarDiagnosticos")
             });
+            setDiagnosticos([]);
         }
     };
 
