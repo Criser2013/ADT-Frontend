@@ -120,6 +120,7 @@ export default function MenuUsuario() {
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
      */
     useEffect(() => {
+        console.log(diagnosticos, pacientes, datos)
         if (!!diagnosticos && !!pacientes && datos == null) {
            actualizarGraficoBarras(diagnosticos, pacientes);
            setCargando(false);
@@ -186,8 +187,9 @@ export default function MenuUsuario() {
         } else {
             setModal({
                 mostrar: true, titulo: t("titErrCargarDiagnosticos"),
-                mensaje: t("msgErrCargarDiagnosticos")
+                mensaje: t("errCargarDiagnosticos")
             });
+            setDiagnosticos([]);
         }
     };
 

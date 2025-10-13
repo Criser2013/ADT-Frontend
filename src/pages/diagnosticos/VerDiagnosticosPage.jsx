@@ -379,7 +379,8 @@ export default function VerDiagnosticosPage() {
         }
 
         diagnosticos.forEach((x, i) => {
-            peticiones[i] = eliminarDiagnosticos(x, DB);
+            const [idDiag, uid] = x.split("-");
+            peticiones[i] = eliminarDiagnosticos(uid, idDiag, DB);
         });
 
         for (let i = 0; i < peticiones.length; i++) {
@@ -421,7 +422,8 @@ export default function VerDiagnosticosPage() {
      */
     const validarDiagnostico = async (indice) => {
         setCargando(true);
-        const res = await cambiarDiagnostico({ ...diagnosticos[indice.diagnostico], validado: validar }, DB);
+        const diagnostico = diagnosticos[indice.diagnostico];
+        const res = await cambiarDiagnostico(diagnostico.medico, { ...diagnostico, validado: validar }, DB);
 
         if (res.success) {
             cargarDiagnosticos(auth.authInfo.uid, rol, DB);

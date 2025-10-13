@@ -57,7 +57,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
     const credenciales = useCredenciales();
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const [desactivarBtn, setDesactivarBtn] = useState(true);
+    const [desactivarBtn, setDesactivarBtn] = useState(false)//true);
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({ mostrar: false, titulo: "", mensaje: "" });
     const numCols = useMemo(() => {
@@ -225,7 +225,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             fecha: Timestamp.now(), validado: 2, paciente: paciente, lime: resultado.lime
         };
 
-        const res = await cambiarDiagnostico(instancia, credenciales.obtenerInstanciaDB());
+        const res = await cambiarDiagnostico(uid, instancia, credenciales.obtenerInstanciaDB());
 
         if (res.success) {
             const url = esDiagPacientes ? "/diagnostico-paciente" : "/diagnostico-anonimo";

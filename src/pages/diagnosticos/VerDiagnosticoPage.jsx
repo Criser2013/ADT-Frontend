@@ -200,7 +200,8 @@ export default function VerDiagnosticoPage() {
      * Carga los datos del diagnóstico.
      */
     const cargarDatosDiagnostico = async (token) => {
-        const datos = await verDiagnostico(id, DB);
+        const uid = id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
+        const datos = await verDiagnostico(uid[1], id, DB);
         if (datos.success && datos.data != []) {
             setDiagOriginal({ ...datos.data });
 
@@ -372,7 +373,8 @@ export default function VerDiagnosticoPage() {
      * Realiza la petición para eliminar el diagnóstico del paciente.
      */
     const eliminarDiagnostico = async () => {
-        const res = await eliminarDiagnosticos(id, DB);
+        const uid = id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
+        const res = await eliminarDiagnosticos(uid[1], id, DB);
 
         if (res.success) {
             navegacion.setPaginaAnterior("/diagnosticos");
@@ -394,7 +396,7 @@ export default function VerDiagnosticoPage() {
         setCargando(true);
         setErrorDiagnostico(false);
         const DB = credenciales.obtenerInstanciaDB();
-        const res = await cambiarDiagnostico({ ...diagOriginal, validado: diagnostico }, DB);
+        const res = await cambiarDiagnostico(diagOriginal.medico, { ...diagOriginal, validado: diagnostico }, DB);
 
         if (res.success) {
             window.history.replaceState({}, '');
