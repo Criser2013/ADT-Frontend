@@ -306,7 +306,7 @@ export default function VerDiagnosticoPage() {
      * @param {JSON} datos - Datos del diagnóstico.
      */
     const preprocesarDiag = (datos) => {
-        const aux = { ...datos };
+        const aux = { ...datos, lime: datos.lime.map((x) => x) };
         const lime = procLime(aux, aux.diagnostico);
         const res = oneHotDecoderOtraEnfermedad(aux);
 
@@ -397,11 +397,12 @@ export default function VerDiagnosticoPage() {
         setErrorDiagnostico(false);
         const DB = credenciales.obtenerInstanciaDB();
         const { id, medico } = diagOriginal;
+        const aux = { ...diagOriginal };
 
-        delete diagOriginal.id;
-        delete diagOriginal.medico;
+        delete aux.id;
+        delete aux.medico;
 
-        const res = await cambiarDiagnostico(id, medico, { ...diagOriginal, validado: diagnostico }, DB);
+        const res = await cambiarDiagnostico(id, medico, { ...aux, validado: diagnostico }, DB);
 
         if (res.success) {
             window.history.replaceState({}, '');
