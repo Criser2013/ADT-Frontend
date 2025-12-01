@@ -11,9 +11,10 @@ RUN npm run build
 
 FROM nginx:1.27.5-alpine3.21
 COPY --from=build /app/dist /usr/share/nginx/html
-RUN useradd -M frontend-user
+RUN adduser -M frontend-user
 RUN chown frontend-user 1000:1000 /usr/share/nginx/html
 USER frontend-user
 EXPOSE 80
+
 
 CMD ["nginx", "-g", "daemon off;"]
