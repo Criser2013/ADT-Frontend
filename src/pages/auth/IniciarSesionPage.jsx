@@ -82,8 +82,12 @@ export default function IniciarSesionPage() {
     }, [navegacion.idioma]);
 
     useEffect(() => {
-        setDesactivarBtn(!(captchaAceptado && terminosAceptados));
-    }, [captchaAceptado, terminosAceptados]);
+        if (auth.autenticado) {
+            setDesactivarBtn(!captchaAceptado);
+        } else {
+            setDesactivarBtn(!(captchaAceptado && terminosAceptados));
+        }
+    }, [captchaAceptado, terminosAceptados, auth.autenticado]);
 
     /**
      * Ejecuta una función mientras se cambia el idioma o el tema.
