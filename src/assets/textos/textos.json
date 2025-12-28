@@ -264,7 +264,7 @@
             "errUsuarioBaneado": "This user has been disabled. For more information, contact the app administrator.",
             "errSesionIniciada": "You already have an active session with the user '{{usuario}}' ({{correo}}). Please log out before signing in with another user.",
             "errArchivoInexistente": "File not found.",
-            "errLeearArchivo": "An error occurred while reading the file.",
+            "errLeerArchivo": "An error occurred while reading the file.",
             "errVerificarArchivo": "An error occurred while verifying or creating the file and folder. Please try again.",
             "errPacienteDuplicado": "A patient with that ID number already exists. Please verify the information.",
             "errPacienteInexistente": "Patient not found.",
@@ -311,10 +311,10 @@
             "PLT": "PLT",
             "Derrame": "Stroke",
             "Otra Enfermedad": "Other Disease",
-            "titLime": "Contribution of each feature",
             "txtFechaRegistro": "Registration date",
             "formatoCalendario": "MM/DD/YYYY",
-            "formatoFechaHoraResumida": "MM/DD/YYYY [-] hh:mm A"
+            "formatoFechaHoraResumida": "MM/DD/YYYY [-] hh:mm A",
+            "titLime": "Contribution of each feature"
         }
     },
     "es": {
@@ -582,7 +582,7 @@
             "errUsuarioBaneado": "Este usuario ha sido deshabilitado. Para más información, contacta al administrador de la aplicación.",
             "errSesionIniciada": "Ya tienes una sesión iniciada con el usuario '{{usuario}}' ({{correo}}). Cierra la sesión antes de iniciar con otro usuario.",
             "errArchivoInexistente": "Archivo no encontrado.",
-            "errLeearArchivo": "Se ha producido un error al leer el archivo.",
+            "errLeerArchivo": "Se ha producido un error al leer el archivo.",
             "errVerificarArchivo": "Se ha producido un error al verificar o crear el archivo y la carpeta. Reintente nuevamente.",
             "errPacienteDuplicado": "Ya existe un paciente con ese número de cédula. Por favor, verifica los datos.",
             "errPacienteInexistente": "Paciente no encontrado.",
@@ -629,10 +629,10 @@
             "PLT": "PLT",
             "Derrame": "Derrame",
             "Otra Enfermedad": "Otra enfermedad",
-            "titLime": "Contribución de cada característica",
             "txtFechaRegistro": "Fecha de registro",
             "formatoCalendario": "DD/MM/YYYY",
-            "formatoFechaHoraResumida": "DD/MM/YYYY [-] hh:mm A"
+            "formatoFechaHoraResumida": "DD/MM/YYYY [-] hh:mm A",
+            "titLime": "Contribución de cada característica"
         }
     }
 }
