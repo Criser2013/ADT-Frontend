@@ -6,6 +6,7 @@ README.md
 .gitignore
 .github
 node_modules
+articulo
 tests
 ejecutar-tests.sh
 babel.config.js
