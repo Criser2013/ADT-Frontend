@@ -20,7 +20,11 @@ export function obtenerDatosPorMes(datos, clave, numMesesAtras, fechaActual, for
     const mes = fechaFinal.month();
 
     for (let i = 0; i < numMesesAtras + 1; i++) {
-        res[meses[idioma][mes + i]] = 0;
+        if (mes + i > 11) {
+            res[meses[idioma][(mes + i) % 12]] = 0;
+        } else {
+            res[meses[idioma][mes + i]] = 0;
+        }
     }
 
     datos.forEach((x) => {
