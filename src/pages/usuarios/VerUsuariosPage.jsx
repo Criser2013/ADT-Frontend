@@ -9,7 +9,6 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import ModalAccion from "../../components/modals/ModalAccion";
-import { CODIGO_ADMIN } from "../../../constants";
 import { peticionApi } from "../../services/Api";
 import { verDiagnosticos } from "../../firestore/diagnosticos-collection";
 import { useCredenciales } from "../../contexts/CredencialesContext";
@@ -108,19 +107,19 @@ export default function VerUsuariosPage() {
             return "row";
         }
     }, [navegacion]);
-    const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
+    const admin = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
 
     /**
      * Coloca el título de la página.
      */
     useEffect(() => {
-        if (auth.authInfo.user != null && rol != null && rol == CODIGO_ADMIN) {
+        if (auth.authInfo.user != null && admin != null && admin) {
             manejadorRecargar(auth.authInfo.user.accessToken);
-        } else if (rol != null && rol != CODIGO_ADMIN) {
+        } else if (admin != null && !admin) {
             navigate("/menu", { replace: true });
         }
-    }, [rol, auth.authInfo.user]);
+    }, [admin, auth.authInfo.user]);
 
     useEffect(() => {
         document.title = t("titListaUsuarios");
