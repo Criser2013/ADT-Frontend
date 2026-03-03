@@ -43,16 +43,12 @@ export const verDiagnostico = async (uid, id, db) => {
 
 /**
  * Obtiene la información de todos los diagnósticos.
- * @param {Object} db - Instancia de Firestore.
+ * @param {object} db - Instancia de Firestore.
+ * @param {Array[string]} usuarios - Array con los UID de los médicos.
  * @returns {JSON}
  */
-export const verDiagnosticos = async (db) => {
+export const verDiagnosticos = async (db, usuarios) => {
     try {
-        const coleccion = collection(db, "usuarios");
-        const datos = await getDocs(coleccion);
-        const usuarios = [];
-        datos.forEach((doc) => usuarios.push(doc.id));
-
         const diagnosticos = [];
         for (const i of usuarios) {
             const consulta = collection(db, `usuarios/${i}/diagnosticos`);

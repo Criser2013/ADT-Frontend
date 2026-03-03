@@ -96,8 +96,9 @@ export default function MenuAdministrador() {
         const { user } = auth.authInfo;
 
         if (user != null && DB != null) {
-            cargarUsuarios(user.accessToken);
-            cargarDiagnosticos(DB);
+            cargarUsuarios(user.accessToken).then((x) => {
+                cargarDiagnosticos(DB, x.map((x) => x.uid));
+            });
         }
     }, [auth.authInfo, DB]);
 
@@ -166,17 +167,20 @@ export default function MenuAdministrador() {
                 titulo: t("errTitCargarDatosUsuarios"),
             });
             setUsuarios([]);
+            return [];
         } else {
             setUsuarios(res.data.usuarios);
+            return res.data.usuarios;
         }
     };
 
     /**
      * Carga los datos de los diagnósticos.
      * @param {Object} db - Instancia de Firestore.
+     * @param {Array[string]} usuarios - Lista de UID de los médicos.
      */
-    const cargarDiagnosticos = async (db) => {
-        const res = await verDiagnosticos(db);
+    const cargarDiagnosticos = async (db, usuarios) => {
+        const res = await verDiagnosticos(db, usuarios);
         if (res.success) {
             setDiagnosticos(res.data);
         } else {

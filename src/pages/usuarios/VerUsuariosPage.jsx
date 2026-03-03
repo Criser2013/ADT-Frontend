@@ -139,6 +139,7 @@ export default function VerUsuariosPage() {
     /**
      * Carga los datos de los pacientes desde Drive.
      * @param {String} token - Token de acceso de Firebase del usuario.
+     * @returns {Array[JSON]} Lista de usuarios o un array vacío en caso de error.
      */
     const cargarUsuarios = async (token) => {
         const res = await peticionApi(token, "admin/usuarios", "GET", null,
@@ -151,16 +152,19 @@ export default function VerUsuariosPage() {
                 mostrar: true, mensaje: res.error, icono: <CloseIcon />,
                 titulo: t("titErrCargaDatos"),
             });
+            return [];
         } else {
             setUsuarios(res.data.usuarios);
+            return res.data.usuarios;
         }
     };
 
     /**
      * Carga los diagnósticos desde la base de datos.
+     * @param {Array[string]} usuarios - Lista de UID de los médicos.
      */
-    const cargarDiagnosticos = async () => {
-        const res = await verDiagnosticos(DB);
+    const cargarDiagnosticos = async (usuarios) => {
+        const res = await verDiagnosticos(DB, usuarios);
         if (!res.success) {
             setDiagnosticos([]);
             setModoModal(2);
@@ -278,7 +282,7 @@ export default function VerUsuariosPage() {
     /**
      * Recarga los datos de la página.
      */
-    const manejadorRecargar = (token = null) => {
+    const manejadorRecargar = async (token = null) => {
         const credencial = (token == null) ? auth.authInfo.user.accessToken : token;
 
         if (!cargando) {
@@ -290,8 +294,8 @@ export default function VerUsuariosPage() {
         setDiagnosticos(null);
         setSeleccionado(null);
         setSeleccionados([]);
-        cargarUsuarios(credencial);
-        cargarDiagnosticos();
+        const usuarios = await cargarUsuarios(credencial);
+        cargarDiagnosticos(usuarios.map((x) => x.uid));
     };
 
     /**

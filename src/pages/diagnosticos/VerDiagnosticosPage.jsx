@@ -18,7 +18,6 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { descargarArchivoXlsx } from "../../utils/XlsxFiles";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FormSeleccionar from "../../components/forms/FormSeleccionar";
-import { CODIGO_ADMIN } from "../../../constants";
 import Check from "../../components/tabs/Check";
 import AddToDriveIcon from '@mui/icons-material/AddToDrive';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -217,8 +216,9 @@ export default function VerDiagnosticosPage() {
             setInstancia(null);
         }
 
-        cargarDiagnosticos(uid, rolUsuario, BD);
-        cargarPacientes(credencial);
+        cargarPacientes(credencial).then((usuarios) => {
+            cargarDiagnosticos(uid, rolUsuario, BD, usuarios);
+        });
     };
 
     /**
@@ -230,11 +230,13 @@ export default function VerDiagnosticosPage() {
             await peticionApi(token, "admin/usuarios", "GET", null,
                 t("errCargarUsuarios"), navegacion.idioma
             );
+        let usuarios = [];
         setArchivoDescargado(true);
         if (res.success && admin) {
             setPersonas(res.data.usuarios);
+            usuarios = res.data.usuarios.map((x) => x.uid != undefined ? x.uid : x.paciente);
         } else if (res.success && !admin) {
-            return;
+            return [];
         } else {
             setModoModal(0);
             setActivar2Btn(false);
@@ -246,6 +248,7 @@ export default function VerDiagnosticosPage() {
         }
 
         sessionStorage.setItem("descargando-drive", "false");
+        return usuarios;
     };
 
     /**
@@ -253,9 +256,10 @@ export default function VerDiagnosticosPage() {
      * @param {String} uid - UID del médico.
      * @param {Number} rol - Rol del usuario (0: médico, 1001: administrador).
      * @param {Object} DB - Instancia de Firestore.
+     * @param {Array[string]} usuarios - Array con los UID de los médicos (solo para administradores).
      */
-    const cargarDiagnosticos = async (uid, rol, DB) => {
-        const res = !rol ? await verDiagnosticosPorMedico(uid, DB) : await verDiagnosticos(DB);
+    const cargarDiagnosticos = async (uid, rol, DB, usuarios = []) => {
+        const res = !rol ? await verDiagnosticosPorMedico(uid, DB) : await verDiagnosticos(DB, usuarios);
         if (res.success) {
             setDiagnosticos(res.data);
         } else {
@@ -296,7 +300,7 @@ export default function VerDiagnosticosPage() {
             auxDiag[i].sexo = auxDiag[i].sexo == 0 ? t("txtMasculino") : t("txtFemenino");
             const campos = admin ? "medico" : "paciente";
             const persona = aux[auxDiag[i][campos]];
-            const nombre = (admin && persona == undefined) ? t("txtPaciente") : t("txtUsuario");
+            const nombre = (admin && persona == undefined) ? t("txtUsuario") : t("txtPaciente");
             if (!admin) {
                 auxDiag[i].paciente = (persona != undefined) ? persona.cedula : "N/A";
                 auxDiag[i].id = auxDiag[i].id.replace(/-\w{28}$/, "");
@@ -391,8 +395,8 @@ export default function VerDiagnosticosPage() {
 
         if (peticiones.every((x) => x.success)) {
             setCargando(true);
-            cargarDiagnosticos(auth.authInfo.uid, admin, DB);
-            cargarPacientes(auth.authInfo.user.accessToken);
+            const usuarios = await cargarPacientes(auth.authInfo.user.accessToken);
+            cargarDiagnosticos(auth.authInfo.uid, admin, DB, usuarios);
         } else {
             setModoModal(0);
             setActivar2Btn(false);
@@ -432,8 +436,8 @@ export default function VerDiagnosticosPage() {
         const res = await cambiarDiagnostico(id, medico, { ...diagnostico, validado: validar }, DB);
 
         if (res.success) {
-            cargarDiagnosticos(auth.authInfo.uid, admin, DB);
-            cargarPacientes(auth.authInfo.user.accessToken);
+            const pacientes = await cargarPacientes(auth.authInfo.user.accessToken);
+            cargarDiagnosticos(auth.authInfo.uid, admin, DB, pacientes);
         } else {
             setActivar2Btn(false);
             setModoModal(0);
