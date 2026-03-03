@@ -34,9 +34,9 @@ export default function Sidebar() {
             { txt: t("txtUsuarios"), icono: <PeopleIcon />, ruta: "/usuarios" },
         ];
 
-        if (rolVisible != null && (rolVisible != CODIGO_ADMIN || modoUsuario)) {
+        if (rolVisible != null && (!rolVisible || modoUsuario)) {
             return usuario;
-        } else if (rolVisible != null && rolVisible == CODIGO_ADMIN && !modoUsuario) {
+        } else if (rolVisible != null && rolVisible && !modoUsuario) {
             return admin;
         } else {
             return usuario;

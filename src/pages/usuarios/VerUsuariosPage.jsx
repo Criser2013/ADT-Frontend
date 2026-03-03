@@ -9,11 +9,9 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import ModalAccion from "../../components/modals/ModalAccion";
-import { CODIGO_ADMIN } from "../../../constants";
 import { peticionApi } from "../../services/Api";
 import { verDiagnosticos } from "../../firestore/diagnosticos-collection";
 import { useCredenciales } from "../../contexts/CredencialesContext";
-import { cambiarUsuario, eliminarUsuario } from "../../firestore/usuarios-collection";
 import EditIcon from '@mui/icons-material/Edit';
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -49,7 +47,7 @@ export default function VerUsuariosPage() {
     const [seleccionados, setSeleccionados] = useState([]);
     const { setValue, control, handleSubmit, watch } = useForm({
         defaultValues: {
-            uid: "", nombre: "", correo: "", rol: 0, estado: true
+            uid: "", nombre: "", correo: "", rol: false, estado: true
         }
     });
     const estado = watch("estado");
@@ -109,19 +107,19 @@ export default function VerUsuariosPage() {
             return "row";
         }
     }, [navegacion]);
-    const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
+    const admin = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
     const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
 
     /**
      * Coloca el título de la página.
      */
     useEffect(() => {
-        if (auth.authInfo.user != null && rol != null && rol == CODIGO_ADMIN) {
+        if (auth.authInfo.user != null && admin != null && admin) {
             manejadorRecargar(auth.authInfo.user.accessToken);
-        } else if (rol != null && rol != CODIGO_ADMIN) {
+        } else if (admin != null && !admin) {
             navigate("/menu", { replace: true });
         }
-    }, [rol, auth.authInfo.user]);
+    }, [admin, auth.authInfo.user]);
 
     useEffect(() => {
         document.title = t("titListaUsuarios");
@@ -141,6 +139,7 @@ export default function VerUsuariosPage() {
     /**
      * Carga los datos de los pacientes desde Drive.
      * @param {String} token - Token de acceso de Firebase del usuario.
+     * @returns {Array[JSON]} Lista de usuarios o un array vacío en caso de error.
      */
     const cargarUsuarios = async (token) => {
         const res = await peticionApi(token, "admin/usuarios", "GET", null,
@@ -153,16 +152,19 @@ export default function VerUsuariosPage() {
                 mostrar: true, mensaje: res.error, icono: <CloseIcon />,
                 titulo: t("titErrCargaDatos"),
             });
+            return [];
         } else {
             setUsuarios(res.data.usuarios);
+            return res.data.usuarios;
         }
     };
 
     /**
      * Carga los diagnósticos desde la base de datos.
+     * @param {Array[string]} usuarios - Lista de UID de los médicos.
      */
-    const cargarDiagnosticos = async () => {
-        const res = await verDiagnosticos(DB);
+    const cargarDiagnosticos = async (usuarios) => {
+        const res = await verDiagnosticos(DB, usuarios);
         if (!res.success) {
             setDiagnosticos([]);
             setModoModal(2);
@@ -211,7 +213,7 @@ export default function VerUsuariosPage() {
             if (datos[i].rol != "N/A") {
                 aux.push({
                     uid: datos[i].uid, nombre: datos[i].nombre, correo: datos[i].correo,
-                    rol: datos[i].rol == CODIGO_ADMIN ? t("txtAdministrador") : t("txtUsuario"),
+                    rol: datos[i].administrador ? t("txtAdministrador") : t("txtUsuario"),
                     estado: datos[i].estado ? t("txtActivo") : t("txtInactivo"),
                     registro: datos[i].fecha_registro,
                     cantidad: datos[i].cantidad, ultimaConexion: datos[i].ultima_conexion,
@@ -260,12 +262,12 @@ export default function VerUsuariosPage() {
         switch (modoModal) {
             case 0:
                 setCargando(true);
-                eliminarUsuarios([seleccionado.uid]);
+                eliminarUsuarios([{ uid: seleccionado.uid, rol: seleccionado.administrador }]);
                 break;
             case 1:
                 setCargando(true);
                 if (!verificarAutoeliminacion(seleccionados)) {
-                    eliminarUsuarios(seleccionados);
+                    eliminarUsuarios(seleccionados.map(s => ({ uid: s.uid, rol: s.rol == t("txtAdministrador") })));
                 }
                 break;
             case 3:
@@ -280,7 +282,7 @@ export default function VerUsuariosPage() {
     /**
      * Recarga los datos de la página.
      */
-    const manejadorRecargar = (token = null) => {
+    const manejadorRecargar = async (token = null) => {
         const credencial = (token == null) ? auth.authInfo.user.accessToken : token;
 
         if (!cargando) {
@@ -292,35 +294,19 @@ export default function VerUsuariosPage() {
         setDiagnosticos(null);
         setSeleccionado(null);
         setSeleccionados([]);
-        cargarUsuarios(credencial);
-        cargarDiagnosticos();
+        const usuarios = await cargarUsuarios(credencial);
+        cargarDiagnosticos(usuarios.map((x) => x.uid));
     };
 
     /**
      * Actualiza los datos del usuario seleccionado.
      */
     const actualizarUsuario = async (nuevosDatos) => {
-        const peticiones = [null, null];
-        let res = true;
+        const res = (await desactivarUsuarios([{ uid: seleccionado.uid, rol: nuevosDatos.rol }], !nuevosDatos.estado, false))[0];
 
-        if (seleccionado.estado != nuevosDatos.estado) {
-            peticiones[0] = desactivarUsuarios([seleccionado.uid], !nuevosDatos.estado);
-        }
-
-        if (nuevosDatos.rol != seleccionado.rol) {
-            peticiones[1] = cambiarUsuario({ uid: nuevosDatos.uid, rol: nuevosDatos.rol }, DB);
-        }
-
-        for (let i = 0; i < 2; i++) {
-            if (peticiones[i] != null) {
-                peticiones[i] = await peticiones[i];
-                res &= (i == 0) ? peticiones[i][0].success : peticiones[i].success;
-            }
-        }
-
-        if (res) {
+        if (res.success) {
             setSeleccionado(null);
-            cambiarValoresUsuario({ uid: "", nombre: "", correo: "", rol: 0, estado: true });
+            cambiarValoresUsuario({ uid: "", nombre: "", correo: "", rol: false, estado: true });
 
             manejadorRecargar();
         } else {
@@ -358,9 +344,10 @@ export default function VerUsuariosPage() {
      * Desactiva los usuarios seleccionados.
      * @param {Array[String]} usuarios - Lista de usuarios a desactivar.
      * @param {Boolean} estado - Estado a establecer (true para activar, false para desactivar).
+     * @param {boolean} banear - Si es true, se eliminará permanentemente al usuario (solo para desactivación).
      * @returns {Array[Object]}
      */
-    const desactivarUsuarios = async (usuarios, estado = true) => {
+    const desactivarUsuarios = async (usuarios, estado = true, banear = false) => {
         setCargando(true);
 
         const peticiones = [];
@@ -371,9 +358,9 @@ export default function VerUsuariosPage() {
         }
 
         usuarios.forEach((x, i) => {
-            x = encodeURIComponent(x);
-            x = x.replaceAll(".", "%2E");
-            peticiones[i] = peticionApi(token, `admin/usuarios/${x}?desactivar=${estado}`, "PATCH", null, "", navegacion.idioma);
+            let uid = encodeURIComponent(x.uid);
+            uid = uid.replaceAll(".", "%2E");
+            peticiones[i] = peticionApi(token, `admin/usuarios/${uid}`, "PATCH", { desactivar: estado, administrador: x.rol, eliminado: banear }, "", navegacion.idioma);
         });
 
         for (let i = 0; i < peticiones.length; i++) {
@@ -388,29 +375,11 @@ export default function VerUsuariosPage() {
      * @param {Array} usuarios - Lista de usuarios a eliminar.
      */
     const eliminarUsuarios = async (usuarios) => {
-        const peticiones = [];
         let exitoTodas = true;
         let exitoAlgunas = false;
+        const res = await desactivarUsuarios(usuarios, true, true);
 
-        for (let i = 0; i < usuarios.length; i++) {
-            peticiones[i] = null;
-        }
-
-        const resDesactivar = await desactivarUsuarios(usuarios);
-
-        resDesactivar.forEach((x, i) => {
-            if (x.success) {
-                peticiones[i] = eliminarUsuario(usuarios[i], DB);
-            }
-        });
-
-        for (let i = 0; i < peticiones.length; i++) {
-            if (peticiones[i] !== null) {
-                peticiones[i] = await peticiones[i];
-            }
-        }
-
-        for (const i of peticiones) {
+        for (const i of res) {
             exitoTodas &= i.success;
             exitoAlgunas |= i.success;
         }
@@ -441,18 +410,18 @@ export default function VerUsuariosPage() {
      */
     const manejadorBtnEliminar = (instancia) => {
         sessionStorage.setItem("ejecutar-callback", "false");
-        const rol = instancia.rol == CODIGO_ADMIN ? t("txtAdministrador").toLowerCase() : t("txtUsuario").toLocaleLowerCase();
+        const rol = instancia.rol ? t("txtAdministrador").toLowerCase() : t("txtUsuario").toLocaleLowerCase();
         setSeleccionado(instancia);
         setModoModal(0);
         setModal({
             mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
             mensaje: (
-            <Trans i18nKey="txtEliminarUsuario" values={{ instancia, rol }} components={{ 1: <br />, 3: <b />, 5: <b /> }}>
-                ¿Estás seguro de querer eliminar al usuario {instancia.nombre} ({instancia.correo}) — {rol}?
-                <br />
-                <br />
-                <b>ADVERTENCIA:</b> Se bloqueará su acceso a la aplicación <b>permanentemente</b>
-            </Trans>)
+                <Trans i18nKey="txtEliminarUsuario" values={{ instancia, rol }} components={{ 1: <br />, 3: <b />, 5: <b /> }}>
+                    ¿Estás seguro de querer eliminar al usuario {instancia.nombre} ({instancia.correo}) — {rol}?
+                    <br />
+                    <br />
+                    <b>ADVERTENCIA:</b> Se bloqueará su acceso a la aplicación <b>permanentemente</b>
+                </Trans>)
         });
     };
 
@@ -460,7 +429,7 @@ export default function VerUsuariosPage() {
         setValue("uid", instancia.uid);
         setValue("correo", instancia.correo);
         setValue("nombre", instancia.nombre);
-        setValue("rol", instancia.rol);
+        setValue("rol", instancia.administrador);
         setValue("estado", instancia.estado);
     };
 
@@ -572,10 +541,10 @@ export default function VerUsuariosPage() {
                             disabled={desactivarCampos}
                             {...field}
                             fullWidth>
-                            <MenuItem value={0}>
+                            <MenuItem value={false}>
                                 {t("txtUsuario")}
                             </MenuItem>
-                            <MenuItem value={CODIGO_ADMIN}>
+                            <MenuItem value={true}>
                                 {t("txtAdministrador")}
                             </MenuItem>
                         </TextField>)} />
@@ -693,6 +662,7 @@ export default function VerUsuariosPage() {
                                 icono={<DeleteIcon />}
                                 campoOrdenInicial="nombre"
                                 dirOrden="asc"
+                                cargarInfoToda={true}
                             />
                         </Grid>
                     </Grid>

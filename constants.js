@@ -16,7 +16,6 @@ export const SEXOS = [
     { texto: "txtMasculino", val: 0 },
     { texto: "txtFemenino", val: 1 }
 ];
-export const CODIGO_ADMIN = 1001;
 export const SINTOMAS = ["fumador", "bebedor", "tos", "fiebre", "edema",
     "inmovilidad", "cirugiaReciente", "disautonomicos", "viajeProlongado",
     "disnea", "sibilancias", "crepitaciones", "derrame", "malignidad",

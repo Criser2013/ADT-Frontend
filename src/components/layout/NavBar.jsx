@@ -31,7 +31,7 @@ export default function Navbar() {
     const rol = useMemo(() => auth.authInfo.rol, [auth.authInfo.rol]);
     const txtRol = useMemo(() => {
         const { rol } = auth.authInfo;
-        return rol == CODIGO_ADMIN ? t("txtAdministrador") : t("txtMedico");
+        return rol ? t("txtAdministrador") : t("txtMedico");
     }, [auth.authInfo, navegacion.idioma]);
     const txtToolBtnMenu = useMemo(() => {
         return navegacion.mostrarMenu ? t("txtCerrarMenu") : t("txtAbrirMenu");
@@ -102,7 +102,7 @@ export default function Navbar() {
      * Abre una nueva pestaña con el manual de instrucciones.
      */
     const manejadorBtnInstrucciones = () => {
-        const url = (auth.authInfo.rolVisible == CODIGO_ADMIN) ? URL_MANUAL_ADMIN : URL_MANUAL_USUARIO;
+        const url = auth.authInfo.rolVisible ? URL_MANUAL_ADMIN : URL_MANUAL_USUARIO;
         window.open(url, "_blank");
     };
 
@@ -178,7 +178,7 @@ export default function Navbar() {
                             </Typography>
                         </Box>
                         <Divider />
-                        {(rol == CODIGO_ADMIN) ? (
+                        {rol ? (
                             <>
                                 <MenuItem onClick={() => manejadorSwitchModoUsuario(null)}>
                                     <SwitchLabel
