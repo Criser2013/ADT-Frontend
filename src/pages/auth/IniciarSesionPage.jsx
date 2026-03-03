@@ -252,7 +252,7 @@ export default function IniciarSesionPage() {
                                             fullWidth
                                             onClick={manejadorBtnIniciarSesion}
                                             variant="contained"
-                                            //disabled={desactivarBtn}
+                                            disabled={desactivarBtn}
                                             loading={cargandoBtn}
                                             loadingPosition="end"
                                             sx={{ textTransform: "none" }}>
