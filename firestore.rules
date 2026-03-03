@@ -8,7 +8,7 @@ service cloud.firestore {
     }
     
     // Verifica que un administrador pueda ver todos los archivos
-    function verArchivosAdmin(database, idUsuario) {
+    function verArchivosAdmin() {
       return request.auth != null && request.auth.admin;
     }
     
@@ -32,19 +32,18 @@ service cloud.firestore {
   
     match /usuarios/{userId} {
     	// Un usuario solo puede crear/modificar su archivo y debe tener unos campos especificos
-    	allow write, create: if (verArchivosAdmin(database, request.auth.uid) || verArchivosPropios(userId)) && 
-      validarEscrituraUsuario(database,request.auth.uid)
+    	allow write, create: if (verArchivosAdmin() || verArchivosPropios(userId));
       
       // Un usuario solo puede ver su propio archivo. Un administrador puede verlos todos
-      allow read: if verArchivosPropios(userId) || verArchivosAdmin(database, request.auth.uid)
+      allow read: if verArchivosPropios(userId) || verArchivosAdmin();
       
       // Solo los admins pueden borrar archivos
-      allow delete: if verArchivosAdmin(database, request.auth.uid);
+      allow delete: if verArchivosAdmin();
     }
     
     match /usuarios/{userId}/diagnosticos/{diagnosticoId} {
     	// Un usuario solo puede ver sus propios archivos. Un administrador puede verlos todos
-      allow read: if verArchivosAdmin(database, request.auth.uid) || verArchivosPropios(userId);
+      allow read: if verArchivosAdmin() || verArchivosPropios(userId);
       
       // Un usuario solo puede actualizar el estado de validación
       allow update: if (verArchivosPropios(userId) && 
@@ -53,7 +52,7 @@ service cloud.firestore {
     	// Un usuario solo puede crear/modificar sus propios diagnósticos
     	allow create, write: if crearDiagnosticoPropio(userId);
       
-      allow delete: if verArchivosAdmin(database, request.auth.uid);
+      allow delete: if verArchivosAdmin();
     }
   }
 }
