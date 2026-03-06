@@ -36,27 +36,6 @@ VITE_URL_CONDICIONES=<string>        # URL al documento que contiene los términ
 VITE_AES_KEY=<string>                # Clave AES utilizada para encriptar las credenciales
 ```
 
-## Ejecución del frontend  sin backend
-
-Es posible ejecutar la aplicación sin necesidad de tener activo el servidor backend, para esto se debe proveer las credenciales de Firebase y los permisos de drive en un archivo `.env`. Se provee el archivo `.env.example` como plantilla.  
-
-Para iniciar el servidor de esta forma, establezca la siguiente variables de entorno: `VITE_ENTORNO=0`. Esto puede ser realizado a través del comando `export VITE_ENTORNO=0` en Linux y `setx VITE_ENTORNO 0` en Windows.
-
-### Descripción de las variables de entorno
-
-```
-VITE_API_KEY=<string>            # API key del proyecto de Firebase
-VITE_AUTH_DOMAIN=<string>        # Dominio de autenticación de Firebase
-VITE_PROJECT_ID=<string>         # ID del proyecto en Firebase
-VITE_STORE_BUCKET=<string>       # ID del bucket de Firestore
-VITE_MESSAGING_SENDER_ID=<int>   # ID para envío de mensajes
-VITE_APP_ID=<string>             # ID de la aplicación de Firebase
-VITE_MEASUREMENT_ID=<string>     # ID de Google Analytics (métricas)
-VITE_DRIVE_SCOPES=<string>       # URLs de permisos de Drive requeridos
-VITE_ENTORNO=<int>               # Número de entorno de ejecución
-VITE_RECAPTCHA_SITE_KEY=<string> # Clave de reCAPTCHA para el sitio
-```
-
 ## Dockerfile
 
 La imagen generada `Dockerfile` corresponde a una imagen de despliegue, para construirla use el comando:
