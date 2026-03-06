@@ -21,7 +21,7 @@ export default function App() {
     const auth = useAuth();
     const { t } = useTranslation();
     const navegacion = useNavegacion();
-    const credenciales = useCredenciales();
+    const { firebaseAuth, scopesDrive } = useCredenciales();
     const [modal, setModal] = useState({
         mostrar: false, mensaje: ""
     });
@@ -30,22 +30,24 @@ export default function App() {
     });
 
     /**
+     * Configura el formato en que se mostrarán las fechas de la aplicación según
+     * el idioma seleccionado por el usuario.
+     */
+    useEffect(() => {
+        import("dayjs/locale/es").then(() => {
+            const idioma = localStorage.getItem("i18nextLng");
+            dayjs.locale(idioma != null ? idioma : "es");
+        });
+    });
+
+    /**
      * Actualiza las instancia de Firebase y permisos de Drive
      * cuando se cargan las credenciales.
     */
     useEffect(() => {
-        import("dayjs/locale/es").then(() => {
-            const idioma = localStorage.getItem("i18nextLng");
-            if (idioma != null) {
-                dayjs.locale(idioma);
-            } else {
-                dayjs.locale("es");
-            }
-        });
-        auth.setAuth(credenciales.obtenerInstanciaAuth());
-        auth.setDb(credenciales.obtenerInstanciaDB());
-        auth.setScopes(credenciales.scopesDrive);
-    }, [credenciales]);
+        auth.setAuth(firebaseAuth);
+        auth.setScopes(scopesDrive);
+    }, [firebaseAuth, scopesDrive]);
 
     useEffect(() => {
         if (auth.autenticado != null && !auth.autenticado) {

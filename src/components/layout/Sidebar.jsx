@@ -7,7 +7,6 @@ import { detAbrirMenu } from "../../utils/Responsividad";
 import { useAuth } from "../../contexts/AuthContext";
 import PeopleIcon from '@mui/icons-material/People';
 import { useMemo } from "react";
-import { CODIGO_ADMIN } from "../../../constants";
 import { useTranslation } from "react-i18next";
 
 /**

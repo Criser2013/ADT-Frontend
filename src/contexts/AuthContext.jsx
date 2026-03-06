@@ -33,7 +33,6 @@ export function AuthProvider({ children }) {
     // Instancia de autenticación de Firebase
     const [auth, setAuth] = useState(null);
     // Instancia de la base de datos de Firebase
-    const [db, setDb] = useState(null);
     const [tokenDrive, setTokenDrive] = useState(null);
     // Información del usuario autenticado
     const [authInfo, setAuthInfo] = useState({
@@ -77,10 +76,10 @@ export function AuthProvider({ children }) {
      */
     useEffect(() => {
         const ruta = window.location.pathname == "/";
-        if (auth != null && scopes != null && db != null && ruta) {
+        if (auth != null && scopes != null && ruta) {
             setCargando(false);
         }
-    }, [auth, db, scopes]);
+    }, [auth, scopes]);
 
     /**
      * Recupera la sesión si el usuario no la ha cerrado. También refresca los tokens
@@ -429,7 +428,7 @@ export function AuthProvider({ children }) {
 
     return (
         <authContext.Provider value={{
-            useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive,
+            useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setTokenDrive,
             setScopes, cerrarSesion, iniciarSesionGoogle, reautenticarUsuario, permisos, autenticado,
             requiereRefresco, quitarPantallaCarga, cambiarModoUsuario, mostrarPantallaCarga
         }}>

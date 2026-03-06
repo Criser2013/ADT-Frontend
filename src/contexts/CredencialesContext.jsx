@@ -1,10 +1,10 @@
-import { createContext, useState, useContext, useEffect } from "react";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { createContext, useState, useContext, useEffect } from "react";
 import { AES_KEY, API_URL } from "../../constants";
-import Cookies from "js-cookie";
 import { AES, enc } from "crypto-js";
+import Cookies from "js-cookie";
 
 export const credencialesContext = createContext();
 
@@ -27,7 +27,6 @@ export const useCredenciales = () => {
  * @returns {JSX.Element}
  */
 export function CredencialesProvider({ children }) {
-
     const [claveRecaptcha, setClaveRecaptcha] = useState(null);
     const [instanciaFirestore, setInstanciaFirestore] = useState(null);
     const [instanciaFirebase, setInstanciaFirebase] = useState(null);
@@ -51,7 +50,7 @@ export function CredencialesProvider({ children }) {
      */
     const cargarCredenciales = async () => {
         try {
-            const pet = await fetch(`$${API_URL}/credenciales`, { method: "GET" });
+            const pet = await fetch(`${API_URL}/credenciales`, { method: "GET" });
             if (pet.status == 200 && pet.ok) {
                 const json = await pet.json();
                 inicializarFirebase(json, json.driveScopes, json.reCAPTCHA);
@@ -65,21 +64,25 @@ export function CredencialesProvider({ children }) {
 
     /**
      * Realiza una petición al servidor para obtener las credenciales de Firebase.
-     * Reintenta hasta 4 veces en caso de error. Si tiene éxito, inicializa Firebase con las credenciales obtenidas.
+     * Reintenta hasta 5 veces en caso de error. Si tiene éxito, inicializa Firebase con las credenciales obtenidas.
      */
     const obtenerCredenciales = async () => {
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 5; i++) {
             const res = await cargarCredenciales();
 
             if (res) {
                 break;
             }
+
+            setTimeout(null, 500);
         }
     };
 
     /**
      * Inicializa Firebase con la información de credenciales proporcionada.
-     * @param {JSON} credsInfo 
+     * @param {JSON} credsFirebase - Credenciales de Firebase.
+     * @param {Array[string]} scopesDrive - Scopes de acceso a Google Drive.
+     * @param {string} tokenRecaptcha - Clave del cliente de reCAPTCHA.
      */
     const inicializarFirebase = (credsFirebase, scopesDrive, tokenRecaptcha) => {
         delete credsFirebase.driveScopes;

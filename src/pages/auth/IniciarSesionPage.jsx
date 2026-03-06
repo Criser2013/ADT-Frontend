@@ -28,7 +28,7 @@ export default function IniciarSesionPage() {
     const auth = useAuth();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
-    const credenciales = useCredenciales();
+    const { firebase, reCAPTCHA } = useCredenciales();
     const CAPTCHA = useRef(null);
     const { t } = useTranslation();
     const [desactivarBtn, setDesactivarBtn] = useState(true);
@@ -39,9 +39,7 @@ export default function IniciarSesionPage() {
     const [modal, setModal] = useState({
         mensaje: "", mostrar: false
     });
-    const cargandoAuth = useMemo(() => {
-        return auth.cargando || !credenciales.verSiCredsFirebaseEstancargadas();
-    }, [auth.cargando, credenciales.verSiCredsFirebaseEstancargadas]);
+    const cargandoAuth = useMemo(() => (auth.cargando || !firebase), [auth.cargando, firebase]);
     const width = useMemo(() => {
         const { dispositivoMovil, orientacion, ancho } = navegacion;
         if (!dispositivoMovil && (ancho >= 1020)) {
@@ -66,9 +64,6 @@ export default function IniciarSesionPage() {
     const fondoImg = useMemo(() => {
         return temaCaptcha === "light" ? fondoClaro : fondoOscuro;
     }, [temaCaptcha]);
-    const reCAPTCHAApi = useMemo(() => {
-        return credenciales.obtenerRecaptcha();
-    }, [credenciales.obtenerRecaptcha]);
 
     /**
      * Verifica la autenticación del usuario y redirige si ya está autenticado.
@@ -228,7 +223,7 @@ export default function IniciarSesionPage() {
                                 <ReCAPTCHA
                                     theme={temaCaptcha}
                                     onChange={manejadorReCAPTCHA}
-                                    sitekey={reCAPTCHAApi}
+                                    sitekey={reCAPTCHA}
                                     hl={navegacion.idioma}
                                     ref={CAPTCHA} />
                             </Grid>

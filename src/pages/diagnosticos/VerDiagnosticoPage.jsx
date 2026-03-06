@@ -39,7 +39,7 @@ export default function VerDiagnosticoPage() {
     const auth = useAuth();
     const drive = useDrive();
     const { t } = useTranslation();
-    const credenciales = useCredenciales();
+    const { firestore } = useCredenciales();
     const navegacion = useNavegacion();
     const navigate = useNavigate();
     const location = useLocation();
@@ -128,7 +128,6 @@ export default function VerDiagnosticoPage() {
         }
     }, [admin, persona.nombre, datos.personales.id, navegacion.idioma]);
     const id = useMemo(() => params.get("id"), [params]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -148,10 +147,10 @@ export default function VerDiagnosticoPage() {
      */
     useEffect(() => {
         const exp = (!admin || persona.nombre == "");
-        if (admin != null && DB != null && exp) {
+        if (admin != null && firestore != null && exp) {
             cargarDatosDiagnostico(auth.authInfo.user.accessToken);
         }
-    }, [drive.descargando, auth.authInfo.user, admin, persona, DB]);
+    }, [drive.descargando, auth.authInfo.user, admin, persona, firestore]);
 
     /**
      * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
@@ -200,7 +199,7 @@ export default function VerDiagnosticoPage() {
      */
     const cargarDatosDiagnostico = async (token) => {
         const uid = id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-        const datos = await verDiagnostico(uid[1], id, DB);
+        const datos = await verDiagnostico(uid[1], id, firestore);
         if (datos.success && datos.data != []) {
             setDiagOriginal({ ...datos.data });
 
@@ -216,7 +215,7 @@ export default function VerDiagnosticoPage() {
             }
 
             preprocesarDiag(datos.data);
-        } else if (DB != null && !datos.success) {
+        } else if (firestore != null && !datos.success) {
             volverPestanaAnterior();
         }
     };
@@ -372,7 +371,7 @@ export default function VerDiagnosticoPage() {
      */
     const eliminarDiagnostico = async () => {
         const uid = id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-        const res = await eliminarDiagnosticos(uid[1], id, DB);
+        const res = await eliminarDiagnosticos(uid[1], id, firestore);
 
         if (res.success) {
             navegacion.setPaginaAnterior("/diagnosticos");
@@ -393,14 +392,13 @@ export default function VerDiagnosticoPage() {
     const validarDiagnostico = async () => {
         setCargando(true);
         setErrorDiagnostico(false);
-        const DB = credenciales.obtenerInstanciaDB();
         const { id, medico } = diagOriginal;
         const aux = { ...diagOriginal };
 
         delete aux.id;
         delete aux.medico;
 
-        const res = await cambiarDiagnostico(id, medico, { ...aux, validado: diagnostico }, DB);
+        const res = await cambiarDiagnostico(id, medico, { ...aux, validado: diagnostico }, firestore);
 
         if (res.success) {
             window.history.replaceState({}, '');

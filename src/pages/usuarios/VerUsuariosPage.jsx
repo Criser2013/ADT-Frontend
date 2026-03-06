@@ -29,7 +29,7 @@ import { Trans, useTranslation } from "react-i18next";
 export default function VerUsuariosPage() {
     const auth = useAuth();
     const navigate = useNavigate();
-    const credenciales = useCredenciales();
+    const { firestore } = useCredenciales();
     const navegacion = useNavegacion();
     const { t } = useTranslation();
     const listadoPestanas = useMemo(() => [{
@@ -108,7 +108,6 @@ export default function VerUsuariosPage() {
         }
     }, [navegacion]);
     const admin = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
 
     /**
      * Coloca el título de la página.
@@ -164,7 +163,7 @@ export default function VerUsuariosPage() {
      * @param {Array[string]} usuarios - Lista de UID de los médicos.
      */
     const cargarDiagnosticos = async (usuarios) => {
-        const res = await verDiagnosticos(DB, usuarios);
+        const res = await verDiagnosticos(firestore, usuarios);
         if (!res.success) {
             setDiagnosticos([]);
             setModoModal(2);

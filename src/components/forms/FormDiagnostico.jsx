@@ -54,7 +54,7 @@ const valoresPredet = {
 export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacientes = [], esDiagPacientes = false, manejadorRecarga = null }) {
     const auth = useAuth();
     const navegacion = useNavegacion();
-    const credenciales = useCredenciales();
+    const { reCAPTCHA, firestore } = useCredenciales();
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [desactivarBtn, setDesactivarBtn] = useState(true);
@@ -69,9 +69,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             return 3;
         }
     }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
-    const reCAPTCHAApi = useMemo(() => {
-        return credenciales.obtenerRecaptcha();
-    }, [credenciales.obtenerRecaptcha]);
     const [cargandoBtn, setCargandoBtn] = useState(false);
     const [antTema, setAntTema] = useState(navegacion.tema);
     const CAPTCHA = useRef(null);
@@ -225,7 +222,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             fecha: Timestamp.now(), validado: 2, paciente: paciente, lime: resultado.lime
         };
 
-        const res = await cambiarDiagnostico(id, uid, instancia, credenciales.obtenerInstanciaDB());
+        const res = await cambiarDiagnostico(id, uid, instancia, firestore);
 
         if (res.success) {
             const url = esDiagPacientes ? "/diagnostico-paciente" : "/diagnostico-anonimo";
@@ -610,7 +607,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                             <ReCAPTCHA
                                 theme={temaCaptcha}
                                 onChange={manejadorReCAPTCHA}
-                                sitekey={reCAPTCHAApi}
+                                sitekey={reCAPTCHA}
                                 ref={CAPTCHA}
                                 hl={navegacion.idioma} />
                         </Grid>
