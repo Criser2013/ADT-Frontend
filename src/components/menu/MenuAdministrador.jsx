@@ -24,7 +24,7 @@ import { useTranslation } from "react-i18next";
  */
 export default function MenuAdministrador() {
     const auth = useAuth();
-    const credenciales = useCredenciales();
+    const { firestore } = useCredenciales();
     const navegacion = useNavegacion();
     const { t } = useTranslation();
     const [cargando, setCargando] = useState(true);
@@ -46,7 +46,6 @@ export default function MenuAdministrador() {
             return 4;
         }
     }, [navegacion]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales]);
     const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual, navegacion.idioma)
     , [datosDiagnosticos, fechaActual, navegacion.idioma]);
     const usuariosMesActual = useMemo(() => obtenerDatosMesActual(datosUsuarios, fechaActual, navegacion.idioma)
@@ -95,12 +94,12 @@ export default function MenuAdministrador() {
     useEffect(() => {
         const { user } = auth.authInfo;
 
-        if (user != null && DB != null) {
+        if (user != null && firestore != null) {
             cargarUsuarios(user.accessToken).then((x) => {
-                cargarDiagnosticos(DB, x.map((x) => x.uid));
+                cargarDiagnosticos(firestore, x.map((x) => x.uid));
             });
         }
-    }, [auth.authInfo, DB]);
+    }, [auth.authInfo, firestore]);
 
     /**
      * Actualiza el gráfico de barras con los datos de diagnósticos y usuarios.

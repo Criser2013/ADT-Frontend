@@ -9,7 +9,7 @@ import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import BtnTema from "../layout/BtnTema";
 import LogoutIcon from '@mui/icons-material/Logout';
-import { CODIGO_ADMIN, URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../../constants";
+import { URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../../constants";
 import ArticleIcon from '@mui/icons-material/Article';
 import SwitchLabel from "../tabs/SwitchLabel";
 import { useTranslation } from "react-i18next";

@@ -38,7 +38,7 @@ export default function VerDiagnosticosPage() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
-    const credenciales = useCredenciales();
+    const { firestore } = useCredenciales();
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({
         mostrar: false, titulo: "", mensaje: "", icono: null
@@ -57,7 +57,6 @@ export default function VerDiagnosticosPage() {
     const [preprocesar, setPreprocesar] = useState(false);
     const [guardarDrive, setGuardarDrive] = useState(false);
     const admin = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
     const camposVariables = useMemo(() => !admin ? [
         { id: "id", label: "ID", componente: null, ordenable: true },
         { id: "nombre", label: t("txtPaciente"), componente: null, ordenable: true },
@@ -149,11 +148,11 @@ export default function VerDiagnosticosPage() {
         const descargar = sessionStorage.getItem("descargando-drive");
         const exp = (descargar == null || descargar == "false");
 
-        if (admin != null && uid != null && DB != null && drive.token != null && exp && !archivoDescargado) {
+        if (admin != null && uid != null && firestore != null && drive.token != null && exp && !archivoDescargado) {
             sessionStorage.setItem("descargando-drive", "true");
-            manejadorRecargar(drive.token, uid, admin, DB);
+            manejadorRecargar(drive.token, uid, admin, firestore);
         }
-    }, [auth.authInfo.uid, drive.token, admin, DB, archivoDescargado]);
+    }, [auth.authInfo.uid, drive.token, admin, firestore, archivoDescargado]);
 
     useEffect(() => {
         document.title = admin ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos");
@@ -202,7 +201,7 @@ export default function VerDiagnosticosPage() {
         const credencial = (admin || token == null) ? auth.authInfo.user.accessToken : token;
         const uid = (usuario == null) ? auth.authInfo.uid : usuario;
         const rolUsuario = (cargo == null) ? admin : cargo;
-        const BD = (db == null) ? DB : db;
+        const BD = (db == null) ? firestore : db;
 
         if (!cargando) {
             setCargando(true);
@@ -386,7 +385,7 @@ export default function VerDiagnosticosPage() {
 
         diagnosticos.forEach((x, i) => {
             const uid = x.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-            peticiones[i] = eliminarDiagnosticos(uid[1], x, DB);
+            peticiones[i] = eliminarDiagnosticos(uid[1], x, firestore);
         });
 
         for (let i = 0; i < peticiones.length; i++) {
@@ -396,7 +395,7 @@ export default function VerDiagnosticosPage() {
         if (peticiones.every((x) => x.success)) {
             setCargando(true);
             const usuarios = await cargarPacientes(auth.authInfo.user.accessToken);
-            cargarDiagnosticos(auth.authInfo.uid, admin, DB, usuarios);
+            cargarDiagnosticos(auth.authInfo.uid, admin, firestore, usuarios);
         } else {
             setModoModal(0);
             setActivar2Btn(false);
@@ -433,11 +432,11 @@ export default function VerDiagnosticosPage() {
         delete diagnostico.id;
         delete diagnostico.medico;
 
-        const res = await cambiarDiagnostico(id, medico, { ...diagnostico, validado: validar }, DB);
+        const res = await cambiarDiagnostico(id, medico, { ...diagnostico, validado: validar }, firestore);
 
         if (res.success) {
             const pacientes = await cargarPacientes(auth.authInfo.user.accessToken);
-            cargarDiagnosticos(auth.authInfo.uid, admin, DB, pacientes);
+            cargarDiagnosticos(auth.authInfo.uid, admin, firestore, pacientes);
         } else {
             setActivar2Btn(false);
             setModoModal(0);

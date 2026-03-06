@@ -26,7 +26,7 @@ import { AES_KEY } from "../../../constants";
  */
 export default function MenuUsuario() {
     const auth = useAuth();
-    const credenciales = useCredenciales();
+    const { firestore } = useCredenciales();
     const navegacion = useNavegacion();
     const { t } = useTranslation();
     const drive = useDrive();
@@ -42,7 +42,6 @@ export default function MenuUsuario() {
         const { orientacion, dispositivoMovil, ancho } = navegacion;
         return (dispositivoMovil && orientacion == "vertical") || (!dispositivoMovil && (ancho <= 700)) ? 1 : 2;
     }, [navegacion]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
     const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual, navegacion.idioma)
     , [datosDiagnosticos, fechaActual, navegacion.idioma]);
     const pacientesMesActual = useMemo(() => obtenerDatosMesActual(datosPacientes, fechaActual, navegacion.idioma)
@@ -89,12 +88,12 @@ export default function MenuUsuario() {
         const descargar = sessionStorage.getItem("descargando-drive");
         const { uid } = auth.authInfo;
 
-        if (uid != null && drive.token != null && (descargar == null || descargar == "false") && DB != null) {
+        if (uid != null && drive.token != null && (descargar == null || descargar == "false") && firestore != null) {
             sessionStorage.setItem("descargando-drive", "true");
             cargarPacientes();
-            cargarDiagnosticos(uid, DB);
+            cargarDiagnosticos(uid, firestore);
         }
-    }, [auth.authInfo, drive.token, DB]);
+    }, [auth.authInfo, drive.token, firestore]);
 
      /**
      * Actualiza el gráfico de barras con los datos de diagnósticos y usuarios.
