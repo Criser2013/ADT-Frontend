@@ -7,7 +7,6 @@ import { detAbrirMenu } from "../../utils/Responsividad";
 import { useAuth } from "../../contexts/AuthContext";
 import PeopleIcon from '@mui/icons-material/People';
 import { useMemo } from "react";
-import { CODIGO_ADMIN } from "../../../constants";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -34,9 +33,9 @@ export default function Sidebar() {
             { txt: t("txtUsuarios"), icono: <PeopleIcon />, ruta: "/usuarios" },
         ];
 
-        if (rolVisible != null && (rolVisible != CODIGO_ADMIN || modoUsuario)) {
+        if (rolVisible != null && (!rolVisible || modoUsuario)) {
             return usuario;
-        } else if (rolVisible != null && rolVisible == CODIGO_ADMIN && !modoUsuario) {
+        } else if (rolVisible != null && rolVisible && !modoUsuario) {
             return admin;
         } else {
             return usuario;

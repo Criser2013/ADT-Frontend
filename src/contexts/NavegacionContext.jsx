@@ -40,11 +40,7 @@ export function NavegacionProvider({ children }) {
     const idioma = useMemo(() => i18n.language.split("-")[0], [i18n.language]);
     const tema = useMemo(() => {
         if (mode == "system" || mode == undefined) {
-            if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-                return "light";
-            } else {
-                return "dark";
-            }
+            return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
         } else {
             return mode;
         }

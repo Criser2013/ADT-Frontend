@@ -40,11 +40,12 @@ import { t } from "i18next";
  * @param {String} tooltipAccion - Texto del tooltip del botón de acción de selección de filas.
  * @param {String|null} campoOrdenInicial - Campo por el cual se ordenarán inicialmente los datos.
  * @param {String} dirOrden - Dirección del orden inicial ("asc" o "desc").
+ * @param {Boolean} cargarInfoToda - Si se cargan todos los datos al seleccionar todos las filas o solo el campo establecido en el parámetro campoId.
  * @returns {JSX.Element}
  */
 export default function Datatable({ campos, datos, lblSeleccion, campoId = "id", lblBusq = "", activarBusqueda = false,
     activarSeleccion = true, terminoBusqueda = "", camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "",
-    campoOrdenInicial = null, dirOrden = "desc" }) {
+    campoOrdenInicial = null, dirOrden = "desc", cargarInfoToda = false }) {
     const navegacion = useNavegacion();
     const [orden, setOrden] = useState(dirOrden);
     const [campoOrden, setCampoOrden] = useState(campoOrdenInicial != null ? campoOrdenInicial : campos[0].id);
@@ -107,7 +108,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     const seleccionarTodo = (event) => {
         if (event.target.checked) {
             setNumSeleccionados(numFilas);
-            setSeleccionados(auxDatos.map((x) => x[campoId]));
+            setSeleccionados(auxDatos.map((x) => cargarInfoToda ? x : x[campoId]));
         } else {
             setNumSeleccionados(0);
             setSeleccionados([]);
@@ -140,10 +141,10 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     const seleccionarFila = (e, id) => {
         if (e.target.checked) {
             setNumSeleccionados((x) => x + 1);
-            setSeleccionados((prev) => [...prev, id]);
+            setSeleccionados((prev) => [...prev, cargarInfoToda ? auxDatos.find((x) => x[campoId] == id) : id]);
         } else {
             setNumSeleccionados((x) => x - 1);
-            setSeleccionados((prev) => prev.filter((x) => x != id));
+            setSeleccionados((prev) => prev.filter((x) => cargarInfoToda ? x[campoId] != id : x != id));
         }
     };
 
@@ -304,7 +305,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                 </TableRow>
                             ) : null}
                             {filas.map((x, i) => {
-                                const estaSeleccionada = seleccionados.includes(x[campoId]);
+                                const estaSeleccionada = seleccionados.includes(cargarInfoToda ? x : x[campoId]);
                                 const labelId = `enhanced-table-checkbox-${i}`;
                                 return (
                                     <TableRow

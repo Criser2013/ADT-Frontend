@@ -314,7 +314,8 @@
             "txtFechaRegistro": "Registration date",
             "formatoCalendario": "MM/DD/YYYY",
             "formatoFechaHoraResumida": "MM/DD/YYYY [-] hh:mm A",
-            "titLime": "Contribution of each feature"
+            "titLime": "Contribution of each feature",
+            "errRegistrarUsuario": "Something was wrong trying to register the user. Please try again."
         }
     },
     "es": {
@@ -632,7 +633,8 @@
             "txtFechaRegistro": "Fecha de registro",
             "formatoCalendario": "DD/MM/YYYY",
             "formatoFechaHoraResumida": "DD/MM/YYYY [-] hh:mm A",
-            "titLime": "Contribución de cada característica"
+            "titLime": "Contribución de cada característica",
+            "errRegistrarUsuario": "Se ha producido un error al registrar el usuario. Por favor, inténtalo de nuevo más tarde."
         }
     }
 }

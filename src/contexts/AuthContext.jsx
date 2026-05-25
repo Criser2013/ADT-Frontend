@@ -1,12 +1,11 @@
 import { reauthenticateWithPopup, signOut } from "firebase/auth";
 import { createContext, useState, useContext, useEffect } from "react";
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { verUsuario } from "../firestore/usuarios-collection";
-import { cambiarUsuario, verSiEstaRegistrado } from "../firestore/usuarios-collection";
 import { FirebaseError } from "firebase/app";
-import { AES_KEY, CODIGO_ADMIN } from "../../constants";
+import { AES_KEY } from "../../constants";
 import { useTranslation } from "react-i18next";
-import { AES, enc  } from "crypto-js";
+import { AES, enc } from "crypto-js";
+import { peticionApi } from "../services/Api";
 
 export const authContext = createContext();
 
@@ -34,7 +33,6 @@ export function AuthProvider({ children }) {
     // Instancia de autenticación de Firebase
     const [auth, setAuth] = useState(null);
     // Instancia de la base de datos de Firebase
-    const [db, setDb] = useState(null);
     const [tokenDrive, setTokenDrive] = useState(null);
     // Información del usuario autenticado
     const [authInfo, setAuthInfo] = useState({
@@ -66,7 +64,7 @@ export function AuthProvider({ children }) {
         const ruta = window.location.pathname != "/";
         if (user != null && uid != null && rol == null && ruta) {
             setCargando(true);
-            verDatosUsuario(user.uid).then(() => {
+            verDatosUsuario(user).then(() => {
                 setCargando(false);
             });
         }
@@ -78,10 +76,10 @@ export function AuthProvider({ children }) {
      */
     useEffect(() => {
         const ruta = window.location.pathname == "/";
-        if (auth != null && scopes != null && db != null && ruta) {
+        if (auth != null && scopes != null && ruta) {
             setCargando(false);
         }
-    }, [auth, db, scopes]);
+    }, [auth, scopes]);
 
     /**
      * Recupera la sesión si el usuario no la ha cerrado. También refresca los tokens
@@ -105,7 +103,7 @@ export function AuthProvider({ children }) {
     /**
      * Verifica que el usuario tenga los permisos necesarios para usar la aplicación.
      * @param {String} permisos - Permisos del usuario.
-     * @param {Array} scopes  - Lista de permisos requeridos.
+     * @param {Array[string]} scopes  - Lista de permisos requeridos.
      */
     const verificarPermisos = (permisos, scopes) => {
         let res = true;
@@ -119,10 +117,10 @@ export function AuthProvider({ children }) {
 
     /**
      * Maneja los cambios en la autenticación del usuario.
-     * @param {User} currentUser - Usuario actual de Firebase.
+     * @param {import("firebase/auth").User} usuario - Usuario actual de Firebase.
      */
-    const manejadorCambiosAuth = async (currentUser) => {
-        if (currentUser != null) {
+    const manejadorCambiosAuth = async (usuario) => {
+        if (usuario != null) {
             const resCredsSesion = cargarAuthCredsSesion();
             const fecha = (resCredsSesion.success && resCredsSesion.expires != undefined) ? ((parseInt(resCredsSesion.expires, 10) - Date.now()) / 1000) : null;
             const urlConds = ["/cerrar-sesion", "/"].includes(location.pathname);
@@ -133,11 +131,11 @@ export function AuthProvider({ children }) {
             } else if (fecha != null && (fecha <= 180 && fecha > 20)) {
                 refrescarTokens();
             } else if (!urlConds) {
-                await reautenticarUsuario(currentUser);
+                await reautenticarUsuario(usuario);
             }
 
             setAutenticado(true);
-            setAuthInfo((x) => ({ ...x, user: currentUser, uid: currentUser.uid }));
+            setAuthInfo((x) => ({ ...x, user: usuario, uid: usuario.uid }));
         } else {
             setAutenticado(false);
             setAuthInfo({ user: null, uid: null, rol: null, modoUsuario: null, rolVisible: null });
@@ -168,7 +166,7 @@ export function AuthProvider({ children }) {
             // Se abre el popup de Google para iniciar sesión
             const res = await signInWithPopup(auth, provider);
             // Se verifica si el usuario ya está registrado en la base de datos y esté activado
-            const reg = await verRegistrado(res.user.uid);
+            const reg = await verRegistrado(res.user);
             const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
             oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
             oauth.scopesDrive = JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes;
@@ -189,7 +187,7 @@ export function AuthProvider({ children }) {
                 resultado = { res: true, operacion: 0, error: t("errVerificarRegistro") };
             } else {
                 if (location.pathname == "/") {
-                    await verDatosUsuario(res.user.uid);
+                    await verDatosUsuario(res.user);
                 }
             }
             setAuthError(resultado);
@@ -204,7 +202,7 @@ export function AuthProvider({ children }) {
 
     /**
      * Reautentica al usuario para actualizar las credenciales de acceso a Google.
-     * @param {User} usuario - Instancia del usuario de Firebase.
+     * @param {import("firebase/auth").User} usuario - Instancia del usuario de Firebase.
      */
     const reautenticarUsuario = async (usuario) => {
         setCargando(true);
@@ -235,7 +233,7 @@ export function AuthProvider({ children }) {
             setRequiereRefresco(false);
 
             if (location.pathname == "/") {
-                await verDatosUsuario(res.user.uid);
+                await verDatosUsuario(res.user);
             }
 
             return { res: false, operacion: 2, error: "" };
@@ -270,58 +268,54 @@ export function AuthProvider({ children }) {
         } catch (error) {
             console.error(error);
             setAuthError({ res: true, operacion: 1, error: t("errCerrarSesion") });
+        } finally {
+            setCargando(false);
         }
-
-        setCargando(false);
     };
 
     /**
      * Actualiza la información del usuario dentro del contexto.
-     * @param {String} uid - UID del usuario.
+     * @param {import("firebase/auth").User} usuario - Instancia del usuario de Firebase.
      */
-    const verDatosUsuario = async (uid) => {
-        const data = await verUsuario(uid, db);
-
-        if ((data.success == 1) && (data.data != undefined)) {
-            setAuthInfo((x) => {
-                const modoUsuario = cargarModoUsuario();
-                const rol = (modoUsuario && data.data.rol == CODIGO_ADMIN) ? 0 : data.data.rol;
-                return ({
-                    user: x.user, uid: x.user.uid, rol: data.data.rol, modoUsuario: modoUsuario, rolVisible: rol
-                });
+    const verDatosUsuario = async (usuario) => {
+        const token = await usuario.getIdTokenResult(true);
+        
+        setAuthInfo((x) => {
+            const modoUsuario = cargarModoUsuario();
+            const rol = (modoUsuario && token.claims.admin) ? false : token.claims.admin;
+            return ({
+                user: x.user, uid: x.user.uid, rol: token.claims.admin, modoUsuario: modoUsuario, rolVisible: rol
             });
-        }
+        });
     };
 
     /**
      * Registra un nuevo usuario en la base de datos.
-     * @param {String} uid - UID del usuario a registrar.
-     * @returns JSON
+     * @param {string} uid - UID del usuario.
+     * @returns {JSON}
      */
     const registrarUsuario = async (uid) => {
-        /* rol = 0 - Usuario normal
-           rol = 1001 - Administrador */
-        const res = await cambiarUsuario({ uid: uid, rol: 0 }, db);
+        const aux = encodeURIComponent(uid);
+        const res = await peticionApi("", `registrar?uid=${aux}`, "POST", null, t("errRegistrarUsuario"), i18n.language);
 
         return { success: res.success };
     };
 
     /**
      * Verifica si un usuario está registrado en la base de datos.
-     * @param {String} uid - UID del usuario a verificar.
+     * @param {import("firebase/auth").User} usuario - Instancia de usuario de Firebase.
      */
-    const verRegistrado = async (uid) => {
-        const res = await verSiEstaRegistrado(uid, db);
+    const verRegistrado = async (usuario) => {
+        const fechaActual = new Date().valueOf();
+        const dif = fechaActual - parseInt(usuario.metadata.createdAt, 10);
 
-        if (res.success && !res.data) {
-            // El usuario no está registrado, se procede a registrarlo
-            return await registrarUsuario(uid);
-        } else if (res.success && res.data) {
-            // El usuario está registrado
-            return { success: true, data: 1 };
-        } else if (!res.success) {
-            // Ha ocurrido un error al verificar si está registrado
-            return { success: false, data: 0 };
+        /* El usuario no está registrado, se procede a registrarlo, se considera que no
+           está registrado si su cuenta fue creada hace menos de 1 minuto.
+        */
+        if (dif < 60000) {
+            return await registrarUsuario(usuario.uid);
+        } else {
+            return { success: true };
         }
     };
 
@@ -434,7 +428,7 @@ export function AuthProvider({ children }) {
 
     return (
         <authContext.Provider value={{
-            useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setDb, setTokenDrive,
+            useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setTokenDrive,
             setScopes, cerrarSesion, iniciarSesionGoogle, reautenticarUsuario, permisos, autenticado,
             requiereRefresco, quitarPantallaCarga, cambiarModoUsuario, mostrarPantallaCarga
         }}>

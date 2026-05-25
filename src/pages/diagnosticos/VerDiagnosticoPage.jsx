@@ -23,15 +23,13 @@ import { useCredenciales } from "../../contexts/CredencialesContext";
 import Check from "../../components/tabs/Check";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import FormSeleccionar from "../../components/forms/FormSeleccionar";
-import { CODIGO_ADMIN } from "../../../constants";
-import { SINTOMAS } from "../../../constants";
+import { AES_KEY, SINTOMAS } from "../../../constants";
 import ContComorbilidades from "../../components/diagnosticos/ContComorbilidades";
 import { peticionApi } from "../../services/Api";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
 import ContLime from "../../components/diagnosticos/ContLime";
 import { useTranslation } from "react-i18next";
 import { AES, enc } from "crypto-js";
-import { AES_KEY } from "../../../constants";
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -41,7 +39,7 @@ export default function VerDiagnosticoPage() {
     const auth = useAuth();
     const drive = useDrive();
     const { t } = useTranslation();
-    const credenciales = useCredenciales();
+    const { firestore } = useCredenciales();
     const navegacion = useNavegacion();
     const navigate = useNavigate();
     const location = useLocation();
@@ -74,7 +72,7 @@ export default function VerDiagnosticoPage() {
     const [persona, setPersona] = useState({
         id: "", nombre: ""
     });
-    const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
+    const admin = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
     const [errorDiagnostico, setErrorDiagnostico] = useState(false);
     const [diagnostico, setDiagnostico] = useState(datos.personales.validado);
     const [diagOriginal, setDiagOriginal] = useState({});
@@ -85,7 +83,7 @@ export default function VerDiagnosticoPage() {
     const camposPersonales = useMemo(() => {
         const campos = [
             { titulo: "ID", valor: datos.personales.id },
-            { titulo: (rol == CODIGO_ADMIN) ? t("txtMedico") : t("txtPaciente"), valor: persona.nombre },
+            { titulo: admin ? t("txtMedico") : t("txtPaciente"), valor: persona.nombre },
             { titulo: t("txtCampoSexo"), valor: datos.personales.sexo == 0 ? t("txtMasculino") : t("txtFemenino") },
             { titulo: t("txtCampoEdad"), valor: `${datos.personales.edad} ${t("txtSufijoEdad")}` },
             { titulo: t("txtCampoFechaDiag"), valor: datos.personales.fecha },
@@ -95,7 +93,7 @@ export default function VerDiagnosticoPage() {
         ];
 
         return campos;
-    }, [rol, datos, persona.nombre, navegacion.idioma]);
+    }, [admin, datos, persona.nombre, navegacion.idioma]);
     const camposVitales = useMemo(() => [
         { titulo: t("txtCampoPresionSist"), valor: `${datos.personales.presionSis} mmHg.` },
         { titulo: t("txtCampoPresionDiast"), valor: `${datos.personales.presionDias} mmHg.` },
@@ -112,7 +110,7 @@ export default function VerDiagnosticoPage() {
         let tit1 = t("txtHistorialDiagnosticos");
         let tit2 = `${t("txtDiagnostico")}-${persona.nombre}-${datos.personales.fecha}`;
 
-        if (rol == CODIGO_ADMIN) {
+        if (admin) {
             tit1 = t("txtDatosRecolectados");
             tit2 = `${t("txtDiagnostico")} — ${datos.personales.id}`;
         }
@@ -121,16 +119,15 @@ export default function VerDiagnosticoPage() {
             { texto: tit1, url: "/diagnosticos" },
             { texto: tit2, url: `/diagnosticos/ver-diagnostico${location.search}` }
         ];
-    }, [persona, datos, location.search, rol, navegacion.idioma]);
+    }, [persona, datos, location.search, admin, navegacion.idioma]);
     const titulo = useMemo(() => {
-        if (rol == CODIGO_ADMIN) {
+        if (admin) {
             return persona.nombre != "" ? `${t("txtDiagnostico")} — ${datos.personales.id}` : t("titDiagnostico");
         } else {
             return persona.nombre != "" ? `${t("txtDiagnostico")} — ${persona.nombre}` : t("titVerDiagnostico");
         }
-    }, [rol, persona.nombre, datos.personales.id, navegacion.idioma]);
+    }, [admin, persona.nombre, datos.personales.id, navegacion.idioma]);
     const id = useMemo(() => params.get("id"), [params]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
@@ -149,11 +146,11 @@ export default function VerDiagnosticoPage() {
      * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
      */
     useEffect(() => {
-        const exp = (rol != CODIGO_ADMIN || persona.nombre == "");
-        if (rol != null && DB != null && exp) {
+        const exp = (!admin || persona.nombre == "");
+        if (admin != null && firestore != null && exp) {
             cargarDatosDiagnostico(auth.authInfo.user.accessToken);
         }
-    }, [drive.descargando, auth.authInfo.user, rol, persona, DB]);
+    }, [drive.descargando, auth.authInfo.user, admin, persona, firestore]);
 
     /**
      * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
@@ -202,32 +199,32 @@ export default function VerDiagnosticoPage() {
      */
     const cargarDatosDiagnostico = async (token) => {
         const uid = id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-        const datos = await verDiagnostico(uid[1], id, DB);
+        const datos = await verDiagnostico(uid[1], id, firestore);
         if (datos.success && datos.data != []) {
             setDiagOriginal({ ...datos.data });
 
-            if (rol != CODIGO_ADMIN && datos.data.medico != auth.authInfo.uid) {
+            if (!admin && datos.data.medico != auth.authInfo.uid) {
                 volverPestanaAnterior();
                 return;
             }
 
-            if (rol == CODIGO_ADMIN) {
+            if (admin) {
                 await cargarDatosMedico(token, datos.data.medico);
             } else {
                 sessionStorage.setItem("paciente", datos.data.paciente);
             }
 
             preprocesarDiag(datos.data);
-        } else if (DB != null && !datos.success) {
+        } else if (firestore != null && !datos.success) {
             volverPestanaAnterior();
         }
     };
 
     useEffect(() => {
-        if (drive.token != null && rol != CODIGO_ADMIN) {
+        if (drive.token != null && !admin) {
             cargarDatosPacientes();
         }
-    }, [drive.token, rol]);
+    }, [drive.token, admin]);
 
     /**
      * Carga los datos de los pacientes.
@@ -265,7 +262,7 @@ export default function VerDiagnosticoPage() {
         }
 
         const res = drive.cargarDatosPaciente(id);
-        const nombre = (rol != CODIGO_ADMIN) ? t("txtPaciente") : t("txtUsuario");
+        const nombre = !admin ? t("txtPaciente") : t("txtUsuario");
         if (res.success) {
             setPersona({ ...res.data.personales });
         } else {
@@ -315,7 +312,7 @@ export default function VerDiagnosticoPage() {
         }
         dayjs.extend(customParseFormat);
 
-        if (rol != CODIGO_ADMIN) {
+        if (!admin) {
             aux.id = aux.id.replace(/-\w{28}$/, "");
         }
 
@@ -374,7 +371,7 @@ export default function VerDiagnosticoPage() {
      */
     const eliminarDiagnostico = async () => {
         const uid = id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-        const res = await eliminarDiagnosticos(uid[1], id, DB);
+        const res = await eliminarDiagnosticos(uid[1], id, firestore);
 
         if (res.success) {
             navegacion.setPaginaAnterior("/diagnosticos");
@@ -395,14 +392,13 @@ export default function VerDiagnosticoPage() {
     const validarDiagnostico = async () => {
         setCargando(true);
         setErrorDiagnostico(false);
-        const DB = credenciales.obtenerInstanciaDB();
         const { id, medico } = diagOriginal;
         const aux = { ...diagOriginal };
 
         delete aux.id;
         delete aux.medico;
 
-        const res = await cambiarDiagnostico(id, medico, { ...aux, validado: diagnostico }, DB);
+        const res = await cambiarDiagnostico(id, medico, { ...aux, validado: diagnostico }, firestore);
 
         if (res.success) {
             window.history.replaceState({}, '');
@@ -495,7 +491,7 @@ export default function VerDiagnosticoPage() {
      * @returns JSX.Element
      */
     const BtnValidar = () => {
-        return ((datos.personales.validado == 2 && rol != CODIGO_ADMIN) ? (
+        return ((datos.personales.validado == 2 && !admin) ? (
             <Tooltip title={t("txtAyudaBtnValidar")}>
                 <Fab onClick={manejadorBtnEditar}
                     color="primary"
@@ -529,7 +525,7 @@ export default function VerDiagnosticoPage() {
      * @returns {JSX.Element}
      */
     const CuerpoModal = useCallback(() => {
-        return ((rol != CODIGO_ADMIN) ? (
+        return (!admin ? (
             <FormSeleccionar
                 onChange={setDiagnostico}
                 texto={t("txtValidarDiagnostico")}
@@ -538,7 +534,7 @@ export default function VerDiagnosticoPage() {
                 valor={diagnostico}
                 valores={DIAGNOSTICOS} />) : null
         );
-    }, [errorDiagnostico, diagnostico, rol]);
+    }, [errorDiagnostico, diagnostico, admin]);
 
     return (
         <>
@@ -558,7 +554,7 @@ export default function VerDiagnosticoPage() {
                             columns={12}
                             spacing={1}
                             marginTop="3vh">
-                            {(rol == CODIGO_ADMIN) ? (
+                            {admin ? (
                                 <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                                     <Tooltip title={t("txtAyudaMasOpciones")}>
                                         <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>

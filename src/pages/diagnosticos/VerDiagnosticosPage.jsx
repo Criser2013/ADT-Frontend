@@ -18,7 +18,6 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { descargarArchivoXlsx } from "../../utils/XlsxFiles";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FormSeleccionar from "../../components/forms/FormSeleccionar";
-import { CODIGO_ADMIN } from "../../../constants";
 import Check from "../../components/tabs/Check";
 import AddToDriveIcon from '@mui/icons-material/AddToDrive';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -39,7 +38,7 @@ export default function VerDiagnosticosPage() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
-    const credenciales = useCredenciales();
+    const { firestore } = useCredenciales();
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({
         mostrar: false, titulo: "", mensaje: "", icono: null
@@ -57,15 +56,14 @@ export default function VerDiagnosticosPage() {
     const [errorDiagnostico, setErrorDiagnostico] = useState(false);
     const [preprocesar, setPreprocesar] = useState(false);
     const [guardarDrive, setGuardarDrive] = useState(false);
-    const rol = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales.obtenerInstanciaDB]);
-    const camposVariables = useMemo(() => (rol != CODIGO_ADMIN) ? [
+    const admin = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
+    const camposVariables = useMemo(() => !admin ? [
         { id: "id", label: "ID", componente: null, ordenable: true },
         { id: "nombre", label: t("txtPaciente"), componente: null, ordenable: true },
         { id: "paciente", label: t("txtCedula"), componente: null, ordenable: true },
     ] : [
         { id: "id", label: "ID", componente: null, ordenable: true },
-        { id: "nombre", label: t("txtMedico"), componente: null, ordenable: true }], [navegacion.idioma, rol]);
+        { id: "nombre", label: t("txtMedico"), componente: null, ordenable: true }], [navegacion.idioma, admin]);
     const camposFijos = useMemo(() => camposVariables.concat([
         { id: "fecha", label: t("txtFecha"), componente: (x) => dayjs(x.fecha).format(t("formatoFechaHoraResumida")), ordenable: true },
         { id: "edad", label: t("txtCampoEdad"), componente: null, ordenable: true },
@@ -74,28 +72,28 @@ export default function VerDiagnosticosPage() {
         { id: "validado", label: t("txtCampoDiagMedico"), componente: (x) => <ChipValidado validado={x.validado} />, ordenable: true }
     ]), [camposVariables, navegacion.idioma]);
     const camposTabla = useMemo(() => {
-        return (rol != CODIGO_ADMIN) ? camposFijos.concat([{ id: "accion", label: t("txtAccion"), componente: null, ordenable: false }]) : camposFijos;
-    }, [rol, camposFijos, navegacion.idioma]);
+        return !admin ? camposFijos.concat([{ id: "accion", label: t("txtAccion"), componente: null, ordenable: false }]) : camposFijos;
+    }, [admin, camposFijos, navegacion.idioma]);
     const camposBusq = useMemo(() => {
         const campos = ["id", "nombre"];
-        if (rol != CODIGO_ADMIN) {
+        if (!admin) {
             campos.push("paciente");
         }
         return campos;
-    }, [rol]);
+    }, [admin]);
     const activarSeleccion = useMemo(() => {
-        return rol == CODIGO_ADMIN;
-    }, [rol]);
+        return admin;
+    }, [admin]);
     const titulo = useMemo(() => {
-        return (rol != CODIGO_ADMIN) ? t("txtHistorialDiagnosticos") : t("txtDatosRecolectados");
-    }, [rol, navegacion.idioma]);
+        return !admin ? t("txtHistorialDiagnosticos") : t("txtDatosRecolectados");
+    }, [admin, navegacion.idioma]);
     const lblBusq = useMemo(() => {
-        return (rol != CODIGO_ADMIN) ? t("txtBusqDiag") : t("txtBusqDiagAdmin");
-    }, [rol, navegacion.idioma]);
+        return !admin ? t("txtBusqDiag") : t("txtBusqDiagAdmin");
+    }, [admin, navegacion.idioma]);
     const listadoPestanas = useMemo(() => {
-        const txt = (rol == CODIGO_ADMIN) ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos");
+        const txt = admin ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos");
         return [{ texto: txt, url: "/diagnosticos" }];
-    }, [rol, navegacion.idioma]);
+    }, [admin, navegacion.idioma]);
     const desactivarBtns = useMemo(() => {
         return datos.length == 0;
     }, [datos.length]);
@@ -119,12 +117,12 @@ export default function VerDiagnosticosPage() {
         return (diagnosticos != null && cantNoConfirmados == diagnosticos.length) && modoModal == 3 && preprocesar;
     }, [diagnosticos, cantNoConfirmados, modoModal, preprocesar]);
     const txtToolExportar = useMemo(() => {
-        if (rol == CODIGO_ADMIN) {
+        if (admin) {
             return t("txtAyudaBtnExportarAdmin");
         } else {
             return t("txtAyudaBtnExportar");
         }
-    }, [rol, navegacion.idioma]);
+    }, [admin, navegacion.idioma]);
     const cantDiagnosticos = useMemo(() => {
         return (diagnosticos != null) ? diagnosticos.length : 0;
     }, [diagnosticos]);
@@ -150,15 +148,15 @@ export default function VerDiagnosticosPage() {
         const descargar = sessionStorage.getItem("descargando-drive");
         const exp = (descargar == null || descargar == "false");
 
-        if (rol != null && uid != null && DB != null && drive.token != null && exp && !archivoDescargado) {
+        if (admin != null && uid != null && firestore != null && drive.token != null && exp && !archivoDescargado) {
             sessionStorage.setItem("descargando-drive", "true");
-            manejadorRecargar(drive.token, uid, rol, DB);
+            manejadorRecargar(drive.token, uid, admin, firestore);
         }
-    }, [auth.authInfo.uid, drive.token, rol, DB, archivoDescargado]);
+    }, [auth.authInfo.uid, drive.token, admin, firestore, archivoDescargado]);
 
     useEffect(() => {
-        document.title = rol != CODIGO_ADMIN ? t("txtHistorialDiagnosticos") : t("txtDatosRecolectados");
-    }, [rol, navegacion.idioma]);
+        document.title = admin ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos");
+    }, [admin, navegacion.idioma]);
 
     /**
      * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
@@ -187,7 +185,7 @@ export default function VerDiagnosticosPage() {
      * Si el usuario es médico, se carga la lista de pacientes desde Drive.
      */
     useEffect(() => {
-        if (rol != CODIGO_ADMIN) {
+        if (!admin) {
             setPersonas(drive.datos);
         }
     }, [drive.datos]);
@@ -200,10 +198,10 @@ export default function VerDiagnosticosPage() {
      * @param {Object} db - Instancia de Firestore.
      */
     const manejadorRecargar = (token = null, usuario = null, cargo = null, db = null) => {
-        const credencial = (rol == CODIGO_ADMIN || token == null) ? auth.authInfo.user.accessToken : token;
+        const credencial = (admin || token == null) ? auth.authInfo.user.accessToken : token;
         const uid = (usuario == null) ? auth.authInfo.uid : usuario;
-        const rolUsuario = (cargo == null) ? rol : cargo;
-        const BD = (db == null) ? DB : db;
+        const rolUsuario = (cargo == null) ? admin : cargo;
+        const BD = (db == null) ? firestore : db;
 
         if (!cargando) {
             setCargando(true);
@@ -217,8 +215,9 @@ export default function VerDiagnosticosPage() {
             setInstancia(null);
         }
 
-        cargarDiagnosticos(uid, rolUsuario, BD);
-        cargarPacientes(credencial);
+        cargarPacientes(credencial).then((usuarios) => {
+            cargarDiagnosticos(uid, rolUsuario, BD, usuarios);
+        });
     };
 
     /**
@@ -226,26 +225,29 @@ export default function VerDiagnosticosPage() {
      * @param {String} token - Token de acceso de Firebase del usuario.
      */
     const cargarPacientes = async (token = "") => {
-        const res = (rol != CODIGO_ADMIN) ? await drive.cargarDatos() :
+        const res = !admin ? await drive.cargarDatos() :
             await peticionApi(token, "admin/usuarios", "GET", null,
                 t("errCargarUsuarios"), navegacion.idioma
             );
+        let usuarios = [];
         setArchivoDescargado(true);
-        if (res.success && rol == CODIGO_ADMIN) {
+        if (res.success && admin) {
             setPersonas(res.data.usuarios);
-        } else if (res.success && rol != CODIGO_ADMIN) {
-            return;
+            usuarios = res.data.usuarios.map((x) => x.uid != undefined ? x.uid : x.paciente);
+        } else if (res.success && !admin) {
+            return [];
         } else {
             setModoModal(0);
             setActivar2Btn(false);
             setModal({
                 mostrar: true, mensaje: res.error, icono: <CloseIcon />,
-                titulo: `${t("titErrCargaDatos")} ${(rol != CODIGO_ADMIN) ? t("errCargaDatosSufijoPaciente") : t("errCargaDatosSufijoUsuarios")}`,
+                titulo: `${t("titErrCargaDatos")} ${!admin ? t("errCargaDatosSufijoPaciente") : t("errCargaDatosSufijoUsuarios")}`,
             });
             setPersonas([]);
         }
 
         sessionStorage.setItem("descargando-drive", "false");
+        return usuarios;
     };
 
     /**
@@ -253,9 +255,10 @@ export default function VerDiagnosticosPage() {
      * @param {String} uid - UID del médico.
      * @param {Number} rol - Rol del usuario (0: médico, 1001: administrador).
      * @param {Object} DB - Instancia de Firestore.
+     * @param {Array[string]} usuarios - Array con los UID de los médicos (solo para administradores).
      */
-    const cargarDiagnosticos = async (uid, rol, DB) => {
-        const res = (rol != CODIGO_ADMIN) ? await verDiagnosticosPorMedico(uid, DB) : await verDiagnosticos(DB);
+    const cargarDiagnosticos = async (uid, rol, DB, usuarios = []) => {
+        const res = !rol ? await verDiagnosticosPorMedico(uid, DB) : await verDiagnosticos(DB, usuarios);
         if (res.success) {
             setDiagnosticos(res.data);
         } else {
@@ -285,19 +288,19 @@ export default function VerDiagnosticosPage() {
         for (const i of personas) {
             let clave = i.id;
 
-            if (rol == CODIGO_ADMIN) {
+            if (admin) {
                 clave = i.uid;
             }
 
-            aux[clave] = { nombre: i.nombre, cedula: (rol != CODIGO_ADMIN) ? i.cedula : i.uid };
+            aux[clave] = { nombre: i.nombre, cedula: !admin ? i.cedula : i.uid };
         }
 
         for (let i = 0; i < diags.length; i++) {
             auxDiag[i].sexo = auxDiag[i].sexo == 0 ? t("txtMasculino") : t("txtFemenino");
-            const campos = (rol != CODIGO_ADMIN) ? "paciente" : "medico";
+            const campos = admin ? "medico" : "paciente";
             const persona = aux[auxDiag[i][campos]];
-            const nombre = (rol != CODIGO_ADMIN && persona == undefined) ? t("txtPaciente") : t("txtUsuario");
-            if (rol != CODIGO_ADMIN) {
+            const nombre = (admin && persona == undefined) ? t("txtUsuario") : t("txtPaciente");
+            if (!admin) {
                 auxDiag[i].paciente = (persona != undefined) ? persona.cedula : "N/A";
                 auxDiag[i].id = auxDiag[i].id.replace(/-\w{28}$/, "");
             }
@@ -306,7 +309,7 @@ export default function VerDiagnosticosPage() {
             auxDiag[i].nombre = (persona != undefined) ? persona.nombre : `${nombre} ${t("txtEliminado")}`;
             auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico, navegacion.idioma);
             auxDiag[i].fecha = auxDiag[i].fecha.toDate();
-            auxDiag[i].accion = (auxDiag[i].validado == 2 && rol != CODIGO_ADMIN) ? <BtnValidar diagnostico={i} /> : "";
+            auxDiag[i].accion = (auxDiag[i].validado == 2 && !admin) ? <BtnValidar diagnostico={i} /> : "";
             auxDiag[i].validado = detTxtDiagnostico(auxDiag[i].validado, navegacion.idioma);
 
             delete auxDiag[i].medico;
@@ -340,7 +343,7 @@ export default function VerDiagnosticosPage() {
         if (ejecutar == "true" || ejecutar == null) {
             navegacion.setPaginaAnterior("/diagnosticos");
             sessionStorage.removeItem("ejecutar-callback");
-            const id = (rol == CODIGO_ADMIN) ? dato.id : `${dato.id}-${auth.authInfo.uid}`;
+            const id = admin ? dato.id : `${dato.id}-${auth.authInfo.uid}`;
             navigate(`/diagnosticos/ver-diagnostico?id=${id}`);
         }
     };
@@ -382,7 +385,7 @@ export default function VerDiagnosticosPage() {
 
         diagnosticos.forEach((x, i) => {
             const uid = x.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-            peticiones[i] = eliminarDiagnosticos(uid[1], x, DB);
+            peticiones[i] = eliminarDiagnosticos(uid[1], x, firestore);
         });
 
         for (let i = 0; i < peticiones.length; i++) {
@@ -391,8 +394,8 @@ export default function VerDiagnosticosPage() {
 
         if (peticiones.every((x) => x.success)) {
             setCargando(true);
-            cargarDiagnosticos(auth.authInfo.uid, rol, DB);
-            cargarPacientes(auth.authInfo.user.accessToken);
+            const usuarios = await cargarPacientes(auth.authInfo.user.accessToken);
+            cargarDiagnosticos(auth.authInfo.uid, admin, firestore, usuarios);
         } else {
             setModoModal(0);
             setActivar2Btn(false);
@@ -429,11 +432,11 @@ export default function VerDiagnosticosPage() {
         delete diagnostico.id;
         delete diagnostico.medico;
 
-        const res = await cambiarDiagnostico(id, medico, { ...diagnostico, validado: validar }, DB);
+        const res = await cambiarDiagnostico(id, medico, { ...diagnostico, validado: validar }, firestore);
 
         if (res.success) {
-            cargarDiagnosticos(auth.authInfo.uid, rol, DB);
-            cargarPacientes(auth.authInfo.user.accessToken);
+            const pacientes = await cargarPacientes(auth.authInfo.user.accessToken);
+            cargarDiagnosticos(auth.authInfo.uid, admin, firestore, pacientes);
         } else {
             setActivar2Btn(false);
             setModoModal(0);
@@ -497,9 +500,9 @@ export default function VerDiagnosticosPage() {
         for (let i = 0; i < aux.length; i++) {
             // Solo se incluyen los diagnósticos validados si se requiere preprocesar y lo pide un admin
             if (!preprocesar || (preprocesar && aux[i].validado != 2)) {
-                aux[i].id = (rol != CODIGO_ADMIN) ? aux[i].id.replace(/-\w{28}$/, "") : aux[i].id;
+                aux[i].id = !admin ? aux[i].id.replace(/-\w{28}$/, "") : aux[i].id;
                 aux[i].paciente = datos[i].nombre;
-                aux[i] = nombresCampos(aux[i], rol == CODIGO_ADMIN, preprocesar, navegacion.idioma);
+                aux[i] = nombresCampos(aux[i], admin, preprocesar, navegacion.idioma);
                 auxArr.push(aux[i]);
             }
         }
@@ -508,7 +511,7 @@ export default function VerDiagnosticosPage() {
 
         let res = { success: false, data: [], error: "" };
 
-        if (guardarDrive && rol == CODIGO_ADMIN) {
+        if (guardarDrive && admin) {
             res = await drive.crearCopiaDiagnosticos(nombreArchivo, auxArr, tipoArchivo);
         }
 
@@ -578,14 +581,14 @@ export default function VerDiagnosticosPage() {
                     txtError={txtError}
                     valor={valor}
                     valores={valores}>
-                    {((modoModal == 3 && cantNoConfirmados > 0) && (rol == CODIGO_ADMIN) && preprocesar) ? (
+                    {((modoModal == 3 && cantNoConfirmados > 0) && admin && preprocesar) ? (
                         <Typography variant="body2">
                             <b>
                                 {t("txtAvisoDiagsNoValidados", { cantNoConfirmados })}
                             </b>
                         </Typography>
                     ) : null}
-                    {(modoModal == 3 && rol == CODIGO_ADMIN) ? (
+                    {(modoModal == 3 && admin) ? (
                         <>
                             <Check
                                 activado={preprocesar}
@@ -619,7 +622,7 @@ export default function VerDiagnosticosPage() {
                         titulo={titulo}
                         pestanas={listadoPestanas} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh" }}>
-                        <AdvertenciaEspacio rol={rol} cantidadDiagnosticos={cantDiagnosticos} />
+                        <AdvertenciaEspacio rol={admin} cantidadDiagnosticos={cantDiagnosticos} />
                         <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
                             <Tooltip title={t("txtAyudaBtnRecargar")}>
                                 <IconButton onClick={() => manejadorRecargar()}>
@@ -634,7 +637,7 @@ export default function VerDiagnosticosPage() {
                                         onClick={manejadorBtnExportar}
                                         disabled={desactivarBtns}
                                         sx={{ textTransform: "none" }}
-                                        startIcon={rol == CODIGO_ADMIN ? <AddToDriveIcon /> : <FileDownloadIcon />}>
+                                        startIcon={admin ? <AddToDriveIcon /> : <FileDownloadIcon />}>
                                         <b>{t("txtBtnExportar")}</b>
                                     </Button>
                                 </span>

@@ -24,7 +24,7 @@ import { useTranslation } from "react-i18next";
  */
 export default function MenuAdministrador() {
     const auth = useAuth();
-    const credenciales = useCredenciales();
+    const { firestore } = useCredenciales();
     const navegacion = useNavegacion();
     const { t } = useTranslation();
     const [cargando, setCargando] = useState(true);
@@ -46,7 +46,6 @@ export default function MenuAdministrador() {
             return 4;
         }
     }, [navegacion]);
-    const DB = useMemo(() => credenciales.obtenerInstanciaDB(), [credenciales]);
     const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual, navegacion.idioma)
     , [datosDiagnosticos, fechaActual, navegacion.idioma]);
     const usuariosMesActual = useMemo(() => obtenerDatosMesActual(datosUsuarios, fechaActual, navegacion.idioma)
@@ -95,11 +94,12 @@ export default function MenuAdministrador() {
     useEffect(() => {
         const { user } = auth.authInfo;
 
-        if (user != null && DB != null) {
-            cargarUsuarios(user.accessToken);
-            cargarDiagnosticos(DB);
+        if (user != null && firestore != null) {
+            cargarUsuarios(user.accessToken).then((x) => {
+                cargarDiagnosticos(firestore, x.map((x) => x.uid));
+            });
         }
-    }, [auth.authInfo, DB]);
+    }, [auth.authInfo, firestore]);
 
     /**
      * Actualiza el gráfico de barras con los datos de diagnósticos y usuarios.
@@ -166,17 +166,20 @@ export default function MenuAdministrador() {
                 titulo: t("errTitCargarDatosUsuarios"),
             });
             setUsuarios([]);
+            return [];
         } else {
             setUsuarios(res.data.usuarios);
+            return res.data.usuarios;
         }
     };
 
     /**
      * Carga los datos de los diagnósticos.
      * @param {Object} db - Instancia de Firestore.
+     * @param {Array[string]} usuarios - Lista de UID de los médicos.
      */
-    const cargarDiagnosticos = async (db) => {
-        const res = await verDiagnosticos(db);
+    const cargarDiagnosticos = async (db, usuarios) => {
+        const res = await verDiagnosticos(db, usuarios);
         if (res.success) {
             setDiagnosticos(res.data);
         } else {
