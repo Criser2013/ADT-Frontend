@@ -11,7 +11,7 @@ import { API_URL } from "../../constants";
  * @param {String} txtError - Mensaje de error a mostrar en caso de fallo (opcional).
  * @returns {JSON} Resultado de la petición con formato { success: Boolean, data: JSON, error: String }
  */
-export async function peticionApi(ruta, metodo, parametros = {}, cuerpo = null, token = "", idioma = "es", txtError = "") {
+export async function peticionApi(ruta, metodo, parametros = {}, cuerpo = null, token = null, idioma = "es", txtError = "") {
     try {
         let resultado = { success: false, data: null, error: null };
         const params = new URLSearchParams(parametros).toString();
@@ -24,6 +24,10 @@ export async function peticionApi(ruta, metodo, parametros = {}, cuerpo = null, 
             },
             body: cuerpo ? JSON.stringify(cuerpo) : null
         };
+
+        if (!token) {
+            delete opciones.headers["Authorization"];
+        }
 
         const res = await fetch(`${API_URL}/${ruta}?${params}`, opciones);
         const json = await res.json();

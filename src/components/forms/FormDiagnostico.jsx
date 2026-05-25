@@ -177,8 +177,10 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         }
 
         const cuerpo = transformarDatos(aux, oneHotComor);
-        const res = await peticionApi(auth.authInfo.user.accessToken, "diagnosticar", "POST", cuerpo,
-            t("errorDiagnostico"), navegacion.idioma
+        const res = await peticionApi(
+            "diagnosticar", "POST", {}, cuerpo, 
+            auth.authInfo.user.accessToken, navegacion.idioma,
+            t("errorDiagnostico"), 
         );
         const { success, data } = res;
 
@@ -257,8 +259,10 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
      */
     const verificarRespuesta = async (token) => {
         setCargandoBtn(true);
-        const res = await peticionApi("", "recaptcha", "POST", { token: token }, t("errCaptchaApi"), navegacion.idioma);
-
+        const cuerpo = { token: token };
+        const res = await peticionApi(
+            "recaptcha", "POST", {}, cuerpo, null, navegacion.idioma, t("errCaptchaApi")
+        );
         if (res.success) {
             if (res.data.success) {
                 setDesactivarBtn(false);

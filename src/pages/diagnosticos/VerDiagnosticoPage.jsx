@@ -278,8 +278,9 @@ export default function VerDiagnosticoPage() {
      */
     const cargarDatosMedico = async (token, uid) => {
         uid = encodeURIComponent(uid);
-        const res = await peticionApi(token, `admin/usuarios/${uid}`, "GET", null,
-            t("errCargarDatosUsuarios"), navegacion.idioma
+        const res = await peticionApi(
+            `admin/usuarios/${uid}`, "GET", {}, null, token, navegacion.idioma,
+            t("errCargarDatosUsuarios")
         );
         let persona = { nombre: "N/A" };
 

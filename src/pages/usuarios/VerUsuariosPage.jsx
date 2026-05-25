@@ -141,8 +141,9 @@ export default function VerUsuariosPage() {
      * @returns {Array[JSON]} Lista de usuarios o un array vacío en caso de error.
      */
     const cargarUsuarios = async (token) => {
-        const res = await peticionApi(token, "admin/usuarios", "GET", null,
-            t("errCargarUsuarios"), navegacion.idioma
+        const res = await peticionApi(
+            "admin/usuarios", "GET", {}, null, token, navegacion.idioma,
+            t("errCargarUsuarios")
         );
         if (!res.success) {
             setUsuarios([]);
@@ -357,9 +358,12 @@ export default function VerUsuariosPage() {
         }
 
         usuarios.forEach((x, i) => {
+            const cuerpo = { desactivar: estado, administrador: x.rol, eliminado: banear };
             let uid = encodeURIComponent(x.uid);
             uid = uid.replaceAll(".", "%2E");
-            peticiones[i] = peticionApi(token, `admin/usuarios/${uid}`, "PATCH", { desactivar: estado, administrador: x.rol, eliminado: banear }, "", navegacion.idioma);
+            peticiones[i] = peticionApi(
+                `admin/usuarios/${uid}`, "PATCH", {}, cuerpo, token, navegacion.idioma, ""
+            );
         });
 
         for (let i = 0; i < peticiones.length; i++) {
