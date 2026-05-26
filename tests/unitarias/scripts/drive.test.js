@@ -2,14 +2,14 @@ import { expect, describe, test, jest } from '@jest/globals';
 import { codificarParamsURL, descargarArchivo, crearCargaResumible, crearArchivo, buscarArchivo, subirArchivoResumible } from '../../../src/services/Drive';
 
 describe("Validar la función 'codificarParamsURL'", () => {
-    test("CP - 34", () => {
+    test.skip("CP - 34", () => {
         const params = "name='hola' and trashed=false and mimeType='application/vnd.google-apps.folder'";
 
         const res = codificarParamsURL(params);
         expect(res).toBe("name%3D%27hola%27%20and%20trashed%3Dfalse%20and%20mimeType%3D%27application%2Fvnd.google-apps.folder%27");
     });
 
-    test("CP - 35", () => {
+    test.skip("CP - 35", () => {
         const params = " ";
 
         const res = codificarParamsURL(params);

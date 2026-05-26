@@ -54,7 +54,7 @@ export function descargarArchivoXlsx (datos, nombreArchivo, tipo = "xlsx", idiom
 
 /**
  * Lee un archivo XLSX y lo convierte a un Array de JSON.
- * @param {Uint8Array} archivo - Archivo XLSX a leer.
+ * @param {Uint8Array|ArrayBuffer} archivo - Archivo XLSX a leer.
  * @param {String} idioma - Idioma para los mensajes de error.
  * @returns Array[JSON]
  */
