@@ -226,8 +226,9 @@ export default function VerDiagnosticosPage() {
      */
     const cargarPacientes = async (token = "") => {
         const res = !admin ? await drive.cargarDatos() :
-            await peticionApi(token, "admin/usuarios", "GET", null,
-                t("errCargarUsuarios"), navegacion.idioma
+            await peticionApi(
+                "admin/usuarios", "GET", {}, null, token, navegacion.idioma,
+                t("errCargarUsuarios")
             );
         let usuarios = [];
         setArchivoDescargado(true);
