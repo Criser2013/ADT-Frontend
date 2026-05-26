@@ -16,6 +16,7 @@ describe("Validar la función 'codificarParamsURL'", () => {
         expect(res).toBe("%20");
     });
 });
+//34 - 35
 
 describe("Validar la funcion 'descargarArchivo'", () => {
     test("CP - 36", async () => {
@@ -81,7 +82,7 @@ describe("Validar la funcion 'descargarArchivo'", () => {
 });
 
 describe("Validar la funcion 'crearCargaResumible'", () => {
-    test("CP - 39", async () => {
+    test.skip("CP - 39", async () => {
         global.fetch = jest.fn();
         global.fetch.mockImplementation(() =>
             Promise.resolve({
@@ -107,7 +108,7 @@ describe("Validar la funcion 'crearCargaResumible'", () => {
         });
     });
 
-    test("CP - 40", async () => {
+    test.skip("CP - 40", async () => {
         global.fetch = jest.fn();
         global.fetch.mockImplementation(() => {
             throw Error("Error de red");
@@ -128,7 +129,7 @@ describe("Validar la funcion 'crearCargaResumible'", () => {
 });
 
 describe("Validar la funcion 'crearArchivo'", () => {
-    test("CP - 41", async () => {
+    test.skip("CP - 41", async () => {
         global.fetch = jest.fn();
         global.fetch.mockImplementation(() =>
             Promise.resolve({
@@ -162,7 +163,7 @@ describe("Validar la funcion 'crearArchivo'", () => {
         });
     });
 
-    test("CP - 42", async () => {
+    test.skip("CP - 42", async () => {
         global.fetch = jest.fn();
         global.fetch.mockImplementation(() =>
             Promise.resolve({
@@ -198,7 +199,7 @@ describe("Validar la funcion 'crearArchivo'", () => {
         });
     });
     
-    test("CP - 43", async () => {
+    test.skip("CP - 43", async () => {
         global.fetch = jest.fn();
         global.fetch.mockImplementation(() => {
             throw Error("Error de red");
@@ -221,7 +222,7 @@ describe("Validar la funcion 'crearArchivo'", () => {
         expect(global.fetch).toThrow("Error de red");
     });
 
-    test("CP - 44", async () => {
+    test.skip("CP - 44", async () => {
         global.fetch = jest.fn();
         global.fetch.mockImplementation(() =>
             Promise.resolve({

@@ -10,128 +10,32 @@ import { DRIVE_API_URL, DRIVE_UPLOAD_API_URL } from "../../constants";
  * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
  */
 function clasificarError(codigoPet, contenido) {
-    let res;
-    switch (true) {
-        case codigoPet == 200 || codigoPet == 201:
-            res = { success: true, data: contenido, error: null };
-            break;
-        case codigoPet == 308 && contenido.error.message.includes("Resume Incomplete"):
-            res = { success: false, data: null, error: "errCargaResumible" };
-            break;
-        case codigoPet == 401 && contenido.error.message.includes("Invalid Credentials"):
-            res = { success: false, data: null , error: "errCreds" };
-            break;
-        case codigoPet == 403 && contenido.error.message.includes("Drive storage quota has been exceeded"):
-            res = { success: false, data: null, error: "errEspacioDrive" };
-            break;
-        case codigoPet == 404 && contenido.error.message.includes("Not found"):
-            res = { success: false, data: null, error: "errCargaVencida" };
-            break;
-        case codigoPet == 404 && contenido.error.message.includes("File not found"):
-            res = { success: false, data: null, error: "errArchivoInexistente" };
-            break;
-        case (codigoPet == 403 || codigoPet == 429) && contenido.error.message.includes("Rate Limit Exceeded"):
-        case codigoPet == 403 && contenido.error.message.includes("Daily Limit Exceeded"):
-            res = { success: false, data: null, error: "errLimPeticiones" };
-            break;
-        default:
-            res = { success: false, data: null, error: `${codigoPet} ${contenido}` };
-            break;
+    let res = { success: false, data: null, error: `${codigoPet} ${contenido}` };
+
+    if (codigoPet >= 200 && codigoPet < 300) {
+        res = { success: true, data: contenido, error: null };
     }
 
-    return res;
-};
-
-/*
-function clasificarError(response, contenido = null) {
-    const status = typeof response === "number"
-        ? response
-        : response?.status;
-
-    // Extrae el mensaje de error de forma segura
-    const mensaje = obtenerMensajeError(contenido);
-
-    // Respuestas exitosas
-    if (status >= 200 && status < 300) {
-        return {
-            success: true,
-            data: contenido,
-            error: null,
-            status
-        };
-    }
-
-    // Reglas de clasificación
-    const reglas = [
-        {
-            status: 308,
-            includes: "Resume Incomplete",
-            error: "errCargaResumible"
-        },
-        {
-            status: 401,
-            includes: "Invalid Credentials",
-            error: "errCreds"
-        },
-        {
-            status: 403,
-            includes: "Drive storage quota has been exceeded",
-            error: "errEspacioDrive"
-        },
-        {
-            status: 404,
-            includes: "Not found",
-            error: "errCargaVencida"
-        },
-        {
-            status: 404,
-            includes: "File not found",
-            error: "errArchivoInexistente"
-        },
-        {
-            status: [403, 429],
-            includes: "Rate Limit Exceeded",
-            error: "errLimPeticiones"
-        },
-        {
-            status: 403,
-            includes: "Daily Limit Exceeded",
-            error: "errLimPeticiones"
-        }
+    const errores = [
+        { status: 308, includes: "Resume Incomplete", error: "errCargaResumible" },
+        { status: 401, includes: "Invalid Credentials", error: "errCreds" },
+        { status: 403, includes: "Drive storage quota has been exceeded", error: "errEspacioDrive" },
+        { status: 404, includes: "Not found", error: "errCargaVencida" },
+        { status: 404, includes: "File not found", error: "errArchivoInexistente" },
+        { status: [403, 429], includes: "Rate Limit Exceeded", error: "errLimPeticiones" },
+        { status: 403, includes: "Daily Limit Exceeded", error: "errLimPeticiones" }
     ];
 
-    // Buscar coincidencia
-    const regla = reglas.find(r => {
-        const estados = Array.isArray(r.status)
-            ? r.status
-            : [r.status];
+    const errorDetectado = errores.find((x) => (
+        (x instanceof Array) ? x.includes(codigoPet) : x.status == codigoPet) 
+        && contenido.error?.message?.includes(x.includes)
+    );
 
-        return estados.includes(status)
-            && mensaje.includes(r.includes);
-    });
+    res.error = errorDetectado ? errorDetectado.error : res.error;
 
-    return {
-        success: false,
-        data: null,
-        error: regla?.error || `HTTP_${status}`,
-        status,
-        detalle: mensaje || contenido
-    };
-}
-function obtenerMensajeError(contenido) {
-    if (!contenido) return "";
+    return res;
 
-    if (typeof contenido === "string") {
-        return contenido;
-    }
-
-    if (contenido?.error?.message) {
-        return contenido.error.message;
-    }
-
-    return JSON.stringify(contenido);
-}
-*/
+};
 
 /**
  * Busca un archivo en Google Drive. La clave "data" del JSON es la respuesta
@@ -204,34 +108,8 @@ export async function crearArchivo(cuerpo, token, esCarpeta = false) {
 };
 
 /**
- * Crea una carga resumible para un archivo de Google Drive. En la clave 
- * "data" del JSON de respuesta se devuelve la URL a la cual se debe hacer
- * la petición "PUT" con el contenido del archivo.
+ * Sube un archivo a Google Drive.
  * @param {String} idArchivo - ID del archivo de Drive.
- * @param {String} token - Token OAuth de Google.
- * @returns {Object} Resultado de la operación con las claves:
- * - "success" (Boolean) - Indica si la operación fue exitosa o no.
- * - "data" (String) - Contiene la URL de la carga resumible si la operación fue exitosa, de lo contrario es null.
- * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
- */
-export async function crearCargaResumible (idArchivo, token) {
-    try {
-        const pet = await fetch(`${DRIVE_UPLOAD_API_URL}/files/${idArchivo}?uploadType=resumable`, {
-            method: "PATCH",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-            }
-        });
-
-        return clasificarError(pet.status, pet.headers.get("Location"));
-    } catch (error) {
-        return { success: false, data: null, error: error };
-    }
-};
-
-/**
- * Sube un archivo a Google Drive de forma resumible.
- * @param {String} url - URL para la carga resumible.
  * @param {File|Blob|Uint8Array} contenido - Archivo a subir.
  * @param {String} token - Token OAuth de Google.
  * @param {String} mimeType - Tipo MIME del archivo.
@@ -240,10 +118,10 @@ export async function crearCargaResumible (idArchivo, token) {
  * - "data" (JSON) - Contiene los metadatos del archivo subido si la operación fue exitosa, de lo contrario es null.
  * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
  */
-export async function subirArchivoResumible(url, contenido, token, mimeType = "application/octet-stream") {
+export async function subirArchivo(idArchivo, contenido, token, mimeType = "application/octet-stream") {
     try {
-        const pet = await fetch(url, {
-            method: "PUT",
+        const pet = await fetch(`${DRIVE_UPLOAD_API_URL}/files/${idArchivo}?uploadType=media`, {
+            method: "PATCH",
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": mimeType,
@@ -254,7 +132,7 @@ export async function subirArchivoResumible(url, contenido, token, mimeType = "a
         const res = await pet.json();
 
         return clasificarError(pet.status, res);
-    } catch (error) {
+    } catch (error) {        
         return { success: false, data: null, error: error };
     }
 };
