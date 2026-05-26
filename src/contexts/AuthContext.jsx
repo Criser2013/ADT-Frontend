@@ -297,7 +297,7 @@ export function AuthProvider({ children }) {
     const registrarUsuario = async (uid) => {
         const params = { uid: uid };
         const res = await peticionApi(
-            "registrar", "POST", params , null, null, i18n.language, t("errRegistrarUsuario")
+            "registrar", "POST", params, null, null, i18n.language, t("errRegistrarUsuario")
         );
 
         return { success: res.success };

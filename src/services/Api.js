@@ -5,8 +5,8 @@ import { API_URL } from "../../constants";
  * @param {String} ruta - Ruta del API a consultar.
  * @param {String} metodo - Método HTTP a utilizar (GET, POST, PUT, DELETE).
  * @param {Object} parametros - Parámetros de la petición (opcional).
- * @param {Object|FormData|ArrayBuffer} cuerpo - Cuerpo de la petición (opcional).
- * @param {String} token - Token de autenticación (opcional).
+ * @param {Object|FormData|ArrayBuffer|null} cuerpo - Cuerpo de la petición (opcional).
+ * @param {String|null} token - Token de autenticación (opcional).
  * @param {String} idioma - Idioma actual de la aplicación (opcional).
  * @param {String} txtError - Mensaje de error a mostrar en caso de fallo (opcional).
  * @returns {JSON} Resultado de la petición con formato { success: Boolean, data: JSON, error: String }
