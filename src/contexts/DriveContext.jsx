@@ -1,6 +1,6 @@
 import { createContext, useState, useContext } from "react";
 import { crearArchivoXlsx, leerArchivoXlsx } from "../utils/XlsxFiles";
-import { crearArchivo, buscarArchivo, crearCargaResumible, subirArchivoResumible, descargarArchivo } from "../services/Drive";
+import { crearArchivo, buscarArchivo, subirArchivo as subirArchivoDrive, descargarArchivo } from "../services/Drive";
 import { DRIVE_FILENAME, DRIVE_FOLDER_NAME } from "../../constants";
 import { oneHotDecoderOtraEnfermedad, quitarDatosPersonales } from "../utils/TratarDatos";
 import { useTranslation } from "react-i18next";
@@ -95,22 +95,17 @@ export function DriveProvider({ children }) {
      * @returns {JSON}
      */
     const subirArchivo = async (archivoId, datos, mimeType = "application/octet-stream") => {
-        const urlCarga = await crearCargaResumible(archivoId, token);
-        if (urlCarga.success) {
-            let reintentos = 3;
-            while (reintentos > 0) {
-                const res = await subirArchivoResumible(urlCarga.data, datos, token, mimeType);
-                if (res.success) {
-                    setArchivoId(res.data.id);
-                    return res;
-                } else if (!res.success && !res.error.includes("Carga resumible")) {
-                    return { ...res, error: t("errCargaResumible") };
-                } else {
-                    reintentos--;
-                }
+        let reintentos = 3;
+        while (reintentos > 0) {
+            const res = await subirArchivoDrive(archivoId, datos, token, mimeType);
+            if (res.success) {
+                setArchivoId(res.data.id);
+                return res;
+            } else if (!res.success && !res.error.includes("Carga resumible")) {
+                return { ...res, error: t("errCargaResumible") };
+            } else {
+                reintentos--;
             }
-        } else {
-            return urlCarga;
         }
     };
 
