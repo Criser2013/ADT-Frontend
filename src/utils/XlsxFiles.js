@@ -1,118 +1,115 @@
 import { utils, writeXLSX, read, writeFile } from "xlsx";
 import { COMORBILIDADES } from "../../constants";
 import { validarFecha, validarId, validarNombre, validarNumero, validarTelefono } from "./Validadores";
-import textos from "../assets/textos/textos.json";
 
 /**
- * Genera un archivo en memoria XLSX a partir de un Array de JSON.
- * @param {Array} datos - Datos como un Array de JSON.
- * @returns JSON[boolean, UInt8Array, Error|null]
+ * Genera un archivo XLSX en memoria a partir de un Array de objetos.
+ * @param {Array<Object>} datos Datos como un Array de objetos.
+ * @param {String} nombreHoja Nombre de la hoja en el archivo XLSX. De forma predeterminada es "Datos".
+ * @param {String} tipo Tipo de archivo. Predeterminadamente es "xlsx", pero puede ser "csv".
+ * @returns {Object} Objeto con la propiedad "data" que contiene el archivo generado o "error" si ocurrió un error.
  */
-export function crearArchivoXlsx (datos, tipo = "xlsx") {
+export function crearArchivoXlsx (datos, nombreHoja = "Datos", tipo = "xlsx") {
     try {
+        let archivo;
         const ws = utils.json_to_sheet(datos);
-        const wb = utils.book_new(ws, "Datos");
-        let xlsxFile = null;
+        const wb = utils.book_new(ws, nombreHoja);
         const options = {
             bookType: tipo,
             type: tipo == "csv" ? "string" : "buffer",
             cellDates: true
         };
 
-        xlsxFile = (tipo == "csv") ? utils.sheet_to_csv(ws, options) : xlsxFile = writeXLSX(wb, options);
+        archivo = (tipo == "csv") ? utils.sheet_to_csv(ws, options) : writeXLSX(wb, options);
 
-        return { success: true, data: xlsxFile, error: null };
+        return { success: true, data: archivo, error: null };
     } catch (error) {
         return { success: false, data: null, error: error };
     }
 };
 
 /**
- * Crea un archivo XLSX a partir de un Array de JSON y lo descarga
- * @param {Array} datos - Datos como un Array de JSON.
- * @param {String} nombreArchivo - Nombre de archivo a sobreescribir. De forma predeterminada es "HADT - Diagnósticos.xlsx".
+ * Crea un archivo XLSX a partir de un Array de objetos e inicia su descarga.
+ * @param {Array<Object>} datos Datos como un Array de objetos.
+ * @param {String} nombreArchivo Nombre de archivo.
  * @param {String} tipo - Tipo de archivo. Predeterminadamente es "xlsx", pero puede ser "csv".
- * se coloca el nombre del archivo en la constante EXPORT_FILENAME.
- * @param {String} idioma - Idioma para el archivo.
- * @returns {JSON}
+ * @param {String} nombreHoja - Nombre de la hoja en el archivo XLSX. De forma predeterminada es "Datos".
+ * @returns {Object} Objeto con la propiedad "success" que indica el resultado y "error" si ocurrió un error.
  */
-export function descargarArchivoXlsx (datos, nombreArchivo, tipo = "xlsx", idioma = "es") {
+export function descargarArchivoXlsx (datos, nombreArchivo, tipo = "xlsx", nombreHoja = "Datos") {
     try {
-        const txt = idioma == "es" ? "Diagnósticos" : "Diagnoses";
         const ws = utils.json_to_sheet(datos);
-        const wb = utils.book_new(ws, txt);
+        const wb = utils.book_new(ws, nombreHoja);
 
         writeFile(wb, `${nombreArchivo}.${tipo}`, {
             bookType: tipo, cellDates: true, compression: true
         });
 
-        return { success: true, data: null, error: null };
+        return { success: true, error: null };
     } catch (error) {
-        return { success: false, data: null, error: error };
+        return { success: false, error: error };
     }
 };
 
 /**
- * Lee un archivo XLSX y lo convierte a un Array de JSON.
- * @param {Uint8Array|ArrayBuffer} archivo - Archivo XLSX a leer.
- * @param {String} idioma - Idioma para los mensajes de error.
- * @returns Array[JSON]
+ * Lee los bytes de un archivo XLSX y lo convierte a un Array de objetos.
+ * @param {Uint8Array|ArrayBuffer} archivo Arreglo de bytes del archivo XLSX.
+ * @param {String} nombreHoja Nombre de la hoja en el archivo XLSX. De forma predeterminada es "Datos".
+ * @param {String} txtErrorLectura Texto de error a mostrar si la lectura del archivo falla. De forma predeterminada es "Error de lectura".
+ * @returns {Array<Object>} Array de objetos con los datos del archivo o un objeto con la propiedad "error" si ocurrió un error.
  */
-export function leerArchivoXlsx (archivo, idioma) {
+export function leerArchivoXlsx (archivo, nombreHoja = "Datos", txtErrorLectura = "Error de lectura") {
     try {
         const data = read(archivo, { type: "buffer" });
-        const json = utils.sheet_to_json(data.Sheets["Datos"]);
+        const json = utils.sheet_to_json(data.Sheets[nombreHoja]);
 
-        if (json.length == 0 || validarXlsx(data, json)) {
+        if (json.length == 0 || validarXlsxPacientes(json)) {
             return { success: true, data: json, error: null };
+        } else {
+            return { success: false, data: [], error: txtErrorLectura };
         }
-
-        return { success: false, data: [], error: {
-            code: 401, message: textos[idioma].translation.errEstrucArchivoInvalida,
-        } };
     } catch (error) {
-        return { success: false, data: null, error: error };
+        return { success: false, data: [], error: error };
     }
 }
 
 /**
  * Valida la estructura del archivo XLSX de pacientes.
- * @param {Object} archivo - Archivo XLSX a validar.
- * @param {JSON} json - 1º instancia del JSON del archivo.
- * @returns {boolean}
+ * @param {Array} filas Lista de filas a validar como JSON.
+ * @returns {Boolean} True si el archivo tiene la estructura correcta, false en caso contrario.
  */
-export function validarXlsx (archivo, filas) {
-    const hojas = archivo.SheetNames.length == 1 && archivo.SheetNames[0] == "Datos";
-    const campos = Object.keys(filas[0]).sort();
-    const ord = COMORBILIDADES.concat(["id","cedula","nombre","sexo","telefono","fechaNacimiento","otraEnfermedad","fechaCreacion"]).sort();
-    let igual = true;
+export function validarXlsxPacientes (filas) {
+    let mismosCampos = true;
+    const camposArchivo = Object.keys(filas[0]).map(c => c.trim().toLowerCase());
+    const camposEsperados = COMORBILIDADES.map(x => x.trim().toLowerCase()).concat([
+        "id", "cedula", "nombre", "sexo", "telefono", "fechanacimiento", "otraenfermedad", "fechacreacion"
+    ]);
 
-    // comparar los arrays no funciona con el operador de igualdad
-    for (let i = 0; i < campos.length; i++) {
-        igual &= campos[i] == ord[i];
+    for (const campo of camposEsperados) {
+        mismosCampos &&= camposArchivo.includes(campo);
     }
 
-    return hojas && campos.length == ord.length && igual && validarFilas(filas);
+    return mismosCampos && validarFilasXlsxPacientes(filas);
 };
 
 /**
- * Valida que las filas del archivo XLSX tengan los valores permitidos.
- * @param {Array} filas - Lista de filas a validar como JSON.
- * @returns boolean
+ * Valida que las filas del archivo XLSX tengan los valores permitidos en cada campo.
+ * @param {Array<Object>} filas Filas del archivo XLSX a validar como un array de objetos.
+ * @returns {Boolean} True si todas las filas son válidas, false en caso contrario.
  */
-export function validarFilas (filas) {
+export function validarFilasXlsxPacientes (filas) {
     for (const fila of filas) {
         let res = true;
-        res &= validarId(fila.id);
-        res &= validarNumero(fila.cedula);
-        res &= validarNombre(fila.nombre);
-        res &= validarTelefono(fila.telefono);
-        res &= validarFecha(fila.fechaNacimiento);
-        res &= fila.sexo == 0|| fila.sexo == 1;
-        res &= validarFecha(fila.fechaCreacion);
+        res &&= validarId(fila.id);
+        res &&= validarNumero(fila.cedula);
+        res &&= validarNombre(fila.nombre);
+        res &&= validarTelefono(fila.telefono);
+        res &&= validarFecha(fila.fechaNacimiento);
+        res &&= fila.sexo == 0 || fila.sexo == 1;
+        res &&= validarFecha(fila.fechaCreacion);
 
         for (const enfermedad of COMORBILIDADES) {
-            res &= fila[enfermedad] == 0 || fila[enfermedad] == 1;
+            res &&= fila[enfermedad] == 0 || fila[enfermedad] == 1;
         }
 
         if (!res) {

@@ -118,7 +118,7 @@ export function DriveProvider({ children }) {
         const pet = await descargarArchivo(archivoId, token);
 
         if (pet.success) {
-            const datosArchivo = leerArchivoXlsx(pet.data, i18n.language);
+            const datosArchivo = leerArchivoXlsx(pet.data, "Datos", t("errLeerArchivo"));
             if (datosArchivo.success) {
                 setDatos(datosArchivo.data);
                 return { success: true, data: null };

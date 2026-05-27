@@ -2,8 +2,6 @@ import { expect, describe, test, jest, afterEach } from '@jest/globals';
 import { descargarArchivo, crearArchivo, buscarArchivo, subirArchivo, clasificarError } from '../../../src/services/Drive';
 import { DRIVE_UPLOAD_API_URL, DRIVE_API_URL } from '../../../constants';
 
-//34 - 35
-
 describe("Validar la funcion 'descargarArchivo'", () => {
     // ------------------------ Mocks ------------------------
     const mock_1 = () => Promise.resolve({
@@ -47,7 +45,6 @@ describe("Validar la funcion 'descargarArchivo'", () => {
         });
     });
 });
-// 39 - 40 - 44 - 47 - 49
 
 describe("Validar la funcion 'crearArchivo'", () => {
     // ------------------------ Mocks ------------------------
