@@ -29,7 +29,8 @@ describe("Validar la función 'buscar'", () => {
     const res2 = [];
 
     test.each([
-        ["60", params1, res1]
+        ["60", params1, res1],
+        ["61", params2, res2]
     ])("CP - %s", (idPrueba, params, resEsperado) => {
         const { datos, termino, campos } = params;
 
