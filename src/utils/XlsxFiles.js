@@ -80,13 +80,13 @@ export function leerArchivoXlsx (archivo, nombreHoja = "Datos", txtErrorLectura 
  */
 export function validarXlsxPacientes (filas) {
     let mismosCampos = true;
-    const camposArchivo = Object.keys(filas[0]).map(c => c.trim().toLocaleLowerCase());
-    const camposEsperados = COMORBILIDADES.concat([
-        "id", "cedula", "nombre", "sexo", "telefono", "fechaNacimiento", "otraEnfermedad", "fechaCreacion"
-    ]).trim().toLocaleLowerCase();
+    const camposArchivo = Object.keys(filas[0]).map(c => c.trim().toLowerCase());
+    const camposEsperados = COMORBILIDADES.map(x => x.trim().toLowerCase()).concat([
+        "id", "cedula", "nombre", "sexo", "telefono", "fechanacimiento", "otraenfermedad", "fechacreacion"
+    ]);
 
     for (const campo of camposEsperados) {
-        mismosCampos &= camposArchivo.includes(campo);
+        mismosCampos &&= camposArchivo.includes(campo);
     }
 
     return mismosCampos && validarFilasXlsxPacientes(filas);
@@ -100,16 +100,16 @@ export function validarXlsxPacientes (filas) {
 export function validarFilasXlsxPacientes (filas) {
     for (const fila of filas) {
         let res = true;
-        res &= validarId(fila.id);
-        res &= validarNumero(fila.cedula);
-        res &= validarNombre(fila.nombre);
-        res &= validarTelefono(fila.telefono);
-        res &= validarFecha(fila.fechaNacimiento);
-        res &= fila.sexo == 0 || fila.sexo == 1;
-        res &= validarFecha(fila.fechaCreacion);
+        res &&= validarId(fila.id);
+        res &&= validarNumero(fila.cedula);
+        res &&= validarNombre(fila.nombre);
+        res &&= validarTelefono(fila.telefono);
+        res &&= validarFecha(fila.fechaNacimiento);
+        res &&= fila.sexo == 0 || fila.sexo == 1;
+        res &&= validarFecha(fila.fechaCreacion);
 
         for (const enfermedad of COMORBILIDADES) {
-            res &= fila[enfermedad] == 0 || fila[enfermedad] == 1;
+            res &&= fila[enfermedad] == 0 || fila[enfermedad] == 1;
         }
 
         if (!res) {

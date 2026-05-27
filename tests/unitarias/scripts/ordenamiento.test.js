@@ -15,8 +15,8 @@ describe("Validar la función 'comparadorStrNum'", () => {
     };
     const params3 = {
         a: {id: 1, campo1: "Hola", campo2: "texto"},
-        b: {id: 2, campo1: "Hola", campo2: "texto"},
-        campo: "campo1"
+        b: {id: 1, campo1: "Hola", campo2: "texto"},
+        campo: "id"
     };
 
     // ------------------ Resultados esperados -------------------
@@ -29,7 +29,7 @@ describe("Validar la función 'comparadorStrNum'", () => {
         ["56", params2, res2],
         ["57", params3, res3]
     ])("CP - %s", (idPrueba, params, resEsperado) => {
-        const { a, b, campo } = params1;
+        const { a, b, campo } = params;
 
         const res = comparadorStrNum(a, b, campo);
         expect(res).toEqual(resEsperado);

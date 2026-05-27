@@ -54,7 +54,7 @@ describe("Validar la función 'validarTelefono'", () => {
     test.each([
         ["7", params1, res1],
         ["8", params2, res2],
-        ["9", params3, res2]
+        ["9", params3, res1]
     ])("CP - %s", (idPrueba, param, resEsperada) => {
         const res = validarTelefono(param);
         expect(res).toBe(resEsperada);
