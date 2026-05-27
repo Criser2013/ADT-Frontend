@@ -7,11 +7,11 @@
  * @returns {Array[Object]} Array con los objetos que coinciden con la búsqueda.
  */
 export function buscar(datos, termino, campos) {
-    termino = termino.toString().trim().toLocaleLowerCase();
+    termino = termino.toString().trim().toLowerCase();
 
     return datos.filter((i) => {
         for (const campo of campos) {
-            const aux = i[campo].toString().toLocaleLowerCase();
+            const aux = i[campo].toString().toLowerCase();
             if (aux.includes(termino)) {
                 return true;
             }
