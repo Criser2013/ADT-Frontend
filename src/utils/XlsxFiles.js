@@ -1,7 +1,6 @@
 import { utils, writeXLSX, read, writeFile } from "xlsx";
 import { COMORBILIDADES } from "../../constants";
 import { validarFecha, validarId, validarNombre, validarNumero, validarTelefono } from "./Validadores";
-import textos from "../assets/textos/textos.json";
 
 /**
  * Genera un archivo XLSX en memoria a partir de un Array de objetos.
@@ -90,7 +89,7 @@ export function validarXlsxPacientes (filas) {
         mismosCampos &= camposArchivo.includes(campo);
     }
 
-    return mismosCampos && validarFilas(filas);
+    return mismosCampos && validarFilasXlsxPacientes(filas);
 };
 
 /**
@@ -98,7 +97,7 @@ export function validarXlsxPacientes (filas) {
  * @param {Array<Object>} filas Filas del archivo XLSX a validar como un array de objetos.
  * @returns {Boolean} True si todas las filas son válidas, false en caso contrario.
  */
-export function validarFilas (filas) {
+export function validarFilasXlsxPacientes (filas) {
     for (const fila of filas) {
         let res = true;
         res &= validarId(fila.id);
