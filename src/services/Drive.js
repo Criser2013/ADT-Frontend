@@ -9,11 +9,11 @@ import { DRIVE_API_URL, DRIVE_UPLOAD_API_URL } from "../../constants";
  * - "data" (JSON|String) - Contiene la respuesta de la API de Google Drive si la operación fue exitosa, de lo contrario es null.
  * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
  */
-function clasificarError(codigoPet, contenido) {
-    let res = { success: false, data: null, error: `${codigoPet} ${contenido}` };
+export function clasificarError(codigoPet, contenido) {
+    let res = { success: false, data: null, error: `${codigoPet} ${JSON.stringify(contenido)}` };
 
     if (codigoPet >= 200 && codigoPet < 300) {
-        res = { success: true, data: contenido, error: null };
+        return { success: true, data: contenido, error: null };
     }
 
     const errores = [

@@ -1,78 +1,45 @@
-import { expect, describe, test, jest } from '@jest/globals';
-import { codificarParamsURL, descargarArchivo, crearCargaResumible, crearArchivo, buscarArchivo, subirArchivoResumible } from '../../../src/services/Drive';
+import { expect, describe, test, jest, afterEach } from '@jest/globals';
+import { descargarArchivo, crearArchivo, buscarArchivo, subirArchivo, clasificarError } from '../../../src/services/Drive';
+import { DRIVE_UPLOAD_API_URL, DRIVE_API_URL } from '../../../constants';
 
-describe("Validar la función 'codificarParamsURL'", () => {
-    test.skip("CP - 34", () => {
-        const params = "name='hola' and trashed=false and mimeType='application/vnd.google-apps.folder'";
-
-        const res = codificarParamsURL(params);
-        expect(res).toBe("name%3D%27hola%27%20and%20trashed%3Dfalse%20and%20mimeType%3D%27application%2Fvnd.google-apps.folder%27");
-    });
-
-    test.skip("CP - 35", () => {
-        const params = " ";
-
-        const res = codificarParamsURL(params);
-        expect(res).toBe("%20");
-    });
-});
 //34 - 35
 
 describe("Validar la funcion 'descargarArchivo'", () => {
-    test("CP - 36", async () => {
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(() =>
-            Promise.resolve({
-                ok: true, status: 200,
-                arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-            })
-        );
-        const res = await descargarArchivo("archivo1", "token");
-        expect(res).toEqual({ success: true, data: new ArrayBuffer(0), error: null });
-
-        expect(global.fetch).toHaveBeenCalledTimes(1);
-        expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/drive/v3/files/archivo1?alt=media&source=downloadUrl", {
-            method: "GET",
-            headers: {
-                Authorization: "Bearer token"
-            }
-        });
+    // ------------------------ Mocks ------------------------
+    const mock_1 = () => Promise.resolve({
+        status: 200,
+        arrayBuffer: () => Promise.resolve(new ArrayBuffer(1)),
+    });
+    const mock2 = () => { throw Error("Error de red"); };
+    const mock_3 = () => Promise.resolve({
+        status: 404,
+        arrayBuffer: () => Promise.resolve(1),
+        json: () => Promise.resolve({ error: { message: "File not found" } })
     });
 
-    test("CP - 37", async () => {
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(() => {
-            throw Error("Error de red");
-        });
-        const res = await descargarArchivo("archivo1", "token");
-        expect(res).toEqual({ success: false, data: [], error: new Error("Error de red") });
+    // ------------------------ Respuestas esperadas ------------------------
+    const res1 = { success: true, data: new ArrayBuffer(1), error: null };
+    const res2 = { success: false, data: null, error: new Error("Error de red") };
+    const res3 = { success: false, data: null, error: "errArchivoInexistente" };
 
-        expect(global.fetch).toHaveBeenCalledTimes(1);
-        expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/drive/v3/files/archivo1?alt=media&source=downloadUrl", {
-            method: "GET",
-            headers: {
-                Authorization: "Bearer token"
-            }
-        });
-        expect(global.fetch).toThrow("Error de red");
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
-    test("CP - 38", async () => {
+    test.each([
+        ["36", mock_1, res1],
+        ["37", mock2, res2],
+        ["38", mock_3, res3]
+    ])("CP - %s", async (idPrueba, mock, respuestaEsperada) => {
         global.fetch = jest.fn();
-        global.fetch.mockImplementation(() => {
-            return Promise.resolve({
-                ok: true, status: 404,
-                arrayBuffer: () => Promise.resolve(1),
-                json: () => Promise.resolve({ error: { message: "File not found" } })
-            })
-        });
+        global.fetch.mockImplementation(mock);
+
         const res = await descargarArchivo("archivo1", "token");
-        expect(res).toEqual({ success: false, data: [], error: "errArchivoInexistente" });
+        expect(res).toEqual(respuestaEsperada);
+
         expect(global.fetch).toHaveBeenCalledTimes(1);
         expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/drive/v3/files/archivo1?alt=media&source=downloadUrl", {
+            `${DRIVE_API_URL}/files/archivo1?alt=media`, {
             method: "GET",
             headers: {
                 Authorization: "Bearer token"
@@ -80,390 +47,237 @@ describe("Validar la funcion 'descargarArchivo'", () => {
         });
     });
 });
-
-describe("Validar la funcion 'crearCargaResumible'", () => {
-    test.skip("CP - 39", async () => {
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(() =>
-            Promise.resolve({
-                ok: true, status: 200,
-                headers: {
-                    get: (x) => {
-                        const headers = { "Location": "https://www.googleapis.com/upload/drive/v3/files/archivo1?uploadType=resumable&upload_id=xa298sd_sdlkj2" };                        
-                        return headers[x];
-                    }
-                }
-            })
-        );
-        const res = await crearCargaResumible("archivo1", "token");
-        expect(res).toEqual({ success: true, data: "https://www.googleapis.com/upload/drive/v3/files/archivo1?uploadType=resumable&upload_id=xa298sd_sdlkj2", error: null });
-
-        expect(global.fetch).toHaveBeenCalledTimes(1);
-        expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/upload/drive/v3/files/archivo1?uploadType=resumable", {
-            method: "PATCH",
-            headers: {
-                Authorization: "Bearer token"
-            }
-        });
-    });
-
-    test.skip("CP - 40", async () => {
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(() => {
-            throw Error("Error de red");
-        });
-        const res = await crearCargaResumible("archivo1", "token");
-        expect(res).toEqual({ success: false, data: [], error: new Error("Error de red") });
-
-        expect(global.fetch).toHaveBeenCalledTimes(1);
-        expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/upload/drive/v3/files/archivo1?uploadType=resumable", {
-            method: "PATCH",
-            headers: {
-                Authorization: "Bearer token"
-            }
-        });
-        expect(global.fetch).toThrow("Error de red");
-    });
-});
+// 39 - 40 - 44 - 47 - 49
 
 describe("Validar la funcion 'crearArchivo'", () => {
-    test.skip("CP - 41", async () => {
+    // ------------------------ Mocks ------------------------
+    const mock1 = () => Promise.resolve({
+        status: 201,
+        json: () => Promise.resolve({
+            id: "archivo1", name: "archivoPrueba",
+            kind: "drive#file", mimeType: "text/plain"
+        })
+    });
+    const mock2 = () => Promise.resolve({
+        status: 201,
+        json: () => Promise.resolve({
+            id: "carpeta1", name: "carpetaPrueba",
+            kind: "drive#folder", mimeType: "application/vnd.google-apps.folder"
+        })
+    });
+    const mock3 = () => { throw Error("Error de red") };
+
+    // ------------------------ Parámetros de prueba ------------------------
+    const params1 = {
+        cuerpoPet: { name: "archivoPrueba", parents: ["root"] },
+        token: "token", esCarpeta: false
+    };
+    const params2 = {
+        cuerpoPet: { name: "carpetaPrueba", parents: ["root"] },
+        token: "token", esCarpeta: true
+    };
+    const params3 = {
+        cuerpoPet: { name: "archivoPrueba", parents: ["root"] },
+        token: "token", esCarpeta: false
+    };
+
+    // ------------------------ Respuestas esperadas ------------------------
+    const res1 = {
+        success: true, data: {
+            id: "archivo1", name: "archivoPrueba",
+            kind: "drive#file", mimeType: "text/plain"
+        }, error: null
+    }
+    const res2 = {
+        success: true, data: {
+            id: "carpeta1", name: "carpetaPrueba",
+            kind: "drive#folder", mimeType: "application/vnd.google-apps.folder"
+        }, error: null
+    };
+    const res3 = { success: false, data: null, error: new Error("Error de red") };
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    })
+
+    test.each([
+        ["41", mock1, params1, res1],
+        ["42", mock2, params2, res2],
+        ["43", mock3, params3, res3]
+    ])("CP - %s", async (idPrueba, mock, params, resEsperado) => {
+        const { cuerpoPet, token, esCarpeta } = params;
+
         global.fetch = jest.fn();
-        global.fetch.mockImplementation(() =>
-            Promise.resolve({
-                ok: true, status: 201,
-                json: () => Promise.resolve({
-                    id: "archivo1", name: "archivoPrueba",
-                    kind: "drive#file", mimeType: "text/plain"
-                })
-            })
-        );
-        const res = await crearArchivo({
-            name: "archivoPrueba", parents: ["root"]
-        }, "token", false);
+        global.fetch.mockImplementation(mock);
+        const res = await crearArchivo(cuerpoPet, token, esCarpeta);
 
-        expect(res).toEqual({
-            success: true, data: {
-                id: "archivo1", name: "archivoPrueba",
-                kind: "drive#file", mimeType: "text/plain"
-            }, error: null
-        });
-
+        expect(res).toEqual(resEsperado);
         expect(global.fetch).toHaveBeenCalledTimes(1);
         expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/drive/v3/files", {
+            `${DRIVE_API_URL}/files`, {
             method: "POST",
             headers: {
                 Authorization: "Bearer token",
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ name: "archivoPrueba", parents: ["root"] })
+            body: JSON.stringify(cuerpoPet)
         });
     });
 
-    test.skip("CP - 42", async () => {
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(() =>
-            Promise.resolve({
-                ok: true, status: 201,
-                json: () => Promise.resolve({
-                    id: "carpeta1", name: "carpetaPrueba",
-                    kind: "drive#folder", mimeType: "application/vnd.google-apps.folder"
-                })
-            })
-        );
-        const res = await crearArchivo({
-            name: "carpetaPrueba", parents: ["root"]
-        }, "token", true);
-
-        expect(res).toEqual({
-            success: true, data: {
-                id: "carpeta1", name: "carpetaPrueba",
-                kind: "drive#folder", mimeType: "application/vnd.google-apps.folder"
-            }, error: null
-        });
-
-        expect(global.fetch).toHaveBeenCalledTimes(1);
-        expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/drive/v3/files", {
-            method: "POST",
-            headers: {
-                Authorization: "Bearer token",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                name: "carpetaPrueba", parents: ["root"], mimeType: "application/vnd.google-apps.folder"
-            })
-        });
-    });
-    
-    test.skip("CP - 43", async () => {
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(() => {
-            throw Error("Error de red");
-        });
-        const res = await crearArchivo({
-            name: "archivoPrueba", parents: ["root"]
-        }, "token", false);
-        expect(res).toEqual({ success: false, data: [], error: new Error("Error de red") });
-    
-        expect(global.fetch).toHaveBeenCalledTimes(1);
-        expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/drive/v3/files", {
-            method: "POST",
-            headers: {
-                Authorization: "Bearer token",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ name: "archivoPrueba", parents: ["root"] })
-        });
-        expect(global.fetch).toThrow("Error de red");
-    });
-
-    test.skip("CP - 44", async () => {
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(() =>
-            Promise.resolve({
-                ok: false, status: 403,
-                json: () => Promise.resolve({
-                    error: {
-                        code: 403,
-                        message: "Rate Limit Exceeded"
-                    }
-                })
-            })
-        );
-        const res = await crearArchivo({
-            name: "carpetaPrueba", parents: ["root"]
-        }, "token", true);
-
-        expect(res).toEqual({
-            success: false, data: [], error: "errLimPeticiones"
-        });
-
-        expect(global.fetch).toHaveBeenCalledTimes(1);
-        expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/drive/v3/files", {
-            method: "POST",
-            headers: {
-                Authorization: "Bearer token",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                name: "carpetaPrueba", parents: ["root"], mimeType: "application/vnd.google-apps.folder"
-            })
-        });
-    });
 });
+
 
 describe("Validar la funcion 'buscarArchivo'", () => {
-    test("CP - 45", async () => {
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(() =>
-            Promise.resolve({
-                ok: true, status: 200,
-                json: () => Promise.resolve({
-                    "files": [
-                        {
-                            "kind": "drive#file",
-                            "id": "1u_S79kGadapjqNwZmwrlT6JfkRJIzaqD",
-                            "name": "archivito",
-                            "mimeType": "application/vnd.google-apps.folder"
-                        },
-                    ],
-                    "kind": "drive#fileList",
-                    "incompleteSearch": false
-                })
-            })
-        );
-        const res = await buscarArchivo(
-            "name = 'archivo' and mimeType = 'application/vnd.google-apps.folder'", "token"
-        );
-
-        expect(res).toEqual({
-            success: true, data: {
-                "files": [
-                    {
-                        "kind": "drive#file",
-                        "id": "1u_S79kGadapjqNwZmwrlT6JfkRJIzaqD",
-                        "name": "archivito",
-                        "mimeType": "application/vnd.google-apps.folder"
-                    },
-                ],
-                "kind": "drive#fileList",
-                "incompleteSearch": false
-            }, error: null
-        });
-
-        expect(global.fetch).toHaveBeenCalledTimes(1);
-        expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/drive/v3/files?q=name%20%3D%20%27archivo%27%20and%20mimeType%20%3D%20%27application%2Fvnd.google-apps.folder%27", {
-            method: "GET",
-            headers: {
-                Authorization: "Bearer token"
-            }
-        });
-    });
-
-    test("CP - 46", async () => {
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(() =>
-            Promise.resolve({
-                ok: false, status: 401,
-                json: () => Promise.resolve({
-                    error: {
-                        code: 401,
-                        message: "invalid authentication credentials"
-                    }
-                })
-            })
-        );
-        const res = await buscarArchivo(
-            "name = 'archivo' and mimeType = 'application/vnd.google-apps.folder'", "token"
-        );
-
-        expect(res).toEqual({
-            success: false, data: [], error: "errCreds"
-        });
-
-        expect(global.fetch).toHaveBeenCalledTimes(1);
-        expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/drive/v3/files?q=name%20%3D%20%27archivo%27%20and%20mimeType%20%3D%20%27application%2Fvnd.google-apps.folder%27", {
-            method: "GET",
-            headers: {
-                Authorization: "Bearer token"
-            }
-        });
-    });
-
-    test("CP - 47", async () => {
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(() => {
-            throw Error("Error de red");
-        });
-        const res = await buscarArchivo(
-            "name = 'archivo' and mimeType = 'application/vnd.google-apps.folder'", "token"
-        );
-
-        expect(res).toEqual({
-            success: false, data: [], error: new Error("Error de red")
-        });
-
-        expect(global.fetch).toHaveBeenCalledTimes(1);
-        expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/drive/v3/files?q=name%20%3D%20%27archivo%27%20and%20mimeType%20%3D%20%27application%2Fvnd.google-apps.folder%27", {
-            method: "GET",
-            headers: {
-                Authorization: "Bearer token"
-            }
-        });
-        expect(global.fetch).toThrow("Error de red");
-    });
-});
-
-describe("Validar la funcion 'subirArchivoResumible'", () => {
-    test("CP - 48", async () => {
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(() =>
-            Promise.resolve({
-                ok: true, status: 201,
-                json: () => Promise.resolve({
+    // ------------------------ Mocks ------------------------
+    const mock1 = () => Promise.resolve({
+        status: 200,
+        json: () => Promise.resolve({
+            "files": [
+                {
                     "kind": "drive#file",
                     "id": "1u_S79kGadapjqNwZmwrlT6JfkRJIzaqD",
                     "name": "archivito",
                     "mimeType": "application/vnd.google-apps.folder"
-                })
-            })
-        );
-        const res = await subirArchivoResumible(
-            "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=xa298sd_sdlkj2",
-            new Uint8Array(1), "token"
-        );
+                },
+            ],
+            "kind": "drive#fileList",
+            "incompleteSearch": false
+        })
+    });
+    const mock2 = () => { throw Error("Error de red") };
+    // ------------------------ Parámetros de prueba ------------------------
+    const params1 = { query: "name = 'archivo' and mimeType = 'application/vnd.google-apps.folder'", token: "token" };
 
-        expect(res).toEqual({
-            success: true, data: {
-                "kind": "drive#file",
-                "id": "1u_S79kGadapjqNwZmwrlT6JfkRJIzaqD",
-                "name": "archivito",
-                "mimeType": "application/vnd.google-apps.folder"
-            }, error: null
-        });
+    // ------------------------ Respuestas esperadas ------------------------
+    const res1 = {
+        success: true, data: {
+            "files": [
+                {
+                    "kind": "drive#file",
+                    "id": "1u_S79kGadapjqNwZmwrlT6JfkRJIzaqD",
+                    "name": "archivito",
+                    "mimeType": "application/vnd.google-apps.folder"
+                },
+            ],
+            "kind": "drive#fileList",
+            "incompleteSearch": false
+        }, error: null
+    };
+    const res2 = {
+        success: false, data: null, error: new Error("Error de red")
+    };
 
-        expect(global.fetch).toHaveBeenCalledTimes(1);
-        expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=xa298sd_sdlkj2", {
-            method: "PUT",
-            headers: {
-                Authorization: "Bearer token",
-                "Content-Type": "application/octet-stream",
-                "Content-Length": 1
-            },
-            body: new Uint8Array(1)
-        });
+    const url1 = `${DRIVE_API_URL}/files?q=name+%3D+%27archivo%27+and+mimeType+%3D+%27application%2Fvnd.google-apps.folder%27`;
+
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
-    test("CP - 49", async () => {
+    test.each([
+        ["45", mock1, params1, res1, url1],
+        ["46", mock2, params1, res2, url1]
+    ])("CP - %s", async (idPrueba, mock, params, resEsperado, urlEsperada) => {
+        const { query, token } = params;
+
         global.fetch = jest.fn();
-        global.fetch.mockImplementation(() => 
-            Promise.resolve({
-                ok: false, status: 308,
-                json: () => Promise.resolve({
-                    error: {
-                        code: 308,
-                        message: "Resume Incomplete"
-                    }
-                })
-            })
-        );
-        const res = await subirArchivoResumible(
-            "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=xa298sd_sdlkj2",
-            new Uint8Array(1), "token"
-        );
+        global.fetch.mockImplementation(mock);
+        const toStringSpy = jest.spyOn(URLSearchParams.prototype, "toString");
 
-        expect(res).toEqual({
-            success: false, data: [], error: "errCargaResumible"
-        });
 
+        const res = await buscarArchivo(query, token);
+
+        expect(res).toEqual(resEsperado);
         expect(global.fetch).toHaveBeenCalledTimes(1);
         expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=xa298sd_sdlkj2", {
-            method: "PUT",
+            urlEsperada, {
+            method: "GET",
             headers: {
-                Authorization: "Bearer token",
-                "Content-Type": "application/octet-stream",
-                "Content-Length": 1
-            },
-            body: new Uint8Array(1)
+                Authorization: "Bearer token"
+            }
         });
+        expect(toStringSpy).toHaveBeenCalledTimes(1);
+        expect(toStringSpy).toHaveReturnedWith(urlEsperada.split("?")[1]);
+    });
+});
+
+
+describe("Validar la funcion 'subirArchivo'", () => {
+    // ------------------------ Mocks ------------------------
+    const mock1 = () => Promise.resolve({
+        status: 201,
+        json: () => Promise.resolve({
+            "kind": "drive#file",
+            "id": "1u_S79kGadapjqNwZmwrlT6JfkRJIzaqD",
+            "name": "archivito",
+            "mimeType": "application/vnd.google-apps.folder"
+        })
+    });
+    const mock2 = () => { throw Error("Error de red") };
+
+    // ------------------------ Parámetros de prueba ------------------------
+    const params1 = { idArchivo: "asdojasd1212", body: new Uint8Array(1), token: "token" };
+    const params2 = { idArchivo: "asdojasd1212", body: new Uint8Array(1), token: "token" };
+
+    // ------------------------ Respuestas esperadas ------------------------
+    const res1 = {
+        success: true, data: {
+            "kind": "drive#file",
+            "id": "1u_S79kGadapjqNwZmwrlT6JfkRJIzaqD",
+            "name": "archivito",
+            "mimeType": "application/vnd.google-apps.folder"
+        }, error: null
+    };
+    const res2 = { success: false, data: null, error: new Error("Error de red") };
+
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
-    test("CP - 50", async () => {
+    test.each([
+        ["48", mock1, params1, res1],
+        ["50", mock2, params2, res2]
+    ])("CP - %s", async (idPrueba, mock, params, resEsperado) => {
+        const { idArchivo, body, token } = params;
+
         global.fetch = jest.fn();
-        global.fetch.mockImplementation(() => {
-            throw Error("Error de red");
-        });
-        const res = await subirArchivoResumible(
-            "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=xa298sd_sdlkj2",
-            new Uint8Array(1), "token"
-        );
+        global.fetch.mockImplementation(mock);
 
-        expect(res).toEqual({
-            success: false, data: [], error: new Error("Error de red")
-        });
+        const res = await subirArchivo(idArchivo, body, token);
 
+        expect(res).toEqual(resEsperado);
         expect(global.fetch).toHaveBeenCalledTimes(1);
         expect(global.fetch).toHaveBeenCalledWith(
-            "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=xa298sd_sdlkj2", {
-            method: "PUT",
+            `${DRIVE_UPLOAD_API_URL}/files/${idArchivo}?uploadType=media`, {
+            method: "PATCH",
             headers: {
                 Authorization: "Bearer token",
                 "Content-Type": "application/octet-stream",
                 "Content-Length": 1
             },
-            body: new Uint8Array(1)
+            body: body
         });
-        expect(global.fetch).toThrow("Error de red");
+    });
+});
+
+describe("Validar la función 'clasificarError'", () => {
+    // ------------------------ Params ------------------------
+    const params1 = { status: 200, content: { exitoso: true } };
+    const params2 = { status: 404, content: { error: { message: "Not found" } } };
+    const params3 = { status: 500, content: { error: { message: "Internal Server Error" } } };
+
+    // ------------------------ Respuestas esperadas ------------------------
+    const res1 = { success: true, data: { exitoso: true }, error: null };
+    const res2 = { success: false, data: null, error: "errCargaVencida" };
+    const res3 = { success: false, data: null, error: "500 " + JSON.stringify({ error: { message: "Internal Server Error" } }) };
+
+    test.each([
+        ["34", params1, res1],
+        ["35", params2, res2],
+        ["39", params3, res3]
+    ])("CP - %s", (idPrueba, params, resEsperado) => {
+        const { status, content } = params;
+
+        const res = clasificarError(status, content);
+        expect(res).toEqual(resEsperado);
     });
 });

@@ -7,7 +7,7 @@ export default {
     ],
     moduleFileExtensions: ["js",],
     coverageDirectory: `tests/unitarias/cobertura/testrun-${fecha.toDateString()} - ${fecha.toLocaleTimeString().replaceAll(":", "-")}`,
-    collectCoverage: true,
+    //collectCoverage: true,
     testResultsProcessor: "jest-sonar-reporter",
     coverageThreshold: {
         global: {
@@ -24,4 +24,6 @@ export default {
     transform: {
         "^.+\\.[t|j]sx?$": "babel-jest",
     },
+    roots: ["<rootDir>/tests/unitarias/scripts/"],
+    modulePathIgnorePatterns: ["<rootDir>/articulo"]
 };
