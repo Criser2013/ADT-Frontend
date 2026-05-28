@@ -181,7 +181,7 @@ export default function MenuAdministrador() {
      * @param {Array[string]} usuarios - Lista de UID de los médicos.
      */
     const cargarDiagnosticos = async (db, usuarios) => {
-        const res = await verDiagnosticos(db, usuarios);
+        const res = await verDiagnosticos(usuarios, db);
         if (res.success) {
             setDiagnosticos(res.data);
         } else {

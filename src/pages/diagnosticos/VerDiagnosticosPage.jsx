@@ -11,7 +11,7 @@ import { useDrive } from "../../contexts/DriveContext";
 import dayjs from "dayjs";
 import ModalAccion from "../../components/modals/ModalAccion";
 import { useCredenciales } from "../../contexts/CredencialesContext";
-import { cambiarDiagnostico, verDiagnosticos, verDiagnosticosPorMedico, eliminarDiagnosticos } from "../../firestore/diagnosticos-collection";
+import { cambiarDiagnostico, verDiagnosticos, verDiagnosticosPorMedico, eliminarDiagnostico } from "../../firestore/diagnosticos-collection";
 import { peticionApi } from "../../services/Api";
 import { detTxtDiagnostico, nombresCampos } from "../../utils/TratarDatos";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
@@ -259,7 +259,7 @@ export default function VerDiagnosticosPage() {
      * @param {Array[string]} usuarios - Array con los UID de los médicos (solo para administradores).
      */
     const cargarDiagnosticos = async (uid, rol, DB, usuarios = []) => {
-        const res = !rol ? await verDiagnosticosPorMedico(uid, DB) : await verDiagnosticos(DB, usuarios);
+        const res = !rol ? await verDiagnosticosPorMedico(uid, DB) : await verDiagnosticos(usuarios, DB);
         if (res.success) {
             setDiagnosticos(res.data);
         } else {
@@ -386,7 +386,7 @@ export default function VerDiagnosticosPage() {
 
         diagnosticos.forEach((x, i) => {
             const uid = x.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-            peticiones[i] = eliminarDiagnosticos(uid[1], x, firestore);
+            peticiones[i] = eliminarDiagnostico(x, uid[1], firestore);
         });
 
         for (let i = 0; i < peticiones.length; i++) {

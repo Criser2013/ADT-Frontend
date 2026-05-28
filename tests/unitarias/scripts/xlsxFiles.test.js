@@ -1,4 +1,4 @@
-import { jest, expect, describe, test, beforeEach, beforeAll } from '@jest/globals';
+import { jest, expect, describe, test, beforeEach } from '@jest/globals';
 
 jest.unstable_mockModule("xlsx", () => ({
     utils: {
@@ -267,7 +267,6 @@ describe("Validar la funcion 'leerArchivoXlsx'", () => {
     beforeEach(() => {
         jest.resetAllMocks();
     });
-    // 87,88
 
     test.each([
         ["40", mock1, params1, res1],
