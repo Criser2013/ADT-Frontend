@@ -11,10 +11,10 @@ export async function cargarCredencialesServidor() {
             "credenciales", "GET", {}, null, null, "es", "Error al cargar las credenciales de la aplicación."
         );
 
-        await new Promise(r => setTimeout(r, 1000));
-        if (res.success) {
-            const tokenRecaptcha = pet.data.tokenRecaptcha;
-            const scopesDrive = pet.data.scopesDrive;
+        await new Promise(r => setTimeout(r, 500));
+        if (pet.success) {
+            const tokenRecaptcha = pet.data.reCAPTCHA;
+            const scopesDrive = pet.data.driveScopes;
 
             delete pet.data.driveScopes;
             delete pet.data.reCAPTCHA;
@@ -57,8 +57,8 @@ export function cargarCredencialesCache() {
 
     if (res) {
         const creds = JSON.parse(firebaseCreds);
-        inicializarAplicacion(creds, tokenRecaptcha, scopesDrive.split(","));
+        return { success: true, firebase: creds, recaptcha: tokenRecaptcha, scopesDrive: scopesDrive.split(",") };
     }
 
-    return res;
+    return { success: false };
 };

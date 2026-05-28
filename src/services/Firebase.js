@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
@@ -9,7 +9,12 @@ import { getAuth } from "firebase/auth";
  * @returns {Object} Instancia de Firebase (clave app), autenticación (clave auth) y Firestore (clave firestore).
  */
 export function inicializarFirebase(credenciales) {
-    const app = initializeApp(credenciales);
+    let app;
+    if (getApps().length > 0) {
+        app = getApp();
+    } else {
+        app = initializeApp(credenciales);
+    }
     const auth = getAuth(app);
     const firestore = getFirestore(app);
     return { app, auth, firestore };

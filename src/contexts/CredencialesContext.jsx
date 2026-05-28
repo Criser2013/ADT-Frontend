@@ -3,7 +3,7 @@ import { inicializarFirebase } from "../services/Firebase";
 import {
     cargarCredencialesServidor,
     cargarCredencialesCache,
-    almacenarCredenciales
+    almacenarCredencialesCache
 } from "../services/Credenciales";
 
 export const credencialesContext = createContext(null);
@@ -93,7 +93,7 @@ export function CredencialesProvider({ children }) {
             dispatch({ type: "CARGANDO" });
 
             const cache = cargarCredencialesCache();
-            if (cache) {
+            if (cache.success) {
                 inicializarAplicacion(cache.firebase, cache.recaptcha, cache.scopesDrive);
                 return;
             }
@@ -125,7 +125,7 @@ export function CredencialesProvider({ children }) {
     const inicializarAplicacion = (credsFirebase, tokenRecaptcha, scopesDrive) => {
         const { app, auth, firestore } = inicializarFirebase(credsFirebase);
 
-        almacenarCredenciales(credsFirebase, tokenRecaptcha, scopesDrive);
+        almacenarCredencialesCache(credsFirebase, tokenRecaptcha, scopesDrive);
         dispatch({
             type: "INICIALIZAR_APP",
             payload: {
