@@ -54,7 +54,7 @@ export async function verDiagnosticos(usuarios, db) {
             const consulta = collection(db, `usuarios/${i}/diagnosticos`);
             const datos = await getDocs(consulta);
             datos.forEach((doc) => {
-                const medico = doc.id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
+                const medico = doc.id.split(/^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
                 diagnosticos.push({ id: doc.id, medico: medico[1], ...doc.data() });
             });
         }
@@ -95,9 +95,9 @@ export async function verDiagnosticosPorMedico(uid, db, fecha = null) {
 
 /**
  * Elimina el diagnóstico con el ID especificado de la base de datos.
- * @param {String} id - ID del diagnóstico a eliminar.
- * @param {String} uid - UID del médico.
- * @param {Object} db - Instancia de Firestore.
+ * @param {String} id ID del diagnóstico a eliminar.
+ * @param {String} uid UID del médico.
+ * @param {Object} db Instancia de Firestore.
  * @returns {Object} Resultado el resultado de la operación en la clave "data" y un booleano en la clave "success" indicando si la operación fue exitosa o no.
  */
 export async function eliminarDiagnostico(id, uid, db) {
