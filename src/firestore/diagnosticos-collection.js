@@ -2,11 +2,11 @@ import { collection, doc, getDoc, getDocs, setDoc, where, query, deleteDoc } fro
 
 /**
  * Edita el contenido de un documento. Sino existe lo crea.
- * @param {String} id - ID del diagnóstico.
- * @param {String} uid - UID del médico.
- * @param {JSON} json - Datos del diagnóstico a modificar o crear.
- * @param {Object} db - Instancia de Firestore.
- * @returns {JSON}
+ * @param {String} id ID del diagnóstico.
+ * @param {String} uid UID del médico que realiza el cambio.
+ * @param {Object} json Datos del diagnóstico a modificar o crear.
+ * @param {Object} db Instancia de Firestore.
+ * @returns {Object} Objeto con el resultado de la operación en la clave "data" y un booleano en la clave "success" indicando si la operación fue exitosa o no.
  */
 export const cambiarDiagnostico = async (id, uid, json, db) => {
     try {
@@ -24,7 +24,7 @@ export const cambiarDiagnostico = async (id, uid, json, db) => {
  * @param {String} uid - UID del médico.
  * @param {String} id - ID del diagnóstico.
  * @param {Object} db - Instancia de Firestore.
- * @returns {JSON}
+ * @returns {Object}
  */
 export const verDiagnostico = async (uid, id, db) => {
     try {
