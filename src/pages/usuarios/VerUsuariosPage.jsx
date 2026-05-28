@@ -164,7 +164,7 @@ export default function VerUsuariosPage() {
      * @param {Array[string]} usuarios - Lista de UID de los médicos.
      */
     const cargarDiagnosticos = async (usuarios) => {
-        const res = await verDiagnosticos(firestore, usuarios);
+        const res = await verDiagnosticos(usuarios, firestore);
         if (!res.success) {
             setDiagnosticos([]);
             setModoModal(2);

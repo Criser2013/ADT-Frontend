@@ -16,7 +16,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ModalAccion from "../../components/modals/ModalAccion";
-import { cambiarDiagnostico, eliminarDiagnosticos, verDiagnostico } from "../../firestore/diagnosticos-collection";
+import { cambiarDiagnostico, eliminarDiagnostico, verDiagnostico } from "../../firestore/diagnosticos-collection";
 import { oneHotDecoderOtraEnfermedad, detTxtDiagnostico, procLime } from "../../utils/TratarDatos";
 import { COMORBILIDADES, DIAGNOSTICOS } from "../../../constants";
 import { useCredenciales } from "../../contexts/CredencialesContext";
@@ -199,7 +199,7 @@ export default function VerDiagnosticoPage() {
      */
     const cargarDatosDiagnostico = async (token) => {
         const uid = id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-        const datos = await verDiagnostico(uid[1], id, firestore);
+        const datos = await verDiagnostico(id, uid[1], firestore);
         if (datos.success && datos.data != []) {
             setDiagOriginal({ ...datos.data });
 
@@ -370,9 +370,9 @@ export default function VerDiagnosticoPage() {
     /**
      * Realiza la petición para eliminar el diagnóstico del paciente.
      */
-    const eliminarDiagnostico = async () => {
+    const borrarDiagnostico = async () => {
         const uid = id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-        const res = await eliminarDiagnosticos(uid[1], id, firestore);
+        const res = await eliminarDiagnostico(id, uid[1], firestore);
 
         if (res.success) {
             navegacion.setPaginaAnterior("/diagnosticos");
@@ -428,7 +428,7 @@ export default function VerDiagnosticoPage() {
             return;
         } else if (modoEliminar) {
             setCargando(true);
-            eliminarDiagnostico();
+            borrarDiagnostico();
         }
 
         setModal({ ...modal, mostrar: false });
