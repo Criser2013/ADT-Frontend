@@ -1,161 +1,145 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { createContext, useState, useContext, useEffect } from "react";
-import { AES_KEY, API_URL } from "../../constants";
-import { AES, enc } from "crypto-js";
-import Cookies from "js-cookie";
+import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
+import { inicializarFirebase } from "../services/Firebase";
+import {
+    cargarCredencialesServidor,
+    cargarCredencialesCache,
+    almacenarCredenciales
+} from "../services/Credenciales";
 
-export const credencialesContext = createContext();
+export const credencialesContext = createContext(null);
 
 /**
- * Otorga acceso al contexto de credenciales de la aplicación.
- * @returns {import("react").Context}
+ * Hook para acceder al contexto de credenciales.
+ * @returns {Object}
  */
 export const useCredenciales = () => {
     const context = useContext(credencialesContext);
+
     if (!context) {
-        console.log("Error creando el contexto de credenciales.");
+        throw new Error(
+            "useCredenciales debe usarse dentro de CredencialesProvider."
+        );
     }
+
     return context;
 };
 
 /**
- * Proveedor del contexto que permite gestionar las credenciales de Firebase
- * de la aplicación.
+ * Estado inicial del contexto.
+ */
+const estadoInicial = {
+    firebase: null, firestore: null,
+    firebaseAuth: null, reCAPTCHA: null,
+    scopesDrive: null, cargando: true,
+    error: null
+};
+
+/**
+ * Reducer encargado de administrar el estado global credenciales de la aplicación.
+ * @param {import("react").ReducerState} state Estado actual del contexto.
+ * @param {Object} action Acción a ejecutar sobre el estado.
+ * @returns {Object} Nuevo estado del contexto.
+ */
+function credencialesReducer(state, action) {
+    switch (action.type) {
+        case "INICIALIZAR_APP":
+            return {
+                ...state,
+                firebase: action.payload.firebase,
+                firestore: action.payload.firestore,
+                firebaseAuth: action.payload.firebaseAuth,
+                reCAPTCHA: action.payload.reCAPTCHA,
+                scopesDrive: action.payload.scopesDrive,
+                cargando: false,
+                error: null
+            };
+        case "ERROR":
+            return { ...state, cargando: false, error: action.payload };
+        case "CARGANDO":
+            return { ...state, cargando: true, error: null };
+        case "RESET":
+            return estadoInicial;
+        default:
+            return state;
+    }
+}
+
+/**
+ * Provider de credenciales globales de la aplicación.
+ * Inicializa Firebase y expone las instancias necesarias.
  * @param {JSX.Element} children
  * @returns {JSX.Element}
  */
 export function CredencialesProvider({ children }) {
-    const [claveRecaptcha, setClaveRecaptcha] = useState(null);
-    const [instanciaFirestore, setInstanciaFirestore] = useState(null);
-    const [instanciaFirebase, setInstanciaFirebase] = useState(null);
-    const [instanciaFirebaseAuth, setInstanciaFirebaseAuth] = useState(null);
-    const [scopesDrive, setScopesDrive] = useState(null);
+    const [state, dispatch] = useReducer(
+        credencialesReducer, estadoInicial
+    );
+    const aplicacionIniciada = useMemo(() => (
+        [state.firebase, state.firestore, state.firebaseAuth].every((x) => x)
+    ), [state.firebase, state.firestore, state.firebaseAuth
+    ]);
+
+    // Valor expuesto por el contexto.
+    const value = useMemo(() => ({
+        ...state, aplicacionIniciada
+    }), [state, aplicacionIniciada]);
 
     /**
-     * Inicializa Firebase si las credenciales de la aplicación están en las cookies de sesión.
+     * Inicializa las credenciales de la aplicación.
      */
     useEffect(() => {
-        const res = cargarCredsCookies();
+        let mounted = true;
+        const inicializar = async () => {
+            dispatch({ type: "CARGANDO" });
 
-        if (!res) {
-            obtenerCredenciales();
-        }
+            const cache = cargarCredencialesCache();
+            if (cache) {
+                inicializarAplicacion(cache.firebase, cache.recaptcha, cache.scopesDrive);
+                return;
+            }
+
+            const res = await cargarCredencialesServidor();
+            if (!mounted) {
+                return;
+            }
+
+            if (res.success) {
+                inicializarAplicacion(res.data.firebase, res.data.recaptcha, res.data.scopesDrive);
+                return;
+            }
+
+            dispatch({ type: "ERROR", payload: res.error });
+        };
+
+        inicializar();
+
+        return () => { mounted = false; };
     }, []);
 
     /**
-     * Carga las credenciales de la aplicación desde el servidor.
-     * @returns {boolean} Resultado de la operación de carga de credenciales.
+     * Inicializa la aplicación con la información de credenciales proporcionada.
+     * @param {Object} credsFirebase Credenciales de Firebase.
+     * @param {String} tokenRecaptcha Clave del cliente de reCAPTCHA.
+     * @param {Array<String>} scopesDrive Scopes de acceso a Google Drive.
      */
-    const cargarCredenciales = async () => {
-        try {
-            const pet = await fetch(`${API_URL}/credenciales`, { method: "GET" });
-            if (pet.status == 200 && pet.ok) {
-                const json = await pet.json();
-                inicializarFirebase(json, json.driveScopes, json.reCAPTCHA);
+    const inicializarAplicacion = (credsFirebase, tokenRecaptcha, scopesDrive) => {
+        const { app, auth, firestore } = inicializarFirebase(credsFirebase);
+
+        almacenarCredenciales(credsFirebase, tokenRecaptcha, scopesDrive);
+        dispatch({
+            type: "INICIALIZAR_APP",
+            payload: {
+                firebase: app,
+                firestore,
+                firebaseAuth: auth,
+                reCAPTCHA: tokenRecaptcha,
+                scopesDrive
             }
-            return pet.ok;
-        } catch (error) {
-            console.log("Error al cargar las credenciales: ", error);
-            return false;
-        }
-    };
-
-    /**
-     * Realiza una petición al servidor para obtener las credenciales de Firebase.
-     * Reintenta hasta 5 veces en caso de error. Si tiene éxito, inicializa Firebase con las credenciales obtenidas.
-     */
-    const obtenerCredenciales = async () => {
-        for (let i = 0; i < 5; i++) {
-            const res = await cargarCredenciales();
-
-            if (res) {
-                break;
-            }
-
-            setTimeout(null, 500);
-        }
-    };
-
-    /**
-     * Inicializa Firebase con la información de credenciales proporcionada.
-     * @param {JSON} credsFirebase - Credenciales de Firebase.
-     * @param {Array[string]} scopesDrive - Scopes de acceso a Google Drive.
-     * @param {string} tokenRecaptcha - Clave del cliente de reCAPTCHA.
-     */
-    const inicializarFirebase = (credsFirebase, scopesDrive, tokenRecaptcha) => {
-        delete credsFirebase.driveScopes;
-        delete credsFirebase.reCAPTCHA;
-
-        const app = initializeApp(credsFirebase);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        almacenarCredenciales(credsFirebase, scopesDrive, tokenRecaptcha);
-
-        setInstanciaFirebase(app);
-        setInstanciaFirestore(db);
-        setInstanciaFirebaseAuth(auth);
-        setClaveRecaptcha(tokenRecaptcha);
-        setScopesDrive(scopesDrive);
-    };
-
-    /**
-     * Almacena las dredenciales de los servicios de la aplicación en las cookies de sesión.
-     * @param {JSON} firebaseCreds - Credenciales de Firebase.
-     * @param {Array} scopesDrive - Scopes de acceso a Google Drive.
-     * @param {string} tokenRecaptcha - Clave del cliente de reCAPTCHA.
-     */
-    const almacenarCredenciales = (credsFirebase, scopesDrive, tokenRecaptcha) => {
-        const txtCreds = JSON.stringify(credsFirebase);
-        const encCreds = AES.encrypt(txtCreds, AES_KEY).toString();
-        const encCaptcha = AES.encrypt(tokenRecaptcha, AES_KEY).toString();
-
-        Cookies.set("session-credentials", encCreds);
-        Cookies.set("session-recaptcha", encCaptcha);
-        Cookies.set("session-drive-scopes", scopesDrive);
-    };
-
-    /**
-     * Carga las credenciales de los servicios desde las cookies. 
-     * @returns {boolean} Resultado de la operación de carga de las credenciales desde las cookies.
-     */
-    const cargarCredsCookies = () => {
-        const firebaseCreds = Cookies.get("session-credentials");
-        const tokenRecaptcha = Cookies.get("session-recaptcha");
-        const scopesDrive = Cookies.get("session-drive-scopes");
-        let res = [firebaseCreds, tokenRecaptcha, scopesDrive].every((x) => x != undefined && x != null);
-
-        if (res) {
-            const txtCreds = AES.decrypt(firebaseCreds, AES_KEY).toString(enc.Utf8);
-            const tokenCaptcha = AES.decrypt(tokenRecaptcha, AES_KEY).toString(enc.Utf8);
-            const creds = JSON.parse(txtCreds);
-
-            setScopesDrive(scopesDrive.split(","));
-            setClaveRecaptcha(tokenCaptcha);
-
-            inicializarFirebase(creds, scopesDrive.split(","), tokenCaptcha);
-        }
-
-        return res;
-    };
-
-    /**
-     * Verificar si las instancias de los servicios de Firebase fueron
-     * inicializadas correctamente.
-     * @returns {boolean}
-     */
-    const verFirebaseIniciado = () => {
-        return [instanciaFirebase, instanciaFirestore, instanciaFirebaseAuth].every((x) => x != null);
+        });
     };
 
     return (
-        <credencialesContext.Provider value={{
-            verSiCredsFirebaseEstancargadas: verFirebaseIniciado, firebase: instanciaFirebase,
-            scopesDrive: scopesDrive, reCAPTCHA: claveRecaptcha,
-            firestore: instanciaFirestore, firebaseAuth: instanciaFirebaseAuth
-        }}>
+        <credencialesContext.Provider value={value}>
             {children}
         </credencialesContext.Provider>
     );
