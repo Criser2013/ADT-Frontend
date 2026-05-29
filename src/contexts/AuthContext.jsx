@@ -91,29 +91,7 @@ export function AuthProvider({ children }) {
             return () => suscribed();
         }
     }, [auth]);
-
-    /**
-     * Refresca los tokens OAuth del usuario si este se encuentra autenticado.
-     */
-    const refrescarTokens = () => {
-        clearTimeout(idTareaRefresco);
-        setRequiereRefresco(true);
-    };
-
-    /**
-     * Verifica que el usuario tenga los permisos necesarios para usar la aplicación.
-     * @param {String} permisos - Permisos del usuario.
-     * @param {Array[string]} scopes  - Lista de permisos requeridos.
-     */
-    const verificarPermisos = (permisos, scopes) => {
-        let res = true;
-
-        for (const i of scopes) {
-            res &= permisos.includes(i);
-        }
-
-        setPermisos(res);
-    };
+    
 
     /**
      * Maneja los cambios en la autenticación del usuario.
@@ -146,59 +124,7 @@ export function AuthProvider({ children }) {
         }
     };
 
-    /**
-     * Inicia sesión con Google dentro de Firebase. Si la autenticación es exitosa 
-     * almacena las credenciales del usuario.
-     */
-    const iniciarSesionGoogle = async () => {
-        let resultado = { res: false, operacion: 0, error: "" };
-        setCargando(true);
-
-        try {
-            let provider = new GoogleAuthProvider();
-
-            provider.setDefaultLanguage(i18n.language);
-            // Se añaden los permisos necesarios para usar Drive
-            for (const i of scopes) {
-                provider.addScope(i);
-            }
-
-            // Se abre el popup de Google para iniciar sesión
-            const res = await signInWithPopup(auth, provider);
-            // Se verifica si el usuario ya está registrado en la base de datos y esté activado
-            const reg = await verRegistrado(res.user);
-            const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
-            oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
-            oauth.scopesDrive = JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes;
-
-            verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
-            clearTimeout(idTareaRefresco);
-            setIdTareaRefresco(
-                setTimeout(refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000)
-            );
-
-            // Guardando el token de acceso a Google Drive
-            setTokenDrive(oauth.accessToken);
-            guardarAuthCredsSesion(oauth);
-
-            // Si no se pudo registrar al usuario, se cierra la sesión
-            if (!reg.success) {
-                cerrarSesion();
-                resultado = { res: true, operacion: 0, error: t("errVerificarRegistro") };
-            } else {
-                if (location.pathname == "/") {
-                    await verDatosUsuario(res.user);
-                }
-            }
-            setAuthError(resultado);
-            return resultado;
-        } catch (error) {
-            manejadorErroresAuth(error, 0, null);
-            return { res: true, operacion: 0, error: t("errIniciarSesion") };
-        } finally {
-            setCargando(false);
-        }
-    };
+    
 
     /**
      * Reautentica al usuario para actualizar las credenciales de acceso a Google.
@@ -248,32 +174,6 @@ export function AuthProvider({ children }) {
     };
 
     /**
-     * Cierra la sesión del usuario.
-     */
-    const cerrarSesion = async () => {
-        setCargando(true);
-
-        try {
-            await signOut(auth);
-
-            if (idTareaRefresco != null) {
-                clearTimeout(idTareaRefresco);
-                setIdTareaRefresco(null);
-            }
-
-            borrarAuthCredsSesion();
-            setTokenDrive(null);
-            setAuthInfo({ user: null, uid: null, rol: null, modoUsuario: null, rolVisible: null });
-            setAuthError({ res: false, operacion: 1, error: "" });
-        } catch (error) {
-            console.error(error);
-            setAuthError({ res: true, operacion: 1, error: t("errCerrarSesion") });
-        } finally {
-            setCargando(false);
-        }
-    };
-
-    /**
      * Actualiza la información del usuario dentro del contexto.
      * @param {import("firebase/auth").User} usuario - Instancia del usuario de Firebase.
      */
@@ -287,111 +187,6 @@ export function AuthProvider({ children }) {
                 user: x.user, uid: x.user.uid, rol: token.claims.admin, modoUsuario: modoUsuario, rolVisible: rol
             });
         });
-    };
-
-    /**
-     * Registra un nuevo usuario en la base de datos.
-     * @param {string} uid - UID del usuario.
-     * @returns {JSON}
-     */
-    const registrarUsuario = async (uid) => {
-        const params = { uid: uid };
-        const res = await peticionApi(
-            "registrar", "POST", params, null, null, i18n.language, t("errRegistrarUsuario")
-        );
-
-        return { success: res.success };
-    };
-
-    /**
-     * Verifica si un usuario está registrado en la base de datos.
-     * @param {import("firebase/auth").User} usuario - Instancia de usuario de Firebase.
-     */
-    const verRegistrado = async (usuario) => {
-        const fechaActual = new Date().valueOf();
-        const dif = fechaActual - parseInt(usuario.metadata.createdAt, 10);
-
-        /* El usuario no está registrado, se procede a registrarlo, se considera que no
-           está registrado si su cuenta fue creada hace menos de 1 minuto.
-        */
-        if (dif < 60000) {
-            return await registrarUsuario(usuario.uid);
-        } else {
-            return { success: true };
-        }
-    };
-
-    /**
-     * Carga las credenciales de sesión en el sessionStorage.
-     * @returns Boolean
-     */
-    const cargarAuthCredsSesion = () => {
-        const valores = sessionStorage.getItem("session-tokens");
-
-        if (valores != null) {
-            const tokens = JSON.parse(AES.decrypt(valores, AES_KEY).toString(enc.Utf8));
-            setTokenDrive(tokens.accessToken);
-            verificarPermisos(tokens.scopesDrive, scopes);
-
-            return { success: true, expires: tokens.expires };
-        }
-
-        return { success: false };
-    };
-
-    /**
-     * Borra las credenciales de sesión almacenadas en el sessionStorage.
-     */
-    const borrarAuthCredsSesion = () => {
-        sessionStorage.removeItem("session-tokens");
-        sessionStorage.removeItem("modo-usuario");
-        sessionStorage.removeItem("ejecutar-callback");
-    };
-
-    /**
-     * Guarda las credenciales de sesión en las cookies del navegador.
-     * @param {JSON} tokens - Credenciales OAuth de Google.
-     */
-    const guardarAuthCredsSesion = (tokens) => {
-        const res = AES.encrypt(JSON.stringify(tokens), AES_KEY).toString();
-        sessionStorage.setItem("session-tokens", res);
-    };
-
-    /**
-     * Maneja los errores de autenticación que se presenten.
-     * @param {FirebaseError} error - Error de Firebase Auth.
-     * @param {Int} codigo - Código de la operación que produjo el error.
-     */
-    const manejadorErroresAuth = (error, codigo, usuario) => {
-        switch (error.code) {
-            case "auth/popup-closed-by-user":
-                // Esto es cuando el usuario cierra el popup de Google antes de iniciar sesión
-                if (location.pathname != "/") {
-                    location.replace("/");
-                }
-                break;
-            case "auth/user-cancelled":
-                // Esto es cuando el usuario cancela la autenticación y no otorga los permisos
-                setAuthError({ res: true, operacion: codigo, error: t("errPermisos") });
-                break;
-            case "auth/user-mismatch":
-                // Esto es cuando el usuario que intenta iniciar sesión no coincide con el usuario actual
-                setAuthError({
-                    res: true, operacion: codigo,
-                    error: t("errSesionIniciada", { usuario: usuario.displayName, correo: usuario.email })
-                });
-                break;
-            case "auth/user-disabled":
-                setAuthError({
-                    res: true, operacion: codigo,
-                    error: t("errUsuarioBaneado")
-                });
-                break;
-            default:
-                console.error("Error de autenticación:", error);
-                setAuthError({ res: true, operacion: codigo, error: t("errIniciarSesion") });
-                break;
-        }
     };
 
     /**
