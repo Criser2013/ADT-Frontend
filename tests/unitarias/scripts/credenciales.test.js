@@ -99,7 +99,7 @@ describe("Validar la función 'cargarCredencialesCache'", () => {
 
         if (resEsperada.success) {
             expect(jsonParseSpy).toHaveBeenCalledTimes(1);
-            expect(jsonParseSpy).toHaveBeenCalledWith(JSON.parse({ credenciales: "credenciales" }));
+            expect(jsonParseSpy).toHaveBeenCalledWith(JSON.stringify({ credenciales: "credenciales" }));
         }
     });
 });
