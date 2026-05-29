@@ -5,28 +5,41 @@ import { AES, enc } from "crypto-js";
 
 const { language, t } = i18n;
 
-export async function iniciarSesion(firebaseAuth, permisos, idTareaRefresco = null) {
-    const { success, usuario, credencialOAuth, error } = iniciarSesionGoogle(firebaseAuth, permisos);
+/**
+ * Inicia sesión con Google dentro de Firebase, registra al usuario en la base de datos si es su primera vez y obtiene su rol.
+ * @param {import("firebase/auth").FirebaseAuth} firebaseAuth Instancia de Firebase Auth.
+ * @param {Array<String>} permisos Permisos de OAuth requeridos para la aplicación.
+ * @param {import("firebase/auth").User} usuario Instancia de Usuario de Firebase. Si se proporciona,
+ * se asume que es para reautenticar al usuario y refrescar las credenciales de acceso a Google, de lo contrario se inicia una nueva sesión.
+ * @returns {Object} Objeto con la propiedad success indicando si la autenticación fue exitosa, el usuario autenticado (clave usuario),
+ * token de acceso a Google (clave accessToken), el rol del usuario (clave rol), el tiempo (en milisegundos) de expiración del token OAuth (clave tiempoExpiracion).
+ * En caso de algún fallo se retorna un mensaje de error traducido (clave error).
+ */
+export async function iniciarSesion(firebaseAuth, permisos, usuario = null) {
+    const { success, res, user, credencialOAuth, error } = iniciarSesionGoogle(firebaseAuth, permisos, usuario);
 
     if (success) {
-        const registrado = await registrarUsuario(usuario);
-        const permisosOtorgados = JSON.parse(usuario._tokenResponse.rawUserInfo).granted_scopes;
+        const registrado = await registrarUsuario(user);
+        const permisosOtorgados = JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes;
+        const permisosRequeridos = permisos.every(permiso => permisosOtorgados.includes(permiso));
+
+        if (!permisosRequeridos) {
+            await cerrarSesion(firebaseAuth);
+            return { success: false, usuario: null, credencialOAuth: null, error: t("errPermisos") };
+        }
 
         if (!registrado.success) {
-            const res = await cerrarSesion(firebaseAuth);
+            await cerrarSesion(firebaseAuth);
             return { success: false, usuario: null, credencialOAuth: null, error: t("errVerificarRegistro") };
         }
 
-        if (idTareaRefresco) {
-            eliminarTareaRefresco(idTareaRefresco);
-        }
-
-        const idTareaRefresco = setTimeout(eliminarTareaRefresco, (usuario._tokenResponse.oauthExpireIn - 180) * 1000)
-        const rol = await verRolUsuario(usuario);
+        // Exige refresco de token 3 minutos antes de su expiración
+        const tiempoExpiracion = (res._tokenResponse.oauthExpireIn - 180) * 1000;
+        const rol = await verRolUsuario(user);
 
         guardarCredsOAuth(credencialOAuth);
 
-        return { success: true, usuario: usuario.user, accessToken: credencialOAuth.accessToken, rol: rol, idTareaRefresco: idTareaRefresco, error: null };
+        return { success: true, usuario: user, accessToken: credencialOAuth.accessToken, rol: rol, tiempoExpiracion: tiempoExpiracion, error: null };
 
     } else {
         return { success: false, usuario: null, credencialOAuth: null, error: error };
@@ -34,33 +47,34 @@ export async function iniciarSesion(firebaseAuth, permisos, idTareaRefresco = nu
 }
 
 /**
- * Inicia sesión con Google dentro de Firebase. Si la autenticación es exitosa 
- * almacena las credenciales del usuario.
+ * Inicia sesión con Google dentro de Firebase. Si la autenticación es exitosa almacena las credenciales
+ * del usuario. También puede reautenticar usuarios para refrescar credenciales de acceso.
  * @param {import("firebase/auth").FirebaseAuth} firebaseAuth Instancia de autenticación de Firebase.
  * @param {Array<String>} permisos Lista de permisos OAuth requeridos.
+ * @param {import("firebase/auth").User} usuario Instancia del usuario de Firebase. Si se proporciona, 
+ * se asume que es para reautenticar al usuario y refrescar las credenciales de acceso a Google, de lo contrario se inicia una nueva sesión.
  * @returns {Object} Objeto con la propiedad success indicando si la autenticación fue exitosa, el
  * usuario autenticado (clave usuario), las credenciales OAuth (clave credencialOAuth) y un mensaje
  * de error en caso de que la autenticación falle (clave error).
  */
-export async function iniciarSesionGoogle(firebaseAuth, permisos) {
+export async function iniciarSesionGoogle(firebaseAuth, permisos, usuario = null) {
     try {
-        const idioma = i18n.language;
         const provider = new GoogleAuthProvider();
-        provider.setDefaultLanguage(idioma);
+        provider.setDefaultLanguage(language);
 
         for (const i of permisos) {
             provider.addScope(i);
         }
 
-        const res = await signInWithPopup(firebaseAuth, provider);
+        const res = usuario ? await reauthenticateWithPopup(usuario, provider) : await signInWithPopup(firebaseAuth, provider);
         const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
 
         oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
         oauth.scopesDrive = JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes;
         
-        return { success: true, usuario: res, credencialOAuth: oauth };
+        return { success: true, res: res, user: res.user, credencialOAuth: oauth };
     } catch (error) {
-        return { success: false, error: manejadorErroresAuth(error) };
+        return { success: false, error: manejadorErroresAuth(error, usuario) };
     }
 };
 
@@ -74,7 +88,7 @@ export async function cerrarSesion(firebaseAuth, idTareaRefresco = null) {
     try {
         await signOut(firebaseAuth);
         if (idTareaRefresco) {
-            eliminarTareaRefresco(idTareaRefresco);
+            clearTimeout(idTareaRefresco);
         }
         borrarCredsOAuth();
         return { success: true };
@@ -98,7 +112,7 @@ export async function registrarUsuario(usuario) {
         const res = await peticionApi(
             "registrar", "POST", { uid: usuario.uid }, null, null, language, t("errRegistrarUsuario")
         );
-        return res.success ? { success: true } : { success: false, error: res.error };
+        return { success: res.success };
     }
 };
 
@@ -111,42 +125,6 @@ export async function verRolUsuario(usuario) {
     const token = await usuario.getIdTokenResult(true);
     return token.claims.admin;
 };
-
-/**
- * Maneja los errores de autenticación que se presenten.
- * @param {import("firebase/auth").AuthError} error Error de Firebase Auth.
- * @param {import("firebase/auth").User} usuario Instancia del usuario de Firebase.
- * @returns {String} Mensaje de error traducido para mostrar al usuario. En caso de
- * que el error sea "auth/popup-closed-by-user" redirige a la página de inicio.
- */
-export function manejadorErroresAuth(error, usuario = null) {
-    switch (error.code) {
-        // Cierra el popup de Google antes de iniciar sesión
-        case "auth/popup-closed-by-user":
-            if (location.pathname != "/") {
-                location.replace("/");
-            }
-            break;
-
-        // El usuario cancela la autenticación y no otorga los permisos
-        case "auth/user-cancelled":
-            return t("errPermisos");
-
-        // Usuario que intenta iniciar sesión no coincide con el usuario actual
-        case "auth/user-mismatch":
-            return t("errSesionIniciada", { usuario: usuario.displayName, correo: usuario.email });
-
-        // Usuario deshabilitado
-        case "auth/user-disabled":
-            return t("errUsuarioBaneado");
-
-        // Todo lo demás
-        default:
-            console.error("Error de autenticación:", error);
-            return t("errIniciarSesion");
-    }
-};
-
 
 /**
  * Carga las credenciales de sesión desde el sessionStorage.
@@ -184,9 +162,36 @@ export function guardarCredsOAuth(tokens) {
 };
 
 /**
- * Elimina la tarea programada para refrescar los tokens OAuth.
- * @param {Number} idTareaRefresco Id de la tarea para refrescar los tokens
+ * Maneja los errores de autenticación que se presenten.
+ * @param {import("firebase/auth").AuthError} error Error de Firebase Auth.
+ * @param {import("firebase/auth").User} usuario Instancia del usuario de Firebase.
+ * @returns {String} Mensaje de error traducido para mostrar al usuario. En caso de
+ * que el error sea "auth/popup-closed-by-user" redirige a la página de inicio.
  */
-export function eliminarTareaRefresco(idTareaRefresco) {
-    clearTimeout(idTareaRefresco);
+export function manejadorErroresAuth(error, usuario = null) {
+    switch (error.code) {
+        // Cierra el popup de Google antes de iniciar sesión
+        case "auth/popup-closed-by-user":
+            if (location.pathname != "/") {
+                location.replace("/");
+            }
+            break;
+
+        // El usuario cancela la autenticación y no otorga los permisos
+        case "auth/user-cancelled":
+            return t("errPermisos");
+
+        // Usuario que intenta iniciar sesión no coincide con el usuario actual
+        case "auth/user-mismatch":
+            return t("errSesionIniciada", { usuario: usuario.displayName, correo: usuario.email });
+
+        // Usuario deshabilitado
+        case "auth/user-disabled":
+            return t("errUsuarioBaneado");
+
+        // Todo lo demás
+        default:
+            console.error("Error de autenticación:", error);
+            return t("errIniciarSesion");
+    }
 };

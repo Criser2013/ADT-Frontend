@@ -124,55 +124,6 @@ export function AuthProvider({ children }) {
         }
     };
 
-    
-
-    /**
-     * Reautentica al usuario para actualizar las credenciales de acceso a Google.
-     * @param {import("firebase/auth").User} usuario - Instancia del usuario de Firebase.
-     */
-    const reautenticarUsuario = async (usuario) => {
-        setCargando(true);
-        try {
-            let provider = new GoogleAuthProvider();
-
-            provider.setDefaultLanguage(i18n.language);
-            // Se añaden los permisos necesarios para usar Drive
-            for (const i of scopes) {
-                provider.addScope(i);
-            }
-
-            // Se vuelve a abrir el popup de Google para obtener el token de acceso a Drive
-            const res = await reauthenticateWithPopup(usuario, provider);
-            const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
-            oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
-            oauth.scopesDrive = JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes;
-
-            clearTimeout(idTareaRefresco);
-            setIdTareaRefresco(
-                setTimeout(refrescarTokens, (res._tokenResponse.oauthExpireIn - 180) * 1000)
-            );
-
-            verificarPermisos(JSON.parse(res._tokenResponse.rawUserInfo).granted_scopes, scopes);
-            setTokenDrive(oauth.accessToken);
-            guardarAuthCredsSesion(oauth);
-            setAuthError({ res: false, operacion: 2, error: "" });
-            setRequiereRefresco(false);
-
-            if (location.pathname == "/") {
-                await verDatosUsuario(res.user);
-            }
-
-            return { res: false, operacion: 2, error: "" };
-        } catch (error) {
-            // Necesario por si cierra el popup de Google antes de reautenticarse cuando el token caduca
-            setRequiereRefresco(requiereRefresco);
-            manejadorErroresAuth(error, 2, usuario);
-            return { res: true, operacion: 2, error: t("errReautenticar") };
-        } finally {
-            setCargando(false);
-        }
-    };
-
     /**
      * Actualiza la información del usuario dentro del contexto.
      * @param {import("firebase/auth").User} usuario - Instancia del usuario de Firebase.
