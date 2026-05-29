@@ -39,7 +39,7 @@ export async function iniciarSesion(firebaseAuth, permisos, usuario = null) {
 
         guardarCredsOAuth(credencialOAuth);
 
-        return { success: true, usuario: user, accessToken: credencialOAuth.accessToken, rol: rol, tiempoExpiracion: tiempoExpiracion, error: null };
+        return { success: true, usuario: user, accessToken: credencialOAuth.accessToken, rol: rol, tiempoExpiracion: tiempoExpiracion };
 
     } else {
         return { success: false, usuario: null, credencialOAuth: null, error: error };

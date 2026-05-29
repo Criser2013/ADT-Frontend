@@ -1,11 +1,8 @@
-import { reauthenticateWithPopup, signOut } from "firebase/auth";
-import { createContext, useState, useContext, useEffect } from "react";
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { FirebaseError } from "firebase/app";
-import { AES_KEY } from "../../constants";
+import { createContext, useState, useContext, useEffect, useMemo } from "react";
+import { onAuthStateChanged } from "firebase/auth";
 import { useTranslation } from "react-i18next";
-import { AES, enc } from "crypto-js";
-import { peticionApi } from "../services/Api";
+import { cerrarSesion as cerrarSesionFirebase, iniciarSesion as iniciarSesionFirebase, cargarCredsOAuth, verRolUsuario } from "../services/Autenticacion";
+import UsuarioAutenticado from "../models/UsuarioAutenticado";
 
 export const authContext = createContext();
 
@@ -30,53 +27,36 @@ export const useAuth = () => {
  */
 export function AuthProvider({ children }) {
     const { i18n, t } = useTranslation();
+
     // Instancia de autenticación de Firebase
     const [auth, setAuth] = useState(null);
-    // Instancia de la base de datos de Firebase
-    const [tokenDrive, setTokenDrive] = useState(null);
-    // Información del usuario autenticado
-    const [authInfo, setAuthInfo] = useState({
-        user: null, // Instancia del usuario de Firebase
-        uid: null, // UID del usuario
-        rol: null, // Rol del usuario (0 - Usuario normal, 1001 - Administrador)
-        modoUsuario: null, // Modo de usuario (false - desactivado, true - activado)
-        rolVisible: null
-    });
     // Permisos necesarios para usar Google Drive
     const [scopes, setScopes] = useState(null);
+
+    // Información del usuario autenticado
+    const [usuario, setUsuario] = useState(null);
+
     // Información sobre errores
-    const [authError, setAuthError] = useState({
-        res: false, // true - Se produjo un error, false - Operación exitosa
-        operacion: null, // 0 - Inicio de sesión, 1 - Cierre de sesión, 2 - Reautenticación del usuario, 3 - Refrescando los tokens
-        error: "" // Mensaje de error a mostrar. Es vacío sino hay error
-    });
+    const [error, setError] = useState(null);
     const [cargando, setCargando] = useState(true);
-    const [permisos, setPermisos] = useState(true);
-    const [autenticado, setAutenticado] = useState(null);
+
     const [requiereRefresco, setRequiereRefresco] = useState(false);
     const [idTareaRefresco, setIdTareaRefresco] = useState(null);
 
-    /**
-     * Si el usuario ya está autenticado, obtiene sus datos.
-     */
-    useEffect(() => {
-        const { user, uid, rol } = authInfo;
-        const ruta = window.location.pathname != "/";
-        if (user != null && uid != null && rol == null && ruta) {
-            setCargando(true);
-            verDatosUsuario(user).then(() => {
-                setCargando(false);
-            });
-        }
-    }, [authInfo.user, authInfo.uid, authInfo.rol]);
+    const autenticado = useMemo(() => usuario instanceof UsuarioAutenticado, [usuario]);
+
+    const value = {
+        useAuth, cargando, error, setAuth,
+        setScopes, cerrarSesion, autenticado,
+        requiereRefresco, setCargando, usuario, cambiarModoUsuario, iniciarSesion
+    };
 
     /**
-     * Retira el indicador de carga cuando se tienen las instancias de la base de datos,
-     * autenticación y permisos de Drive requeridos.
+     * Retira el indicador de carga cuando se tiene la instancia de FirebaseAuth y permisos de Drive requeridos.
      */
     useEffect(() => {
-        const ruta = window.location.pathname == "/";
-        if (auth != null && scopes != null && ruta) {
+        const ruta = location.pathname == "/";
+        if (auth && scopes && ruta) {
             setCargando(false);
         }
     }, [auth, scopes]);
@@ -86,100 +66,88 @@ export function AuthProvider({ children }) {
      * cuando caducan.
      */
     useEffect(() => {
-        if (auth != null) {
+        if (auth) {
             const suscribed = onAuthStateChanged(auth, manejadorCambiosAuth);
             return () => suscribed();
         }
     }, [auth]);
-    
 
     /**
      * Maneja los cambios en la autenticación del usuario.
-     * @param {import("firebase/auth").User} usuario - Usuario actual de Firebase.
+     * @param {import("firebase/auth").User} usuario Usuario actual de Firebase.
      */
     const manejadorCambiosAuth = async (usuario) => {
-        if (usuario != null) {
-            const resCredsSesion = cargarAuthCredsSesion();
-            const fecha = (resCredsSesion.success && resCredsSesion.expires != undefined) ? ((parseInt(resCredsSesion.expires, 10) - Date.now()) / 1000) : null;
-            const urlConds = ["/cerrar-sesion", "/"].includes(location.pathname);
+        if (usuario) {
+            const { success, expires, accessToken, permisos } = cargarCredsOAuth();
+            const tiempoPrevioRefresco = success ? ((parseInt(expires) - Date.now()) / 1000) : null;
+            const urlExcentas = ["/cerrar-sesion", "/"].includes(location.pathname);
 
-            if (fecha != null && fecha > 180) {
-                clearTimeout(idTareaRefresco);              // Se refresca el token de acceso sino faltan mas de 3 minutos para que caduque el token - Cuando se recarga la página
-                setIdTareaRefresco(setTimeout(refrescarTokens, (fecha - 180) * 1000));
-            } else if (fecha != null && (fecha <= 180 && fecha > 20)) {
-                refrescarTokens();
-            } else if (!urlConds) {
-                await reautenticarUsuario(usuario);
+            if (!urlExcentas && (tiempoPrevioRefresco > 180)) {
+                const rol = await verRolUsuario(usuario);
+                const idTarea = setTimeout(mostrarRefrescoTokens, (tiempoPrevioRefresco - 180) * 1000);
+
+                clearTimeout(idTareaRefresco);
+                setIdTareaRefresco(idTarea);
+
+                setUsuario(new UsuarioAutenticado(usuario, usuario.uid, rol, accessToken));
+
+            } else if (!urlExcentas && (tiempoPrevioRefresco > 20) && (tiempoPrevioRefresco <= 180)) {
+                mostrarRefrescoTokens();
+
+            } else if (!urlExcentas) {
+                await iniciarSesion(usuario);
             }
-
-            setAutenticado(true);
-            setAuthInfo((x) => ({ ...x, user: usuario, uid: usuario.uid }));
         } else {
-            setAutenticado(false);
-            setAuthInfo({ user: null, uid: null, rol: null, modoUsuario: null, rolVisible: null });
-
-            if (!["/", "/404"].includes(location.pathname)) {
+            const rutasNoRedirigidas = ["/", "/cerrar-sesion"];
+            if (!rutasNoRedirigidas.includes(location.pathname)) {
                 location.replace("/");
             }
         }
     };
 
-    /**
-     * Actualiza la información del usuario dentro del contexto.
-     * @param {import("firebase/auth").User} usuario - Instancia del usuario de Firebase.
-     */
-    const verDatosUsuario = async (usuario) => {
-        const token = await usuario.getIdTokenResult(true);
-        
-        setAuthInfo((x) => {
-            const modoUsuario = cargarModoUsuario();
-            const rol = (modoUsuario && token.claims.admin) ? false : token.claims.admin;
-            return ({
-                user: x.user, uid: x.user.uid, rol: token.claims.admin, modoUsuario: modoUsuario, rolVisible: rol
-            });
-        });
-    };
 
-    /**
-     * Quita el indicador de carga. Solo se usa cuando se ha cargado la información.
-     */
-    const quitarPantallaCarga = () => {
+    const iniciarSesion = async (usuario = null) => {
+        setCargando(true);
+
+        const res = await iniciarSesionFirebase(auth, scopes, usuario);
+
+        if (res.success) {
+            const { usuario, accessToken, rol, expiracion } = res;
+            const usuario = new UsuarioAutenticado(usuario, usuario.uid, rol, accessToken);
+            const idTarea = setTimeout(mostrarRefrescoTokens, expiracion);
+
+            setIdTareaRefresco(idTarea);
+            setUsuario(usuario);
+        } else {
+            setError(res.error);
+        }
+
         setCargando(false);
     };
 
-    /**
-     * Coloca el indicador de carga sobre toda la aplicación (solo se utiliza en casos especiales).
-     */
-    const mostrarPantallaCarga = () => {
+    const cerrarSesion = async () => {
         setCargando(true);
+        const { success, error } = await cerrarSesionFirebase(auth, idTareaRefresco);
+        if (!success) {
+            setError(error);
+        }
+        setCargando(false);
     };
 
-    /**
-     * Permite activar o desactivar el modo de usuario de los administradores.
-     * @param {Boolean} modo - Modo de usuario (false - desactivado, true - activado).
-     */
     const cambiarModoUsuario = (modo) => {
-        setCargando(true);
-        setAuthInfo((x) => ({ ...x, modoUsuario: modo, rolVisible: (modo ? 0 : x.rol) }));
-        sessionStorage.setItem("modo-usuario", modo ? "true" : "false");
-        setTimeout(() => setCargando(false), 500);
+        setUsuario((x) => {
+            x.cambiarModoUsuario(modo);
+            return x;
+        })
     };
 
-    /**
-     * Carga el modo de usuario desde el almacenamiento local.
-     */
-    const cargarModoUsuario = () => {
-        const modo = sessionStorage.getItem("modo-usuario");
-
-        return (modo != null && modo != undefined && modo == "true");
+    const mostrarRefrescoTokens = () => {
+        setRequiereRefresco(true);
+        setIdTareaRefresco(null);
     };
 
     return (
-        <authContext.Provider value={{
-            useAuth, auth, cargando, authInfo, authError, tokenDrive, setAuth, setTokenDrive,
-            setScopes, cerrarSesion, iniciarSesionGoogle, reautenticarUsuario, permisos, autenticado,
-            requiereRefresco, quitarPantallaCarga, cambiarModoUsuario, mostrarPantallaCarga
-        }}>
+        <authContext.Provider value={value}>
             {children}
         </authContext.Provider>
     );
