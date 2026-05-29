@@ -29,8 +29,7 @@ describe("Validar la funcion 'descargarArchivo'", () => {
         ["37", mock2, res2],
         ["38", mock_3, res3]
     ])("CP - %s", async (idPrueba, mock, respuestaEsperada) => {
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(mock);
+        global.fetch = jest.fn(mock);
 
         const res = await descargarArchivo("archivo1", "token");
         expect(res).toEqual(respuestaEsperada);
@@ -104,8 +103,7 @@ describe("Validar la funcion 'crearArchivo'", () => {
     ])("CP - %s", async (idPrueba, mock, params, resEsperado) => {
         const { cuerpoPet, token, esCarpeta } = params;
 
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(mock);
+        global.fetch = jest.fn(mock);
         const res = await crearArchivo(cuerpoPet, token, esCarpeta);
 
         expect(res).toEqual(resEsperado);
@@ -176,8 +174,7 @@ describe("Validar la funcion 'buscarArchivo'", () => {
     ])("CP - %s", async (idPrueba, mock, params, resEsperado, urlEsperada) => {
         const { query, token } = params;
 
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(mock);
+        global.fetch = jest.fn(mock);
         const toStringSpy = jest.spyOn(URLSearchParams.prototype, "toString");
 
 
@@ -236,8 +233,7 @@ describe("Validar la funcion 'subirArchivo'", () => {
     ])("CP - %s", async (idPrueba, mock, params, resEsperado) => {
         const { idArchivo, body, token } = params;
 
-        global.fetch = jest.fn();
-        global.fetch.mockImplementation(mock);
+        global.fetch = jest.fn(mock);
 
         const res = await subirArchivo(idArchivo, body, token);
 

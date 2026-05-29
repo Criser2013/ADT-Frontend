@@ -3,6 +3,7 @@ import { peticionApi } from "./Api";
 /**
  * Realiza una petición al servidor para obtener las credenciales de Firebase.
  * Reintenta hasta 5 veces en caso de error. Si tiene éxito, inicializa Firebase con las credenciales obtenidas.
+ * @return {Object} Resultado de la operación, con las credenciales obtenidas o un mensaje de error.
  */
 export async function cargarCredencialesServidor() {
     const res = { success: false, data: null, error: "No se ha podido cargar las credenciales del servidor." };
