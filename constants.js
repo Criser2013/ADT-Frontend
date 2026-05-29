@@ -34,4 +34,5 @@ export const CAMPOS_BIN = [
 ];
 export const CAMPOS_TXT = ["edad", "presionSis", "presionDias", "frecRes",
     "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"];
-export const AES_KEY = import.meta.env.VITE_CLAVE_AES;
+
+export const AES_KEY = import.meta.env.VITE_CLAVE_AES || "1234567890123456"; // Clave de 16 caracteres para AES-128
