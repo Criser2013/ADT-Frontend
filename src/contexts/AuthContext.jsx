@@ -1,20 +1,22 @@
-import { createContext, useState, useContext, useEffect, useMemo } from "react";
+import { createContext, useState, useContext, useEffect, useMemo, useRef } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { useTranslation } from "react-i18next";
 import { cerrarSesion as cerrarSesionFirebase, iniciarSesion as iniciarSesionFirebase, cargarCredsOAuth, verRolUsuario } from "../services/Autenticacion";
 import UsuarioAutenticado from "../models/UsuarioAutenticado";
+import { useLocation } from "react-router-dom";
 
 export const authContext = createContext();
 
 /**
  * Otorga acceso al contexto de autenticación de la aplicación.
- * @returns {React.Context}
+ * @returns {Object}
  */
 export const useAuth = () => {
     const context = useContext(authContext);
 
     if (!context) {
-        console.log("Error creando el contexto.");
+        throw new Error(
+            "useAuth debe usarse dentro de AuthProvider."
+        );
     }
 
     return context;
@@ -26,7 +28,7 @@ export const useAuth = () => {
  * @returns {JSX.Element}
  */
 export function AuthProvider({ children }) {
-    const { i18n, t } = useTranslation();
+    const location = useLocation();
 
     // Instancia de autenticación de Firebase
     const [auth, setAuth] = useState(null);
@@ -41,15 +43,15 @@ export function AuthProvider({ children }) {
     const [cargando, setCargando] = useState(true);
 
     const [requiereRefresco, setRequiereRefresco] = useState(false);
-    const [idTareaRefresco, setIdTareaRefresco] = useState(null);
+    const idTareaRefresco = useRef(null);
 
     const autenticado = useMemo(() => usuario instanceof UsuarioAutenticado, [usuario]);
 
-    const value = {
+    const value = useMemo(() => ({
         useAuth, cargando, error, setAuth,
         setScopes, cerrarSesion, autenticado,
         requiereRefresco, setCargando, usuario, cambiarModoUsuario, iniciarSesion
-    };
+    }), [cargando, error, setAuth, setScopes, cerrarSesion, autenticado, requiereRefresco, setCargando, usuario, cambiarModoUsuario, iniciarSesion]);
 
     /**
      * Retira el indicador de carga cuando se tiene la instancia de FirebaseAuth y permisos de Drive requeridos.
@@ -59,7 +61,7 @@ export function AuthProvider({ children }) {
         if (auth && scopes && ruta) {
             setCargando(false);
         }
-    }, [auth, scopes]);
+    }, [auth, scopes, location.pathname]);
 
     /**
      * Recupera la sesión si el usuario no la ha cerrado. También refresca los tokens
@@ -86,8 +88,8 @@ export function AuthProvider({ children }) {
                 const rol = await verRolUsuario(usuario);
                 const idTarea = setTimeout(mostrarRefrescoTokens, (tiempoPrevioRefresco - 180) * 1000);
 
-                clearTimeout(idTareaRefresco);
-                setIdTareaRefresco(idTarea);
+                clearTimeout(idTareaRefresco.current);
+                idTareaRefresco.current = idTarea;
 
                 setUsuario(new UsuarioAutenticado(usuario, usuario.uid, rol, accessToken));
 
@@ -113,11 +115,11 @@ export function AuthProvider({ children }) {
 
         if (res.success) {
             const { usuario, accessToken, rol, expiracion } = res;
-            const usuario = new UsuarioAutenticado(usuario, usuario.uid, rol, accessToken);
+            const user = new UsuarioAutenticado(usuario, usuario.uid, rol, accessToken);
             const idTarea = setTimeout(mostrarRefrescoTokens, expiracion);
 
-            setIdTareaRefresco(idTarea);
-            setUsuario(usuario);
+            idTareaRefresco.current = idTarea;
+            setUsuario(user);
         } else {
             setError(res.error);
         }
@@ -136,8 +138,9 @@ export function AuthProvider({ children }) {
 
     const cambiarModoUsuario = (modo) => {
         setUsuario((x) => {
-            x.cambiarModoUsuario(modo);
-            return x;
+            const nuevoUsuario = structuredClone(x);
+            nuevoUsuario.cambiarModoUsuario(modo);
+            return nuevoUsuario;
         })
     };
 
