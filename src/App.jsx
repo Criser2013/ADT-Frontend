@@ -4,7 +4,6 @@ import { useCredenciales } from "./contexts/CredencialesContext";
 import { useEffect, useState } from "react";
 import { useNavegacion } from "./contexts/NavegacionContext";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useLocation } from "react-router";
 import Router from "../router";
 import ModalSimple from "./components/modals/ModalSimple";
 import ModalAccion from "./components/modals/ModalAccion";
@@ -21,11 +20,9 @@ import { IconoPermisos } from "./components/icons/IconosModal";
  * @returns {JSX.Element}
  */
 export default function App() {
-    const { cargando, error, autenticado, requiereRefresco, setAuth, setScopes, autenticar } = useAuth();
+    const { error, requiereRefresco, setAuth, setScopes, autenticar } = useAuth();
     const { t } = useTranslation();
     const navegacion = useNavegacion();
-    const navigate = useNavigate();
-    const location = useLocation();
     const { firebaseAuth, scopesDrive } = useCredenciales();
     const [modal, setModal] = useState({
         mostrar: false, mensaje: ""
@@ -109,7 +106,7 @@ export default function App() {
     const manejadorBtnCerrarSesion = () => {
         setModal2Btn((x) => ({ ...x, mostrar: false }));
         navegacion.setPaginaAnterior(location.pathname);
-        navigate("/cerrar-sesion", { replace: true });
+        location.replace("/cerrar-sesion");
     };
 
     return (

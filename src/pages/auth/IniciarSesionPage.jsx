@@ -33,7 +33,6 @@ export default function IniciarSesionPage() {
     const { t } = useTranslation();
     const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [cargandoBtn, setCargandoBtn] = useState(false);
-    const [cargando, setCargando] = useState(false);
     const [captchaAceptado, setCaptchaAceptado] = useState(false);
     const [terminosAceptados, setTerminosAceptados] = useState(false);
     const [modal, setModal] = useState({
@@ -93,15 +92,12 @@ export default function IniciarSesionPage() {
      * @param {Function} funcion - Función a ejecutar.
      */
     const reiniciarPagina = (funcion = null) => {
-        setCargando(true);
         if (funcion != null) {
             funcion();
         }
-        setTimeout(() => {
-            setTerminosAceptados(false);
-            setDesactivarBtn(true);
-            setCargando(false);
-        }, 100);
+
+        setTerminosAceptados(false);
+        setDesactivarBtn(true);
     };
 
     const manejadorBtnIniciarSesion = async () => {

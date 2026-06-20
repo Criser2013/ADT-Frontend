@@ -1,8 +1,7 @@
-import { createContext, useState, useContext, useEffect, useMemo, useRef, useReducer } from "react";
+import { createContext, useState, useContext, useEffect, useMemo, useRef } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { cerrarSesion as cerrarSesionFirebase, iniciarSesion as iniciarSesionFirebase, cargarCredsOAuth, verRolUsuario } from "../services/Autenticacion";
 import UsuarioAutenticado from "../models/UsuarioAutenticado";
-import { useLocation } from "react-router-dom";
 
 export const authContext = createContext();
 
@@ -28,7 +27,6 @@ export const useAuth = () => {
  * @returns {JSX.Element}
  */
 export function AuthProvider({ children }) {
-    const location = useLocation();
 
     // Instancia de autenticación de Firebase
     const [auth, setAuth] = useState(null);
@@ -80,7 +78,7 @@ export function AuthProvider({ children }) {
      */
     async function manejadorCambiosAuth(usuario) {
         if (usuario) {
-            const { success, expires, accessToken, permisos } = cargarCredsOAuth();
+            const { success, expires, accessToken } = cargarCredsOAuth();
             const tiempoPrevioRefresco = success ? ((parseInt(expires) - Date.now()) / 1000) : null;
             const urlExcentas = ["/cerrar-sesion", "/"].includes(location.pathname);
 
@@ -92,6 +90,7 @@ export function AuthProvider({ children }) {
                 idTareaRefresco.current = idTarea;
 
                 setUsuario(new UsuarioAutenticado(usuario, usuario.uid, rol, accessToken));
+                setCargando(false);
 
             } else if (!urlExcentas && (tiempoPrevioRefresco > 20) && (tiempoPrevioRefresco <= 180)) {
                 mostrarRefrescoTokens();
@@ -120,6 +119,7 @@ export function AuthProvider({ children }) {
 
             idTareaRefresco.current = idTarea;
             setUsuario(user);
+            console.log(user)
         } else {
             setError(res.error);
         }
@@ -143,17 +143,18 @@ export function AuthProvider({ children }) {
             const nuevoUsuario = structuredClone(x);
             nuevoUsuario.cambiarModoUsuario(modo);
             return nuevoUsuario;
-        })
+        });
     };
 
     function mostrarRefrescoTokens() {
         setRequiereRefresco(true);
-        setIdTareaRefresco(null);
+        idTareaRefresco.current = null;
     };
 
     async function autenticar() {
         return await iniciarSesion(usuario);
     };
+    console.log(usuario)
 
     return (
         <authContext.Provider value={value}>

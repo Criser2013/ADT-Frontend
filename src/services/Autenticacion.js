@@ -1,7 +1,8 @@
 import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
-import i18n from "i18next";
 import { peticionApi } from "./Api";
 import { AES, enc } from "crypto-js";
+import i18n from "i18next";
+import { AES_KEY } from "../../constants";
 
 /**
  * Inicia sesión con Google dentro de Firebase, registra al usuario en la base de datos si es su primera vez y obtiene su rol.
@@ -14,7 +15,7 @@ import { AES, enc } from "crypto-js";
  * En caso de algún fallo se retorna la clave correspondiente al mensaje de error.
  */
 export async function iniciarSesion(firebaseAuth, permisos, usuario = null) {
-    const { success, res, user, credencialOAuth, error } = iniciarSesionGoogle(firebaseAuth, permisos, usuario);
+    const { success, res, user, credencialOAuth, error } = await iniciarSesionGoogle(firebaseAuth, permisos, usuario);
 
     if (success) {
         const registrado = await registrarUsuario(user);
@@ -23,7 +24,7 @@ export async function iniciarSesion(firebaseAuth, permisos, usuario = null) {
 
         if (!permisosRequeridos) {
             await cerrarSesion(firebaseAuth);
-            return { success: false, error: "errPermisos", permiso };
+            return { success: false, error: "errPermisos" };
         }
 
         if (!registrado.success) {
@@ -58,13 +59,13 @@ export async function iniciarSesion(firebaseAuth, permisos, usuario = null) {
 export async function iniciarSesionGoogle(firebaseAuth, permisos, usuario = null) {
     try {
         const provider = new GoogleAuthProvider();
-        provider.setDefaultLanguage(language);
+        provider.setDefaultLanguage(i18n.language);
 
         for (const i of permisos) {
             provider.addScope(i);
         }
 
-        const res = usuario ? await reauthenticateWithPopup(usuario, provider) : await signInWithPopup(firebaseAuth, provider);
+        const res = usuario ? await signInWithPopup(usuario, provider) : await signInWithPopup(firebaseAuth, provider);
         const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
 
         oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
@@ -72,7 +73,7 @@ export async function iniciarSesionGoogle(firebaseAuth, permisos, usuario = null
         
         return { success: true, res: res, user: res.user, credencialOAuth: oauth };
     } catch (error) {
-        return { success: false, error: manejadorErroresAuth(error, usuario) };
+        return { success: false, error: manejadorErroresAuth(error) };
     }
 };
 
@@ -91,6 +92,7 @@ export async function cerrarSesion(firebaseAuth, idTareaRefresco = null) {
         borrarCredsOAuth();
         return { success: true };
     } catch (error) {
+        console.error("Error al cerrar sesión:", error);
         return { success: false, error: "errCerrarSesion" };
     }
 };
@@ -108,7 +110,7 @@ export async function registrarUsuario(usuario) {
         return { success: true };
     } else {
         const res = await peticionApi(
-            "registrar", "POST", { uid: usuario.uid }, null, null, language, "errRegistrarUsuario"
+            "registrar", "POST", { uid: usuario.uid }, null, null, i18n.language, "errRegistrarUsuario"
         );
         return { success: res.success };
     }
@@ -162,11 +164,10 @@ export function guardarCredsOAuth(tokens) {
 /**
  * Maneja los errores de autenticación que se presenten.
  * @param {import("firebase/auth").AuthError} error Error de Firebase Auth.
- * @param {import("firebase/auth").User} usuario Instancia del usuario de Firebase.
  * @returns {String} Mensaje de error traducido para mostrar al usuario. En caso de
  * que el error sea "auth/popup-closed-by-user" redirige a la página de inicio.
  */
-export function manejadorErroresAuth(error, usuario = null) {
+export function manejadorErroresAuth(error) {
     switch (error.code) {
         // Cierra el popup de Google antes de iniciar sesión
         case "auth/popup-closed-by-user":

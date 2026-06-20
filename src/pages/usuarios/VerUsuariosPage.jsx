@@ -77,7 +77,7 @@ export default function VerUsuariosPage() {
     const mostrarTxtAdvertencia = useMemo(() => {
         return seleccionado != null && (seleccionado.estado && !estado);
     }, [seleccionado, estado]);
-    const usuario = useMemo(() => {
+    const usuarioSeleccionado = useMemo(() => {
         const datos = seleccionado != null ? seleccionado : { nombre: "", correo: "", rol: 0, estado: true, ultimaConexion: "", cantidad: 0 };
         return [
             { nombre: t("txtNombre"), valor: datos.nombre },
@@ -113,12 +113,12 @@ export default function VerUsuariosPage() {
      * Coloca el título de la página.
      */
     useEffect(() => {
-        if (!usuario && admin != null && admin) {
+        if (!usuario && admin) {
             manejadorRecargar(usuario?.tokenDrive);
-        } else if (admin != null && !admin) {
+        } else if (!autenticado || !admin) {
             navigate("/menu", { replace: true });
         }
-    }, [admin, usuario]);
+    }, [admin, usuario, autenticado]);
 
     useEffect(() => {
         document.title = t("titListaUsuarios");
@@ -584,7 +584,7 @@ export default function VerUsuariosPage() {
         dayjs.extend(customParseFormat);
         return (
             <Box>
-                {usuario.map((x, i) => {
+                {usuarioSeleccionado.map((x, i) => {
                     let orientacion = numCols;
                     let espaciado = (numCols == "column") ? 0 : 1;
                     if (i == 2 || i == 3 || i == 5) {

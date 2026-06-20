@@ -3,6 +3,12 @@
  * la autenticación del usuario, su rol y el token de acceso a Google Drive.
  */
 export default class UsuarioAutenticado {
+    #usuarioFirebase;
+    #uid;
+    #rol;
+    #tokenDrive;
+
+
     constructor(usuarioFirebase, uid, rol, tokenDrive) {
         this.#usuarioFirebase = usuarioFirebase;
         this.#uid = uid;
@@ -11,11 +17,10 @@ export default class UsuarioAutenticado {
         this.modoUsuario = false;
         this.rolVisible = rol;
 
-        #cargarModoUsuarioCache();
+        this.#cargarModoUsuarioCache();
     }
 
     set modoUsuario(modo) {
-        this.modoUsuario = modo;
         this.rolVisible = (modo ? false : this.#rol);
         this.#guardarModoUsuarioCache();
     }

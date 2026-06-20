@@ -49,8 +49,6 @@ export default function Navbar() {
      * Carga de la imagen del usuario a iniciar.
      */
     useEffect(() => {
-        const { autenticado, authInfo } = auth;
-
         if (autenticado && usuario) {
             setImg(usuario.fotoUrl);
         } else if (!autenticado) {
@@ -114,7 +112,7 @@ export default function Navbar() {
         if (e == null) {
             e = { target: { checked: !modoUsuario } };
         }
-        usuario?.modoUsuario = e.target.checked;
+        usuario.modoUsuario = e.target.checked;
         navegacion.setRecargarPagina(true);
     };
 
