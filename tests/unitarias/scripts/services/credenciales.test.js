@@ -1,13 +1,13 @@
 import { jest, describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 
-jest.unstable_mockModule("../../../src/services/Api", () => {
+jest.unstable_mockModule("../../../../src/services/Api", () => {
     return {
         peticionApi: jest.fn()
     };
 })
 
-const { peticionApi } = await import("../../../src/services/Api");
-const { cargarCredencialesServidor, cargarCredencialesCache, almacenarCredencialesCache } = await import("../../../src/services/Credenciales");
+const { peticionApi } = await import("../../../../src/services/Api");
+const { cargarCredencialesServidor, cargarCredencialesCache, almacenarCredencialesCache } = await import("../../../../src/services/Credenciales");
 
 
 describe("Validar la función 'cargarCredencialesServidor'", () => {

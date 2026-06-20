@@ -13,7 +13,7 @@ jest.unstable_mockModule("xlsx", () => ({
 }));
 
 const xlsx = await import("xlsx");
-const { leerArchivoXlsx, crearArchivoXlsx, validarXlsxPacientes, validarFilasXlsxPacientes, descargarArchivoXlsx } = await import("../../../src/utils/XlsxFiles");
+const { leerArchivoXlsx, crearArchivoXlsx, validarXlsxPacientes, validarFilasXlsxPacientes, descargarArchivoXlsx } = await import("../../../../src/utils/XlsxFiles");
 
 describe("Validar la funcion 'validarXlsxPacientes'", () => {
     // ------------------------- Parámetros -------------------------

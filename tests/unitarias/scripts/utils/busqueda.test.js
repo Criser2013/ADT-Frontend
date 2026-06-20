@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals';
-import { buscar } from '../../../src/utils/Busqueda';
+import { buscar } from '../../../../src/utils/Busqueda';
 describe("Validar la función 'buscar'", () => {
     // ---------------- Parámetros de prueba ----------------
     const params1 = {

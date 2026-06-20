@@ -1,5 +1,5 @@
 import { expect, test, describe } from "@jest/globals";
-import { obtenerMesActualStr, obtenerDatosMesActual, obtenerDatosPorMes } from "../../../src/utils/Fechas";
+import { obtenerMesActualStr, obtenerDatosMesActual, obtenerDatosPorMes } from "../../../../src/utils/Fechas";
 import dayjs from "dayjs";
 
 describe("Validar la función 'obtenerMesActualStr'", () => {

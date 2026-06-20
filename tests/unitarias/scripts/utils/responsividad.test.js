@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals';
-import { detAbrirMenu, detTamCarga } from '../../../src/utils/Responsividad';
+import { detAbrirMenu, detTamCarga } from '../../../../src/utils/Responsividad';
 
 describe("Validar la función 'detAbrirMenu'", () => {
     test("CP - 17", () => {

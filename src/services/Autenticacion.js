@@ -164,15 +164,16 @@ export function guardarCredsOAuth(tokens) {
 /**
  * Maneja los errores de autenticación que se presenten.
  * @param {import("firebase/auth").AuthError} error Error de Firebase Auth.
+ * @param {Location} loc Objeto Location para redirigir al usuario en caso de que cierre el popup de autenticación antes de iniciar sesión. Por defecto se toma el objeto global location.
  * @returns {String} Mensaje de error traducido para mostrar al usuario. En caso de
  * que el error sea "auth/popup-closed-by-user" redirige a la página de inicio.
  */
-export function manejadorErroresAuth(error) {
+export function manejadorErroresAuth(error, loc = location) {
     switch (error.code) {
         // Cierra el popup de Google antes de iniciar sesión
         case "auth/popup-closed-by-user":
-            if (location.pathname != "/") {
-                location.replace("/");
+            if (loc.pathname != "/") {
+                loc.replace("/");
             }
             break;
 

@@ -23,7 +23,7 @@ jest.unstable_mockModule("firebase/auth", () => {
 const { initializeApp, getApps, getApp } = await import("firebase/app");
 const { getFirestore } = await import("firebase/firestore");
 const { getAuth } = await import("firebase/auth");
-const { inicializarFirebase } = await import("../../../src/services/Firebase");
+const { inicializarFirebase } = await import("../../../../src/services/Firebase");
 
 describe("Validar la función 'inicializarFirebase'", () => {
     // ------------------------- Parámetros --------------------------

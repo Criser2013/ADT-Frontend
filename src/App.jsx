@@ -20,7 +20,7 @@ import { IconoPermisos } from "./components/icons/IconosModal";
  * @returns {JSX.Element}
  */
 export default function App() {
-    const { error, requiereRefresco, setAuth, setScopes, autenticar } = useAuth();
+    const { error, requiereRefresco, setAuth, setScopes, autenticar, usuario } = useAuth();
     const { t } = useTranslation();
     const navegacion = useNavegacion();
     const { firebaseAuth, scopesDrive } = useCredenciales();
@@ -68,14 +68,14 @@ export default function App() {
     */
     useEffect(() => {
         if (error && error !== "errPermisos") {
-            setModal({ mostrar: true, mensaje: t(error) });
+            setModal({ mostrar: true, mensaje: t(error, { usuario: usuario.nombre, correo: usuario.correo }) });
         } else if (error === "errPermisos") {
             setModal2Btn({
                 mostrar: true, mensaje: t("txtModalPermisos"), titulo: t("titModalPermisos"),
                 txtBtn: t("txtBtnPermisos"), icono: <IconoPermisos />
             });
         }
-    }, [error]);
+    }, [error, usuario, t]);
 
     /**
      * Manejador de eventos del botón de cerrar el modal de error.

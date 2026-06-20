@@ -1,5 +1,5 @@
 import { jest, expect, describe, test, beforeEach } from '@jest/globals';
-import { peticionApi } from "../../../src/services/Api";
+import { peticionApi } from "../../../../../src/services/Api";
 
 describe("Validar la funcion 'peticionApi'", () => {
     // ------------------------ Mocks ------------------------
