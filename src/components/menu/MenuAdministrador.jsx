@@ -93,7 +93,7 @@ export default function MenuAdministrador() {
      */
     useEffect(() => {
         if (usuario && firestore) {
-            cargarUsuarios(usuario?.tokenDrive).then((x) => {
+            cargarUsuarios(usuario?.tokenFirebase).then((x) => {
                 cargarDiagnosticos(firestore, x.map((x) => x.uid));
             });
         }
@@ -217,7 +217,7 @@ export default function MenuAdministrador() {
                     <AdvertenciaEspacio rol={1001} cantidadDiagnosticos={cantDiagnosticos} />
                     <Grid size={4}>
                         <Typography variant="h4" fontStyle="bold" align="left">
-                            {t("txtBienvenida", { nombre: auth.authInfo.user.displayName })}
+                            {t("txtBienvenida", { nombre: usuario?.nombre })}
                         </Typography>
                         <Divider sx={{ padding: "1vh 0vw" }} />
                     </Grid>

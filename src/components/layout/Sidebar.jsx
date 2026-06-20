@@ -20,7 +20,7 @@ export default function Sidebar() {
     const { t } = useTranslation();
     const filas = useMemo(() => {
         const { rolVisible, modoUsuario } = usuario;
-        const usuario = [
+        const usuarioComun = [
             { txt: t("titMenu"), icono: <HomeIcon />, ruta: "/menu" },
             { txt: t("txtPacientes"), icono: <ListPacienteIcono />, ruta: "/pacientes" },
             { txt: t("titDiagnosticoPaciente"), icono: <DiagnosticoIcono />, ruta: "/diagnostico-paciente" },
@@ -34,7 +34,7 @@ export default function Sidebar() {
         ];
 
         if (rolVisible != null && (!rolVisible || modoUsuario)) {
-            return usuario;
+            return usuarioComun;
         } else if (rolVisible != null && rolVisible && !modoUsuario) {
             return admin;
         } else {

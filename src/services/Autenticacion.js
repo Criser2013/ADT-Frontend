@@ -1,4 +1,4 @@
-import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
+import { signInWithPopup, reauthenticateWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
 import { peticionApi } from "./Api";
 import { AES, enc } from "crypto-js";
 import i18n from "i18next";
@@ -65,7 +65,7 @@ export async function iniciarSesionGoogle(firebaseAuth, permisos, usuario = null
             provider.addScope(i);
         }
 
-        const res = usuario ? await signInWithPopup(usuario, provider) : await signInWithPopup(firebaseAuth, provider);
+        const res = usuario ? await reauthenticateWithPopup(usuario, provider) : await signInWithPopup(firebaseAuth, provider);
         const oauth = GoogleAuthProvider.credentialFromResult(res).toJSON();
 
         oauth.expires = `${Date.now() + (res._tokenResponse.oauthExpireIn * 1000)}`;
@@ -103,8 +103,8 @@ export async function cerrarSesion(firebaseAuth, idTareaRefresco = null) {
  * @returns {Object} Objeto con la propiedad success indicando si el registro fue exitoso.
  */
 export async function registrarUsuario(usuario) {
-    const { createdAt, lastSignInTime } = usuario.metadata;
-    const estaRegistrado = createdAt == lastSignInTime;
+    const { createdAt, lastLoginAt } = usuario.metadata;
+    const estaRegistrado = createdAt !== lastLoginAt;
 
     if (estaRegistrado) {
         return { success: true };

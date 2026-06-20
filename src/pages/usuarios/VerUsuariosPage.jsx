@@ -73,7 +73,7 @@ export default function VerUsuariosPage() {
         } else {
             return false;
         }
-    }, [usuario?.uid, seleccionado]);
+    }, [usuario, seleccionado]);
     const mostrarTxtAdvertencia = useMemo(() => {
         return seleccionado != null && (seleccionado.estado && !estado);
     }, [seleccionado, estado]);
@@ -283,7 +283,7 @@ export default function VerUsuariosPage() {
      * Recarga los datos de la página.
      */
     const manejadorRecargar = async (token = null) => {
-        const credencial = (token == null) ? usuario?.tokenDrive : token;
+        const credencial = (token == null) ? usuario?.tokenFirebase : token;
 
         if (!cargando) {
             setCargando(true);
@@ -351,7 +351,7 @@ export default function VerUsuariosPage() {
         setCargando(true);
 
         const peticiones = [];
-        const token = usuario?.tokenDrive;
+        const token = usuario?.tokenFirebase;
 
         for (let i = 0; i < usuarios.length; i++) {
             peticiones[i] = null;

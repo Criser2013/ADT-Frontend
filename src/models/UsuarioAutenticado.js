@@ -37,6 +37,10 @@ export default class UsuarioAutenticado {
         return this.#tokenDrive;
     }
 
+    get tokenFirebase() {
+        return this.#usuarioFirebase.accessToken;
+    }
+
     get usuarioFirebase() {
         return this.#usuarioFirebase;
     }

@@ -113,13 +113,12 @@ export function AuthProvider({ children }) {
         const res = await iniciarSesionFirebase(auth, scopes, usuario);
 
         if (res.success) {
-            const { usuario, accessToken, rol, expiracion } = res;
+            const { usuario, accessToken, rol, tiempoExpiracion } = res;
             const user = new UsuarioAutenticado(usuario, usuario.uid, rol, accessToken);
-            const idTarea = setTimeout(mostrarRefrescoTokens, expiracion);
+            const idTarea = setTimeout(mostrarRefrescoTokens, tiempoExpiracion);
 
             idTareaRefresco.current = idTarea;
             setUsuario(user);
-            console.log(user)
         } else {
             setError(res.error);
         }
@@ -154,7 +153,6 @@ export function AuthProvider({ children }) {
     async function autenticar() {
         return await iniciarSesion(usuario);
     };
-    console.log(usuario)
 
     return (
         <authContext.Provider value={value}>

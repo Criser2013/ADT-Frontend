@@ -198,7 +198,7 @@ export default function VerDiagnosticosPage() {
      * @param {Object} db - Instancia de Firestore.
      */
     const manejadorRecargar = (token = null, usuario = null, cargo = null, db = null) => {
-        const credencial = (admin || token == null) ? usuario?.tokenDrive : token;
+        const credencial = (admin || token == null) ? usuario?.tokenFirebase : token;
         const uid = (usuario == null) ? usuario?.uid : usuario;
         const rolUsuario = (cargo == null) ? admin : cargo;
         const BD = (db == null) ? firestore : db;
@@ -395,7 +395,7 @@ export default function VerDiagnosticosPage() {
 
         if (peticiones.every((x) => x.success)) {
             setCargando(true);
-            const usuarios = await cargarPacientes(usuario?.tokenDrive);
+            const usuarios = await cargarPacientes(usuario?.tokenFirebase);
             cargarDiagnosticos(usuario?.uid, admin, firestore, usuarios);
         } else {
             setModoModal(0);
@@ -436,7 +436,7 @@ export default function VerDiagnosticosPage() {
         const res = await cambiarDiagnostico(id, medico, { ...diagnostico, validado: validar }, firestore);
 
         if (res.success) {
-            const pacientes = await cargarPacientes(usuario?.tokenDrive);
+            const pacientes = await cargarPacientes(usuario?.tokenFirebase);
             cargarDiagnosticos(usuario?.uid, admin, firestore, pacientes);
         } else {
             setActivar2Btn(false);

@@ -148,9 +148,9 @@ export default function VerDiagnosticoPage() {
     useEffect(() => {
         const exp = (!admin || persona.nombre == "");
         if (admin != null && firestore != null && exp) {
-            cargarDatosDiagnostico(usuario?.token);
+            cargarDatosDiagnostico(usuario?.tokenFirebase);
         }
-    }, [drive.descargando, usuario?.token, admin, persona, firestore]);
+    }, [drive.descargando, usuario?.tokenFirebase, admin, persona, firestore]);
 
     /**
      * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
