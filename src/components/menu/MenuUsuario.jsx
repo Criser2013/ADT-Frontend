@@ -25,7 +25,7 @@ import { AES_KEY } from "../../../constants";
  * @returns {JSX.Element}
  */
 export default function MenuUsuario() {
-    const auth = useAuth();
+    const { usuario, autenticado } = useAuth();
     const { firestore } = useCredenciales();
     const navegacion = useNavegacion();
     const { t } = useTranslation();
@@ -73,27 +73,27 @@ export default function MenuUsuario() {
      */
     useEffect(() => {
         const token = sessionStorage.getItem("session-tokens");
-        if (token != null) {
+        if (autenticado && token) {
             const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
             drive.setToken(tokens.accessToken);
-        } else if (auth.tokenDrive != null) {
-            drive.setToken(auth.tokenDrive);
+        } else if (usuario?.tokenDrive != null) {
+            drive.setToken(usuario.tokenDrive);
         }
-    }, [auth.tokenDrive]);
+    }, [usuario, autenticado]);
 
     /**
      * Carga los diagnósticos y los pacientes dependiendo del rol del usuario.
      */
     useEffect(() => {
         const descargar = sessionStorage.getItem("descargando-drive");
-        const { uid } = auth.authInfo;
+        const { uid } = usuario;
 
         if (uid != null && drive.token != null && (descargar == null || descargar == "false") && firestore != null) {
             sessionStorage.setItem("descargando-drive", "true");
             cargarPacientes();
             cargarDiagnosticos(uid, firestore);
         }
-    }, [auth.authInfo, drive.token, firestore]);
+    }, [usuario, drive.token, firestore]);
 
      /**
      * Actualiza el gráfico de barras con los datos de diagnósticos y usuarios.
@@ -216,7 +216,7 @@ export default function MenuUsuario() {
                 <Grid columns={numCols} container spacing={2}>
                     <Grid size={2}>
                         <Typography variant="h4" align="left">
-                            {t("txtBienvenida", { nombre: auth.authInfo.user.displayName })}
+                            {t("txtBienvenida", { nombre: usuario?.nombre })}
                         </Typography>
                         <Divider sx={{ padding: "1vh 0vw" }} />
                     </Grid>
