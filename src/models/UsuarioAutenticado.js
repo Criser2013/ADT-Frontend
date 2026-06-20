@@ -36,6 +36,18 @@ export default class UsuarioAutenticado {
         return this.#usuarioFirebase;
     }
 
+    get fotoUrl() {
+        return this.#usuarioFirebase.photoURL;
+    }
+
+    get nombre() {
+        return this.#usuarioFirebase.displayName;
+    }
+
+    get correo() {
+        return this.#usuarioFirebase.email;
+    }
+
     /**
      * Carga el modo de usuario desde el sessionStorage. Si no hay un modo de usuario
      * almacenado, se mantiene el valor por defecto (false).

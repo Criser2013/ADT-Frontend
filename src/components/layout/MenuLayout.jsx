@@ -12,7 +12,7 @@ import { useEffect, useMemo } from "react";
  * @returns {JSX.Element}
  */
 export default function MenuLayout({ children }) {
-    const auth = useAuth();
+    const { cargando } = useAuth();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
     const height = useMemo(() => {
@@ -58,7 +58,7 @@ export default function MenuLayout({ children }) {
 
     return (
         <>
-            {auth.cargando ? (
+            {cargando ? (
                 <Box display="flex" justifyContent="center" alignItems="center" height={height}>
                     <CircularProgress />
                 </Box>
