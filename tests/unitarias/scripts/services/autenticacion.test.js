@@ -9,8 +9,11 @@ jest.unstable_mockModule("firebase/auth", () => ({
 }));
 
 jest.unstable_mockModule("crypto-js", () => ({
-    AES: { encrypt: jest.fn(() => ({ toString: jest.fn().mockReturnValue("encryptedData") })) },
-    enc: jest.fn()
+    AES: { 
+        encrypt: jest.fn(() => ({ toString: jest.fn().mockReturnValue("encryptedData") })),
+        decrypt: jest.fn(() => ({ toString: jest.fn().mockReturnValue("decryptedData") }))
+    },
+    enc: { Utf8: { stringify: jest.fn() } }
 }));
 
 jest.unstable_mockModule("i18next", () => ({
@@ -21,7 +24,7 @@ const firebaseAuth = await import("firebase/auth");
 const { AES, enc } = await import("crypto-js");
 const i18n = await import("i18next");
 
-const { manejadorErroresAuth, guardarCredsOAuth, borrarCredsOAuth } = await import('../../../../src/services/Autenticacion');
+const { manejadorErroresAuth, guardarCredsOAuth, borrarCredsOAuth, cargarCredsOAuth, verRolUsuario } = await import('../../../../src/services/Autenticacion');
 
 describe("Validar la funcion 'manejadorErroresAuth", () => {
     // ------------------------- Parámetros ---------------------------
@@ -93,5 +96,45 @@ describe("Validar la función 'borrarCredsOAuth'", () => {
         expect(sessionStorage.removeItem).toHaveBeenCalledWith("session-tokens");
         expect(sessionStorage.removeItem).toHaveBeenCalledWith("modo-usuario");
         expect(sessionStorage.removeItem).toHaveBeenCalledWith("ejecutar-callback");
+    });
+});
+
+describe("Validar la función 'cargarCredencialesOAuth'", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test.each([
+        ["112", "datosEncriptados", { success: true, expires: 3600, accessToken: "token", permisos: ["scope1", "scope2"] }],
+        ["113", null, { success: false }]
+    ])("CP - %s", (idPrueba, valores, resEsperada) => {
+        jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => valores);
+        jest.spyOn(JSON, "parse").mockImplementation(() => ({ expires: 3600, accessToken: "token", scopesDrive: ["scope1", "scope2"] }));
+
+        const res = cargarCredsOAuth();
+
+        expect(res).toEqual(resEsperada);
+
+        expect(sessionStorage.getItem).toHaveBeenCalledTimes(1);
+        expect(sessionStorage.getItem).toHaveBeenCalledWith("session-tokens");
+
+        if (valores === null) {
+            expect(AES.decrypt).not.toHaveBeenCalled();
+            expect(enc.Utf8.stringify).not.toHaveBeenCalled();
+            expect(JSON.parse).not.toHaveBeenCalled();
+        } else {
+            expect(AES.decrypt).toHaveBeenCalledTimes(1);
+            expect(AES.decrypt).toHaveBeenCalledWith(valores, AES_KEY);
+            expect(JSON.parse).toHaveBeenCalledTimes(1);
+            expect(JSON.parse).toHaveBeenCalledWith("decryptedData");
+        }
+    });
+});
+
+describe("Validar la función 'verRolUsuario'", () => {
+    test("CP - 114", async () => {
+        const res = await verRolUsuario({ nombre: "usuario", getIdTokenResult: jest.fn().mockResolvedValue({ claims: { admin: true } }) });
+
+        expect(res).toBe(true);
     });
 });
