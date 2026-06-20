@@ -36,7 +36,7 @@ import { AES, enc } from "crypto-js";
  * @returns {JSX.Element}
  */
 export default function VerDiagnosticoPage() {
-    const auth = useAuth();
+    const { autenticado, usuario } = useAuth();
     const drive = useDrive();
     const { t } = useTranslation();
     const { firestore } = useCredenciales();
@@ -72,7 +72,7 @@ export default function VerDiagnosticoPage() {
     const [persona, setPersona] = useState({
         id: "", nombre: ""
     });
-    const admin = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
+    const admin = useMemo(() => usuario?.rolVisible, [usuario.rolVisible]);
     const [errorDiagnostico, setErrorDiagnostico] = useState(false);
     const [diagnostico, setDiagnostico] = useState(datos.personales.validado);
     const [diagOriginal, setDiagOriginal] = useState({});
@@ -134,13 +134,13 @@ export default function VerDiagnosticoPage() {
      */
     useEffect(() => {
         const token = sessionStorage.getItem("session-tokens");
-        if (token != null) {
+        if (autenticado && token) {
             const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
             drive.setToken(tokens.accessToken);
-        } else if (auth.tokenDrive != null) {
-            drive.setToken(auth.tokenDrive);
+        } else if (usuario?.tokenDrive) {
+            drive.setToken(usuario.tokenDrive);
         }
-    }, [auth.tokenDrive]);
+    }, [autenticado, usuario]);
 
     /**
      * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
@@ -148,9 +148,9 @@ export default function VerDiagnosticoPage() {
     useEffect(() => {
         const exp = (!admin || persona.nombre == "");
         if (admin != null && firestore != null && exp) {
-            cargarDatosDiagnostico(auth.authInfo.user.accessToken);
+            cargarDatosDiagnostico(usuario?.token);
         }
-    }, [drive.descargando, auth.authInfo.user, admin, persona, firestore]);
+    }, [drive.descargando, usuario?.token, admin, persona, firestore]);
 
     /**
      * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
@@ -203,7 +203,7 @@ export default function VerDiagnosticoPage() {
         if (datos.success && datos.data != []) {
             setDiagOriginal({ ...datos.data });
 
-            if (!admin && datos.data.medico != auth.authInfo.uid) {
+            if (!admin && datos.data.medico != usuario?.uid) {
                 volverPestanaAnterior();
                 return;
             }
