@@ -12,13 +12,13 @@ import { useTranslation } from "react-i18next";
  * @returns {JSX.Element}
  */
 export default function Page404() {
-    const auth = useAuth();
+    const { cargando , usuario } = useAuth();
     const { t } = useTranslation();
     const navegacion = useNavegacion();
     const navigate = useNavigate();
     const cargandoAuth = useMemo(() => {
-        return auth.authInfo.user == null ? false : auth.cargando;
-    }, [auth.authInfo, auth.cargando]);
+        return usuario === null ? false : cargando;
+    }, [usuario, cargando]);
     const fondoImg = useMemo(() => {
             return navegacion.tema === "light" ? fondoClaro : fondoOscuro;
         }, [navegacion.tema]);
@@ -31,11 +31,9 @@ export default function Page404() {
      * Manejador de eventos del botón para redirigir al usuario a la página principal.
      */
     const manejadorBtn = () => {
-        const { uid } = auth.authInfo;
+        const { uid } = usuario;
         let url = (uid != null) ? "/menu" : "/";
-        if (url == "/") {
-            auth.quitarPantallaCarga();
-        }
+        
         navigate(url, { replace: true });
     };
 

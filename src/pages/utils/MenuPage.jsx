@@ -11,10 +11,10 @@ import { useNavegacion } from "../../contexts/NavegacionContext";
  * @returns {JSX.Element}
  */
 export default function MenuPage() {
-    const auth = useAuth();
+    const { usuario } = useAuth();
     const { t } = useTranslation();
     const { idioma } = useNavegacion();
-    const admin = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
+    const admin = useMemo(() => usuario?.rolVisible, [usuario?.rolVisible]);
 
     useEffect(() => {
         document.title = t("titMenu");
