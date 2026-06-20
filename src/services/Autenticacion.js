@@ -143,9 +143,6 @@ export function cargarCredsOAuth() {
     }
 };
 
-/**
- * Borra las credenciales de sesión almacenadas en el sessionStorage.
- */
 export function borrarCredsOAuth() {
     sessionStorage.removeItem("session-tokens");
     sessionStorage.removeItem("modo-usuario");
