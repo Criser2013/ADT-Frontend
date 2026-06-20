@@ -3,8 +3,6 @@ import i18n from "i18next";
 import { peticionApi } from "./Api";
 import { AES, enc } from "crypto-js";
 
-const { language, t } = i18n;
-
 /**
  * Inicia sesión con Google dentro de Firebase, registra al usuario en la base de datos si es su primera vez y obtiene su rol.
  * @param {import("firebase/auth").FirebaseAuth} firebaseAuth Instancia de Firebase Auth.
@@ -13,7 +11,7 @@ const { language, t } = i18n;
  * se asume que es para reautenticar al usuario y refrescar las credenciales de acceso a Google, de lo contrario se inicia una nueva sesión.
  * @returns {Object} Objeto con la propiedad success indicando si la autenticación fue exitosa, el usuario autenticado (clave usuario),
  * token de acceso a Google (clave accessToken), el rol del usuario (clave rol), el tiempo (en milisegundos) de expiración del token OAuth (clave tiempoExpiracion).
- * En caso de algún fallo se retorna un mensaje de error traducido (clave error).
+ * En caso de algún fallo se retorna la clave correspondiente al mensaje de error.
  */
 export async function iniciarSesion(firebaseAuth, permisos, usuario = null) {
     const { success, res, user, credencialOAuth, error } = iniciarSesionGoogle(firebaseAuth, permisos, usuario);
@@ -25,12 +23,12 @@ export async function iniciarSesion(firebaseAuth, permisos, usuario = null) {
 
         if (!permisosRequeridos) {
             await cerrarSesion(firebaseAuth);
-            return { success: false, usuario: null, credencialOAuth: null, error: t("errPermisos") };
+            return { success: false, error: "errPermisos", permiso };
         }
 
         if (!registrado.success) {
             await cerrarSesion(firebaseAuth);
-            return { success: false, usuario: null, credencialOAuth: null, error: t("errVerificarRegistro") };
+            return { success: false, error: "errVerificarRegistro" };
         }
 
         // Exige refresco de token 3 minutos antes de su expiración
@@ -42,7 +40,7 @@ export async function iniciarSesion(firebaseAuth, permisos, usuario = null) {
         return { success: true, usuario: user, accessToken: credencialOAuth.accessToken, rol: rol, tiempoExpiracion: tiempoExpiracion };
 
     } else {
-        return { success: false, usuario: null, credencialOAuth: null, error: error };
+        return { success: false, error: error };
     }
 }
 
@@ -93,7 +91,7 @@ export async function cerrarSesion(firebaseAuth, idTareaRefresco = null) {
         borrarCredsOAuth();
         return { success: true };
     } catch (error) {
-        return { success: false, error: t("errCerrarSesion") };
+        return { success: false, error: "errCerrarSesion" };
     }
 };
 
@@ -110,7 +108,7 @@ export async function registrarUsuario(usuario) {
         return { success: true };
     } else {
         const res = await peticionApi(
-            "registrar", "POST", { uid: usuario.uid }, null, null, language, t("errRegistrarUsuario")
+            "registrar", "POST", { uid: usuario.uid }, null, null, language, "errRegistrarUsuario"
         );
         return { success: res.success };
     }
@@ -179,19 +177,19 @@ export function manejadorErroresAuth(error, usuario = null) {
 
         // El usuario cancela la autenticación y no otorga los permisos
         case "auth/user-cancelled":
-            return t("errPermisos");
+            return "errPermisos";
 
         // Usuario que intenta iniciar sesión no coincide con el usuario actual
         case "auth/user-mismatch":
-            return t("errSesionIniciada", { usuario: usuario.displayName, correo: usuario.email });
+            return "errSesionIniciada";
 
         // Usuario deshabilitado
         case "auth/user-disabled":
-            return t("errUsuarioBaneado");
+            return "errUsuarioBaneado";
 
         // Todo lo demás
         default:
             console.error("Error de autenticación:", error);
-            return t("errIniciarSesion");
+            return "errIniciarSesion";
     }
 };

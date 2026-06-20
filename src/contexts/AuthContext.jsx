@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect, useMemo, useRef } from "react";
+import { createContext, useState, useContext, useEffect, useMemo, useRef, useReducer } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { cerrarSesion as cerrarSesionFirebase, iniciarSesion as iniciarSesionFirebase, cargarCredsOAuth, verRolUsuario } from "../services/Autenticacion";
 import UsuarioAutenticado from "../models/UsuarioAutenticado";
@@ -50,8 +50,8 @@ export function AuthProvider({ children }) {
     const value = useMemo(() => ({
         useAuth, cargando, error, setAuth,
         setScopes, cerrarSesion, autenticado,
-        requiereRefresco, setCargando, usuario, cambiarModoUsuario, iniciarSesion
-    }), [cargando, error, setAuth, setScopes, cerrarSesion, autenticado, requiereRefresco, setCargando, usuario, cambiarModoUsuario, iniciarSesion]);
+        requiereRefresco, usuario, cambiarModoUsuario, autenticar
+    }), [cargando, error, setAuth, setScopes, cerrarSesion, autenticado, requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion]);
 
     /**
      * Retira el indicador de carga cuando se tiene la instancia de FirebaseAuth y permisos de Drive requeridos.
@@ -78,7 +78,7 @@ export function AuthProvider({ children }) {
      * Maneja los cambios en la autenticación del usuario.
      * @param {import("firebase/auth").User} usuario Usuario actual de Firebase.
      */
-    const manejadorCambiosAuth = async (usuario) => {
+    async function manejadorCambiosAuth(usuario) {
         if (usuario) {
             const { success, expires, accessToken, permisos } = cargarCredsOAuth();
             const tiempoPrevioRefresco = success ? ((parseInt(expires) - Date.now()) / 1000) : null;
@@ -108,7 +108,7 @@ export function AuthProvider({ children }) {
     };
 
 
-    const iniciarSesion = async (usuario = null) => {
+    async function iniciarSesion(usuario = null) {
         setCargando(true);
 
         const res = await iniciarSesionFirebase(auth, scopes, usuario);
@@ -127,7 +127,7 @@ export function AuthProvider({ children }) {
         setCargando(false);
     };
 
-    const cerrarSesion = async () => {
+    async function cerrarSesion() {
         setCargando(true);
         const { success, error } = await cerrarSesionFirebase(auth, idTareaRefresco);
         if (!success) {
@@ -136,7 +136,7 @@ export function AuthProvider({ children }) {
         setCargando(false);
     };
 
-    const cambiarModoUsuario = (modo) => {
+    function cambiarModoUsuario(modo) {
         setUsuario((x) => {
             const nuevoUsuario = structuredClone(x);
             nuevoUsuario.cambiarModoUsuario(modo);
@@ -144,9 +144,13 @@ export function AuthProvider({ children }) {
         })
     };
 
-    const mostrarRefrescoTokens = () => {
+    function mostrarRefrescoTokens() {
         setRequiereRefresco(true);
         setIdTareaRefresco(null);
+    };
+
+    async function autenticar() {
+        await iniciarSesion(usuario);
     };
 
     return (
