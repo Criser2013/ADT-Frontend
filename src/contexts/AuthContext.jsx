@@ -125,6 +125,8 @@ export function AuthProvider({ children }) {
         }
 
         setCargando(false);
+
+        return res.success;
     };
 
     async function cerrarSesion() {
@@ -150,7 +152,7 @@ export function AuthProvider({ children }) {
     };
 
     async function autenticar() {
-        await iniciarSesion(usuario);
+        return await iniciarSesion(usuario);
     };
 
     return (
