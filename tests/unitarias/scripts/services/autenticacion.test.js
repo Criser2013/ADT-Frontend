@@ -24,7 +24,7 @@ const firebaseAuth = await import("firebase/auth");
 const { AES, enc } = await import("crypto-js");
 const i18n = await import("i18next");
 
-const { manejadorErroresAuth, guardarCredsOAuth, borrarCredsOAuth, cargarCredsOAuth, verRolUsuario } = await import('../../../../src/services/Autenticacion');
+const { manejadorErroresAuth, guardarCredsOAuth, borrarCredsOAuth, cargarCredsOAuth, verRolUsuario, registrarUsuario, cerrarSesion } = await import('../../../../src/services/Autenticacion');
 
 describe("Validar la funcion 'manejadorErroresAuth", () => {
     // ------------------------- Parámetros ---------------------------
@@ -136,5 +136,69 @@ describe("Validar la función 'verRolUsuario'", () => {
         const res = await verRolUsuario({ nombre: "usuario", getIdTokenResult: jest.fn().mockResolvedValue({ claims: { admin: true } }) });
 
         expect(res).toBe(true);
+    });
+});
+
+describe("Validar la función 'registrarUsuario'", () => {
+    // -------------------------- Parámetros ---------------------------
+    const params1 = { metadata: { createdAt: "2024-01-01", lastLoginAt: "2024-01-02" } }
+    const params2 = { uid: "123", metadata: { createdAt: "2024-01-01", lastLoginAt: "2024-01-01" } };
+
+    // -------------------------- Resultado esperado ---------------------------
+    const res = { success: true };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        global.fetch = jest.fn();
+    });
+
+    test.each([
+        ["115", null, params1, res],
+        ["116", res, params2, res]
+    ])("CP - %s", async (idPrueba, mock, param, resEsperada) => {
+        global.fetch.mockResolvedValueOnce({ json: () => Promise.resolve(mock), ok: true });
+        const res = await registrarUsuario(param, "es");
+
+        expect(res).toEqual(resEsperada);
+
+        if (!mock) {
+            expect(global.fetch).not.toHaveBeenCalled();
+        } else {
+            expect(global.fetch).toHaveBeenCalled();
+        }
+    });
+});
+
+describe("Validar la función 'cerrarSesion'", () => {
+    // -------------------------- Parámetros ---------------------------
+    const params1 = { firebase:"firebase", tareaRefresco: 1 };
+    const params2 = { firebase:"firebase", tareaRefresco: null };
+
+    // -------------------------- Resultado esperado ---------------------------
+    const res1 = { success: true };
+    const res2 = { success: false, error: "errCerrarSesion" };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test.each([
+        ["117", params1, res1, false],
+        ["118", params2, res1, false],
+        ["119", params1, res2, true]
+    ])("CP - %s", async (idPrueba, params, resEsperada, lanzaExcepcion) => {
+
+        if (lanzaExcepcion) {
+            firebaseAuth.signOut.mockImplementation(() => { throw new Error("Error al cerrar sesión") });
+        } else {
+            firebaseAuth.signOut.mockResolvedValue(true);
+        }
+
+        const res = await cerrarSesion(params.firebase, params.tareaRefresco);
+
+        expect(res).toEqual(resEsperada);
+
+        expect(firebaseAuth.signOut).toHaveBeenCalledTimes(1);
+        expect(firebaseAuth.signOut).toHaveBeenCalledWith(params.firebase);
     });
 });

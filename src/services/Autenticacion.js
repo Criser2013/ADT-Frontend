@@ -100,9 +100,10 @@ export async function cerrarSesion(firebaseAuth, idTareaRefresco = null) {
 /**
  * Verifica si el usuario está registrado, sino lo está, lo registra.
  * @param {import("firebase/auth").User} usuario Instancia de usuario de Firebase.
+ * @param {String} idioma Idioma para traducir los mensajes de error.
  * @returns {Object} Objeto con la propiedad success indicando si el registro fue exitoso.
  */
-export async function registrarUsuario(usuario) {
+export async function registrarUsuario(usuario, idioma = i18n.language) {
     const { createdAt, lastLoginAt } = usuario.metadata;
     const estaRegistrado = createdAt !== lastLoginAt;
 
@@ -110,7 +111,7 @@ export async function registrarUsuario(usuario) {
         return { success: true };
     } else {
         const res = await peticionApi(
-            "registrar", "POST", { uid: usuario.uid }, null, null, i18n.language, "errRegistrarUsuario"
+            "registrar", "POST", { uid: usuario.uid }, null, null, idioma, "errRegistrarUsuario"
         );
         return { success: res.success };
     }
