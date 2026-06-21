@@ -1,15 +1,27 @@
 import { jest, beforeEach, afterEach, expect, describe, test, beforeAll } from '@jest/globals';
 import { AES_KEY } from '../../../../constants';
 
+const mockSetDefaultLanguage = jest.fn();
+const mockAddScope = jest.fn();
+
+const mockProviderInstance = {
+    setDefaultLanguage: mockSetDefaultLanguage,
+    addScope: mockAddScope
+};
+
+const GoogleAuthProvider = jest.fn(() => mockProviderInstance);
+
+GoogleAuthProvider.credentialFromResult = jest.fn();
+
 jest.unstable_mockModule("firebase/auth", () => ({
     signInWithPopup: jest.fn(),
     reauthenticateWithPopup: jest.fn(),
-    GoogleAuthProvider: jest.fn(),
+    GoogleAuthProvider,
     signOut: jest.fn()
 }));
 
 jest.unstable_mockModule("crypto-js", () => ({
-    AES: { 
+    AES: {
         encrypt: jest.fn(() => ({ toString: jest.fn().mockReturnValue("encryptedData") })),
         decrypt: jest.fn(() => ({ toString: jest.fn().mockReturnValue("decryptedData") }))
     },
@@ -24,7 +36,7 @@ const firebaseAuth = await import("firebase/auth");
 const { AES, enc } = await import("crypto-js");
 const i18n = await import("i18next");
 
-const { manejadorErroresAuth, guardarCredsOAuth, borrarCredsOAuth, cargarCredsOAuth, verRolUsuario, registrarUsuario, cerrarSesion } = await import('../../../../src/services/Autenticacion');
+const { manejadorErroresAuth, guardarCredsOAuth, borrarCredsOAuth, cargarCredsOAuth, verRolUsuario, registrarUsuario, cerrarSesion, iniciarSesionGoogle, iniciarSesion } = await import('../../../../src/services/Autenticacion');
 
 describe("Validar la funcion 'manejadorErroresAuth", () => {
     // ------------------------- Parámetros ---------------------------
@@ -79,7 +91,7 @@ describe("Validar la funcion 'guardarCredsOAuth", () => {
         jest.spyOn(Storage.prototype, "setItem").mockImplementation(jest.fn());
 
         const res = guardarCredsOAuth(params);
-        
+
         expect(AES.encrypt).toBeCalledTimes(1);
         expect(AES.encrypt).toHaveBeenCalledWith(JSON.stringify(params), AES_KEY);
         expect(sessionStorage.setItem).toHaveBeenCalledTimes(1);
@@ -171,8 +183,8 @@ describe("Validar la función 'registrarUsuario'", () => {
 
 describe("Validar la función 'cerrarSesion'", () => {
     // -------------------------- Parámetros ---------------------------
-    const params1 = { firebase:"firebase", tareaRefresco: 1 };
-    const params2 = { firebase:"firebase", tareaRefresco: null };
+    const params1 = { firebase: "firebase", tareaRefresco: 1 };
+    const params2 = { firebase: "firebase", tareaRefresco: null };
 
     // -------------------------- Resultado esperado ---------------------------
     const res1 = { success: true };
@@ -200,5 +212,96 @@ describe("Validar la función 'cerrarSesion'", () => {
 
         expect(firebaseAuth.signOut).toHaveBeenCalledTimes(1);
         expect(firebaseAuth.signOut).toHaveBeenCalledWith(params.firebase);
+    });
+});
+
+describe("Validar la función 'iniciarSesionGoogle'", () => {
+    // -------------------------- Parámetros ---------------------------
+    const params1 = { firebaseAuth: "firebase", permisos: ["scope1", "scope2"], usuario: null };
+    const params2 = { firebaseAuth: "firebase", permisos: ["scope1", "scope2"], usuario: { uid: "123" } };
+
+    // -------------------------- Respuestas esperadas ---------------------------
+    const res1 = {
+        success: true, res: {
+            user: { uid: "123" }, _tokenResponse: {
+                oauthExpireIn: 2,
+                rawUserInfo: JSON.stringify({
+                    granted_scopes: ["scope1", "scope2"]
+                })
+            }
+        }, user: { uid: "123" }, credencialOAuth: {
+            _tokenResponse: {
+                oauthExpireIn: 2,
+                rawUserInfo: JSON.stringify({
+                    granted_scopes: ["scope1", "scope2"]
+                }),
+            },
+            expires: "3000",
+            scopesDrive: ["scope1", "scope2"]
+        }
+    }
+    const res2 = { success: false, error: "errIniciarSesion" };
+
+    // -------------------------- Mocks ---------------------------
+    const mockProvider = {
+        _tokenResponse: {
+            oauthExpireIn: 2,
+            rawUserInfo: JSON.stringify({ granted_scopes: ["scope1", "scope2"] })
+        }
+    };
+    const loginResponse = {
+        user: { uid: "123" },
+        _tokenResponse: {
+            oauthExpireIn: 2,
+            rawUserInfo: JSON.stringify({
+                granted_scopes: ["scope1", "scope2"]
+            })
+        }
+    };
+
+    const mockLogin1 = () => Promise.resolve(loginResponse);
+    const mockLogin2 = () => Promise.reject(new Error("Error al iniciar sesión"));
+
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test.each([
+        ["120", mockProvider, mockLogin1, params1, res1, false],
+        ["121", mockProvider, mockLogin1, params2, res1, false],
+        ["122", mockProvider, mockLogin2, params1, res2, true]
+    ])("CP - %s", async (idPrueba, mockProvider, mockAuth, params, resEsperada, lanzaExcepcion) => {
+        jest.spyOn(Date, "now").mockImplementation(() => 1000);
+        const mockToJSON = jest.fn().mockReturnValue(mockProvider);
+        firebaseAuth.GoogleAuthProvider.credentialFromResult.mockReturnValue({
+            toJSON: mockToJSON
+        });
+        firebaseAuth.signInWithPopup.mockImplementation(mockAuth);
+        firebaseAuth.reauthenticateWithPopup.mockImplementation(mockAuth);
+
+        const res = await iniciarSesionGoogle(params.firebaseAuth, params.permisos, params.usuario, "es");
+
+        expect(res).toEqual(resEsperada);
+        expect(firebaseAuth.GoogleAuthProvider).toHaveBeenCalledTimes(1);
+        expect(mockSetDefaultLanguage).toHaveBeenCalledTimes(1);
+        expect(mockSetDefaultLanguage).toHaveBeenCalledWith("es");
+        expect(mockAddScope).toHaveBeenCalledTimes(params.permisos.length);
+
+        if (lanzaExcepcion) {
+            expect(Date.now).not.toHaveBeenCalled();
+            expect(mockToJSON).not.toHaveBeenCalled();
+        } else {
+            expect(Date.now).toHaveBeenCalledTimes(1);
+            expect(mockToJSON).toHaveBeenCalledTimes(1);
+        }
+
+        if (params.usuario) {
+            expect(firebaseAuth.reauthenticateWithPopup).toHaveBeenCalledTimes(1);
+            expect(firebaseAuth.reauthenticateWithPopup).toHaveBeenCalledWith(params.usuario, expect.anything());
+        } else {
+            expect(firebaseAuth.signInWithPopup).toHaveBeenCalledTimes(1);
+            expect(firebaseAuth.signInWithPopup).toHaveBeenCalledWith(params.firebaseAuth, expect.anything());
+        }
     });
 });

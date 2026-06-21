@@ -56,10 +56,10 @@ export async function iniciarSesion(firebaseAuth, permisos, usuario = null) {
  * usuario autenticado (clave usuario), las credenciales OAuth (clave credencialOAuth) y un mensaje
  * de error en caso de que la autenticación falle (clave error).
  */
-export async function iniciarSesionGoogle(firebaseAuth, permisos, usuario = null) {
+export async function iniciarSesionGoogle(firebaseAuth, permisos, usuario = null, idioma = i18n.language) {
     try {
         const provider = new GoogleAuthProvider();
-        provider.setDefaultLanguage(i18n.language);
+        provider.setDefaultLanguage(idioma);
 
         for (const i of permisos) {
             provider.addScope(i);
