@@ -7,6 +7,7 @@ export default class UsuarioAutenticado {
     #uid;
     #rol;
     #tokenDrive;
+    #modoUsuario = false;
 
 
     constructor(usuarioFirebase, uid, rol, tokenDrive) {
@@ -14,15 +15,19 @@ export default class UsuarioAutenticado {
         this.#uid = uid;
         this.#rol = rol;
         this.#tokenDrive = tokenDrive;
-        this.modoUsuario = false;
         this.rolVisible = rol;
 
         this.#cargarModoUsuarioCache();
     }
 
     set modoUsuario(modo) {
+        this.#modoUsuario = modo;
         this.rolVisible = (modo ? false : this.#rol);
         this.#guardarModoUsuarioCache();
+    }
+
+    get modoUsuario() {
+        return this.#modoUsuario;
     }
 
     get uid() {
@@ -65,8 +70,8 @@ export default class UsuarioAutenticado {
         const modoUsuario = sessionStorage.getItem("modo-usuario");
 
         if (modoUsuario) {
-            this.modoUsuario = (modoUsuario == "true");
-            this.rolVisible = (this.modoUsuario ? false : this.#rol);
+            this.#modoUsuario = (modoUsuario == "true");
+            this.rolVisible = (this.#modoUsuario ? false : this.#rol);
         }
     }
 
@@ -74,7 +79,7 @@ export default class UsuarioAutenticado {
      * Guarda el modo de usuario actual en el sessionStorage para mantenerlo entre recargas de página.
      */
     #guardarModoUsuarioCache() {
-        sessionStorage.setItem("modo-usuario", `${this.modoUsuario}`);
+        sessionStorage.setItem("modo-usuario", `${this.#modoUsuario}`);
     }
 
     /**
@@ -89,6 +94,6 @@ export default class UsuarioAutenticado {
         this.#uid = uid;
         this.#rol = rol;
         this.#tokenDrive = tokenDrive;
-        this.rolVisible = (this.modoUsuario ? false : this.#rol);
+        this.rolVisible = (this.#modoUsuario ? false : this.#rol);
     }
 };
