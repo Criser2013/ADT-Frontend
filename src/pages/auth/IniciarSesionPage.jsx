@@ -5,7 +5,7 @@ import { Trans } from "react-i18next";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import BtnTema from "../../components/layout/BtnTema";
@@ -25,7 +25,7 @@ import SelectIdioma from "../../components/tabs/SelectIdioma";
  * @returns {JSX.Element}
  */
 export default function IniciarSesionPage() {
-    const { autenticado, autenticar, cargando } = useAuth();
+    const { autenticado, iniciarSesion, cargando, usuario } = useAuth();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
     const { firebase, reCAPTCHA } = useCredenciales();
@@ -68,7 +68,7 @@ export default function IniciarSesionPage() {
      * Verifica la autenticación del usuario y redirige si ya está autenticado.
      */
     useEffect(() => {
-        navegacion.setPaginaAnterior("");
+        navegacion.paginaAnterior.current = "";
     }, []);
 
     useEffect(() => {
@@ -101,7 +101,7 @@ export default function IniciarSesionPage() {
     };
 
     const manejadorBtnIniciarSesion = async () => {
-        const resultadoExitoso = await autenticar();
+        const resultadoExitoso = await iniciarSesion(usuario);
         if (!resultadoExitoso) {
             setDesactivarBtn(true);
         } else {

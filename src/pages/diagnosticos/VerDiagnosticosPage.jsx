@@ -4,7 +4,7 @@ import Datatable from "../../components/tabs/Datatable";
 import TabHeader from "../../components/layout/TabHeader";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useDrive } from "../../contexts/DriveContext";
@@ -342,7 +342,7 @@ export default function VerDiagnosticosPage() {
     const manejadorClicCelda = (dato) => {
         const ejecutar = sessionStorage.getItem("ejecutar-callback");
         if (ejecutar == "true" || ejecutar == null) {
-            navegacion.setPaginaAnterior("/diagnosticos");
+            navegacion.paginaAnterior.current = "/diagnosticos";
             sessionStorage.removeItem("ejecutar-callback");
             const id = admin ? dato.id : `${dato.id}-${usuario?.uid}`;
             navigate(`/diagnosticos/ver-diagnostico?id=${id}`);

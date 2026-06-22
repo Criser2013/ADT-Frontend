@@ -6,7 +6,7 @@ import MenuLayout from "../../components/layout/MenuLayout";
 import { useNavigate, useSearchParams } from "react-router";
 import { validarId } from "../../utils/Validadores";
 import { useTranslation } from "react-i18next";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { AES, enc } from "crypto-js";
 import { AES_KEY } from "../../../constants";
 

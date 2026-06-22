@@ -3,7 +3,7 @@ import NavBar from "./NavBar";
 import Sidebar from "./Sidebar";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useEffect, useMemo } from "react";
 
 /**

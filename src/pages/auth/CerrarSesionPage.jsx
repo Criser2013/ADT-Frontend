@@ -2,7 +2,7 @@ import { Box, CircularProgress } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useNavegacion } from '../../contexts/NavegacionContext';
+import { useNavegacion } from '../../hooks/Navegacion';
 
 /**
  * Página dónde el usuario cierra sesión. Al acceder se cierra la sesión si el usuario
@@ -34,8 +34,8 @@ export default function CerrarSesionPage() {
      */
     const callbackError = () => {
         if (navegacion.paginaAnterior != null) {
-            navigate(`/${navegacion.paginaAnterior}`, { replace: true });
-            navegacion.setPaginaAnterior(null);
+            navigate(`/${navegacion.paginaAnterior.current}`, { replace: true });
+            navegacion.paginaAnterior.current = null;
         } else{
             navigate("/", { replace: true });
         }

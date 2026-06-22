@@ -6,7 +6,7 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useDrive } from "../../contexts/DriveContext";
@@ -146,7 +146,7 @@ export default function VerPacientesPage() {
      * Manejador del botón de anadir pacientes.
      */
     const manejadorBtnAnadir = () => {
-        navegacion.setPaginaAnterior("/pacientes");
+        navegacion.paginaAnterior.current = "/pacientes";
         navigate("/pacientes/anadir");
     };
 
@@ -168,7 +168,7 @@ export default function VerPacientesPage() {
      * @param {JSON} dato - Instancia
      */
     const manejadorClicCelda = (dato) => {
-        navegacion.setPaginaAnterior("/pacientes");
+        navegacion.paginaAnterior.current = "/pacientes";
         navigate(`/pacientes/ver-paciente?id=${dato.id}`);
     };
 

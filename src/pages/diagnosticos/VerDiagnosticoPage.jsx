@@ -4,7 +4,7 @@ import {
 } from "@mui/material";
 import { useDrive } from "../../contexts/DriveContext";
 import { useAuth } from "../../contexts/AuthContext";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import TabHeader from "../../components/layout/TabHeader";
 import MenuLayout from "../../components/layout/MenuLayout";
@@ -375,7 +375,7 @@ export default function VerDiagnosticoPage() {
         const res = await eliminarDiagnostico(id, uid[1], firestore);
 
         if (res.success) {
-            navegacion.setPaginaAnterior("/diagnosticos");
+            navegacion.paginaAnterior.current = "/diagnosticos";
             navigate("/diagnosticos", { replace: true });
         } else {
             setCargando(false);

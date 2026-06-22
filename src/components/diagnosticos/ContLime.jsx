@@ -1,6 +1,6 @@
 import { Box, Grid, Typography } from "@mui/material";
 import GraficoBarras from "../charts/GraficoBarras";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 

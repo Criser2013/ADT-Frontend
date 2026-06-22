@@ -2,7 +2,7 @@ import { Box, Button, Paper, Typography, CircularProgress } from "@mui/material"
 import { useNavigate } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEffect, useMemo } from "react";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import fondoClaro from "../../assets/fondos/fondo_claro.png";
 import fondoOscuro from "../../assets/fondos/fondo_oscuro.png";
 import { useTranslation } from "react-i18next";

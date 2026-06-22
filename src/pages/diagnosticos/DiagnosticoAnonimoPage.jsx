@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import FormDiagnostico from "../../components/forms/FormDiagnostico";
 import MenuLayout from "../../components/layout/MenuLayout";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useTranslation } from "react-i18next";
 
 /**

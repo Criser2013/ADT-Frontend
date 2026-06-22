@@ -1,5 +1,5 @@
 import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar } from "@mui/material";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useNavigate } from "react-router-dom";
 import HomeIcon from "@mui/icons-material/Home";
 import { DiagnosticoIcono, DiagAnonimoIcono, HistDiagnosticoIcono, ListPacienteIcono, DatosIcono } from "../icons/IconosSidebar";
@@ -69,7 +69,7 @@ export default function Sidebar() {
      * @param {String} url - Ruta a la que se redirige al usuario.
      */
     const manejadorClicMenu = (url) => {
-        navegacion.setPaginaAnterior(window.location.pathname);
+        navegacion.paginaAnterior.current = window.location.pathname;
         navigate(url);
 
         if (navegacion.variantSidebar == "temporary") {

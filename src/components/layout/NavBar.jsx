@@ -4,7 +4,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import BtnTema from "../layout/BtnTema";
@@ -91,7 +91,7 @@ export default function Navbar() {
      * Manejador de evento para cerrar sesión.
      */
     const cerrarSesion = () => {
-        navegacion.setPaginaAnterior(window.location.pathname);
+        navegacion.paginaAnterior.current = window.location.pathname;
         navigate("/cerrar-sesion", { replace: true });
     };
 

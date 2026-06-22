@@ -4,7 +4,7 @@ import MenuLayout from "../../components/layout/MenuLayout";
 import MenuUsuario from "../../components/menu/MenuUsuario";
 import MenuAdministrador from "../../components/menu/MenuAdministrador";
 import { useTranslation } from "react-i18next";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 
 /**
  * Página del menú principal de la aplicación.

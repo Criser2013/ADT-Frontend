@@ -1,6 +1,6 @@
 import { Grid, Box, CircularProgress, Typography, Divider } from "@mui/material";
 import { useMemo, useState, useEffect, useCallback } from "react";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useDrive } from "../../contexts/DriveContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCredenciales } from "../../contexts/CredencialesContext";

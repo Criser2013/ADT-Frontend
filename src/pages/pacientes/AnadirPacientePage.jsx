@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import FormPaciente from "../../components/forms/FormPaciente";
 import MenuLayout from "../../components/layout/MenuLayout";
 import { useTranslation } from "react-i18next";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { AES, enc } from "crypto-js";
 import { AES_KEY } from "../../../constants";
 /**

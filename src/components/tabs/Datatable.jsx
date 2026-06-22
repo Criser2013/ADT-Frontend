@@ -10,7 +10,7 @@ import { useState, useMemo, useEffect } from "react";
 import { visuallyHidden } from "@mui/utils";
 import { obtenerComparadorStrNum } from "../../utils/Ordenamiento";
 import { buscar } from "../../utils/Busqueda";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { t } from "i18next";
 
 /**

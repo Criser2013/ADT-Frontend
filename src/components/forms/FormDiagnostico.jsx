@@ -4,7 +4,7 @@ import {
 } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import Check from "../tabs/Check";
 import SelectChip from "../tabs/SelectChip";
 import { CAMPOS_BIN, CAMPOS_TXT, COMORBILIDADES, SEXOS, SINTOMAS } from "../../../constants";
@@ -228,7 +228,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
 
         if (res.success) {
             const url = esDiagPacientes ? "/diagnostico-paciente" : "/diagnostico-anonimo";
-            navegacion.setPaginaAnterior(url);
+            navegacion.paginaAnterior.current = url;
             navigate(`/diagnosticos/ver-diagnostico?id=${id}`, { replace: true });
         } else {
             setCargando(false);
