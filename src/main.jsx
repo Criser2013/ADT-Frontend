@@ -4,7 +4,7 @@ import "../i18n";
 import App from './App.jsx';
 import { CredencialesProvider } from './contexts/CredencialesContext.jsx';
 import { AuthProvider } from './contexts/AuthContext.jsx';
-import { NavegacionProvider } from './contexts/NavegacionContext.jsx';
+import { NavegacionProvider } from './hooks/Navegacion.jsx';
 import { instanciaTema } from './theme.jsx';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from "@mui/material/CssBaseline";

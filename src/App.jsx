@@ -2,7 +2,7 @@
 import { useAuth } from "./contexts/AuthContext";
 import { useCredenciales } from "./contexts/CredencialesContext";
 import { useEffect, useState } from "react";
-import { useNavegacion } from "./contexts/NavegacionContext";
+import { useNavegacion } from "./hooks/Navegacion";
 import { useTranslation } from "react-i18next";
 import Router from "../router";
 import ModalSimple from "./components/modals/ModalSimple";
@@ -105,7 +105,7 @@ export default function App() {
      */
     const manejadorBtnCerrarSesion = () => {
         setModal2Btn((x) => ({ ...x, mostrar: false }));
-        navegacion.setPaginaAnterior(location.pathname);
+        navegacion.paginaAnterior.current = location.pathname;
         location.replace("/cerrar-sesion");
     };
 

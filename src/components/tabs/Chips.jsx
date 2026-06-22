@@ -1,6 +1,6 @@
 import { Chip } from "@mui/material";
 import { useMemo } from "react";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useTranslation } from "react-i18next";
 
 /**

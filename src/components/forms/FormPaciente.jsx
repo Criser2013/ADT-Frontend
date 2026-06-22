@@ -20,7 +20,7 @@ import { Controller, useForm } from "react-hook-form";
 import Check from "../tabs/Check";
 import { v6 } from "uuid";
 import { useTranslation } from "react-i18next";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 
 /**
  * Componente que representa el formularios para añadir/editar los datos de

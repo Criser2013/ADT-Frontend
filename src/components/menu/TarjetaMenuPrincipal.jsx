@@ -1,6 +1,6 @@
 import { Box, Card, Stack, Typography } from "@mui/material";
 import { useMemo } from "react";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 
 /**
  * Tarjeta que se muestra en el menú principal del usuario.

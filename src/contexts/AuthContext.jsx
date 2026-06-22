@@ -1,25 +1,7 @@
-import { createContext, useState, useContext, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { cerrarSesion as cerrarSesionFirebase, iniciarSesion as iniciarSesionFirebase, cargarCredsOAuth, verRolUsuario } from "../services/Autenticacion";
 import UsuarioAutenticado from "../models/UsuarioAutenticado";
-
-export const authContext = createContext();
-
-/**
- * Otorga acceso al contexto de autenticación de la aplicación.
- * @returns {Object}
- */
-export const useAuth = () => {
-    const context = useContext(authContext);
-
-    if (!context) {
-        throw new Error(
-            "useAuth debe usarse dentro de AuthProvider."
-        );
-    }
-
-    return context;
-};
 
 /**
  * Proveedor del contexto que permite gestionar el estado de la autenticación.
@@ -46,10 +28,10 @@ export function AuthProvider({ children }) {
     const autenticado = useMemo(() => usuario instanceof UsuarioAutenticado, [usuario]);
 
     const value = useMemo(() => ({
-        useAuth, cargando, error, setAuth,
+        cargando, error, setAuth,
         setScopes, cerrarSesion, autenticado,
         requiereRefresco, usuario, cambiarModoUsuario, autenticar
-    }), [cargando, error, setAuth, setScopes, cerrarSesion, autenticado, requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion]);
+    }), [cargando, error, setAuth, setScopes, cerrarSesion, autenticado, requiereRefresco, usuario, cambiarModoUsuario, autenticar]);
 
     /**
      * Retira el indicador de carga cuando se tiene la instancia de FirebaseAuth y permisos de Drive requeridos.

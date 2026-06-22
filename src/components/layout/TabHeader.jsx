@@ -1,6 +1,6 @@
 import { Link, Breadcrumbs, Stack, Typography, Box, IconButton, Tooltip, Divider } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import WestIcon from '@mui/icons-material/West';
 import { useTranslation } from "react-i18next";
 

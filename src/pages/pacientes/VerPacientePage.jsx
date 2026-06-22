@@ -4,7 +4,7 @@ import {
 } from "@mui/material";
 import { useDrive } from "../../contexts/DriveContext";
 import { useAuth } from "../../contexts/AuthContext";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useEffect, useMemo, useState } from "react";
 import TabHeader from "../../components/layout/TabHeader";
 import MenuLayout from "../../components/layout/MenuLayout";
@@ -108,7 +108,7 @@ export default function VerPacientePage() {
             navigate("/pacientes", { replace: true });
         }
 
-        navegacion.setPaginaAnterior("/pacientes");
+        navegacion.paginaAnterior.current = "/pacientes";
     }, [datos.personales.nombre]);
 
 
@@ -182,7 +182,7 @@ export default function VerPacientePage() {
      * Manejador del botón de editar paciente.
      */
     const manejadorBtnEditar = () => {
-        navegacion.setPaginaAnterior(`/pacientes/ver-paciente?id=${datos.personales.id}`);
+        navegacion.paginaAnterior.current = `/pacientes/ver-paciente?id=${datos.personales.id}`;
         navigate(`/pacientes/editar?id=${datos.personales.id}`);
     };
 

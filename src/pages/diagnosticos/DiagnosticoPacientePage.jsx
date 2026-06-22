@@ -6,7 +6,7 @@ import { useDrive } from "../../contexts/DriveContext";
 import ModalSimple from "../../components/modals/ModalSimple";
 import CloseIcon from "@mui/icons-material/Close";
 import { useTranslation } from "react-i18next";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { AES, enc } from "crypto-js";
 import { AES_KEY } from "../../../constants";
 

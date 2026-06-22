@@ -4,7 +4,7 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { useMemo } from 'react';
-import { useNavegacion } from '../../contexts/NavegacionContext';
+import { useNavegacion } from '../../hooks/Navegacion';
 
 ChartJS.register(
     CategoryScale, LinearScale, BarElement,

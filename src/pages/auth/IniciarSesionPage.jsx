@@ -5,7 +5,7 @@ import { Trans } from "react-i18next";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import BtnTema from "../../components/layout/BtnTema";
@@ -68,7 +68,7 @@ export default function IniciarSesionPage() {
      * Verifica la autenticación del usuario y redirige si ya está autenticado.
      */
     useEffect(() => {
-        navegacion.setPaginaAnterior("");
+        navegacion.paginaAnterior.current = "";
     }, []);
 
     useEffect(() => {

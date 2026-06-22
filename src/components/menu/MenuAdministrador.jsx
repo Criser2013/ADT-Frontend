@@ -1,6 +1,6 @@
 import { Grid, Box, CircularProgress, Typography, Divider } from "@mui/material";
 import { useMemo, useState, useEffect, useCallback } from "react";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import { verDiagnosticos } from "../../firestore/diagnosticos-collection";

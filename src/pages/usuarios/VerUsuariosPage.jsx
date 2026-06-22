@@ -5,7 +5,7 @@ import Datatable from "../../components/tabs/Datatable";
 import TabHeader from "../../components/layout/TabHeader";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useNavegacion } from "../../hooks/Navegacion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import ModalAccion from "../../components/modals/ModalAccion";

@@ -3,7 +3,7 @@ import {
     Chart as ChartJS, Title, Tooltip, Legend, ArcElement
 } from 'chart.js';
 import { useMemo } from 'react';
-import { useNavegacion } from '../../contexts/NavegacionContext';
+import { useNavegacion } from '../../hooks/Navegacion';
 
 ChartJS.register(
     ArcElement, Title, Tooltip, Legend,
