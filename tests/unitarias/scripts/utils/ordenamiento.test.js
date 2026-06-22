@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals';
-import { comparadorStrNum, obtenerComparadorStrNum } from '../../../src/utils/Ordenamiento';
+import { comparadorStrNum, obtenerComparadorStrNum } from '../../../../src/utils/Ordenamiento';
 
 describe("Validar la función 'comparadorStrNum'", () => {
     // ------------------ Parámetros -------------------

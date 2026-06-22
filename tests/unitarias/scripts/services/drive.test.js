@@ -1,6 +1,6 @@
 import { expect, describe, test, jest, afterEach } from '@jest/globals';
-import { descargarArchivo, crearArchivo, buscarArchivo, subirArchivo, clasificarError } from '../../../src/services/Drive';
-import { DRIVE_UPLOAD_API_URL, DRIVE_API_URL } from '../../../constants';
+import { descargarArchivo, crearArchivo, buscarArchivo, subirArchivo, clasificarError } from '../../../../src/services/Drive';
+import { DRIVE_UPLOAD_API_URL, DRIVE_API_URL } from '../../../../constants';
 
 describe("Validar la funcion 'descargarArchivo'", () => {
     // ------------------------ Mocks ------------------------

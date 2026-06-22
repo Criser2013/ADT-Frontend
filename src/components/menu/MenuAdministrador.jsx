@@ -23,7 +23,7 @@ import { useTranslation } from "react-i18next";
  * @returns {JSX.Element}
  */
 export default function MenuAdministrador() {
-    const auth = useAuth();
+    const { usuario } = useAuth();
     const { firestore } = useCredenciales();
     const navegacion = useNavegacion();
     const { t } = useTranslation();
@@ -92,14 +92,12 @@ export default function MenuAdministrador() {
      * Carga los diagnósticos y los usuarios.
      */
     useEffect(() => {
-        const { user } = auth.authInfo;
-
-        if (user != null && firestore != null) {
-            cargarUsuarios(user.accessToken).then((x) => {
+        if (usuario && firestore) {
+            cargarUsuarios(usuario?.tokenFirebase).then((x) => {
                 cargarDiagnosticos(firestore, x.map((x) => x.uid));
             });
         }
-    }, [auth.authInfo, firestore]);
+    }, [usuario, firestore]);
 
     /**
      * Actualiza el gráfico de barras con los datos de diagnósticos y usuarios.
@@ -219,7 +217,7 @@ export default function MenuAdministrador() {
                     <AdvertenciaEspacio rol={1001} cantidadDiagnosticos={cantDiagnosticos} />
                     <Grid size={4}>
                         <Typography variant="h4" fontStyle="bold" align="left">
-                            {t("txtBienvenida", { nombre: auth.authInfo.user.displayName })}
+                            {t("txtBienvenida", { nombre: usuario?.nombre })}
                         </Typography>
                         <Divider sx={{ padding: "1vh 0vw" }} />
                     </Grid>

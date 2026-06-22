@@ -20,7 +20,7 @@ import SelectIdioma from "../tabs/SelectIdioma";
  * @returns {JSX.Element}
  */
 export default function Navbar() {
-    const auth = useAuth();
+    const { usuario, autenticado } = useAuth();
     const { t } = useTranslation();
     const navegacion = useNavegacion();
     const navigate = useNavigate();
@@ -28,36 +28,33 @@ export default function Navbar() {
     const [img, setImg] = useState("");
     const open = Boolean(popOver);
     const idPopOver = open ? "simple-popover" : undefined;
-    const rol = useMemo(() => auth.authInfo.rol, [auth.authInfo.rol]);
+    const rol = useMemo(() => usuario?.rol, [usuario?.rol]);
     const txtRol = useMemo(() => {
-        const { rol } = auth.authInfo;
+        const { rol } = usuario;
         return rol ? t("txtAdministrador") : t("txtMedico");
-    }, [auth.authInfo, navegacion.idioma]);
+    }, [usuario, navegacion.idioma]);
     const txtToolBtnMenu = useMemo(() => {
         return navegacion.mostrarMenu ? t("txtCerrarMenu") : t("txtAbrirMenu");
     }, [navegacion.mostrarMenu, navegacion.idioma]);
     const txtSwitch = useMemo(() => {
-        const { modoUsuario } = auth.authInfo;
+        const { modoUsuario } = usuario;
         if (modoUsuario === false) {
             return t("txtActivarModoUsuario");
         } else {
             return t("txtDesactivarModoUsuario");
         }
-    }, [auth.authInfo, navegacion.idioma]);
+    }, [usuario, navegacion.idioma]);
 
     /**
      * Carga de la imagen del usuario a iniciar.
      */
     useEffect(() => {
-        const { autenticado, authInfo } = auth;
-        const { user } = authInfo;
-
-        if (autenticado && user != null) {
-            setImg(user.photoURL);
-        } else if (autenticado != null && autenticado == false) {
+        if (autenticado && usuario) {
+            setImg(usuario.fotoUrl);
+        } else if (!autenticado) {
             navigate("/", { replace: true });
         }
-    }, [auth.authInfo, auth.autenticado]);
+    }, [usuario, autenticado]);
 
     /**
      * Manejador de evento de clic para mostrar el PopOver de usuario.
@@ -102,7 +99,7 @@ export default function Navbar() {
      * Abre una nueva pestaña con el manual de instrucciones.
      */
     const manejadorBtnInstrucciones = () => {
-        const url = auth.authInfo.rolVisible ? URL_MANUAL_ADMIN : URL_MANUAL_USUARIO;
+        const url = usuario?.rolVisible ? URL_MANUAL_ADMIN : URL_MANUAL_USUARIO;
         window.open(url, "_blank");
     };
 
@@ -111,11 +108,11 @@ export default function Navbar() {
      * @param {Event} e 
      */
     const manejadorSwitchModoUsuario = (e) => {
-        const modoUsuario = auth.authInfo.modoUsuario;
+        const modoUsuario = usuario?.modoUsuario;
         if (e == null) {
             e = { target: { checked: !modoUsuario } };
         }
-        auth.cambiarModoUsuario(e.target.checked);
+        usuario.modoUsuario = e.target.checked;
         navegacion.setRecargarPagina(true);
     };
 
@@ -141,7 +138,7 @@ export default function Navbar() {
                         </Tooltip>
                         <Tooltip title={t("txtAyudaAvatar")}>
                             <IconButton onClick={manejadorMousePopOver} color="inherit" aria-describedby={idPopOver}>
-                                <Avatar alt={auth.authInfo.user != null ? auth.authInfo.user.displayName : t("txtUsuario")} src={img}>
+                                <Avatar alt={usuario ? usuario.nombre : t("txtUsuario")} src={img}>
                                     {img === "" ? <AccountCircleIcon sx={{ height: 47, width: 47 }} /> : null}
                                 </Avatar>
                                 <ArrowDropDownIcon color="inherit" />
@@ -168,13 +165,13 @@ export default function Navbar() {
                         }}>
                         <Box padding="1vh 15px" maxWidth="90vw">
                             <Typography variant="h6">
-                                <b>{auth.authInfo.user != null ? auth.authInfo.user.displayName : t("txtUsuario")}</b>
+                                <b>{usuario ? usuario.nombre : t("txtUsuario")}</b>
                             </Typography>
                             <Typography variant="body2" maxWidth="100%">
                                 <b>{txtRol}</b>
                             </Typography>
                             <Typography variant="body2" color="textSecondary" maxWidth="100%">
-                                <span><b>{t("txtCorreo")}: </b> {auth.authInfo.user != null ? auth.authInfo.user.email : "Correo@correo.com"}</span>
+                                <span><b>{t("txtCorreo")}: </b> {usuario ? usuario?.correo : "Correo@correo.com"}</span>
                             </Typography>
                         </Box>
                         <Divider />
@@ -182,7 +179,7 @@ export default function Navbar() {
                             <>
                                 <MenuItem onClick={() => manejadorSwitchModoUsuario(null)}>
                                     <SwitchLabel
-                                        activado={auth.authInfo.modoUsuario}
+                                        activado={usuario?.modoUsuario}
                                         etiqueta={txtSwitch}
                                         manejadorCambios={manejadorSwitchModoUsuario} />
                                 </MenuItem>

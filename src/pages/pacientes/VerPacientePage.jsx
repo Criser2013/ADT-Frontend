@@ -28,7 +28,7 @@ import { AES_KEY } from "../../../constants";
  * @returns {JSX.Element}
  */
 export default function VerPacientePage() {
-    const auth = useAuth();
+    const { autenticado, usuario } = useAuth();
     const drive = useDrive();
     const navegacion = useNavegacion();
     const { t } = useTranslation();
@@ -74,13 +74,13 @@ export default function VerPacientePage() {
      */
     useEffect(() => {
         const token = sessionStorage.getItem("session-tokens");
-        if (token != null) {
+        if (autenticado && token) {
             const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
             drive.setToken(tokens.accessToken);
-        } else if (auth.tokenDrive != null) {
-            drive.setToken(auth.tokenDrive);
+        } else if (usuario?.tokenDrive) {
+            drive.setToken(usuario.tokenDrive);
         }
-    }, [auth.tokenDrive]);
+    }, [usuario?.tokenDrive]);
 
     /**
      * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.

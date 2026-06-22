@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals';
-import { validarNombre, validarTelefono, validarNumero, validarFecha, validarFloatPos, validarId } from '../../../src/utils/Validadores';
+import { validarNombre, validarTelefono, validarNumero, validarFecha, validarFloatPos, validarId } from '../../../../src/utils/Validadores';
 
 describe("Validar la función 'validarNumero'", () => {
     // ----------------- Parámetros -----------------

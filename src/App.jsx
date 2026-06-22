@@ -1,16 +1,18 @@
-import Router from "../router";
+
 import { useAuth } from "./contexts/AuthContext";
 import { useCredenciales } from "./contexts/CredencialesContext";
 import { useEffect, useState } from "react";
 import { useNavegacion } from "./contexts/NavegacionContext";
 import { useTranslation } from "react-i18next";
+import Router from "../router";
 import ModalSimple from "./components/modals/ModalSimple";
 import ModalAccion from "./components/modals/ModalAccion";
 import CloseIcon from "@mui/icons-material/Close";
 import LogoutIcon from "@mui/icons-material/Logout";
+import UpdateIcon from '@mui/icons-material/Update';
 import dayjs from "dayjs";
 import { IconoPermisos } from "./components/icons/IconosModal";
-import UpdateIcon from '@mui/icons-material/Update';
+
 
 /**
  * Componente principal que provee las credenciales de autenticación y muestra los 
@@ -18,7 +20,7 @@ import UpdateIcon from '@mui/icons-material/Update';
  * @returns {JSX.Element}
  */
 export default function App() {
-    const auth = useAuth();
+    const { error, requiereRefresco, setAuth, setScopes, autenticar, usuario } = useAuth();
     const { t } = useTranslation();
     const navegacion = useNavegacion();
     const { firebaseAuth, scopesDrive } = useCredenciales();
@@ -36,54 +38,49 @@ export default function App() {
     useEffect(() => {
         import("dayjs/locale/es").then(() => {
             const idioma = localStorage.getItem("i18nextLng");
-            dayjs.locale(idioma != null ? idioma : "es");
+            dayjs.locale(idioma ? idioma : "es");
         });
-    });
+    }, []);
 
     /**
      * Actualiza las instancia de Firebase y permisos de Drive
      * cuando se cargan las credenciales.
     */
-    useEffect(() => {
-        auth.setAuth(firebaseAuth);
-        auth.setScopes(scopesDrive);
+    useEffect(() => { 
+        setAuth(firebaseAuth);
+        setScopes(scopesDrive);
     }, [firebaseAuth, scopesDrive]);
 
+    /**
+     * Muestra un modal para extender la sesión cuando el token de acceso ha caducado o está por caducar.
+     */
     useEffect(() => {
-        if (auth.autenticado != null && !auth.autenticado) {
-            setModal2Btn(((x) => ({ ...x, mostrar: false })));
-            return;
+        if (requiereRefresco) {
+            setModal2Btn({
+                mostrar: true, titulo: t("titModalSesionCaducada"), mensaje: t("txtModalSesionCaducada"),
+                txtBtn: t("txtBtnExtenderSesion"), icono: <UpdateIcon />
+            });
         }
-
-        let compsModal = {
-            mostrar: !auth.permisos, mensaje: t("txtModalPermisos"),
-            titulo: t("titModalPermisos"), txtBtn: t("txtBtnPermisos"), icono: <IconoPermisos />
-        };
-        if (auth.requiereRefresco) {
-            compsModal = {
-                mostrar: true, titulo: t("titModalSesionCaducada"), txtBtn: t("txtBtnExtenderSesion"),
-                mensaje: t("txtModalSesionCaducada"),
-                icono: <UpdateIcon />
-            };
-        }
-        setModal2Btn(compsModal);
-    }, [auth.authInfo.user, auth.permisos, auth.requiereRefresco]);
+    }, [requiereRefresco]);
 
     /** 
-     * Escucha y muestra los errores de autenticación que se presenten.
+     * Muestra los errores de autenticación que se presenten en un modal.
     */
     useEffect(() => {
-        if (!auth.cargando && auth.authError.res) {
-            setModal({ mostrar: true, mensaje: auth.authError.error });
-        } else {
-            setModal((x) => ({ ...x, mostrar: false }));
+        if (error && error !== "errPermisos") {
+            setModal({ mostrar: true, mensaje: t(error, { usuario: usuario.nombre, correo: usuario.correo }) });
+        } else if (error === "errPermisos") {
+            setModal2Btn({
+                mostrar: true, mensaje: t("txtModalPermisos"), titulo: t("titModalPermisos"),
+                txtBtn: t("txtBtnPermisos"), icono: <IconoPermisos />
+            });
         }
-    }, [auth.cargando, auth.authError.res, auth.authError.error]);
+    }, [error, usuario, t]);
 
     /**
      * Manejador de eventos del botón de cerrar el modal de error.
      */
-    const manejadorBtnModal = () => {
+    const manejadorBtnModalSimple = () => {
         setModal((x) => ({ ...x, mostrar: false }));
 
         if ((navegacion.callbackError.fn != null) && (typeof (navegacion.callbackError.fn) == "function")) {
@@ -94,18 +91,12 @@ export default function App() {
     };
 
     /**
-     * Manejador de eventos del botón de reintentar.
+     * Manejador de eventos del botón que se muestra en el modal para autenticar un usuario
+     * cuando la sesión ha caducado o el usuario no ha otorgado los permisos necesarios.
      */
-    const manejadorBtnPermisos = async () => {
+    const manejadorBtnAutenticar = async () => {
         setModal2Btn((x) => ({ ...x, mostrar: false }));
-
-        const { user } = auth.authInfo;
-
-        if (user != null) {
-            await auth.reautenticarUsuario(user);
-        } else {
-            await auth.iniciarSesionGoogle();
-        }
+        await autenticar();
     };
 
     /**
@@ -114,23 +105,8 @@ export default function App() {
      */
     const manejadorBtnCerrarSesion = () => {
         setModal2Btn((x) => ({ ...x, mostrar: false }));
-        navegacion.setPaginaAnterior(window.location.pathname);
-
+        navegacion.setPaginaAnterior(location.pathname);
         location.replace("/cerrar-sesion");
-    };
-
-    /**
-     * Manejador del botón para extender la sesión.
-     */
-    const manejadorBtnReautenticar = async () => {
-        const { user } = auth.authInfo;
-        setModal2Btn((x) => ({ ...x, mostrar: false }));
-
-        if (user != null) {
-            await auth.reautenticarUsuario(user);
-        } else {
-            await auth.iniciarSesionGoogle();
-        }
     };
 
     return (
@@ -140,7 +116,7 @@ export default function App() {
                 abrir={modal2Btn.mostrar}
                 mensaje={modal2Btn.mensaje}
                 titulo={modal2Btn.titulo}
-                manejadorBtnPrimario={auth.requiereRefresco ? manejadorBtnReautenticar : manejadorBtnPermisos}
+                manejadorBtnPrimario={manejadorBtnAutenticar}
                 manejadorBtnSecundario={manejadorBtnCerrarSesion}
                 mostrarBtnSecundario={true}
                 txtBtnSimple={modal2Btn.txtBtn}
@@ -153,7 +129,7 @@ export default function App() {
                 abrir={modal.mostrar}
                 titulo={t("tituloErr")}
                 mensaje={modal.mensaje}
-                manejadorBtnModal={manejadorBtnModal}
+                manejadorBtnModal={manejadorBtnModalSimple}
                 txtBtn={t("txtBtnCerrar")}
                 iconoBtn={<CloseIcon />}
             />

@@ -52,7 +52,7 @@ const valoresPredet = {
  * @returns {JSX.Element}
  */
 export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacientes = [], esDiagPacientes = false, manejadorRecarga = null }) {
-    const auth = useAuth();
+    const { usuario } = useAuth();
     const navegacion = useNavegacion();
     const { reCAPTCHA, firestore } = useCredenciales();
     const { t } = useTranslation();
@@ -179,7 +179,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         const cuerpo = transformarDatos(aux, oneHotComor);
         const res = await peticionApi(
             "diagnosticar", "POST", {}, cuerpo, 
-            auth.authInfo.user.accessToken, navegacion.idioma,
+            usuario?.tokenDrive, navegacion.idioma,
             t("errorDiagnostico"), 
         );
         const { success, data } = res;
@@ -215,7 +215,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                 aux[i] = datos[i];
             }
         }
-        const uid = auth.authInfo.uid;
+        const uid = usuario?.uid;
         const id = `${v6()}-${uid}`;
         const paciente = esDiagPacientes ? datos.paciente.id : "Anónimo";
         const instancia = {

@@ -27,7 +27,7 @@ import { Trans, useTranslation } from "react-i18next";
  * @returns {JSX.Element}
  */
 export default function VerUsuariosPage() {
-    const auth = useAuth();
+    const { autenticado, usuario } = useAuth();
     const navigate = useNavigate();
     const { firestore } = useCredenciales();
     const navegacion = useNavegacion();
@@ -67,17 +67,17 @@ export default function VerUsuariosPage() {
         return modoModal == 3 ? t("txtBtnGuardar") : t("txtBtnEliminar");
     }, [modoModal, navegacion.idioma]);
     const desactivarCampos = useMemo(() => {
-        const { uid } = auth.authInfo;
+        const { uid } = usuario;
         if (seleccionado != null) {
             return uid == seleccionado.uid;
         } else {
             return false;
         }
-    }, [auth.authInfo.uid, seleccionado]);
+    }, [usuario, seleccionado]);
     const mostrarTxtAdvertencia = useMemo(() => {
         return seleccionado != null && (seleccionado.estado && !estado);
     }, [seleccionado, estado]);
-    const usuario = useMemo(() => {
+    const usuarioSeleccionado = useMemo(() => {
         const datos = seleccionado != null ? seleccionado : { nombre: "", correo: "", rol: 0, estado: true, ultimaConexion: "", cantidad: 0 };
         return [
             { nombre: t("txtNombre"), valor: datos.nombre },
@@ -107,18 +107,18 @@ export default function VerUsuariosPage() {
             return "row";
         }
     }, [navegacion]);
-    const admin = useMemo(() => auth.authInfo.rolVisible, [auth.authInfo.rolVisible]);
+    const admin = useMemo(() => usuario?.rolVisible, [usuario?.rolVisible]);
 
     /**
      * Coloca el título de la página.
      */
     useEffect(() => {
-        if (auth.authInfo.user != null && admin != null && admin) {
-            manejadorRecargar(auth.authInfo.user.accessToken);
-        } else if (admin != null && !admin) {
+        if (!usuario && admin) {
+            manejadorRecargar(usuario?.tokenDrive);
+        } else if (!autenticado || !admin) {
             navigate("/menu", { replace: true });
         }
-    }, [admin, auth.authInfo.user]);
+    }, [admin, usuario, autenticado]);
 
     useEffect(() => {
         document.title = t("titListaUsuarios");
@@ -206,7 +206,7 @@ export default function VerUsuariosPage() {
      * @returns {Array}
      */
     const formatearCeldas = (datos) => {
-        const { uid } = auth.authInfo;
+        const { uid } = usuario;
         const aux = [];
 
         for (let i = 0; i < datos.length; i++) {
@@ -283,7 +283,7 @@ export default function VerUsuariosPage() {
      * Recarga los datos de la página.
      */
     const manejadorRecargar = async (token = null) => {
-        const credencial = (token == null) ? auth.authInfo.user.accessToken : token;
+        const credencial = (token == null) ? usuario?.tokenFirebase : token;
 
         if (!cargando) {
             setCargando(true);
@@ -325,7 +325,7 @@ export default function VerUsuariosPage() {
      * @returns Boolean
      */
     const verificarAutoeliminacion = (usuarios) => {
-        const res = usuarios.includes(auth.authInfo.uid);
+        const res = usuarios.includes(usuario?.uid);
         if (res) {
             setTimeout(() => {
                 setModoModal(2);
@@ -351,7 +351,7 @@ export default function VerUsuariosPage() {
         setCargando(true);
 
         const peticiones = [];
-        const token = auth.authInfo.user.accessToken;
+        const token = usuario?.tokenFirebase;
 
         for (let i = 0; i < usuarios.length; i++) {
             peticiones[i] = null;
@@ -584,7 +584,7 @@ export default function VerUsuariosPage() {
         dayjs.extend(customParseFormat);
         return (
             <Box>
-                {usuario.map((x, i) => {
+                {usuarioSeleccionado.map((x, i) => {
                     let orientacion = numCols;
                     let espaciado = (numCols == "column") ? 0 : 1;
                     if (i == 2 || i == 3 || i == 5) {

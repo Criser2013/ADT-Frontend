@@ -25,7 +25,7 @@ import SelectIdioma from "../../components/tabs/SelectIdioma";
  * @returns {JSX.Element}
  */
 export default function IniciarSesionPage() {
-    const auth = useAuth();
+    const { autenticado, autenticar, cargando } = useAuth();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
     const { firebase, reCAPTCHA } = useCredenciales();
@@ -33,13 +33,12 @@ export default function IniciarSesionPage() {
     const { t } = useTranslation();
     const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [cargandoBtn, setCargandoBtn] = useState(false);
-    const [cargando, setCargando] = useState(false);
     const [captchaAceptado, setCaptchaAceptado] = useState(false);
     const [terminosAceptados, setTerminosAceptados] = useState(false);
     const [modal, setModal] = useState({
         mensaje: "", mostrar: false
     });
-    const cargandoAuth = useMemo(() => (auth.cargando || !firebase), [auth.cargando, firebase]);
+    const cargandoAuth = useMemo(() => (cargando || !firebase), [cargando, firebase]);
     const width = useMemo(() => {
         const { dispositivoMovil, orientacion, ancho } = navegacion;
         if (!dispositivoMovil && (ancho >= 1020)) {
@@ -76,55 +75,37 @@ export default function IniciarSesionPage() {
         document.title = t("titInicioSesion");
     }, [navegacion.idioma]);
 
+    /**
+     * Habilita o deshabilita el botón de inicio de sesión basado en si el usuario ha 
+     * aceptado los términos y ha completado el reCAPTCHA, o si ya está autenticado.
+     */
     useEffect(() => {
-        if (auth.autenticado) {
+        if (autenticado) {
             setDesactivarBtn(!captchaAceptado);
         } else {
             setDesactivarBtn(!(captchaAceptado && terminosAceptados));
         }
-    }, [captchaAceptado, terminosAceptados, auth.autenticado]);
+    }, [captchaAceptado, terminosAceptados, autenticado]);
 
     /**
      * Ejecuta una función mientras se cambia el idioma o el tema.
      * @param {Function} funcion - Función a ejecutar.
      */
     const reiniciarPagina = (funcion = null) => {
-        setCargando(true);
         if (funcion != null) {
             funcion();
         }
-        setTimeout(() => {
-            setTerminosAceptados(false);
-            setDesactivarBtn(true);
-            setCargando(false);
-        }, 100);
-    };
 
-    /**
-     * Manejador de eventos del botón para iniciar sesión.
-     */
-    const manejadorBtnIniciarSesion = () => {
-        const { user } = auth.authInfo;
-
-        if (user == null) {
-            auth.iniciarSesionGoogle().then((x) => manejadorRespuesta(x, 0));
-        } else {
-            auth.reautenticarUsuario(user).then((x) => manejadorRespuesta(x, 2));
-        }
+        setTerminosAceptados(false);
         setDesactivarBtn(true);
     };
 
-    /**
-     * Manejador de la respuesta de la operación de inicio de sesión.
-     * @param {JSON} respuesta - Respuesta de la operación.
-     * @param {int} codigo - Código de operación esperada.
-     */
-    const manejadorRespuesta = (respuesta, codigo) => {
-        const res = (respuesta.res == false) && (respuesta.operacion == codigo);
-        if (res) {
-            navigate("/menu", { replace: true });
+    const manejadorBtnIniciarSesion = async () => {
+        const resultadoExitoso = await autenticar();
+        if (!resultadoExitoso) {
+            setDesactivarBtn(true);
         } else {
-            setCaptchaAceptado(false);
+            navigate("/menu", { replace: true });
         }
     };
 
@@ -176,9 +157,6 @@ export default function IniciarSesionPage() {
         setCargandoBtn(false);
     };
 
-    /**
-     * Manejador del botón para cerrar el modal.
-     */
     const manejadorBtnModal = () => {
         setModal((x) => ({ ...x, mostrar: false }));
     };
@@ -229,7 +207,7 @@ export default function IniciarSesionPage() {
                                     hl={navegacion.idioma}
                                     ref={CAPTCHA} />
                             </Grid>
-                            {!auth.autenticado ? (
+                            {!autenticado ? (
                                 <Grid size={12} display="flex" justifyContent="left">
                                     <Check
                                         activado={terminosAceptados}
@@ -253,7 +231,7 @@ export default function IniciarSesionPage() {
                                             loading={cargandoBtn}
                                             loadingPosition="end"
                                             sx={{ textTransform: "none" }}>
-                                            {auth.autenticado ? t("txt2BtnInicioSesion") : t("txt1BtnInicioSesion")}
+                                            {autenticado ? t("txt2BtnInicioSesion") : t("txt1BtnInicioSesion")}
                                         </Button>
                                     </span>
                                 </Tooltip>

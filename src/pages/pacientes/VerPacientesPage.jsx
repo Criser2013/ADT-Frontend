@@ -24,7 +24,7 @@ import { AES_KEY } from "../../../constants";
  * @returns {JSX.Element}
  */
 export default function VerPacientesPage() {
-    const auth = useAuth();
+    const { autenticado, usuario } = useAuth();
     const drive = useDrive();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
@@ -52,13 +52,13 @@ export default function VerPacientesPage() {
      */
     useEffect(() => {
         const token = sessionStorage.getItem("session-tokens");
-        if (token != null) {
+        if (autenticado && token) {
             const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
             drive.setToken(tokens.accessToken);
-        } else if (auth.tokenDrive != null) {
-            drive.setToken(auth.tokenDrive);
+        } else if (usuario?.tokenDrive) {
+            drive.setToken(usuario.tokenDrive);
         }
-    }, [auth.tokenDrive]);
+    }, [usuario?.tokenDrive]);
 
     useEffect(() => {
         const descargar = sessionStorage.getItem("descargando-drive");

@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals';
-import { detTxtDiagnostico, evaluarIntervalo, nombresCampos, oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, quitarDatosPersonales, transformarDatos, procLime } from "../../../src/utils/TratarDatos";
+import { detTxtDiagnostico, evaluarIntervalo, nombresCampos, oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, quitarDatosPersonales, transformarDatos, procLime } from "../../../../src/utils/TratarDatos";
 
 describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
     test("CP - 15", () => {

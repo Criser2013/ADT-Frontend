@@ -16,11 +16,11 @@ import { useTranslation } from "react-i18next";
 export default function Sidebar() {
     const navegacion = useNavegacion();
     const navigate = useNavigate();
-    const auth = useAuth();
+    const { usuario } = useAuth();
     const { t } = useTranslation();
     const filas = useMemo(() => {
-        const { rolVisible, modoUsuario } = auth.authInfo;
-        const usuario = [
+        const { rolVisible, modoUsuario } = usuario;
+        const usuarioComun = [
             { txt: t("titMenu"), icono: <HomeIcon />, ruta: "/menu" },
             { txt: t("txtPacientes"), icono: <ListPacienteIcono />, ruta: "/pacientes" },
             { txt: t("titDiagnosticoPaciente"), icono: <DiagnosticoIcono />, ruta: "/diagnostico-paciente" },
@@ -34,13 +34,13 @@ export default function Sidebar() {
         ];
 
         if (rolVisible != null && (!rolVisible || modoUsuario)) {
-            return usuario;
+            return usuarioComun;
         } else if (rolVisible != null && rolVisible && !modoUsuario) {
             return admin;
         } else {
             return usuario;
         }
-    }, [auth.authInfo, navegacion.idioma]);
+    }, [usuario, navegacion.idioma]);
     const mostrarMenu = useMemo(() => {
         return detAbrirMenu(navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion) ? "none" : "block";
     }, [navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion]);
