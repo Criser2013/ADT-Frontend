@@ -22,7 +22,7 @@ export default function CerrarSesionPage() {
      * Cierra la sesión del usuario y redirige a la página de inicio.
      */
     useEffect(() => {
-        const tareaCierre = cerrarSesion()
+        const tareaCierre = cerrarSesion();
         tareaCierre.then(() => {
             navigate("/", { replace: true });
         });
