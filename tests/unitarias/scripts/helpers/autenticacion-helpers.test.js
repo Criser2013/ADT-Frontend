@@ -1,4 +1,4 @@
-import { jest, beforeEach, expect, describe, test } from '@jest/globals';
+import { jest, beforeEach, afterAll, expect, describe, test } from '@jest/globals';
 import { AES_KEY } from '../../../../constants';
 
 const mockSetDefaultLanguage = jest.fn();
@@ -95,7 +95,9 @@ describe("Validar la funcion 'guardarCredsOAuth", () => {
         expect(AES.encrypt).toBeCalledTimes(1);
         expect(AES.encrypt).toHaveBeenCalledWith(JSON.stringify(params), AES_KEY);
         expect(sessionStorage.setItem).toHaveBeenCalledTimes(1);
-        expect(sessionStorage.setItem).toHaveBeenCalledWith("session-tokens")
+        expect(sessionStorage.setItem).toHaveBeenCalledWith("session-tokens", "encryptedData")
+
+        jest.spyOn(Storage.prototype, "setItem").mockRestore();
     });
 });
 
@@ -108,12 +110,21 @@ describe("Validar la función 'borrarCredsOAuth'", () => {
         expect(sessionStorage.removeItem).toHaveBeenCalledWith("session-tokens");
         expect(sessionStorage.removeItem).toHaveBeenCalledWith("modo-usuario");
         expect(sessionStorage.removeItem).toHaveBeenCalledWith("ejecutar-callback");
+
+        jest.spyOn(Storage.prototype, "removeItem").mockRestore();
     });
 });
 
 describe("Validar la función 'cargarCredencialesOAuth'", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    afterAll(() => {
+        jest.spyOn(Storage.prototype, "getItem").mockRestore();
+        jest.spyOn(AES, "decrypt").mockRestore();
+        jest.spyOn(enc.Utf8, "stringify").mockRestore();
+        jest.spyOn(JSON, "parse").mockRestore();
     });
 
     test.each([
@@ -243,13 +254,14 @@ describe("Validar la función 'iniciarSesionGoogle'", () => {
     const res2 = { success: false, error: "errIniciarSesion" };
 
     // -------------------------- Mocks ---------------------------
-    const mockProvider = {
+    const mockProvider = () => ({
         _tokenResponse: {
             oauthExpireIn: 2,
             rawUserInfo: JSON.stringify({ granted_scopes: ["scope1", "scope2"] })
         }
-    };
-    const loginResponse = {
+    });
+
+    const mockLogin1 = () => Promise.resolve({
         user: { uid: "123" },
         _tokenResponse: {
             oauthExpireIn: 2,
@@ -257,14 +269,13 @@ describe("Validar la función 'iniciarSesionGoogle'", () => {
                 granted_scopes: ["scope1", "scope2"]
             })
         }
-    };
-
-    const mockLogin1 = () => Promise.resolve(loginResponse);
+    });
     const mockLogin2 = () => Promise.reject(new Error("Error al iniciar sesión"));
 
 
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.spyOn(Date, "now").mockImplementation(() => 1000);
     });
 
     test.each([
@@ -272,8 +283,7 @@ describe("Validar la función 'iniciarSesionGoogle'", () => {
         ["121", mockProvider, mockLogin1, params2, res1, false],
         ["122", mockProvider, mockLogin2, params1, res2, true]
     ])("CP - %s", async (idPrueba, mockProvider, mockAuth, params, resEsperada, lanzaExcepcion) => {
-        jest.spyOn(Date, "now").mockImplementation(() => 1000);
-        const mockToJSON = jest.fn().mockReturnValue(mockProvider);
+        const mockToJSON = jest.fn().mockImplementation(mockProvider);
         firebaseAuth.GoogleAuthProvider.credentialFromResult.mockReturnValue({
             toJSON: mockToJSON
         });
@@ -281,6 +291,7 @@ describe("Validar la función 'iniciarSesionGoogle'", () => {
         firebaseAuth.reauthenticateWithPopup.mockImplementation(mockAuth);
 
         const res = await iniciarSesionGoogle(params.firebaseAuth, params.permisos, params.usuario, "es");
+
 
         expect(res).toEqual(resEsperada);
         expect(firebaseAuth.GoogleAuthProvider).toHaveBeenCalledTimes(1);

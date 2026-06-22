@@ -1,5 +1,5 @@
 import { signInWithPopup, reauthenticateWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
-import { peticionApi } from "./Api";
+import { peticionApi } from "../services/Api";
 import { AES, enc } from "crypto-js";
 import i18n from "i18next";
 import { AES_KEY } from "../../constants";
