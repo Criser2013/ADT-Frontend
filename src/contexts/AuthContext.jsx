@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { cerrarSesion as cerrarSesionFirebase, iniciarSesion as iniciarSesionFirebase, cargarCredsOAuth, verRolUsuario } from "../services/Autenticacion";
 import UsuarioAutenticado from "../models/UsuarioAutenticado";
@@ -28,10 +28,11 @@ export function AuthProvider({ children }) {
     const autenticado = useMemo(() => usuario instanceof UsuarioAutenticado, [usuario]);
 
     const value = useMemo(() => ({
-        cargando, error, setAuth,
-        setScopes, cerrarSesion, autenticado,
-        requiereRefresco, usuario, cambiarModoUsuario, autenticar
-    }), [cargando, error, setAuth, setScopes, cerrarSesion, autenticado, requiereRefresco, usuario, cambiarModoUsuario, autenticar]);
+        cargando, error, setAuth, setScopes, cerrarSesion, autenticado,
+        requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion
+    }), [cargando, error, setAuth, setScopes, cerrarSesion, autenticado,
+        requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion
+    ]);
 
     /**
      * Retira el indicador de carga cuando se tiene la instancia de FirebaseAuth y permisos de Drive requeridos.
@@ -41,7 +42,7 @@ export function AuthProvider({ children }) {
         if (auth && scopes && ruta) {
             setCargando(false);
         }
-    }, [auth, scopes, location.pathname]);
+    }, [auth, scopes, setCargando]);
 
     /**
      * Recupera la sesión si el usuario no la ha cerrado. También refresca los tokens
@@ -52,13 +53,13 @@ export function AuthProvider({ children }) {
             const suscribed = onAuthStateChanged(auth, manejadorCambiosAuth);
             return () => suscribed();
         }
-    }, [auth]);
+    }, [auth, manejadorCambiosAuth]);
 
     /**
      * Maneja los cambios en la autenticación del usuario.
      * @param {import("firebase/auth").User} usuario Usuario actual de Firebase.
      */
-    async function manejadorCambiosAuth(usuario) {
+    const manejadorCambiosAuth = useCallback(async (usuario) => {
         if (usuario) {
             const { success, expires, accessToken } = cargarCredsOAuth();
             const tiempoPrevioRefresco = success ? ((parseInt(expires) - Date.now()) / 1000) : null;
@@ -86,10 +87,10 @@ export function AuthProvider({ children }) {
                 location.replace("/");
             }
         }
-    };
+    }, [setUsuario, setCargando, mostrarRefrescoTokens, iniciarSesion]);
 
 
-    async function iniciarSesion(usuario = null) {
+    const iniciarSesion = useCallback(async (usuario = null) => {
         setCargando(true);
 
         const res = await iniciarSesionFirebase(auth, scopes, usuario);
@@ -108,33 +109,29 @@ export function AuthProvider({ children }) {
         setCargando(false);
 
         return res.success;
-    };
+    }, [auth, scopes, setCargando, setError, setUsuario, mostrarRefrescoTokens]);
 
-    async function cerrarSesion() {
+    const cerrarSesion = useCallback(async () => {
         setCargando(true);
         const { success, error } = await cerrarSesionFirebase(auth, idTareaRefresco);
         if (!success) {
             setError(error);
         }
         setCargando(false);
-    };
+    }, [auth, idTareaRefresco, setCargando, setError]);
 
-    function cambiarModoUsuario(modo) {
+    const cambiarModoUsuario = useCallback((modo) => {
         setUsuario((x) => {
             const nuevoUsuario = structuredClone(x);
             nuevoUsuario.cambiarModoUsuario(modo);
             return nuevoUsuario;
         });
-    };
+    }, [setUsuario]);
 
-    function mostrarRefrescoTokens() {
+    const mostrarRefrescoTokens = useCallback(() => {
         setRequiereRefresco(true);
         idTareaRefresco.current = null;
-    };
-
-    async function autenticar() {
-        return await iniciarSesion(usuario);
-    };
+    }, [setRequiereRefresco]);
 
     return (
         <authContext.Provider value={value}>

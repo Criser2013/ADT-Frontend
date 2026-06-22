@@ -25,7 +25,7 @@ import SelectIdioma from "../../components/tabs/SelectIdioma";
  * @returns {JSX.Element}
  */
 export default function IniciarSesionPage() {
-    const { autenticado, autenticar, cargando } = useAuth();
+    const { autenticado, iniciarSesion, cargando, usuario } = useAuth();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
     const { firebase, reCAPTCHA } = useCredenciales();
@@ -101,7 +101,7 @@ export default function IniciarSesionPage() {
     };
 
     const manejadorBtnIniciarSesion = async () => {
-        const resultadoExitoso = await autenticar();
+        const resultadoExitoso = await iniciarSesion(usuario);
         if (!resultadoExitoso) {
             setDesactivarBtn(true);
         } else {

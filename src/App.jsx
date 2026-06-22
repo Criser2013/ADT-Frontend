@@ -20,7 +20,7 @@ import { IconoPermisos } from "./components/icons/IconosModal";
  * @returns {JSX.Element}
  */
 export default function App() {
-    const { error, requiereRefresco, setAuth, setScopes, autenticar, usuario } = useAuth();
+    const { error, requiereRefresco, setAuth, setScopes, iniciarSesion, usuario } = useAuth();
     const { t } = useTranslation();
     const navegacion = useNavegacion();
     const { firebaseAuth, scopesDrive } = useCredenciales();
@@ -96,7 +96,7 @@ export default function App() {
      */
     const manejadorBtnAutenticar = async () => {
         setModal2Btn((x) => ({ ...x, mostrar: false }));
-        await autenticar();
+        await iniciarSesion(usuario);
     };
 
     /**
