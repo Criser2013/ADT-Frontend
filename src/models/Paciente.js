@@ -1,5 +1,7 @@
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import { COMORBILIDADES } from "../../constants";
+import { oneHotDecoderOtraEnfermedad } from "../utils/TratarDatos";
 
 dayjs.extend(customParseFormat);
 
@@ -7,6 +9,8 @@ dayjs.extend(customParseFormat);
  * Modelo que representa a un paciente con sus atributos y métodos relacionados.
  */
 export default class Paciente {
+    #comorbilidades = {};
+
     constructor(id, cedula, nombre, sexo, fechaNacimiento, telefono, fechaCreacion, otraEnfermedad, comorbilidades = []) {
         this.id = id;
         this.cedula = cedula;
@@ -19,10 +23,39 @@ export default class Paciente {
         this.comorbilidades = comorbilidades;
     }
 
+    /**
+     * @param {Array<String>} comorbilidades Lista de comorbilidades del paciente. Se valida que cada comorbilidad esté dentro de las comorbilidades permitidas.
+     */
+    set comorbilidades(comorbilidades) {
+        const claves = {};
+
+        if (!Array.isArray(comorbilidades)) {
+            throw new Error("Las comorbilidades deben ser un array de strings.");
+        }
+
+        for (const i of COMORBILIDADES) {
+            if (comorbilidades.includes(i)) {
+                claves[i] = 1;
+            } else {
+                claves[i] = 0;
+            }
+        }
+
+        this.#comorbilidades = claves;
+    }
+
+    get comorbilidades() {
+        return oneHotDecoderOtraEnfermedad(this.#comorbilidades);
+    }
+
+    get comorbilidadesCodificadas() {
+        return this.#comorbilidades;
+    }
+
     get edad() {
         return dayjs().diff(dayjs(
             this.fechaNacimiento, "DD-MM-YYYY"), "year", false
-        )
+        );
     }
 
     /**
@@ -47,7 +80,7 @@ export default class Paciente {
             telefono: this.telefono,
             fechaCreacion: this.fechaCreacion,
             otraEnfermedad: this.otraEnfermedad,
-            comorbilidades: this.comorbilidades
-        }
+            ...this.#comorbilidades
+        };
     }
 }
