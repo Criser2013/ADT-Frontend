@@ -1,0 +1,126 @@
+import Paciente from "./Paciente";
+
+export default class ArchivoPacientes {
+    #pacientes = [];
+    #claves = {};
+
+    constructor(pacientes = []) {
+        this.#pacientes = pacientes;
+
+        for (const paciente of pacientes) {
+            this.#claves[paciente.id] = paciente.cedula;
+        }
+    };
+
+    get pacientes() {
+        return this.#pacientes;
+    }
+
+    /**
+     * @returns {Array<Object>} Para cada paciente, un objeto con sus datos en formato JSON
+     */
+    toJson() {
+        return this.pacientes.map(p => p.toJson());
+    };
+
+    /**
+     * @param {Array<Object>} json Arreglo con las instancias de pacientes como objetos JSON
+     */
+    fromJson(json) {
+        for (const paciente of json) {
+            const p = Paciente.fromJson(paciente);
+            this.anadirPaciente(p);
+        }
+    }
+
+    /**
+     * @param {Paciente} paciente 
+     */
+    anadirPaciente(paciente) {
+        const res = this.#verSiExisteCedula(paciente.cedula);
+        if (res) {
+            throw new Error(`El paciente con cédula ${paciente.cedula} ya existe`);
+        } else {
+            this.#pacientes.push(paciente);
+            this.#claves[paciente.id] = paciente.cedula;
+        }
+    };
+
+    /**
+     * @param {String} id ID del paciente a modificar
+     * @param {Paciente} paciente Instancia de la clase Paciente con los datos actualizados
+     * @throws {Error} Si el paciente no existe
+     */
+    modificarPaciente(id, paciente) {
+        const res = this.#verSiExistePaciente(id);
+        if (res) {
+            const indice = this.#pacientes.findIndex(p => p.id === id);
+            this.#pacientes[indice] = paciente;
+
+        } else {
+            throw new Error(`El paciente con id ${id} no existe`);
+        }
+    };
+
+    /**
+     * @param {String|Array<String>} ids ID del paciente a eliminar o un array de IDs de pacientes a eliminar
+     * @param {Boolean} varios Indicador de si se van a eliminar varios pacientes o solo uno
+     * @throws {Error} Si alguno de los pacientes no existe
+     */
+    eliminarPacientes(ids, varios = false) {
+        if (varios) {
+            const aux = [];
+            for (const id of ids) {
+                this.#eliminarPaciente(id);
+                aux.push(id);
+            }
+        } else {
+            this.#eliminarPaciente(ids);
+        }
+
+        this.#pacientes = this.#pacientes.filter(p => !ids.includes(p.id));
+    };
+
+    /**
+     * @param {String} id ID del paciente a consultar
+     * @returns {Paciente} Instancia de la clase Paciente con el ID proporcionado
+     * @throws {Error} Si el paciente no existe
+     */
+    verPaciente(id) {
+        const res = this.#verSiExistePaciente(id);
+        if (res) {
+            return this.#pacientes.find(p => p.id === id);
+        } else {
+            throw new Error(`El paciente con id ${id} no existe`);
+        }
+    };
+
+    /**
+     * @param {String} id ID del paciente a eliminar
+     * @throws {Error} Si el paciente no existe
+     */
+    #eliminarPaciente(id) {
+        const res = this.#verSiExistePaciente(id);
+        if (res) {
+            delete this.#claves[id];
+        } else {
+            throw new Error(`El paciente con id ${id} no existe`);
+        }
+    };
+
+    /**
+     * @param {String} id ID del paciente a verificar.
+     * @returns {Boolean} Indica si el paciente existe
+     */
+    #verSiExistePaciente(id) {
+        return id in this.#claves
+    };
+
+    /**
+     * @param {String} cedula Cédula del paciente a verificar.
+     * @returns {Boolean} Indica si la cédula ya se encuentra registrada en algún paciente.
+     */
+    #verSiExisteCedula(cedula) {
+        return Object.values(this.#claves).includes(cedula);
+    }
+};
