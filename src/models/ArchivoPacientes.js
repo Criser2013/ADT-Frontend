@@ -14,7 +14,20 @@ export default class ArchivoPacientes {
 
     get pacientes() {
         return this.#pacientes;
-    }
+    };
+
+    /**
+     * @param {Array<Object>} json Arreglo con las instancias de pacientes como objetos JSON
+     * @returns {ArchivoPacientes} Una instancia de la clase ArchivoPacientes creada a partir de un arreglo de objetos JSON
+     */
+    static fromJson(json) {
+        const archivo = new ArchivoPacientes();
+        for (const paciente of json) {
+            const p = Paciente.fromJson(paciente);
+            archivo.anadirPaciente(p);
+        }
+        return archivo;
+    };
 
     /**
      * @returns {Array<Object>} Para cada paciente, un objeto con sus datos en formato JSON
@@ -22,16 +35,6 @@ export default class ArchivoPacientes {
     toJson() {
         return this.pacientes.map(p => p.toJson());
     };
-
-    /**
-     * @param {Array<Object>} json Arreglo con las instancias de pacientes como objetos JSON
-     */
-    fromJson(json) {
-        for (const paciente of json) {
-            const p = Paciente.fromJson(paciente);
-            this.anadirPaciente(p);
-        }
-    }
 
     /**
      * @param {Paciente} paciente 
@@ -113,7 +116,7 @@ export default class ArchivoPacientes {
      * @returns {Boolean} Indica si el paciente existe
      */
     #verSiExistePaciente(id) {
-        return id in this.#claves
+        return id in this.#claves;
     };
 
     /**
@@ -122,5 +125,5 @@ export default class ArchivoPacientes {
      */
     #verSiExisteCedula(cedula) {
         return Object.values(this.#claves).includes(cedula);
-    }
+    };
 };

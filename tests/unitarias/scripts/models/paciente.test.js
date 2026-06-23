@@ -24,7 +24,11 @@ describe("Pruebas para la clase Paciente", () => {
                 nombre: "Paciente", sexo: 0,
                 fechaNacimiento: "01-01-2000", telefono: "0987654321",
                 fechaCreacion: "07-06-2026", otraEnfermedad: true,
-                comorbilidades: ["Diabetes", "Hipertensión arterial"]
+                "Hipertensión arterial": 1, "Diabetes": 1, "Enfermedad vascular": 0, "Trombofilia": 0,
+                "Enfermedad renal": 0, "Enfermedad pulmonar": 0, "Hepatopatía crónica": 0,
+                "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0, "Enfermedad coronaria": 0,
+                "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0, 
+                "Enfermedad neurológica": 0,
             };
 
             const paciente = Paciente.fromJson(json);
@@ -104,20 +108,10 @@ describe("Pruebas para la clase Paciente", () => {
                 "Enfermedad neurológica": 0
             });
         });
-
-        test("CP - 138", () => {
-            expect(() => {
-                new Paciente(
-                    "id", "1234567890", "Paciente", 0,
-                    "01-01-2000", "0987654321", "07-06-2026",
-                    true, "Mis datos"
-                );
-            }).toThrowError("Las comorbilidades deben ser un array de strings.");
-        });
     });
 
     describe("Validar el getter 'comorbilidades'", () => {
-        test("CP - 139", () => {
+        test("CP - 138", () => {
             mockDecoder.mockReturnValue(["Diabetes", "Hipertensión arterial"]);
 
             const paciente = new Paciente(

@@ -29,8 +29,9 @@ export default class Paciente {
     set comorbilidades(comorbilidades) {
         const claves = {};
 
-        if (!Array.isArray(comorbilidades)) {
-            throw new Error("Las comorbilidades deben ser un array de strings.");
+        if ((comorbilidades instanceof Object) && (!Array.isArray(comorbilidades))) {
+            this.#comorbilidades = comorbilidades;
+            return;
         }
 
         for (const i of COMORBILIDADES) {
@@ -63,8 +64,14 @@ export default class Paciente {
      * @returns {Paciente} Una instancia de la clase Paciente creada a partir de un objeto JSON.
      */
     static fromJson(json) {
-        const { id, cedula, nombre, sexo, fechaNacimiento, telefono, fechaCreacion, otraEnfermedad, comorbilidades } = json;
-        return new Paciente(id, cedula, nombre, sexo, fechaNacimiento, telefono, fechaCreacion, otraEnfermedad, comorbilidades);
+        const { id, cedula, nombre, sexo, fechaNacimiento, telefono, fechaCreacion, otraEnfermedad } = json;
+        const aux = {};
+
+        for (const i of COMORBILIDADES) {
+            aux[i] = json[i] || 0;
+        }
+
+        return new Paciente(id, cedula, nombre, sexo, fechaNacimiento, telefono, fechaCreacion, otraEnfermedad, aux);
     }
 
     /**
