@@ -166,4 +166,30 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
             }).toThrowError(`El paciente con id id2 no existe`);
         });
     });
+
+    describe("Validar el método 'verPaciente'", () => {
+        const paciente1 = new Paciente(
+            "id1", "1234567890", "Paciente 1", 0,
+            "01-01-2000", "0987654321", "07-06-2026",
+            true, ["Diabetes"]
+        );
+        const paciente2 = new Paciente(
+            "id2", "0987654321", "Paciente 2", 1,
+            "02-02-1990", "0123456789", "08-06-2026",
+            false, ["Hipertensión arterial"]
+        );
+
+        test("CP - 147", () => {
+            const archivo = new ArchivoPacientes([paciente1, paciente2]);
+            const paciente = archivo.verPaciente("id2");
+            expect(paciente).toEqual(paciente2);
+        });
+
+        test("CP - 148", () => {
+            const archivo = new ArchivoPacientes([paciente1]);
+            expect(() => {
+                archivo.verPaciente("id2");
+            }).toThrowError(`El paciente con id id2 no existe`);
+        });
+    });
 });

@@ -9,7 +9,7 @@ export default class ArchivoPacientes {
     #claves = {};
 
     /**
-     * @param {Array<Paciente>|Object} pacientes 
+     * @param {Array<Paciente>} pacientes 
      */
     constructor(pacientes = []) {
         this.#pacientes = pacientes;
