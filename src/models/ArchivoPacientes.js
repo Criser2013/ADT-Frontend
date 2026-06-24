@@ -1,9 +1,16 @@
 import Paciente from "./Paciente";
 
+/**
+ * Clase que representa el archivo que almacena los pacientes registrados en la aplicación. 
+ * Provee funcionalidades para agregar, modificar, eliminar y consultar pacientes, así como para convertir el archivo a y desde formato JSON.
+ */
 export default class ArchivoPacientes {
     #pacientes = [];
     #claves = {};
 
+    /**
+     * @param {Array<Paciente>|Object} pacientes 
+     */
     constructor(pacientes = []) {
         this.#pacientes = pacientes;
 
