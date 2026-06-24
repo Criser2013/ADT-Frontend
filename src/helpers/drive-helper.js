@@ -7,17 +7,11 @@ export default class DriveHelper {
     #idArchivo = null;
     #idCarpeta = null;
     #archivo = new ArchivoPacientes();
-    #descargado = false;
     #token = null;
+    #peticiones = [];
 
     constructor(token = null) {
         this.#token = token;
-        this.error = "";
-        this.descargando = false;
-    };
-
-    get descargado() {
-        return this.#descargado;
     };
 
     get pacientes() {
@@ -29,24 +23,19 @@ export default class DriveHelper {
     };
 
     /**
-     * Actualiza el archivo de pacientes en Google Drive con los datos actuales del archivo.
-     * @returns {Object} Resultado de la operación con las claves:
-     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
-     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
+     * Cancela todas las peticiones pendientes a Google Drive. Se utiliza para evitar que se sigan 
+     * ejecutando peticiones cuando el usuario cierra sesión o se desconecta de la aplicación. Especialmente 
+     * para usarse en el useEffect de los componentes que hacen uso de la clase DriveHelper.
      */
-    async actualizarArchivo() {
-        const contJson = this.#archivo.toJson();
-        const contBinario = crearArchivoXlsx(contJson, "Datos");
-        const { success, data, error } = await this.#subirArchivo(this.#idArchivo, contBinario.data);
-        if (!success) {
-            return { success: false, error: error };
-        } else {
-            return { success: true };
+    cancelarPeticiones() {
+        for (const peticion of this.#peticiones) {
+            peticion.abort();
         }
+        this.#peticiones = [];
     };
 
     /**
-     * Crear una copia de los diagnósticos de la aplicación en Google Drive
+     * Crear una copia de los diagnósticos de la aplicación en Google Drive.
      * @param {String} nombreArchivo Nombre del archivo a crear en Google Drive.
      * @param {Array<Object>} datos Arreglo de objetos con los datos a guardar en el archivo.
      * @param {String} tipo Tipo de archivo a crear ("xlsx" o "csv").
@@ -55,7 +44,6 @@ export default class DriveHelper {
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
     async crearCopiaDiagnosticos(nombreArchivo, datos, tipo = "xlsx") {
-        let idCarpeta = null;
         const existe = await this.#verificarExisteArchivo(DRIVE_FOLDER_NAME, true);
 
         if (!existe.success) {
@@ -65,12 +53,25 @@ export default class DriveHelper {
                 return { success: false, error: resCarpeta.error };
             }
 
-            idCarpeta = resCarpeta.data.id;
-        } else {
-            idCarpeta = existe.data.files[0].id;
+            this.#idCarpeta = resCarpeta.data.id;
         }
 
-        return await this.#guardarArchivoDiagnosticos(nombreArchivo, idCarpeta, datos, tipo);
+        return await this.#subirCopiaDiagnosticos(nombreArchivo, this.#idCarpeta, datos, tipo);
+    };
+
+    /**
+     * Descarga el archivo de pacientes desde Google Drive y lo hace accesible mediante el 
+     * atributo "pacientes".
+     * @returns {Object} Resultado de la operación con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
+     */
+    async descargarArchivoPacientes() {
+        const existe = await this.#verificarEstructuraArchivos();
+        if (!existe.success) {
+            return { success: false, error: existe.error };
+        }
+        return await this.#descargarArchivo(this.#idArchivo);
     };
 
     /**
@@ -87,10 +88,9 @@ export default class DriveHelper {
      */
     async operacionSobreArchivo(tipo, parametros) {
         try {
-            let res = null;
-            const resActualizacion = await this.#actualizarEstado();
-            if (!resActualizacion.success) {
-                return { success: false, error: resActualizacion.error };
+            const { success, error } = await this.#actualizarEstado();
+            if (!success) {
+                return { success: false, error: error };
             }
 
             switch (tipo) {
@@ -106,7 +106,7 @@ export default class DriveHelper {
                 case "ver":
                     return await this.#archivo.verPaciente(parametros.id);
             }
-            return await this.actualizarArchivo();
+            return await this.#actualizarArchivo();
         } catch (error) {
             return error.message.includes("ya existe") ?
                 { success: false, error: "errPacienteDuplicado" } :
@@ -115,19 +115,15 @@ export default class DriveHelper {
     };
 
     /**
-     * Descarga el archivo de pacientes desde Google Drive y lo hace accesible mediante el 
-     * atributo "pacientes".
+     * Actualiza el archivo de pacientes en Google Drive con los datos en memoria.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
-    async descargarArchivoPacientes() {
-        const existe = await this.#verificarEstructuraArchivos();
-        if (!existe.success) {
-            return { success: false, error: existe.error };
-        }
-
-        return await this.#descargarArchivo(this.#idArchivo);
+    async #actualizarArchivo() {
+        const contJson = this.#archivo.toJson();
+        const contBinario = crearArchivoXlsx(contJson, "Datos");
+        return await this.#subirArchivo(this.#idArchivo, contBinario.data);
     };
 
     /**
@@ -165,14 +161,19 @@ export default class DriveHelper {
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
     async #crearArchivo(nombre, esCarpeta = false, idPadre = "", mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+        const controlador = new AbortController();
         const mime = esCarpeta ? "application/vnd.google-apps.folder" : mimeType;
         const params = {
             name: nombre, parents: esCarpeta ? [] : [idPadre], mimeType: mime
         }
-        const { success, data, error } = await crearArchivo(params, this.#token, esCarpeta);
+        this.#peticiones.push(controlador);
+        const { success, data, error } = await crearArchivo(params, this.#token, esCarpeta, controlador);
+        this.#peticiones.pop();
 
         if (success && !esCarpeta) {
             this.#idArchivo = data.id;
+        } else if (success && esCarpeta) {
+            this.#idCarpeta = data.id;
         }
 
         return { success, data, error };
@@ -193,8 +194,6 @@ export default class DriveHelper {
         if (!resArchivo.success) {
             return { success: false, error: resArchivo.error };
         }
-
-        this.#idArchivo = resArchivo.data.id;
         return { success: true };
     };
 
@@ -205,11 +204,13 @@ export default class DriveHelper {
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
     async #descargarArchivo(idArchivo) {
-        const { success, data, error } = await descargarArchivo(idArchivo, this.#token);
+        const controlador = new AbortController();
+        this.#peticiones.push(controlador);
+        const { success, data, error } = await descargarArchivo(idArchivo, this.#token, controlador);
+        this.#peticiones.pop();
         if (success) {
             this.#leerArchivo(data);
         }
-        this.#descargado = true;
         return { success, error };
     };
 
@@ -223,8 +224,8 @@ export default class DriveHelper {
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
-    async #guardarArchivoDiagnosticos(nombreArchivo, idCarpeta, datos, tipo) {
-        let mimeType = (tipo == "csv") ? "text/csv" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    async #subirCopiaDiagnosticos(nombreArchivo, idCarpeta, datos, tipo) {
+        let mimeType = (tipo === "csv") ? "text/csv" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
         let res = await this.#crearArchivo(nombreArchivo, false, idCarpeta, mimeType);
 
         if (!res.success) {
@@ -262,10 +263,12 @@ export default class DriveHelper {
     async #subirArchivo(idArchivo, contenido, mimeType = "application/octet-stream") {
         let reintentos = 5;
         while (reintentos >= 0) {
-            const { success, data, error } = await subirArchivo(idArchivo, contenido, this.#token, mimeType);
+            const controlador = new AbortController();
+            this.#peticiones.push(controlador);
+            const { success, error } = await subirArchivo(idArchivo, contenido, this.#token, mimeType, controlador);
+            this.#peticiones.pop();
             if (success) {
-                this.#idArchivo = data.id;
-                return { success, data, error };
+                return { success, error };
             }
             reintentos--;
         }
@@ -283,6 +286,7 @@ export default class DriveHelper {
         if (!resCarpeta.success) {
             return { success: false, error: resCarpeta.error };
         }
+        this.#idCarpeta = resCarpeta.data.id;
         const resArchivo = await this.#verificarExistenciaArchivo(DRIVE_FILENAME, false);
         if (!resArchivo.success) {
             return { success: false, error: resArchivo.error };
@@ -306,8 +310,10 @@ export default class DriveHelper {
         let params = `name='${nombre}' and trashed=false`;
         params += (esCarpeta ? ` and mimeType='application/vnd.google-apps.folder'`
             : ` and mimeType!='application/vnd.google-apps.folder'`);
-
-        const { success, data, error } = await buscarArchivo(params, this.#token);
+        const controlador = new AbortController();
+        this.#peticiones.push(controlador);
+        const { success, data, error } = await buscarArchivo(params, this.#token, controlador);
+        this.#peticiones.pop();
 
         if (success && (data.files.length > 0)) {
             return { success: true, data: data.files[0] };

@@ -17,10 +17,8 @@ export function clasificarError(codigoPet, contenido) {
     }
 
     const errores = [
-        { status: 308, includes: "Resume Incomplete", error: "errCargaResumible" },
         { status: 401, includes: "Invalid Credentials", error: "errCreds" },
         { status: 403, includes: "Drive storage quota has been exceeded", error: "errEspacioDrive" },
-        { status: 404, includes: "Not found", error: "errCargaVencida" },
         { status: 404, includes: "File not found", error: "errArchivoInexistente" },
         { status: [403, 429], includes: "Rate Limit Exceeded", error: "errLimPeticiones" },
         { status: 403, includes: "Daily Limit Exceeded", error: "errLimPeticiones" }
@@ -50,19 +48,21 @@ export function clasificarError(codigoPet, contenido) {
  * - "kind" (string) - Tipo de archivo.
  * @param {String} params - Parámetros de consulta de la URL codificados.
  * @param {String} token - Token OAuth de Google.
+ * @param {AbortController} controlador - Controlador de la petición para poder cancelarla si es necesario.
  * @returns {Object} Resultado de la operación con las claves:
  * - "success" (Boolean) - Indica si la operación fue exitosa o no.
  * - "data" (JSON) - Contiene la respuesta de la API de Google Drive si la operación fue exitosa, de lo contrario es null.
  * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
  */
-export async function buscarArchivo(params, token) {
+export async function buscarArchivo(params, token, controlador = null) {
     try {
         params = new URLSearchParams({q: params}).toString();
         const pet = await fetch(`${DRIVE_API_URL}/files?${params}`, {
                 method: "GET",
                 headers: {
                     "Authorization": `Bearer ${token}`,
-                }
+                },
+                signal: controlador?.signal
             }
         );
         const res = await pet.json();
@@ -79,12 +79,13 @@ export async function buscarArchivo(params, token) {
  * @param {Object} cuerpo - Metadatos del archivo a crear.
  * @param {String} token - Token OAuth de Google.
  * @param {Boolean} esCarpeta - Indicador si el archivo es una carpeta.
+ * @param {AbortController} controlador - Controlador de la petición para poder cancelarla si es necesario.
  * @returns {Object} Resultado de la operación con las claves:
  * - "success" (Boolean) - Indica si la operación fue exitosa o no.
  * - "data" (JSON) - Contiene los metadatos del archivo creado si la operación fue exitosa, de lo contrario es null.
  * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
  */
-export async function crearArchivo(cuerpo, token, esCarpeta = false) {
+export async function crearArchivo(cuerpo, token, esCarpeta = false, controlador = null) {
     try {
         if (esCarpeta) {
             cuerpo["mimeType"] = "application/vnd.google-apps.folder";
@@ -96,6 +97,7 @@ export async function crearArchivo(cuerpo, token, esCarpeta = false) {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             },
+            signal: controlador?.signal,
             body: JSON.stringify(cuerpo)
         });
 
@@ -113,12 +115,13 @@ export async function crearArchivo(cuerpo, token, esCarpeta = false) {
  * @param {File|Blob|Uint8Array} contenido - Archivo a subir.
  * @param {String} token - Token OAuth de Google.
  * @param {String} mimeType - Tipo MIME del archivo.
+ * @param {AbortController} controlador - Controlador de la petición para poder cancelarla si es necesario.
  * @returns {Object} Resultado de la operación con las claves:
  * - "success" (Boolean) - Indica si la operación fue exitosa o no.
  * - "data" (JSON) - Contiene los metadatos del archivo subido si la operación fue exitosa, de lo contrario es null.
  * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
  */
-export async function subirArchivo(idArchivo, contenido, token, mimeType = "application/octet-stream") {
+export async function subirArchivo(idArchivo, contenido, token, mimeType = "application/octet-stream", controlador = null) {
     try {
         const pet = await fetch(`${DRIVE_UPLOAD_API_URL}/files/${idArchivo}?uploadType=media`, {
             method: "PATCH",
@@ -127,7 +130,8 @@ export async function subirArchivo(idArchivo, contenido, token, mimeType = "appl
                 "Content-Type": mimeType,
                 "Content-Length": contenido.length
             },
-            body: contenido
+            body: contenido,
+            signal: controlador?.signal
         });
         const res = await pet.json();
 
@@ -142,18 +146,20 @@ export async function subirArchivo(idArchivo, contenido, token, mimeType = "appl
  * La clave "data" del JSON de respuesta es un ArrayBuffer que contiene el archivo.
  * @param {String} idArchivo - ID del archivo a descargar.
  * @param {String} token - Token OAuth de Google.
+ * @param {AbortController} controlador - Controlador de la petición para poder cancelarla si es necesario.
  * @returns {Object} Resultado de la operación con las claves:
  * - "success" (boolean) - Indica si la operación fue exitosa o no.
  * - "data" (ArrayBuffer) - Contiene el archivo descargado si la operación fue exitosa, de lo contrario es null.
  * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
  */
-export async function descargarArchivo(idArchivo, token) {
+export async function descargarArchivo(idArchivo, token, controlador = null) {
     try {
         const pet = await fetch(`${DRIVE_API_URL}/files/${idArchivo}?alt=media`, {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,
-            }
+            },
+            signal: controlador?.signal
         });
 
         const res = await pet.arrayBuffer();
