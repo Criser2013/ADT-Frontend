@@ -132,6 +132,22 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
             expect(archivo.pacientes.length).toBe(2);
             expect(archivo.pacientes[1]).toEqual(paciente2);
         });
+
+        test("CP - 145", () => {
+            const archivo = new ArchivoPacientes([paciente1, paciente2]);
+            const pacienteModificado = new Paciente(
+                "id2", "0987654321", "Paciente 3", 0,
+                "03-03-1990", "0123456789", "08-06-2026",
+                true, ["Enfermedad renal"]
+            );
+
+            expect(() => {
+                archivo.modificarPaciente("id2", pacienteModificado);
+            }).toThrowError(`El paciente con cédula 0987654321 no existe`);
+
+            expect(archivo.pacientes.length).toBe(2);
+            expect(archivo.pacientes[1]).toEqual(paciente2);
+        });
     });
 
     describe("Validar el método 'eliminarPacientes'", () => {
@@ -147,8 +163,8 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
         );
 
         test.each([
-            ["144", { pacientes: "id2", varios: false }, { tam: 1, esperado: [paciente1] }],
-            ["145", { pacientes: ["id1", "id2"], varios: true }, { tam: 0 }],
+            ["146", { pacientes: "id2", varios: false }, { tam: 1, esperado: [paciente1] }],
+            ["147", { pacientes: ["id1", "id2"], varios: true }, { tam: 0 }],
         ])("CP - %s", (idPrueba, params, resEsperada) => {
             const archivo = new ArchivoPacientes([paciente1, paciente2]);
             archivo.eliminarPacientes(params.pacientes, params.varios);
@@ -159,7 +175,7 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
             }
         });
 
-        test("CP - 146", () => {
+        test("CP - 148", () => {
             const archivo = new ArchivoPacientes([paciente1]);
             expect(() => {
                 archivo.eliminarPacientes("id2");
@@ -179,13 +195,13 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
             false, ["Hipertensión arterial"]
         );
 
-        test("CP - 147", () => {
+        test("CP - 149", () => {
             const archivo = new ArchivoPacientes([paciente1, paciente2]);
             const paciente = archivo.verPaciente("id2");
             expect(paciente).toEqual(paciente2);
         });
 
-        test("CP - 148", () => {
+        test("CP - 150", () => {
             const archivo = new ArchivoPacientes([paciente1]);
             expect(() => {
                 archivo.verPaciente("id2");
