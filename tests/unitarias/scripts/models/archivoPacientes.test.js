@@ -81,7 +81,7 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
             expect(res.pacientes[2]).toEqual(paciente3);
         });
 
-        test("CP - 142",() => {
+        test("CP - 142", () => {
             const paciente1 = new Paciente(
                 "id1", "1234567890", "Paciente 1", 0,
                 "01-01-2000", "0987654321", "07-06-2026",
@@ -98,11 +98,63 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
                 true, ["Enfermedad renal"]
             );
             const res = new ArchivoPacientes([paciente1, paciente2]);
-            
+
             expect(() => {
                 res.anadirPaciente(paciente3);
             }).toThrowError(`El paciente con cédula ${paciente3.cedula} ya existe`);
             expect(res.pacientes.length).toBe(2);
+        });
+    });
+
+    describe("Validar el método 'modificarPaciente'", () => {
+        test("CP - 143", () => {
+            const paciente1 = new Paciente(
+                "id1", "1234567890", "Paciente 1", 0,
+                "01-01-2000", "0987654321", "07-06-2026",
+                true, ["Diabetes"]
+            );
+            const paciente2 = new Paciente(
+                "id2", "0987654321", "Paciente 2", 1,
+                "02-02-1990", "0123456789", "08-06-2026",
+                false, ["Hipertensión arterial"]
+            );
+            const pacienteModificado = new Paciente(
+                "id2", "0987654321", "Paciente 3", 0,
+                "03-03-1990", "0123456789", "08-06-2026",
+                true, ["Enfermedad renal"]
+            );
+            const archivo = new ArchivoPacientes([paciente1, paciente2]);
+            archivo.modificarPaciente("id2", pacienteModificado);
+
+            expect(archivo.pacientes.length).toBe(2);
+            expect(archivo.pacientes[1]).toEqual(pacienteModificado);
+
+        });
+
+        test("CP - 144", () => {
+            const paciente1 = new Paciente(
+                "id1", "1234567890", "Paciente 1", 0,
+                "01-01-2000", "0987654321", "07-06-2026",
+                true, ["Diabetes"]
+            );
+            const paciente2 = new Paciente(
+                "id2", "0987654321", "Paciente 2", 1,
+                "02-02-1990", "0123456789", "08-06-2026",
+                false, ["Hipertensión arterial"]
+            );
+            const pacienteModificado = new Paciente(
+                "id3", "0987654321", "Paciente 3", 0,
+                "03-03-1990", "0123456789", "08-06-2026",
+                true, ["Enfermedad renal"]
+            );
+            const archivo = new ArchivoPacientes([paciente1, paciente2]);
+
+            expect(() => {
+                archivo.modificarPaciente("id3", pacienteModificado);
+            }).toThrowError(`El paciente con id id3 no existe`);
+
+            expect(archivo.pacientes.length).toBe(2);
+            expect(archivo.pacientes[1]).toEqual(paciente2);
         });
     });
 });

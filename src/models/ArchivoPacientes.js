@@ -66,7 +66,7 @@ export default class ArchivoPacientes {
         if (res) {
             const indice = this.#pacientes.findIndex(p => p.id === id);
             this.#pacientes[indice] = paciente;
-
+            this.#claves[id] = paciente.cedula;
         } else {
             throw new Error(`El paciente con id ${id} no existe`);
         }
