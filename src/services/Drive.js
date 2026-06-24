@@ -76,7 +76,7 @@ export async function buscarArchivo(params, token) {
 /**
  * Crea un archivo de Google Drive a partir de los metadatos.
  * No sube contenido al mismo. Para crear una carpeta coloque 
- * @param {JSON} cuerpo - Metadatos del archivo a crear.
+ * @param {Object} cuerpo - Metadatos del archivo a crear.
  * @param {String} token - Token OAuth de Google.
  * @param {Boolean} esCarpeta - Indicador si el archivo es una carpeta.
  * @returns {Object} Resultado de la operación con las claves:
