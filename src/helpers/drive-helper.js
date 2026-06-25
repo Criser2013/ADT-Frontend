@@ -44,7 +44,7 @@ export default class DriveHelper {
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
     async crearCopiaDiagnosticos(nombreArchivo, datos, tipo = "xlsx") {
-        const existe = await this.#verificarExisteArchivo(DRIVE_FOLDER_NAME, true);
+        const existe = await this.#verificarExistenciaArchivo(DRIVE_FOLDER_NAME, true);
 
         if (!existe.success) {
             const resCarpeta = await this.#crearArchivo(DRIVE_FOLDER_NAME, true);
@@ -170,7 +170,7 @@ export default class DriveHelper {
         const mime = esCarpeta ? "application/vnd.google-apps.folder" : mimeType;
         const params = {
             name: nombre, parents: esCarpeta ? [] : [idPadre], mimeType: mime
-        }
+        };
         this.#peticiones.push(controlador);
         const { success, data, error } = await crearArchivo(this.#token, params, esCarpeta, controlador);
         this.#peticiones.pop();
@@ -320,6 +320,11 @@ export default class DriveHelper {
         let params = `name='${nombre}' and trashed=false`;
         params += (esCarpeta ? ` and mimeType='application/vnd.google-apps.folder'`
             : ` and mimeType!='application/vnd.google-apps.folder'`);
+
+        if (idPadre) {
+            params += ` and '${idPadre}' in parents`;
+        }
+
         const controlador = new AbortController();
         this.#peticiones.push(controlador);
         const { success, data, error } = await buscarArchivo(this.#token, params, controlador);
