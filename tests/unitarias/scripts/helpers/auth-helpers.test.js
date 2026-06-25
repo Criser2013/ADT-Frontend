@@ -36,7 +36,7 @@ const firebaseAuth = await import("firebase/auth");
 const { AES, enc } = await import("crypto-js");
 const i18n = await import("i18next");
 
-const { manejadorErroresAuth, guardarCredsOAuth, borrarCredsOAuth, cargarCredsOAuth, verRolUsuario, registrarUsuario, cerrarSesion, iniciarSesionGoogle } = await import('../../../../src/helpers/autenticacion-helpers');
+const { manejadorErroresAuth, guardarCredsOAuth, borrarCredsOAuth, cargarCredsOAuth, verRolUsuario, registrarUsuario, cerrarSesion, iniciarSesionGoogle } = await import('../../../../src/helpers/auth-helper');
 
 describe("Validar la funcion 'manejadorErroresAuth", () => {
     // ------------------------- Parámetros ---------------------------

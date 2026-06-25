@@ -61,10 +61,11 @@ export default class ArchivoPacientes {
      * @param {Paciente} paciente Instancia de la clase Paciente con los datos actualizados
      * @throws {Error} Si el paciente no existe
      */
-    modificarPaciente(id, paciente, cedulaAnterior) {
+    modificarPaciente(id, paciente) {
         const res = this.#verSiExistePaciente(id);
         if (res) {
             const resCedula = this.#verSiExisteCedula(paciente.cedula);
+            console.log(this.#claves[id], paciente.cedula);
             if (resCedula && this.#claves[id] !== paciente.cedula) {
                 throw new Error(`El paciente con cédula ${paciente.cedula} ya existe`);
             }

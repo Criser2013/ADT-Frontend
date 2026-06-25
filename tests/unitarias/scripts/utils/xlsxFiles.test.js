@@ -98,7 +98,7 @@ describe("Validar la funcion 'crearArchivoXlsx'", () => {
 
     // ------------------------- Respuestas esperadas -------------------------
     const res1 = {
-        success: true, error: null,
+        success: true,
         data: {
             type: "buffer",
             fileType: "xlsx",
@@ -107,7 +107,7 @@ describe("Validar la funcion 'crearArchivoXlsx'", () => {
         }
     };
     const res2 = {
-        success: true, error: null,
+        success: true,
         data: {
             type: "text",
             fileType: "csv",
@@ -115,7 +115,7 @@ describe("Validar la funcion 'crearArchivoXlsx'", () => {
             data: params2.datos.map(row => Object.values(row).join(",")).join("\n")
         }
     };
-    const res3 = { success: false, data: null, error: new Error("Error en json_to_sheet") };
+    const res3 = { success: false, error: new Error("Error en json_to_sheet") };
 
     // ------------------------- Mocks -------------------------
     const mock1 = (x) => ({
@@ -153,7 +153,7 @@ describe("Validar la funcion 'crearArchivoXlsx'", () => {
             data: workbook
         }));
 
-        const res = crearArchivoXlsx(datos, nombreHoja, tipo);
+        const res = crearArchivoXlsx(datos, tipo, nombreHoja);
 
         expect(res).toEqual(resEsperada);
         expect(xlsx.utils.json_to_sheet).toHaveBeenCalledWith(datos);
@@ -190,7 +190,7 @@ describe("Validar la funcion 'descargarArchivoXlsx'", () => {
     };
 
     // ------------------------- Respuestas esperadas -------------------------
-    const res1 = { success: true, error: null };
+    const res1 = { success: true };
     const res2 = { success: false, error: new Error("Error en json_to_sheet") };
 
     // ------------------------- Mocks -------------------------
@@ -218,7 +218,7 @@ describe("Validar la funcion 'descargarArchivoXlsx'", () => {
 
         xlsx.writeFile.mockReturnValue(true);
 
-        const res = descargarArchivoXlsx(datos, nombreArchivo, tipo, nombreHoja);
+        const res = descargarArchivoXlsx(datos, tipo, nombreArchivo, nombreHoja);
 
         expect(res).toEqual(resEsperada);
         expect(xlsx.utils.json_to_sheet).toHaveBeenCalledWith(datos);
@@ -245,7 +245,7 @@ describe("Validar la funcion 'leerArchivoXlsx'", () => {
 
     // ------------------------- Respuestas esperadas -------------------------
     const res1 = {
-        success: true, error: null,
+        success: true,
         data: [{
             cedula: 1230123, nombre: "Juan Nombre", sexo: 0, telefono: "1234567890", fechaNacimiento: "12-12-2025",
             "Enfermedad vascular": 0, "Trombofilia": 0, "Enfermedad renal": 0, "Enfermedad pulmonar": 0, "otraEnfermedad": 0,
@@ -254,9 +254,9 @@ describe("Validar la funcion 'leerArchivoXlsx'", () => {
             "Enfermedad neurológica": 0, fechaCreacion: "12-02-2023", id: "1f073994-d5df-6880-ad6e-7f6737152867"
         }]
     };
-    const res2 = { success: true, error: null, data: [] };
-    const res3 = { success: false, data: [], error: new Error("Error en json_to_sheet") };
-    const res4 = { success: false, data: [], error:"Error de lectura" };
+    const res2 = { success: true, data: [] };
+    const res3 = { success: false, error: new Error("Error en json_to_sheet") };
+    const res4 = { success: false, error:"Error de lectura" };
 
     // ------------------------- Mocks -------------------------
     const mock1 = () => res1.data;

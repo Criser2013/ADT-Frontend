@@ -32,9 +32,9 @@ export async function cargarCredencialesServidor() {
 /**
  * Almacena las credenciales de los servicios de la aplicación en el sessionStorage
  * del navegador para evitar tener que cargarlas desde el servidor.
- * @param {Object} firebaseCreds - Credenciales de Firebase.
- * @param {Array<String>} scopesDrive - Scopes de acceso a Google Drive.
+ * @param {Object} credsFirebase - Credenciales de Firebase.
  * @param {String} tokenRecaptcha - Clave del cliente de reCAPTCHA.
+ * @param {Array<String>} scopesDrive - Scopes de acceso a Google Drive.
  * @return {Boolean} Resultado de la operación de almacenamiento, True si fue exitosa.
  */
 export function almacenarCredencialesCache(credsFirebase, tokenRecaptcha, scopesDrive) {

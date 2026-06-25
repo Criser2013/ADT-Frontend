@@ -136,17 +136,17 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
         test("CP - 145", () => {
             const archivo = new ArchivoPacientes([paciente1, paciente2]);
             const pacienteModificado = new Paciente(
-                "id2", "0987654321", "Paciente 3", 0,
+                "id1", "0987654321", "Paciente 3", 0,
                 "03-03-1990", "0123456789", "08-06-2026",
                 true, ["Enfermedad renal"]
             );
 
             expect(() => {
-                archivo.modificarPaciente("id2", pacienteModificado);
-            }).toThrowError(`El paciente con cédula 0987654321 no existe`);
+                archivo.modificarPaciente("id1", pacienteModificado);
+            }).toThrowError(`El paciente con cédula 0987654321 ya existe`);
 
             expect(archivo.pacientes.length).toBe(2);
-            expect(archivo.pacientes[1]).toEqual(paciente2);
+            expect(archivo.pacientes[0]).toEqual(paciente1);
         });
     });
 

@@ -122,7 +122,12 @@ export default class DriveHelper {
      */
     async #actualizarArchivo() {
         const contJson = this.#archivo.toJson();
-        const contBinario = crearArchivoXlsx(contJson, "Datos");
+        const contBinario = crearArchivoXlsx(contJson, "xlsx", "Datos");
+
+        if (!contBinario.success) {
+            return { success: false, error: contBinario.error };
+        }
+
         return await this.#subirArchivo(this.#idArchivo, contBinario.data);
     };
 
@@ -167,7 +172,7 @@ export default class DriveHelper {
             name: nombre, parents: esCarpeta ? [] : [idPadre], mimeType: mime
         }
         this.#peticiones.push(controlador);
-        const { success, data, error } = await crearArchivo(params, this.#token, esCarpeta, controlador);
+        const { success, data, error } = await crearArchivo(this.#token, params, esCarpeta, controlador);
         this.#peticiones.pop();
 
         if (success && !esCarpeta) {
@@ -206,10 +211,10 @@ export default class DriveHelper {
     async #descargarArchivo(idArchivo) {
         const controlador = new AbortController();
         this.#peticiones.push(controlador);
-        const { success, data, error } = await descargarArchivo(idArchivo, this.#token, controlador);
+        const { success, data, error } = await descargarArchivo(this.#token, idArchivo, controlador);
         this.#peticiones.pop();
         if (success) {
-            this.#leerArchivo(data);
+            return this.#leerArchivo(data);
         }
         return { success, error };
     };
@@ -226,20 +231,25 @@ export default class DriveHelper {
      */
     async #subirCopiaDiagnosticos(nombreArchivo, idCarpeta, datos, tipo) {
         let mimeType = (tipo === "csv") ? "text/csv" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-        let res = await this.#crearArchivo(nombreArchivo, false, idCarpeta, mimeType);
+        const res = await this.#crearArchivo(nombreArchivo, false, idCarpeta, mimeType);
 
         if (!res.success) {
             return { success: false, error: res.error };
         }
 
-        const binario = crearArchivoXlsx(datos, tipo);
-        res = await this.#subirArchivo(res.data.id, binario.data, mimeType);
+        const { success, data, error } = crearArchivoXlsx(datos, tipo, "Datos");
+        if (!success) {
+            return { success: false, error: error };
+        }
 
-        return res;
+        return await this.#subirArchivo(res.data.id, data, mimeType);
     };
 
     /**
      * @param {Uint8Array|File|Blob|ArrayBuffer} contenido Contenido del archivo.
+     * @returns {Object} Resultado de la operación con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
     #leerArchivo(contenido) {
         const { success, data, error } = leerArchivoXlsx(contenido, "Datos", "errLeerArchivo");
@@ -247,8 +257,8 @@ export default class DriveHelper {
             this.#archivo = ArchivoPacientes.fromJson(data);
         } else {
             this.#archivo = new ArchivoPacientes();
-            this.error = error;
         }
+        return { success, error };
     };
 
     /**
@@ -265,7 +275,7 @@ export default class DriveHelper {
         while (reintentos >= 0) {
             const controlador = new AbortController();
             this.#peticiones.push(controlador);
-            const { success, error } = await subirArchivo(idArchivo, contenido, this.#token, mimeType, controlador);
+            const { success, error } = await subirArchivo(this.#token, idArchivo, contenido, mimeType, controlador);
             this.#peticiones.pop();
             if (success) {
                 return { success, error };
@@ -312,7 +322,7 @@ export default class DriveHelper {
             : ` and mimeType!='application/vnd.google-apps.folder'`);
         const controlador = new AbortController();
         this.#peticiones.push(controlador);
-        const { success, data, error } = await buscarArchivo(params, this.#token, controlador);
+        const { success, data, error } = await buscarArchivo(this.#token, params, controlador);
         this.#peticiones.pop();
 
         if (success && (data.files.length > 0)) {
