@@ -294,7 +294,7 @@ export default class DriveHelper {
             return { success: false, error: resCarpeta.error };
         }
         this.#idCarpeta = resCarpeta.data.id;
-        const resArchivo = await this.#verificarExistenciaArchivo(DRIVE_FILENAME, false);
+        const resArchivo = await this.#verificarExistenciaArchivo(DRIVE_FILENAME, false, this.#idCarpeta);
         if (!resArchivo.success) {
             return { success: false, error: resArchivo.error };
         }
