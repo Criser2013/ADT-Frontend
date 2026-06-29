@@ -16,9 +16,9 @@ describe("Validar la funcion 'descargarArchivo'", () => {
     });
 
     // ------------------------ Respuestas esperadas ------------------------
-    const res1 = { success: true, data: new ArrayBuffer(1), error: null };
-    const res2 = { success: false, data: null, error: new Error("Error de red") };
-    const res3 = { success: false, data: null, error: "errArchivoInexistente" };
+    const res1 = { success: true, data: new ArrayBuffer(1) };
+    const res2 = { success: false, error: new Error("Error de red") };
+    const res3 = { success: false, error: "errArchivoInexistente" };
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -31,7 +31,7 @@ describe("Validar la funcion 'descargarArchivo'", () => {
     ])("CP - %s", async (idPrueba, mock, respuestaEsperada) => {
         global.fetch = jest.fn(mock);
 
-        const res = await descargarArchivo("archivo1", "token");
+        const res = await descargarArchivo("token", "archivo1");
         expect(res).toEqual(respuestaEsperada);
 
         expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -82,15 +82,15 @@ describe("Validar la funcion 'crearArchivo'", () => {
         success: true, data: {
             id: "archivo1", name: "archivoPrueba",
             kind: "drive#file", mimeType: "text/plain"
-        }, error: null
+        },
     }
     const res2 = {
         success: true, data: {
             id: "carpeta1", name: "carpetaPrueba",
             kind: "drive#folder", mimeType: "application/vnd.google-apps.folder"
-        }, error: null
+        }
     };
-    const res3 = { success: false, data: null, error: new Error("Error de red") };
+    const res3 = { success: false, error: new Error("Error de red") };
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -104,7 +104,7 @@ describe("Validar la funcion 'crearArchivo'", () => {
         const { cuerpoPet, token, esCarpeta } = params;
 
         global.fetch = jest.fn(mock);
-        const res = await crearArchivo(cuerpoPet, token, esCarpeta);
+        const res = await crearArchivo(token, cuerpoPet, esCarpeta);
 
         expect(res).toEqual(resEsperado);
         expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -156,10 +156,10 @@ describe("Validar la funcion 'buscarArchivo'", () => {
             ],
             "kind": "drive#fileList",
             "incompleteSearch": false
-        }, error: null
+        }
     };
     const res2 = {
-        success: false, data: null, error: new Error("Error de red")
+        success: false, error: new Error("Error de red")
     };
 
     const url1 = `${DRIVE_API_URL}/files?q=name+%3D+%27archivo%27+and+mimeType+%3D+%27application%2Fvnd.google-apps.folder%27`;
@@ -178,7 +178,7 @@ describe("Validar la funcion 'buscarArchivo'", () => {
         const toStringSpy = jest.spyOn(URLSearchParams.prototype, "toString");
 
 
-        const res = await buscarArchivo(query, token);
+        const res = await buscarArchivo(token, query);
 
         expect(res).toEqual(resEsperado);
         expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -219,9 +219,9 @@ describe("Validar la funcion 'subirArchivo'", () => {
             "id": "1u_S79kGadapjqNwZmwrlT6JfkRJIzaqD",
             "name": "archivito",
             "mimeType": "application/vnd.google-apps.folder"
-        }, error: null
+        }
     };
-    const res2 = { success: false, data: null, error: new Error("Error de red") };
+    const res2 = { success: false, error: new Error("Error de red") };
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -235,7 +235,7 @@ describe("Validar la funcion 'subirArchivo'", () => {
 
         global.fetch = jest.fn(mock);
 
-        const res = await subirArchivo(idArchivo, body, token);
+        const res = await subirArchivo(token, idArchivo, body);
 
         expect(res).toEqual(resEsperado);
         expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -255,13 +255,13 @@ describe("Validar la funcion 'subirArchivo'", () => {
 describe("Validar la función 'clasificarError'", () => {
     // ------------------------ Params ------------------------
     const params1 = { status: 200, content: { exitoso: true } };
-    const params2 = { status: 404, content: { error: { message: "Not found" } } };
+    const params2 = { status: 404, content: { error: { message: "File not found" } } };
     const params3 = { status: 500, content: { error: { message: "Internal Server Error" } } };
 
     // ------------------------ Respuestas esperadas ------------------------
-    const res1 = { success: true, data: { exitoso: true }, error: null };
-    const res2 = { success: false, data: null, error: "errCargaVencida" };
-    const res3 = { success: false, data: null, error: "500 " + JSON.stringify({ error: { message: "Internal Server Error" } }) };
+    const res1 = { success: true, data: { exitoso: true } };
+    const res2 = { success: false, error: "errArchivoInexistente" };
+    const res3 = { success: false, error: "500 " + JSON.stringify({ error: { message: "Internal Server Error" } }) };
 
     test.each([
         ["34", params1, res1],

@@ -1,6 +1,6 @@
 import { jest, beforeEach, expect, describe, test } from '@jest/globals';
 
-jest.unstable_mockModule('../../../../src/helpers/Autenticacion', () => ({
+jest.unstable_mockModule('../../../../src/helpers/auth-helper', () => ({
     iniciarSesionGoogle: jest.fn(),
     cerrarSesion: jest.fn().mockResolvedValue(true),
     registrarUsuario: jest.fn(),
@@ -9,7 +9,7 @@ jest.unstable_mockModule('../../../../src/helpers/Autenticacion', () => ({
 }));
 
 
-const helpers = await import('../../../../src/helpers/Autenticacion');
+const helpers = await import('../../../../src/helpers/auth-helper');
 const { iniciarSesion } = await import('../../../../src/services/Autenticacion');
 
 describe("Validar la función 'iniciarSesion'", () => {
