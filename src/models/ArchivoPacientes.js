@@ -65,7 +65,6 @@ export default class ArchivoPacientes {
         const res = this.#verSiExistePaciente(id);
         if (res) {
             const resCedula = this.#verSiExisteCedula(paciente.cedula);
-            console.log(this.#claves[id], paciente.cedula);
             if (resCedula && this.#claves[id] !== paciente.cedula) {
                 throw new Error(`El paciente con cédula ${paciente.cedula} ya existe`);
             }

@@ -141,7 +141,6 @@ export default class DriveHelper {
      */
     async #actualizarEstado() {
         const { success } = await this.#verificarEstructuraArchivos();
-
         if (!success) {
             const res = await this.#crearEstructuraArchivos();
             if (!res.success) {
