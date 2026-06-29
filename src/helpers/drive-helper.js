@@ -43,8 +43,9 @@ export default class DriveHelper {
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
-    async crearCopiaDiagnosticos(nombreArchivo, datos, tipo = "xlsx") {
+    async crearCopiaDiagnosticos(nombreArchivo, datos, tipo) {
         const existe = await this.#verificarExistenciaArchivo(DRIVE_FOLDER_NAME, true);
+        this.#idCarpeta = existe.success ? existe.data.id : null;
 
         if (!existe.success) {
             const resCarpeta = await this.#crearArchivo(DRIVE_FOLDER_NAME, true);
@@ -52,8 +53,6 @@ export default class DriveHelper {
             if (!resCarpeta.success) {
                 return { success: false, error: resCarpeta.error };
             }
-
-            this.#idCarpeta = resCarpeta.data.id;
         }
 
         return await this.#subirCopiaDiagnosticos(nombreArchivo, this.#idCarpeta, datos, tipo);
@@ -275,10 +274,10 @@ export default class DriveHelper {
         while (reintentos >= 0) {
             const controlador = new AbortController();
             this.#peticiones.push(controlador);
-            const { success, error } = await subirArchivo(this.#token, idArchivo, contenido, mimeType, controlador);
+            const { success } = await subirArchivo(this.#token, idArchivo, contenido, mimeType, controlador);
             this.#peticiones.pop();
             if (success) {
-                return { success, error };
+                return { success };
             }
             reintentos--;
         }
