@@ -53,6 +53,8 @@ export default class DriveHelper {
             if (!resCarpeta.success) {
                 return { success: false, error: resCarpeta.error };
             }
+
+            this.#idCarpeta = resCarpeta.data.id;
         }
 
         return await this.#subirCopiaDiagnosticos(nombreArchivo, this.#idCarpeta, datos, tipo);
@@ -174,12 +176,6 @@ export default class DriveHelper {
         const { success, data, error } = await crearArchivo(this.#token, params, esCarpeta, controlador);
         this.#peticiones.pop();
 
-        if (success && !esCarpeta) {
-            this.#idArchivo = data.id;
-        } else if (success && esCarpeta) {
-            this.#idCarpeta = data.id;
-        }
-
         return { success, data, error };
     };
 
@@ -194,10 +190,12 @@ export default class DriveHelper {
         if (!resCarpeta.success) {
             return { success: false, error: resCarpeta.error };
         }
+        this.#idCarpeta = resCarpeta.data.id;
         const resArchivo = await this.#crearArchivo(DRIVE_FILENAME, false, resCarpeta.data.id);
         if (!resArchivo.success) {
             return { success: false, error: resArchivo.error };
         }
+        this.#idArchivo = resArchivo.data.id;
         return { success: true };
     };
 

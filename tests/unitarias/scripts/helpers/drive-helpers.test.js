@@ -34,127 +34,97 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
     });
 
     describe("Validar el método 'crearCopiaDiagnosticos'", () => {
+        // -------------------- Parámetros ---------------------
+        const params1 = {
+            nombreArchivo: "nombreArchivo", datos: "datos", tipo: "xlsx"
+        };
 
-        // ------------------------------- Mocks ---------------------------
-        const mock1 = {
-            buscarArchivo: { success: true, data: { id: "carpetaId" } },
-            subirArchivo: { success: true, data: { id: "archivoId" } },
-            crearArchivo: { cant: 1, mocks: [{ success: true, data: { id: "archivoId" } }] },
+        // -------------------- Resultados esperados ---------------------
+        const res1 = { success: true };
+        const res2 = { success: false, error: "Error al crear carpeta" };
+
+        // -------------------- Mocks ---------------------
+        const mocks1 = {
+            buscarArchivo: { success: true, data: { files: [{ id: "carpetaId" }] } },
+            subirArchivo: { success: true },
+            crearArchivo: { success: true, data: { id: "archivoId" } },
             crearArchivoXlsx: { success: true, data: [] }
         };
 
-        const mock2 = {
+        const mocks2 = {
             buscarArchivo: { success: false, error: "No se encontró la carpeta" },
-            subirArchivo: { success: true, data: { id: "archivoId" } },
-            crearArchivo: { cant: 1, mocks: [{ success: true, data: { id: "carpetaId" } }, { success: true, error: "Error al crear archivo" }] },
+            subirArchivo: { success: true },
+            crearArchivo: [
+                { success: true, data: { id: "carpetaId" } },
+                { success: true, data: { id: "archivoId" } }
+            ],
             crearArchivoXlsx: { success: true, data: [] }
         };
 
-        const res2 = { success: false, error: "errLimPeticiones" };
+        const mocks3 = {
+            buscarArchivo: { success: false, error: "No se encontró la carpeta" },
+            crearArchivo: { success: false, error: "Error al crear carpeta" }
+        };
 
         beforeEach(() => {
             jest.clearAllMocks();
         });
 
-        test("CP - 152", async () => {
-            driveService.buscarArchivo.mockResolvedValue({ success: true, data: { files: [{ id: "carpetaId" }] } });
-            driveService.subirArchivo.mockResolvedValue({ success: true });
-            driveService.crearArchivo.mockResolvedValue({ success: true, data: { id: "archivoId" } });
-            xlsxFiles.crearArchivoXlsx.mockReturnValue({ success: true, data: [] });
-
-            const helper = new DriveHelper("token");
-            const res = await helper.crearCopiaDiagnosticos("nombreArchivo", "datos", "xlsx");
-
-            expect(res).toEqual({ success: true });
-
-            expect(driveService.buscarArchivo).toHaveBeenCalledTimes(1);
-            expect(driveService.buscarArchivo).toHaveBeenCalledWith("token",`name='${DRIVE_FOLDER_NAME}' and trashed=false and mimeType='application/vnd.google-apps.folder'`, expect.any(AbortController));
-
-            expect(driveService.subirArchivo).toHaveBeenCalledTimes(1);
-            expect(driveService.subirArchivo).toHaveBeenCalledWith("token", "archivoId", [], "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", expect.any(AbortController));
-
-            expect(driveService.crearArchivo).toHaveBeenCalledTimes(1);
-            expect(driveService.crearArchivo).toHaveBeenCalledWith("token", {
-                name: "nombreArchivo",
-                mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                parents: ["carpetaId"]
-            }, false, expect.any(AbortController));
-
-            expect(xlsxFiles.crearArchivoXlsx).toHaveBeenCalledTimes(1);
-            expect(xlsxFiles.crearArchivoXlsx).toHaveBeenCalledWith("datos", "xlsx", "Datos");
-        });
-/*
         test.each([
-            ["152", mock1, params, res1],
-            ["153", mock2, params, res1],
-            ["154", mock2, params, res2]
+            ["152", mocks1, params1, res1],
+            ["153", mocks2, params1, res1],
+            ["154", mocks3, params1, res2]
         ])("CP - %s", async (idPrueba, mocks, params, resEsperada) => {
-
             driveService.buscarArchivo.mockResolvedValue(mocks.buscarArchivo);
             driveService.subirArchivo.mockResolvedValue(mocks.subirArchivo);
-            driveService.crearArchivo.mockResolvedValue({ success: true, data: { id: "archivoId" } });
+            xlsxFiles.crearArchivoXlsx.mockReturnValue({ success: true, data: [] });
 
-
-            if (mocks.crearArchivo.cant == 1) {
-                driveService.crearArchivo.mockResolvedValue(mocks.crearArchivo.mocks[0]);
+            if (Array.isArray(mocks.crearArchivo)) {
+                driveService.crearArchivo.mockResolvedValueOnce(mocks.crearArchivo[0]).
+                    mockResolvedValueOnce(mocks.crearArchivo[1]);
             } else {
-                driveService.crearArchivo.mockResolvedValueOnce(mocks.crearArchivo.mocks[0]);
-                driveService.crearArchivo.mockResolvedValueOnce(mocks.crearArchivo.mocks[1]);
+                driveService.crearArchivo.mockResolvedValue(mocks.crearArchivo);
             }
 
-            xlsxFiles.crearArchivoXlsx.mockResolvedValue(mocks.crearArchivoXlsx);
-
             const helper = new DriveHelper("token");
-            const res = await helper.crearCopiaDiagnosticos("nombreArchivo", "datos", "xlsx");
+            const res = await helper.crearCopiaDiagnosticos(params.nombreArchivo, params.datos, params.tipo);
 
-            expect(res).toEqual(mocks.subirArchivo);
+            expect(res).toEqual(resEsperada);
 
             expect(driveService.buscarArchivo).toHaveBeenCalledTimes(1);
-            expect(driveService.buscarArchivo).toHaveBeenCalledWith();
+            expect(driveService.buscarArchivo).toHaveBeenCalledWith("token", `name='${DRIVE_FOLDER_NAME}' and trashed=false and mimeType='application/vnd.google-apps.folder'`, expect.any(AbortController));
 
-            expect(driveService.subirArchivo).toHaveBeenCalledTimes(1);
-            expect(driveService.subirArchivo).toHaveBeenCalledWith("token", "archivoId", "application/octet-stream");
-
-            if (mocks.crearArchivo.cant == 1 && mocks.crearArchivo.mocks[0].success) {
-                expect(driveService.crearArchivo).toHaveBeenCalledTimes(2);
-                expect(driveService.crearArchivo).toHaveBeenCalledWith("token", {
-                    name: "nombreArchivo",
-                    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    parents: ["carpetaId"]
-                }, false, expect.any(AbortController));
-
-                expect(xlsxFiles.crearArchivoXlsx).toHaveBeenCalledTimes(1);
-                expect(xlsxFiles.crearArchivoXlsx).toHaveBeenCalledWith("datos", "xlsx", "Datos");
-            } else if (mocks.crearArchivo.cant == 1 && !mocks.crearArchivo.mocks[0].success) {
-                expect(driveService.crearArchivo).toHaveBeenCalledTimes(1);
-                expect(driveService.crearArchivo).toHaveBeenCalledWith("token", {
-                    name: DRIVE_FOLDER_NAME,
-                    mimeType: "application/vnd.google-apps.folder",
-                    parents: []
-                }, true, expect.any(AbortController));
-            } else {
+            if (Array.isArray(mocks.crearArchivo) && resEsperada.success) {
                 expect(driveService.crearArchivo).toHaveBeenCalledTimes(2);
                 expect(driveService.crearArchivo).toHaveBeenNthCalledWith(1, "token", {
                     name: DRIVE_FOLDER_NAME,
                     mimeType: "application/vnd.google-apps.folder",
                     parents: []
                 }, true, expect.any(AbortController));
-                expect(driveService.crearArchivo).toHaveBeenNthCalledWith(2, "token", {
+                expect(driveService.crearArchivo).toHaveBeenLastCalledWith("token", {
                     name: "nombreArchivo",
                     mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     parents: ["carpetaId"]
                 }, false, expect.any(AbortController));
-
-                expect(xlsxFiles.crearArchivoXlsx).toHaveBeenCalledTimes(1);
-                expect(xlsxFiles.crearArchivoXlsx).toHaveBeenCalledWith("datos", "xlsx", "Datos");
+            } else if (resEsperada.success) {
+                expect(driveService.crearArchivo).toHaveBeenCalledTimes(1);
+                expect(driveService.crearArchivo).toHaveBeenCalledWith("token", {
+                    name: "nombreArchivo",
+                    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    parents: ["carpetaId"]
+                }, false, expect.any(AbortController));
             }
+
 
             if (resEsperada.success) {
+                expect(xlsxFiles.crearArchivoXlsx).toHaveBeenCalledTimes(1);
+                expect(xlsxFiles.crearArchivoXlsx).toHaveBeenCalledWith("datos", "xlsx", "Datos");
                 expect(driveService.subirArchivo).toHaveBeenCalledTimes(1);
-                expect(driveService.subirArchivo).toHaveBeenCalledWith("token", "archivoId", "application/octet-stream");
+                expect(driveService.subirArchivo).toHaveBeenCalledWith("token", "archivoId", [], "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", expect.any(AbortController));
             } else {
+                expect(xlsxFiles.crearArchivoXlsx).not.toHaveBeenCalled();
                 expect(driveService.subirArchivo).not.toHaveBeenCalled();
             }
-        });*/
+        });
     });
 });
