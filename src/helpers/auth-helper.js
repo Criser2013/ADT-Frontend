@@ -1,4 +1,4 @@
-import { iniciarSesionGoogle, cerrarSesion, registrarUsuario, verRolUsuario, guardarCredsOAuth } from "../helpers/auth-helper";
+import { iniciarSesionGoogle, cerrarSesion, registrarUsuario, verRolUsuario, guardarCredsOAuth } from "../services/Autenticacion";
 
 /**
  * Inicia sesión con Google dentro de Firebase, registra al usuario en la base de datos si es su primera vez y obtiene su rol.
