@@ -20,6 +20,7 @@ export function NavegacionProvider({ children }) {
             return mode;
         }
     }, [mode]);
+
     const cambiarTema = useCallback(() => {
         switch (mode) {
             case "light":
@@ -42,10 +43,6 @@ export function NavegacionProvider({ children }) {
         }
     }, [mode, setMode]);
 
-    /**
-     * Cambia el idioma de la aplicación.
-     * @param {String} idioma 
-     */
     const cambiarIdioma = useCallback((idioma, loc = location) => {
         i18n.changeLanguage(idioma);
         loc.reload();

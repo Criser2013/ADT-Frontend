@@ -12,7 +12,7 @@ jest.unstable_mockModule("firebase/firestore", () => ({
 }));
 
 const firestore = await import("firebase/firestore");
-const { cambiarDiagnostico, verDiagnostico, verDiagnosticos, verDiagnosticosPorMedico, eliminarDiagnostico } = await import('../../../../src/firestore/diagnosticos-collection.js');
+const { cambiarDiagnostico, verDiagnostico, verDiagnosticos, verDiagnosticosPorMedico, eliminarDiagnostico } = await import('../../../../src/services/Firestore');
 
 describe("Validar la función 'cambiarDiagnostico'", () => {
     // ----------------- Parámetros -----------------
