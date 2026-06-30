@@ -1,19 +1,15 @@
 import { createContext, useContext } from "react";
 
-export const credencialesContext = createContext(null);
+export const navegacionContext = createContext();
 
 /**
- * Hook para acceder al contexto de credenciales.
- * @returns {Object}
+ * Otorga acceso al contexto de navegación de la aplicación.
+ * @returns {Object} Objeto con el estado y funciones relacionadas con la navegación.
  */
-export const useCredenciales = () => {
-    const context = useContext(credencialesContext);
-
+export function useNavegacion() {
+    const context = useContext(navegacionContext);
     if (!context) {
-        throw new Error(
-            "useCredenciales debe usarse dentro de CredencialesProvider."
-        );
+        throw new Error("useNavegacion debe ser usado dentro de un NavegacionProvider.");
     }
-
     return context;
 };
