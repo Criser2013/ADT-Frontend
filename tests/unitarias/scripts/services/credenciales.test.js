@@ -11,6 +11,9 @@ const { cargarCredencialesServidor, cargarCredencialesCache, almacenarCredencial
 
 
 describe("Validar la función 'cargarCredencialesServidor'", () => {
+    const params1 = new AbortController();
+    const params2 = new AbortController();
+
     // ------------------------- Respuestas esperadas --------------------------
     const res1 = { success: false, data: null, error: "No se ha podido cargar las credenciales del servidor." };
     const res2 = { success: true, data: { firebase: { appId: "id" }, recaptcha: "recaptcha", scopesDrive: "scope" }, error: null };
@@ -29,12 +32,12 @@ describe("Validar la función 'cargarCredencialesServidor'", () => {
     });
 
     test.each([
-        ["104", mock1, res1],
-        ["105", mock2, res2]
-    ])("CP - %s", async (idPrueba, mock, resEsperada) => {
-        peticionApi.mockImplementation(jest.fn().mockResolvedValue(mock));
+        ["104", mock1, params1, res1],
+        ["105", mock2, params2, res2]
+    ])("CP - %s", async (idPrueba, mock, params, resEsperada) => {
+        peticionApi.mockResolvedValue(mock);
 
-        const pet = cargarCredencialesServidor();
+        const pet = cargarCredencialesServidor(params);
 
         jest.runAllTimersAsync();
 
@@ -43,7 +46,7 @@ describe("Validar la función 'cargarCredencialesServidor'", () => {
         expect(res).toEqual(resEsperada);
         expect(peticionApi).toHaveBeenCalledTimes(idPrueba === "104" ? 5 : 1);
         expect(peticionApi).toHaveBeenCalledWith(
-            "credenciales", "GET", {}, null, null, "es", "Error al cargar las credenciales de la aplicación."
+            "credenciales", "GET", {}, null, null, "es", "Error al cargar las credenciales de la aplicación.", params
         );
     });
 });

@@ -81,7 +81,8 @@ describe("Validar la funcion 'peticionApi'", () => {
             "http://localhost:5000/diagnosticar?", {
             method: "POST",
             headers: expectedHeaders,
-            body: expectedBody
+            body: expectedBody,
+            signal: null
         });
     });
 });
