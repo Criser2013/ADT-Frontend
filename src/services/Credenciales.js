@@ -7,7 +7,7 @@ import { peticionApi } from "./Api";
  * @return {Object} Resultado de la operación, con las credenciales obtenidas o un mensaje de error.
  */
 export async function cargarCredencialesServidor(controlador) {
-    const res = { success: false, data: null, error: "No se ha podido cargar las credenciales del servidor." };
+    const res = { success: false, error: "No se ha podido cargar las credenciales del servidor." };
     for (let i = 0; i < 5; i++) {
         if (controlador.signal.aborted) {
             res.error = "La petición de credenciales ha sido cancelada.";
@@ -28,7 +28,7 @@ export async function cargarCredencialesServidor(controlador) {
 
             res.data = { firebase: pet.data, recaptcha: tokenRecaptcha, scopesDrive };
             res.success = true;
-            res.error = null;
+            delete res.error;
             break;
         }
     }

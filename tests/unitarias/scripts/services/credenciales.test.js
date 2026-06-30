@@ -13,14 +13,17 @@ const { cargarCredencialesServidor, cargarCredencialesCache, almacenarCredencial
 describe("Validar la función 'cargarCredencialesServidor'", () => {
     const params1 = new AbortController();
     const params2 = new AbortController();
+    const params3 = new AbortController();
 
     // ------------------------- Respuestas esperadas --------------------------
-    const res1 = { success: false, data: null, error: "No se ha podido cargar las credenciales del servidor." };
-    const res2 = { success: true, data: { firebase: { appId: "id" }, recaptcha: "recaptcha", scopesDrive: "scope" }, error: null };
+    const res1 = { success: false, error: "No se ha podido cargar las credenciales del servidor." };
+    const res2 = { success: true, data: { firebase: { appId: "id" }, recaptcha: "recaptcha", scopesDrive: "scope" } };
+    const res3 = { success: false, error: "La petición de credenciales ha sido cancelada." };
 
     // ------------------------- Mocks --------------------------
     const mock1 = { success: false };
     const mock2 = { success: true, data: { appId: "id", driveScopes: "scope", reCAPTCHA: "recaptcha" } };
+    const mock3 = { success: false, error: "La petición de credenciales ha sido cancelada." };
 
     beforeEach(() => {
         jest.resetAllMocks();
@@ -33,7 +36,8 @@ describe("Validar la función 'cargarCredencialesServidor'", () => {
 
     test.each([
         ["104", mock1, params1, res1],
-        ["105", mock2, params2, res2]
+        ["105", mock2, params2, res2],
+        ["164", mock3, params3, res3]
     ])("CP - %s", async (idPrueba, mock, params, resEsperada) => {
         peticionApi.mockResolvedValue(mock);
 
@@ -41,7 +45,10 @@ describe("Validar la función 'cargarCredencialesServidor'", () => {
 
         jest.runAllTimersAsync();
 
-        const res = await pet;
+        if (idPrueba == "164") {
+            params.abort();
+        }
+        const res = await pet
 
         expect(res).toEqual(resEsperada);
         expect(peticionApi).toHaveBeenCalledTimes(idPrueba === "104" ? 5 : 1);
