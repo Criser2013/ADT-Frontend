@@ -3,13 +3,19 @@ import { peticionApi } from "./Api";
 /**
  * Realiza una petición al servidor para obtener las credenciales de Firebase.
  * Reintenta hasta 5 veces en caso de error. Si tiene éxito, inicializa Firebase con las credenciales obtenidas.
+ * @param {AbortController} controlador - Controlador para abortar la petición si es necesario.
  * @return {Object} Resultado de la operación, con las credenciales obtenidas o un mensaje de error.
  */
-export async function cargarCredencialesServidor() {
+export async function cargarCredencialesServidor(controlador) {
     const res = { success: false, data: null, error: "No se ha podido cargar las credenciales del servidor." };
     for (let i = 0; i < 5; i++) {
+        if (controlador.signal.aborted) {
+            res.error = "La petición de credenciales ha sido cancelada.";
+            break;
+        }
+
         const pet = await peticionApi(
-            "credenciales", "GET", {}, null, null, "es", "Error al cargar las credenciales de la aplicación."
+            "credenciales", "GET", {}, null, null, "es", "Error al cargar las credenciales de la aplicación.", controlador
         );
 
         await new Promise(r => setTimeout(r, 500));

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import { inicializarFirebase } from "../services/Firebase";
 import {
     cargarCredencialesServidor,
@@ -6,23 +6,6 @@ import {
     almacenarCredencialesCache
 } from "../services/Credenciales";
 
-export const credencialesContext = createContext(null);
-
-/**
- * Hook para acceder al contexto de credenciales.
- * @returns {Object}
- */
-export const useCredenciales = () => {
-    const context = useContext(credencialesContext);
-
-    if (!context) {
-        throw new Error(
-            "useCredenciales debe usarse dentro de CredencialesProvider."
-        );
-    }
-
-    return context;
-};
 
 /**
  * Estado inicial del contexto.
@@ -89,6 +72,7 @@ export function CredencialesProvider({ children }) {
      */
     useEffect(() => {
         let mounted = true;
+        const controlador = new AbortController();
         const inicializar = async () => {
             dispatch({ type: "CARGANDO" });
 
@@ -98,7 +82,7 @@ export function CredencialesProvider({ children }) {
                 return;
             }
 
-            const res = await cargarCredencialesServidor();
+            const res = await cargarCredencialesServidor(controlador);
             if (!mounted) {
                 return;
             }
@@ -113,7 +97,10 @@ export function CredencialesProvider({ children }) {
 
         inicializar();
 
-        return () => { mounted = false; };
+        return () => { 
+            mounted = false;
+            controlador.abort();
+         };
     }, []);
 
     /**

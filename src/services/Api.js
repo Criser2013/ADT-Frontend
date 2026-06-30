@@ -9,9 +9,10 @@ import { API_URL } from "../../constants";
  * @param {String|null} token - Token de autenticación (opcional).
  * @param {String} idioma - Idioma actual de la aplicación (opcional).
  * @param {String} txtError - Mensaje de error a mostrar en caso de fallo (opcional).
+ * @params {AbortController} controlador - Controlador para abortar la petición si es necesario (opcional).
  * @returns {JSON} Resultado de la petición con formato { success: Boolean, data: JSON, error: String }
  */
-export async function peticionApi(ruta, metodo, parametros = {}, cuerpo = null, token = null, idioma = "es", txtError = "") {
+export async function peticionApi(ruta, metodo, parametros = {}, cuerpo = null, token = null, idioma = "es", txtError = "", controlador = null) {
     try {
         let resultado = { success: false, data: null, error: null };
         const params = new URLSearchParams(parametros).toString();
@@ -22,7 +23,8 @@ export async function peticionApi(ruta, metodo, parametros = {}, cuerpo = null, 
                 "Authorization": `Bearer ${token}`,
                 "Language": idioma
             },
-            body: cuerpo ? JSON.stringify(cuerpo) : null
+            body: cuerpo ? JSON.stringify(cuerpo) : null,
+            signal: controlador?.signal || null
         };
 
         if (!token) {
