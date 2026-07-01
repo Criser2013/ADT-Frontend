@@ -1,17 +1,16 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
 import "./i18n";
 import App from './App.jsx';
-import { CredencialesProvider } from './contexts/CredencialesContext.jsx';
-import { AuthProvider } from './contexts/AuthContext.jsx';
-import { NavegacionProvider } from './hooks/Navegacion.jsx';
-import { instanciaTema } from './theme.jsx';
-import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from "@mui/material/CssBaseline";
+import InstanciaTema from './theme';
+import { AuthProvider, CredencialesProvider, NavegacionProvider } from './contexts';
+import { createRoot } from 'react-dom/client';
+import { StrictMode } from 'react';
+import { ThemeProvider } from '@mui/material/styles';
+
 
 createRoot(document.getElementById('root')).render(
 	<StrictMode>
-		<ThemeProvider theme={instanciaTema}>
+		<ThemeProvider theme={InstanciaTema}>
 			<CssBaseline />
 			<CredencialesProvider>
 				<AuthProvider>

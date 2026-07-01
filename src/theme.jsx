@@ -81,4 +81,5 @@ const tema = createTheme({
     }
 });
 
-export const instanciaTema = responsiveFontSizes(tema);
+const InstanciaTema = responsiveFontSizes(tema);
+export default InstanciaTema;

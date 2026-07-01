@@ -1,17 +1,16 @@
 
+import dayjs from "dayjs";
+import CloseIcon from "@mui/icons-material/Close";
+import LogoutIcon from "@mui/icons-material/Logout";
+import Router from "./router";
+import UpdateIcon from '@mui/icons-material/Update';
+import { IconoPermisos } from "./components/icons/IconosModal";
+import { ModalSimple, ModalDoble } from "./components/modals";
 import { useAuth } from "./contexts/AuthContext";
 import { useCredenciales } from "./contexts/CredencialesContext";
 import { useEffect, useState } from "react";
 import { useNavegacion } from "./hooks/Navegacion";
 import { useTranslation } from "react-i18next";
-import Router from "./router";
-import ModalSimple from "./components/modals/ModalSimple";
-import ModalDoble from "./components/modals/ModalDoble";
-import CloseIcon from "@mui/icons-material/Close";
-import LogoutIcon from "@mui/icons-material/Logout";
-import UpdateIcon from '@mui/icons-material/Update';
-import dayjs from "dayjs";
-import { IconoPermisos } from "./components/icons/IconosModal";
 
 
 /**
@@ -27,7 +26,7 @@ export default function App() {
     const [modalSimple, setModalSimple] = useState({
         mostrar: false, mensaje: ""
     });
-    const [modalCompuesto, setModalCompuesto] = useState({
+    const [modalDoble, setModalDoble] = useState({
         mostrar: false, mensaje: "", titulo: "", txtBtn: "", icono: null
     });
 
@@ -45,25 +44,25 @@ export default function App() {
 
     useEffect(() => {
         if (requiereRefresco) {
-            setModalCompuesto({
+            setModalDoble({
                 mostrar: true, titulo: t("titModalSesionCaducada"), mensaje: t("txtModalSesionCaducada"),
                 txtBtn: t("txtBtnExtenderSesion"), icono: <UpdateIcon />
             });
         }
-    }, [requiereRefresco, setModalCompuesto, t]);
+    }, [requiereRefresco, setModalDoble, t]);
 
     useEffect(() => {
         if (error && error !== "errPermisos") {
             setModalSimple({ mostrar: true, mensaje: t(error, { usuario: usuario.nombre, correo: usuario.correo }) });
         } else if (error === "errPermisos") {
-            setModalCompuesto({
+            setModalDoble({
                 mostrar: true, mensaje: t("txtModalPermisos"), titulo: t("titModalPermisos"),
                 txtBtn: t("txtBtnPermisos"), icono: <IconoPermisos />
             });
         }
     }, [error, usuario, t]);
 
-    const manejadorBtnCerrar = () => {
+    function manejadorBtnCerrar() {
         setModalSimple((x) => ({ ...x, mostrar: false }));
         if ((typeof callbackError) === "function") {
             callbackError();
@@ -71,13 +70,13 @@ export default function App() {
         callbackError.current = null;
     };
 
-    const manejadorBtnAutenticar = async () => {
-        setModalCompuesto((x) => ({ ...x, mostrar: false }));
+    async function manejadorBtnAutenticar() {
+        setModalDoble((x) => ({ ...x, mostrar: false }));
         await iniciarSesion(usuario);
     };
 
-    const manejadorBtnCerrarSesion = () => {
-        setModalCompuesto((x) => ({ ...x, mostrar: false }));
+    function manejadorBtnCerrarSesion() {
+        setModalDoble((x) => ({ ...x, mostrar: false }));
         paginaAnterior.current = location.pathname;
         location.replace("/cerrar-sesion");
     };
@@ -86,24 +85,23 @@ export default function App() {
         <span style={{ height: "100vh", width: "100vw" }}>
             <Router />
             <ModalDoble
-                abrir={modalCompuesto.mostrar}
-                mensaje={modalCompuesto.mensaje}
-                titulo={modalCompuesto.titulo}
-                manejadorBtnPrimario={manejadorBtnAutenticar}
-                manejadorBtnSecundario={manejadorBtnCerrarSesion}
-                mostrarBtnSecundario={true}
-                txtBtnSimple={modalCompuesto.txtBtn}
+                mostrar={modalDoble.mostrar}
+                titulo={modalDoble.titulo}
+                mensaje={modalDoble.mensaje}
+                txtBtnPrincipal={modalDoble.txtBtn}
                 txtBtnSecundario={t("txtBtnCerrarSesion")}
+                manejadorBtnPrincipal={manejadorBtnAutenticar}
+                manejadorBtnSecundario={manejadorBtnCerrarSesion}
                 iconoBtnSecundario={<LogoutIcon />}
-                iconoBtnPrincipal={modalCompuesto.icono}
-                txtBtnSimpleAlt={modalCompuesto.txtBtn}
+                iconoBtnPrincipal={modalDoble.icono}
+                txtBtnSimpleAlt={modalDoble.txtBtn}
             />
             <ModalSimple
-                abrir={modalSimple.mostrar}
+                mostrar={modalSimple.mostrar}
                 titulo={t("tituloErr")}
                 mensaje={modalSimple.mensaje}
-                manejadorBtnModal={manejadorBtnCerrar}
                 txtBtn={t("txtBtnCerrar")}
+                manejadorBtn={manejadorBtnCerrar}
                 iconoBtn={<CloseIcon />}
             />
         </span>
