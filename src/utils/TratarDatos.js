@@ -360,7 +360,7 @@ export function procEdad(valor) {
  * @returns {String}
  */
 export function detTxtDiagnostico(diagnostico, idioma = "es") {
-    idioma
+    idioma;
     const txt = { "txtNegativo": "Negativo", "txtPositivo": "Positivo", "txtNoValidado": "No Validado" }; //textos[idioma].translation;
     switch (diagnostico) {
         case 0:
