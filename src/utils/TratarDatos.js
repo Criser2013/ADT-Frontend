@@ -360,7 +360,8 @@ export function procEdad(valor) {
  * @returns {String}
  */
 export function detTxtDiagnostico(diagnostico, idioma = "es") {
-    const txt = textos[idioma].translation;
+    idioma
+    const txt = { "txtNegativo": "Negativo", "txtPositivo": "Positivo", "txtNoValidado": "No Validado" }; //textos[idioma].translation;
     switch (diagnostico) {
         case 0:
             return txt.txtNegativo;
@@ -380,7 +381,7 @@ export function detTxtDiagnostico(diagnostico, idioma = "es") {
  * @returns {JSON}
  */
 export function nombresCampos(instancia, esAdmin, preprocesar = false, idioma = "es") {
-    const traducciones = textos[idioma].translation;
+    const traducciones = { "txtPaciente": "Paciente", "txtFecha": "Fecha", "txtCampoEdad": "Edad", "txtCampoSexo": "Sexo", "txtCampoFrecRes": "Frecuencia respiratoria", "txtCampoSO2": "Saturación de la sangre (SO2)", "txtCampoFrecCard": "Frecuencia cardíaca", "txtCampoPresionSist": "Presión sistólica", "txtCampoPresionDiast": "Presión diastólica" };
     let datos = {
         "ID": instancia.id,
     };
