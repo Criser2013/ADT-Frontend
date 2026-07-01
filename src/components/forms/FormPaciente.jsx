@@ -5,7 +5,7 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import SaveIcon from '@mui/icons-material/Save';
 import dayjs from "dayjs";
-import { COMORBILIDADES } from "../../../constants";
+import { COMORBILIDADES } from "../../constants";
 import { useState, useMemo, useEffect } from "react";
 import { validarNombre, validarNumero, validarTelefono } from "../../utils/Validadores";
 import { useDrive } from "../../contexts/DriveContext";

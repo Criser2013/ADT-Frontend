@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavegacion } from "../../hooks/Navegacion";
 import Check from "../tabs/Check";
 import SelectChip from "../tabs/SelectChip";
-import { CAMPOS_BIN, CAMPOS_TXT, COMORBILIDADES, SEXOS, SINTOMAS } from "../../../constants";
+import { CAMPOS_BIN, CAMPOS_TXT, COMORBILIDADES, SEXOS, SINTOMAS } from "../../constants";
 import CloseIcon from "@mui/icons-material/Close";
 import ClearIcon from '@mui/icons-material/Clear';
 import { DiagnosticoIcono } from "../icons/IconosSidebar";

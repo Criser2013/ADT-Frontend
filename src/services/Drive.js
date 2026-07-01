@@ -1,4 +1,4 @@
-import { DRIVE_API_URL, DRIVE_UPLOAD_API_URL } from "../../constants";
+import { DRIVE_API_URL, DRIVE_UPLOAD_API_URL } from "../constants";
 
 /**
  * Determina el tipo de error basado en la respuesta HTTP y el cuerpo de la respuesta.

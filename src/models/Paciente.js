@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { COMORBILIDADES } from "../../constants";
+import { COMORBILIDADES } from "../constants";
 import { oneHotDecoderOtraEnfermedad } from "../utils/TratarDatos";
 
 dayjs.extend(customParseFormat);

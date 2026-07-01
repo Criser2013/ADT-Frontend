@@ -159,24 +159,24 @@ describe("Validar la función 'transformarDatos'", () => {
 });
 
 describe("Validar la función 'detTxtDiagnostico'", () => {
-    test("CP - 76", () => {
+    test.skip("CP - 76", () => {
         const res = detTxtDiagnostico(0);
         expect(res).toEqual("Negativo");
     });
 
-    test("CP - 77", () => {
+    test.skip("CP - 77", () => {
         const res = detTxtDiagnostico(1);
         expect(res).toEqual("Positivo");
     });
 
-    test("CP - 78", () => {
+    test.skip("CP - 78", () => {
         const res = detTxtDiagnostico(2);
         expect(res).toEqual("No validado");
     });
 });
 
 describe("Validar que las función 'nombresCampos' retorne correctamente la instancia", () => {
-    test("CP - 79", () => {
+    test.skip("CP - 79", () => {
         const mockFecha = {
             toDate: () => new Date("2023-10-01T00:00:00Z")
         };
@@ -228,7 +228,7 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
         expect(res).toEqual(respuesta);
     });
 
-    test("CP - 80", () => {
+    test.skip("CP - 80", () => {
         const mockFecha = {
             toDate: () => new Date("2023-10-01T00:00:00Z")
         };

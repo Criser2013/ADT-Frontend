@@ -1,7 +1,7 @@
 import { buscarArchivo, crearArchivo, descargarArchivo, subirArchivo } from '../services/Drive';
 import { crearArchivoXlsx, leerArchivoXlsx } from "../utils/XlsxFiles";
 import ArchivoPacientes from "../models/ArchivoPacientes";
-import { DRIVE_FILENAME, DRIVE_FOLDER_NAME } from "../../constants";
+import { DRIVE_FILENAME, DRIVE_FOLDER_NAME } from "../constants";
 
 export default class DriveHelper {
     #idArchivo = null;

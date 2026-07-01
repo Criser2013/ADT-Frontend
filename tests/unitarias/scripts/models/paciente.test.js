@@ -1,5 +1,5 @@
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
-import { COMORBILIDADES } from "../../../../constants";
+import { COMORBILIDADES } from "../../../../src/constants";
 
 const mockDecoder = jest.fn();
 
