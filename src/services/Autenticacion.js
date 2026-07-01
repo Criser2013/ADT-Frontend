@@ -1,8 +1,9 @@
-import { signInWithPopup, reauthenticateWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
-import { peticionApi } from "../services/Api";
-import { AES, enc } from "crypto-js";
 import i18n from "i18next";
+import { AES, enc } from "crypto-js";
 import { AES_KEY } from "../constants";
+import { peticionApi } from "../services/Api";
+import { signInWithPopup, reauthenticateWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
+
 
 /**
  * Inicia sesión con Google dentro de Firebase. Si la autenticación es exitosa almacena las credenciales
@@ -50,8 +51,7 @@ export async function cerrarSesion(firebaseAuth, idTareaRefresco = null) {
         }
         borrarCredsOAuth();
         return { success: true };
-    } catch (error) {
-        console.error("Error al cerrar sesión:", error);
+    } catch {
         return { success: false, error: "errCerrarSesion" };
     }
 };
@@ -148,7 +148,6 @@ export function manejadorErroresAuth(error, loc = location) {
 
         // Todo lo demás
         default:
-            console.error("Error de autenticación:", error);
             return "errIniciarSesion";
     }
 };
