@@ -1,4 +1,4 @@
-import { API_URL } from "../../constants";
+import { API_URL } from "../constants";
 
 /**
  * Función para realizar peticiones fácilmente al backend.

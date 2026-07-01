@@ -4,7 +4,7 @@ import { useCredenciales } from "./contexts/CredencialesContext";
 import { useEffect, useState } from "react";
 import { useNavegacion } from "./hooks/Navegacion";
 import { useTranslation } from "react-i18next";
-import Router from "../router";
+import Router from "./router;
 import ModalSimple from "./components/modals/ModalSimple";
 import ModalAccion from "./components/modals/ModalAccion";
 import CloseIcon from "@mui/icons-material/Close";

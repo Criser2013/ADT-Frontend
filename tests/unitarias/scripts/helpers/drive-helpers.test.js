@@ -1,6 +1,6 @@
 import { jest, expect, beforeEach, describe } from "@jest/globals";
 
-import { DRIVE_FOLDER_NAME, DRIVE_FILENAME } from "../../../../constants";
+import { DRIVE_FOLDER_NAME, DRIVE_FILENAME } from "../../../../src/constants";
 import Paciente from "../../../../src/models/Paciente";
 
 jest.unstable_mockModule("../../../../src/services/Drive", () => ({

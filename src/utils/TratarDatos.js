@@ -1,5 +1,5 @@
-import { COMORBILIDADES } from "../../constants";
-import textos from "../assets/textos/textos.json";
+import { COMORBILIDADES } from "../constants";
+//import textos from "../assets/textos/textos.json";
 
 /**
  * Convierte la lista de comorbilidades en un JSON cuyas claves son las comorbilidades

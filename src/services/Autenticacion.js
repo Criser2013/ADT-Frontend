@@ -2,7 +2,7 @@ import { signInWithPopup, reauthenticateWithPopup, GoogleAuthProvider, signOut }
 import { peticionApi } from "../services/Api";
 import { AES, enc } from "crypto-js";
 import i18n from "i18next";
-import { AES_KEY } from "../../constants";
+import { AES_KEY } from "../constants";
 
 /**
  * Inicia sesión con Google dentro de Firebase. Si la autenticación es exitosa almacena las credenciales

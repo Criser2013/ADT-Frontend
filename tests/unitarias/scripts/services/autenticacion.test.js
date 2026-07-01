@@ -1,5 +1,5 @@
 import { jest, beforeEach, afterAll, expect, describe, test } from '@jest/globals';
-import { AES_KEY } from '../../../../constants';
+import { AES_KEY } from "../../../../src/constants";
 
 const mockSetDefaultLanguage = jest.fn();
 const mockAddScope = jest.fn();
