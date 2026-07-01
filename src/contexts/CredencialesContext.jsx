@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useReducer } from "react";
-import { inicializarFirebase } from "../services/Firebase";
 import {
     cargarCredencialesServidor,
     cargarCredencialesCache,
     almacenarCredencialesCache
 } from "../services/Credenciales";
+import { CredencialesContext } from "../hooks/credenciales-hook";
+import { inicializarFirebase } from "../services/Firebase";
+import { useEffect, useMemo, useReducer } from "react";
 
 
 /**
@@ -126,8 +127,8 @@ export function CredencialesProvider({ children }) {
     };
 
     return (
-        <credencialesContext.Provider value={value}>
+        <CredencialesContext.Provider value={value}>
             {children}
-        </credencialesContext.Provider>
+        </CredencialesContext.Provider>
     );
 }

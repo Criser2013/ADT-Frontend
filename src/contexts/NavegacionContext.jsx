@@ -1,3 +1,4 @@
+import { NavegacionContext } from "../hooks/navegacion-hook";
 import { useMemo, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useColorScheme } from "@mui/material/styles";
@@ -53,8 +54,8 @@ export function NavegacionProvider({ children }) {
     }), [tema, idioma, cambiarIdioma, cambiarTema]);
 
     return (
-        <navegacionContext.Provider value={value}>
+        <NavegacionContext.Provider value={value}>
             {children}
-        </navegacionContext.Provider>
+        </NavegacionContext.Provider>
     );
 };

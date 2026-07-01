@@ -1,11 +1,9 @@
+import { AuthContext } from "../hooks/auth-hook";
 import { cerrarSesion as cerrarSesionFirebase, iniciarSesion as iniciarSesionFirebase, cargarCredsOAuth, verRolUsuario } from "../services/Autenticacion";
-import GoogleHelper from "../helpers/drive-helper";
-import UsuarioAutenticado from "../models/UsuarioAutenticado";
+import { DriveHelper } from "../helpers";
 import { onAuthStateChanged } from "firebase/auth";
+import { UsuarioAutenticado } from "../models";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { authContext } from "../hooks/auth-hook";
-
-authContext;
 
 /**
  * Proveedor del contexto que permite gestionar el estado de la autenticación.
@@ -23,7 +21,7 @@ export function AuthProvider({ children }) {
     const autenticado = useMemo(() => usuario instanceof UsuarioAutenticado, [usuario]);
     const helper = useMemo(() => {
         if (autenticado) {
-            return new GoogleHelper(usuario.accessToken);
+            return new DriveHelper(usuario.accessToken);
         } else {
             return null;
         }
@@ -136,8 +134,8 @@ export function AuthProvider({ children }) {
     }, [setRequiereRefresco]);
 
     return (
-        <authContext.Provider value={value}>
+        <AuthContext.Provider value={value}>
             {children}
-        </authContext.Provider>
+        </AuthContext.Provider>
     );
 };

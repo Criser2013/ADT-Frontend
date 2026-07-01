@@ -1,13 +1,13 @@
 import { createContext, useContext } from "react";
 
-export const credencialesContext = createContext(null);
+export const CredencialesContext = createContext(null);
 
 /**
  * Hook para acceder al contexto de credenciales.
  * @returns {Object}
  */
 export const useCredenciales = () => {
-    const context = useContext(credencialesContext);
+    const context = useContext(CredencialesContext);
 
     if (!context) {
         throw new Error(
