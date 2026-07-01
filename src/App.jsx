@@ -6,7 +6,7 @@ import { useNavegacion } from "./hooks/Navegacion";
 import { useTranslation } from "react-i18next";
 import Router from "./router";
 import ModalSimple from "./components/modals/ModalSimple";
-import ModalAccion from "./components/modals/ModalAccion";
+import ModalDoble from "./components/modals/ModalDoble";
 import CloseIcon from "@mui/icons-material/Close";
 import LogoutIcon from "@mui/icons-material/Logout";
 import UpdateIcon from '@mui/icons-material/Update';
@@ -22,19 +22,15 @@ import { IconoPermisos } from "./components/icons/IconosModal";
 export default function App() {
     const { error, requiereRefresco, setAuth, setScopes, iniciarSesion, usuario } = useAuth();
     const { t } = useTranslation();
-    const navegacion = useNavegacion();
+    const { callbackError, paginaAnterior } = useNavegacion();
     const { firebaseAuth, scopesDrive } = useCredenciales();
-    const [modal, setModal] = useState({
+    const [modalSimple, setModalSimple] = useState({
         mostrar: false, mensaje: ""
     });
-    const [modal2Btn, setModal2Btn] = useState({
+    const [modalCompuesto, setModalCompuesto] = useState({
         mostrar: false, mensaje: "", titulo: "", txtBtn: "", icono: null
     });
 
-    /**
-     * Configura el formato en que se mostrarán las fechas de la aplicación según
-     * el idioma seleccionado por el usuario.
-     */
     useEffect(() => {
         import("dayjs/locale/es").then(() => {
             const idioma = localStorage.getItem("i18nextLng");
@@ -42,94 +38,71 @@ export default function App() {
         });
     }, []);
 
-    /**
-     * Actualiza las instancia de Firebase y permisos de Drive
-     * cuando se cargan las credenciales.
-    */
     useEffect(() => { 
         setAuth(firebaseAuth);
         setScopes(scopesDrive);
-    }, [firebaseAuth, scopesDrive]);
+    }, [firebaseAuth, scopesDrive, setAuth, setScopes]);
 
-    /**
-     * Muestra un modal para extender la sesión cuando el token de acceso ha caducado o está por caducar.
-     */
     useEffect(() => {
         if (requiereRefresco) {
-            setModal2Btn({
+            setModalCompuesto({
                 mostrar: true, titulo: t("titModalSesionCaducada"), mensaje: t("txtModalSesionCaducada"),
                 txtBtn: t("txtBtnExtenderSesion"), icono: <UpdateIcon />
             });
         }
-    }, [requiereRefresco]);
+    }, [requiereRefresco, setModalCompuesto, t]);
 
-    /** 
-     * Muestra los errores de autenticación que se presenten en un modal.
-    */
     useEffect(() => {
         if (error && error !== "errPermisos") {
-            setModal({ mostrar: true, mensaje: t(error, { usuario: usuario.nombre, correo: usuario.correo }) });
+            setModalSimple({ mostrar: true, mensaje: t(error, { usuario: usuario.nombre, correo: usuario.correo }) });
         } else if (error === "errPermisos") {
-            setModal2Btn({
+            setModalCompuesto({
                 mostrar: true, mensaje: t("txtModalPermisos"), titulo: t("titModalPermisos"),
                 txtBtn: t("txtBtnPermisos"), icono: <IconoPermisos />
             });
         }
     }, [error, usuario, t]);
 
-    /**
-     * Manejador de eventos del botón de cerrar el modal de error.
-     */
-    const manejadorBtnModalSimple = () => {
-        setModal((x) => ({ ...x, mostrar: false }));
-
-        if ((navegacion.callbackError.fn != null) && (typeof (navegacion.callbackError.fn) == "function")) {
-            navegacion.callbackError.fn();
+    const manejadorBtnCerrar = () => {
+        setModalSimple((x) => ({ ...x, mostrar: false }));
+        if ((typeof callbackError) === "function") {
+            callbackError();
         }
-
-        navegacion.setCallbackError({ fn: null });
+        callbackError.current = null;
     };
 
-    /**
-     * Manejador de eventos del botón que se muestra en el modal para autenticar un usuario
-     * cuando la sesión ha caducado o el usuario no ha otorgado los permisos necesarios.
-     */
     const manejadorBtnAutenticar = async () => {
-        setModal2Btn((x) => ({ ...x, mostrar: false }));
+        setModalCompuesto((x) => ({ ...x, mostrar: false }));
         await iniciarSesion(usuario);
     };
 
-    /**
-     * Manejador de eventos del botón de cerrar sesión.
-     * Solo está presente cuando el usuario no ha otorgado los permisos.
-     */
     const manejadorBtnCerrarSesion = () => {
-        setModal2Btn((x) => ({ ...x, mostrar: false }));
-        navegacion.paginaAnterior.current = location.pathname;
+        setModalCompuesto((x) => ({ ...x, mostrar: false }));
+        paginaAnterior.current = location.pathname;
         location.replace("/cerrar-sesion");
     };
 
     return (
         <span style={{ height: "100vh", width: "100vw" }}>
             <Router />
-            <ModalAccion
-                abrir={modal2Btn.mostrar}
-                mensaje={modal2Btn.mensaje}
-                titulo={modal2Btn.titulo}
+            <ModalDoble
+                abrir={modalCompuesto.mostrar}
+                mensaje={modalCompuesto.mensaje}
+                titulo={modalCompuesto.titulo}
                 manejadorBtnPrimario={manejadorBtnAutenticar}
                 manejadorBtnSecundario={manejadorBtnCerrarSesion}
                 mostrarBtnSecundario={true}
-                txtBtnSimple={modal2Btn.txtBtn}
+                txtBtnSimple={modalCompuesto.txtBtn}
                 txtBtnSecundario={t("txtBtnCerrarSesion")}
                 iconoBtnSecundario={<LogoutIcon />}
-                iconoBtnPrincipal={modal2Btn.icono}
-                txtBtnSimpleAlt={modal2Btn.txtBtn}
+                iconoBtnPrincipal={modalCompuesto.icono}
+                txtBtnSimpleAlt={modalCompuesto.txtBtn}
             />
             <ModalSimple
-                abrir={modal.mostrar}
+                abrir={modalSimple.mostrar}
                 titulo={t("tituloErr")}
-                mensaje={modal.mensaje}
-                manejadorBtnModal={manejadorBtnModalSimple}
+                mensaje={modalSimple.mensaje}
+                manejadorBtnModal={manejadorBtnCerrar}
                 txtBtn={t("txtBtnCerrar")}
                 iconoBtn={<CloseIcon />}
             />

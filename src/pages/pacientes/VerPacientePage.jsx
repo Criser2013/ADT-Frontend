@@ -16,7 +16,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import ModalAccion from "../../components/modals/ModalAccion";
+import ModalDoble from "../../components/modals/ModalDoble";
 import ContComorbilidades from "../../components/diagnosticos/ContComorbilidades";
 import { ChipSexo } from "../../components/tabs/Chips";
 import { useTranslation } from "react-i18next";
@@ -336,7 +336,7 @@ export default function VerPacientePage() {
                         </Tooltip>
                     </>
                 )}
-                <ModalAccion
+                <ModalDoble
                     abrir={modal.mostrar}
                     titulo={modal.titulo}
                     mensaje={modal.mensaje}

@@ -1,7 +1,11 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { onAuthStateChanged } from "firebase/auth";
 import { cerrarSesion as cerrarSesionFirebase, iniciarSesion as iniciarSesionFirebase, cargarCredsOAuth, verRolUsuario } from "../services/Autenticacion";
+import GoogleHelper from "../helpers/drive-helper";
 import UsuarioAutenticado from "../models/UsuarioAutenticado";
+import { onAuthStateChanged } from "firebase/auth";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { authContext } from "../hooks/auth-hook";
+
+authContext;
 
 /**
  * Proveedor del contexto que permite gestionar el estado de la autenticación.
@@ -9,29 +13,27 @@ import UsuarioAutenticado from "../models/UsuarioAutenticado";
  * @returns {JSX.Element}
  */
 export function AuthProvider({ children }) {
-
-    // Instancia de autenticación de Firebase
     const [auth, setAuth] = useState(null);
-    // Permisos necesarios para usar Google Drive
     const [scopes, setScopes] = useState(null);
-
-    // Información del usuario autenticado
     const [usuario, setUsuario] = useState(null);
-
-    // Información sobre errores
     const [error, setError] = useState(null);
     const [cargando, setCargando] = useState(true);
-
     const [requiereRefresco, setRequiereRefresco] = useState(false);
     const idTareaRefresco = useRef(null);
-
     const autenticado = useMemo(() => usuario instanceof UsuarioAutenticado, [usuario]);
+    const helper = useMemo(() => {
+        if (autenticado) {
+            return new GoogleHelper(usuario.accessToken);
+        } else {
+            return null;
+        }
+    }, [usuario, autenticado]);
 
     const value = useMemo(() => ({
         cargando, error, setAuth, setScopes, cerrarSesion, autenticado,
-        requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion
+        requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion, datosHelper: helper
     }), [cargando, error, setAuth, setScopes, cerrarSesion, autenticado,
-        requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion
+        requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion, helper
     ]);
 
     /**

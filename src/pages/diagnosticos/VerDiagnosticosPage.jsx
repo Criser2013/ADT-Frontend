@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useDrive } from "../../contexts/DriveContext";
 import dayjs from "dayjs";
-import ModalAccion from "../../components/modals/ModalAccion";
+import ModalDoble from "../../components/modals/ModalDoble";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import { cambiarDiagnostico, verDiagnosticos, verDiagnosticosPorMedico, eliminarDiagnostico } from "../../firestore/diagnosticos-collection";
 import { peticionApi } from "../../services/Api";
@@ -663,7 +663,7 @@ export default function VerDiagnosticosPage() {
                         />
                     </Grid>
                 </>)}
-            <ModalAccion
+            <ModalDoble
                 abrir={modal.mostrar}
                 titulo={modal.titulo}
                 mensaje={modal.mensaje}
@@ -677,7 +677,7 @@ export default function VerDiagnosticosPage() {
                 txtBtnSimpleAlt={t("txtBtnCerrar")}
                 desactivarBtnPrimario={desactivarBtnModal}>
                 <CuerpoModal />
-            </ModalAccion>
+            </ModalDoble>
         </MenuLayout>
     );
 };
