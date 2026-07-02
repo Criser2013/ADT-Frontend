@@ -21,7 +21,6 @@ import SelectIdioma from "../../components/tabs/SelectIdioma";
 
 /**
  * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.
- * Si el usuario ya está autenticado, se redirige automáticamente al menú principal.
  * @returns {JSX.Element}
  */
 export default function IniciarSesionPage() {
@@ -39,7 +38,7 @@ export default function IniciarSesionPage() {
         mensaje: "", mostrar: false
     });
     const cargandoAuth = useMemo(() => (cargando || !firebase), [cargando, firebase]);
-    const width = useMemo(() => {
+    /*const width = useMemo(() => {
         const { dispositivoMovil, orientacion, ancho } = navegacion;
         if (!dispositivoMovil && (ancho >= 1020)) {
             return "35vw";
@@ -50,15 +49,15 @@ export default function IniciarSesionPage() {
         } else {
             return "40vw";
         }
-    }, [navegacion]);
-    const centrar = useMemo(() => {
+    }, [navegacion]);*/
+    /*const centrar = useMemo(() => {
         const { dispositivoMovil, orientacion, alto } = navegacion;
         if ((!dispositivoMovil && (alto >= 800)) || (dispositivoMovil && (orientacion == "vertical"))) {
             return "center";
         } else {
             return null;
         }
-    }, [navegacion]);
+    }, [navegacion]);*/
     const temaCaptcha = useMemo(() => navegacion.tema, [navegacion.tema]);
     const fondoImg = useMemo(() => {
         return temaCaptcha === "light" ? fondoClaro : fondoOscuro;
@@ -123,8 +122,7 @@ export default function IniciarSesionPage() {
     };
 
     /**
-     * Comprueba que la respuesta de reCAPTCHA sea que un usuario es un humano.
-     * @param {string} token - Token de ReCAPTCHA
+     * @param {String} token Token de ReCAPTCHA
      */
     const verificarRespuesta = async (token) => {
         setCargandoBtn(true);
@@ -250,12 +248,12 @@ export default function IniciarSesionPage() {
                         </Grid>
                     </Paper>
                     <ModalSimple
-                        abrir={modal.mostrar}
+                        mostrar={modal.mostrar}
                         titulo={t("tituloErr")}
                         mensaje={modal.mensaje}
                         txtBtn={t("txtBtnCerrar")}
+                        manejadorBtn={manejadorBtnModal}
                         iconoBtn={<CloseIcon />}
-                        manejadorBtnModal={manejadorBtnModal}
                     />
                 </Box>)}
 

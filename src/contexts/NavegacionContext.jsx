@@ -54,8 +54,8 @@ export function NavegacionProvider({ children }) {
     }), [tema, idioma, cambiarIdioma, cambiarTema]);
 
     return (
-        <NavegacionContext.Provider value={value}>
+        <NavegacionContext value={value}>
             {children}
-        </NavegacionContext.Provider>
+        </NavegacionContext>
     );
 };

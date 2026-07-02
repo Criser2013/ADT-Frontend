@@ -134,8 +134,8 @@ export function AuthProvider({ children }) {
     }, [setRequiereRefresco]);
 
     return (
-        <AuthContext.Provider value={value}>
+        <AuthContext value={value}>
             {children}
-        </AuthContext.Provider>
+        </AuthContext>
     );
 };

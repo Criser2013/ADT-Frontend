@@ -127,8 +127,8 @@ export function CredencialesProvider({ children }) {
     };
 
     return (
-        <CredencialesContext.Provider value={value}>
+        <CredencialesContext value={value}>
             {children}
-        </CredencialesContext.Provider>
+        </CredencialesContext>
     );
 }
