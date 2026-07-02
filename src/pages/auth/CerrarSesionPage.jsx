@@ -1,9 +1,8 @@
 import CloseIcon from "@mui/icons-material/Close";
 import { Box, CircularProgress } from '@mui/material';
 import { ModalSimple } from '../../components/modals';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth, useNavegacion } from '../../hooks';
 import { useCallback, useEffect } from 'react';
-import { useNavegacion } from '../../hooks/Navegacion';
 import { useNavigate } from 'react-router-dom';
 
 /**

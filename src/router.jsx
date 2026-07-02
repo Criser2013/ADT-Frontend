@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import IniciarSesionPage from "./pages/auth/IniciarSesionPage";
 import CerrarSesionPage from "./pages/auth/CerrarSesionPage";
-import AnadirPacientePage from "./pages/pacientes/AnadirPacientePage";
+/*import AnadirPacientePage from "./pages/pacientes/AnadirPacientePage";
 import { DriveProvider } from "./src/contexts/DriveContext";
 import EditarPacientePage from "./pages/pacientes/EditarPacientePage";
 import VerPacientePage from "./pages/pacientes/VerPacientePage";
@@ -11,7 +11,7 @@ import DiagnosticoPacientePage from "./pages/diagnosticos/DiagnosticoPacientePag
 import VerDiagnosticoPage from "./pages/diagnosticos/VerDiagnosticoPage";
 import VerDiagnosticosPage from "./pages/diagnosticos/VerDiagnosticosPage";
 import VerUsuariosPage from "./pages/usuarios/VerUsuariosPage";
-import MenuPage from "./pages/utils/MenuPage";
+import MenuPage from "./pages/utils/MenuPage";*/
 import Page404 from "./pages/utils/Page404";
 
 /**

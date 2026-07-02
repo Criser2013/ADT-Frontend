@@ -1,10 +1,9 @@
+import FondoClaro from "/backgrounds/fondo_claro.png";
+import FondoOscuro from "/backgrounds/fondo_oscuro.png";
 import { Box, Button, Paper, Typography, CircularProgress } from "@mui/material";
+import { useAuth, useNavegacion } from "../../hooks";
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { useAuth } from "../../contexts/AuthContext";
-import { useEffect, useMemo } from "react";
-import { useNavegacion } from "../../hooks/Navegacion";
-import fondoClaro from "../../assets/fondos/fondo_claro.png";
-import fondoOscuro from "../../assets/fondos/fondo_oscuro.png";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -12,38 +11,36 @@ import { useTranslation } from "react-i18next";
  * @returns {JSX.Element}
  */
 export default function Page404() {
-    const { cargando , usuario } = useAuth();
-    const { t } = useTranslation();
-    const navegacion = useNavegacion();
     const navigate = useNavigate();
-    const cargandoAuth = useMemo(() => {
-        return usuario === null ? false : cargando;
-    }, [usuario, cargando]);
-    const fondoImg = useMemo(() => {
-            return navegacion.tema === "light" ? fondoClaro : fondoOscuro;
-        }, [navegacion.tema]);
+    const { autenticado, firebase } = useAuth();
+    const { idioma, tema } = useNavegacion();
+    const { t } = useTranslation();
 
     useEffect(() => {
         document.title = `${t("tit404")}`;
-    }, [navegacion.idioma]);
+    }, [idioma, t]);
 
-    /**
-     * Manejador de eventos del botón para redirigir al usuario a la página principal.
-     */
-    const manejadorBtn = () => {
-        const { uid } = usuario;
-        let url = (uid != null) ? "/menu" : "/";
-        
+    function manejadorBtn() {
+        const url = (autenticado) ? "/menu" : "/";
         navigate(url, { replace: true });
     };
 
     return (
-        cargandoAuth ? (
-            <Box alignItems="center" display="flex" justifyContent="center" height="100vh">
+        !firebase ? (
+            <Box display="flex" height="100vh" alignItems="center" justifyContent="center">
                 <CircularProgress />
             </Box>
         ) : (
-            <Box width="100%" height="100vh" display="flex" justifyContent="center" alignItems="center" sx={{ backgroundImage: `url(${fondoImg})`, backgroundSize: "cover" }}>
+            <Box
+                display="flex"
+                width="100%"
+                height="100vh"
+                justifyContent="center"
+                alignItems="center"
+                sx={{
+                    backgroundImage: `url(${tema == "light" ? FondoClaro : FondoOscuro})`,
+                    backgroundSize: "cover"
+                }}>
                 <Paper sx={{ padding: "6vh" }}>
                     <Typography variant="h3" align="center">
                         {t("tit404")}

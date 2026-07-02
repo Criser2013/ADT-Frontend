@@ -6,10 +6,8 @@ import Router from "./router";
 import UpdateIcon from '@mui/icons-material/Update';
 import { IconoPermisos } from "./components/icons/IconosModal";
 import { ModalSimple, ModalDoble } from "./components/modals";
-import { useAuth } from "./contexts/AuthContext";
-import { useCredenciales } from "./contexts/CredencialesContext";
+import { useAuth, useCredenciales, useNavegacion } from "./hooks";
 import { useEffect, useState } from "react";
-import { useNavegacion } from "./hooks/Navegacion";
 import { useTranslation } from "react-i18next";
 
 
