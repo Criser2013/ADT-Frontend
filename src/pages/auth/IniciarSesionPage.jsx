@@ -1,40 +1,38 @@
-import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip, Paper } from "@mui/material";
-import GoogleIcon from '@mui/icons-material/Google';
-import { useEffect, useState } from "react";
-import { Trans } from "react-i18next";
-import { useTranslation } from "react-i18next";
-import { useAuth } from "../../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { useNavegacion } from "../../hooks/Navegacion";
-import { useCredenciales } from "../../contexts/CredencialesContext";
-import BtnTema from "../../components/layout/BtnTema";
-import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../../constants";
-import fondoClaro from "../../assets/fondos/fondo_claro.png";
-import fondoOscuro from "../../assets/fondos/fondo_oscuro.png";
-import icono from "../../assets/iconos/icono.png";
-import { ModalSimple } from "../../components/modals";
 import CloseIcon from "@mui/icons-material/Close";
-import { Check } from "../../components/tabs";
-import SelectIdioma from "../../components/tabs/SelectIdioma";
+import FondoClaro from "/backgrounds/fondo_claro.png";
+import FondoOscuro from "/backgrounds/fondo_oscuro.png";
+import GoogleIcon from '@mui/icons-material/Google';
+import Logo from "/logo.png";
+import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip, Paper } from "@mui/material";
+import { BtnTema } from "../../components/layout";
 import { Captcha } from "../../components/captcha";
+import { Check } from "../../components/tabs";
+import { ModalSimple } from "../../components/modals";
+import { SelectIdioma } from "../../components/selects";
+import { Trans } from "react-i18next";
+import { useAuth } from "../../hooks";
+import { useCredenciales } from "../../hooks";
+import { useEffect, useState } from "react";
+import { useNavegacion } from "../../hooks/Navegacion";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../../constants";
 
 /**
  * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.
  * @returns {JSX.Element}
  */
 export default function IniciarSesionPage() {
-    const { autenticado, iniciarSesion, cargando, usuario } = useAuth();
     const navigate = useNavigate();
-    const { tema, idioma, paginaAnterior, cambiarTema } = useNavegacion();
+    const { autenticado, iniciarSesion, cargando, usuario } = useAuth();
     const { firebase } = useCredenciales();
+    const { tema, idioma, paginaAnterior } = useNavegacion();
     const { t } = useTranslation();
-    const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [btnCargando, setBtnCargando] = useState(false);
     const [captchaAceptado, setCaptchaAceptado] = useState(false);
+    const [desactivarBtn, setDesactivarBtn] = useState(true);
+    const [modal, setModal] = useState({ mensaje: "", mostrar: false });
     const [terminosAceptados, setTerminosAceptados] = useState(false);
-    const [modal, setModal] = useState({
-        mensaje: "", mostrar: false
-    });
 
     useEffect(() => {
         paginaAnterior.current = "";
@@ -46,7 +44,7 @@ export default function IniciarSesionPage() {
 
     /**
      * Habilita o deshabilita el botón de inicio de sesión basado en si el usuario ha 
-     * aceptado los términos y ha completado el reCAPTCHA, o si ya está autenticado.
+     * aceptado los términos (sino está autenticado) y ha completado el captcha.
      */
     useEffect(() => {
         if (autenticado) {
@@ -56,18 +54,9 @@ export default function IniciarSesionPage() {
         }
     }, [captchaAceptado, terminosAceptados, autenticado]);
 
-    function manejadorBtnCambiarTema() {
-        cambiarTema(tema);
-        setCaptchaAceptado(false);
-        setTerminosAceptados(false);
-        setDesactivarBtn(true);
-    };
-
     async function manejadorBtnIniciarSesion() {
-        const resultadoExitoso = await iniciarSesion(usuario);
-        if (!resultadoExitoso) {
-            setDesactivarBtn(true);
-        } else {
+        const res = await iniciarSesion(usuario);
+        if (res){
             navigate("/menu", { replace: true });
         }
     };
@@ -89,7 +78,7 @@ export default function IniciarSesionPage() {
                     alignItems="center"
                     height="100vh"
                     sx={{
-                        backgroundImage: `url(${tema == "light" ? fondoClaro : fondoOscuro})`,
+                        backgroundImage: `url(${tema == "light" ? FondoClaro : FondoOscuro})`,
                         backgroundSize: "cover"
                     }}>
                     <Paper
@@ -103,7 +92,7 @@ export default function IniciarSesionPage() {
                             padding: "4vh",
                             overflow: "auto"
                         }}>
-                        <Grid columns={12} spacing={2} container>
+                        <Grid container columns={12} spacing={2}>
                             <Grid
                                 container
                                 display="flex"
@@ -112,13 +101,11 @@ export default function IniciarSesionPage() {
                                 justifyContent="space-between"
                                 alignItems="center">
                                 <SelectIdioma />
-                                <IconButton size="large" onClick={manejadorBtnCambiarTema}>
-                                    <BtnTema />
-                                </IconButton>
+                                <BtnTema tamano="large" />
                             </Grid>
                             <Grid container alignItems="center" columns={12} columnSpacing="20px">
                                 <Grid size={3}>
-                                    <img src={icono} height="90vh" width="90vh" alt="logo" />
+                                    <img src={Logo} height="90vh" width="90vh" alt="logo" />
                                 </Grid>
                                 <Grid size={9}>
                                     <Typography align="left" variant="h4" fontWeight="bold">

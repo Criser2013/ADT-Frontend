@@ -7,7 +7,7 @@ import { useNavigate } from "react-router";
 import { useNavegacion } from "../../hooks/Navegacion";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import BtnTema from "../layout/BtnTema";
+import { BtnTema } from "../layout";
 import LogoutIcon from '@mui/icons-material/Logout';
 import { URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../constants";
 import ArticleIcon from '@mui/icons-material/Article';
@@ -74,13 +74,6 @@ export default function Navbar() {
     };
 
     /**
-     * Manejador de evento para cambiar el tema de la aplicación.
-     */
-    const manejadorBtnTema = () => {
-        navegacion.cambiarTema();
-    };
-
-    /**
      * Manejador de evento para cerrar el PopOver de usuario.
      */
     const cerrarPopOver = () => {
@@ -128,9 +121,7 @@ export default function Navbar() {
                     <Typography variant="h6"><b>HADT</b></Typography>
                     <Stack direction="row" spacing={1}>
                         <SelectIdioma />
-                        <IconButton color="inherit" onClick={manejadorBtnTema}>
-                            <BtnTema />
-                        </IconButton>
+                        <BtnTema color="inherit" />
                         <Tooltip title={t("txtAyudaBtnManual")}>
                             <IconButton color="inherit" onClick={manejadorBtnInstrucciones}>
                                 <ArticleIcon />
