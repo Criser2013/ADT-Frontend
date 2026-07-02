@@ -1,0 +1,89 @@
+import CheckIcon from '@mui/icons-material/Check';
+import IconoEspanol from "/iconos/icono_espanol.svg";
+import IconoIngles from "/iconos/icono_ingles.svg";
+import TranslateIcon from '@mui/icons-material/Translate';
+import { Button, MenuItem, Popover, Stack, Tooltip, Typography } from "@mui/material";
+import { useNavegacion } from "../../hooks/Navegacion";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+
+
+/**
+ * Componente para seleccionar el idioma de la aplicación.
+ * @returns {JSX.Element}
+ */
+export default function SelectIdioma() {
+    const { i18n } = useTranslation();
+    const { idioma, cambiarIdioma } = useNavegacion();
+    const [popOver, setPopOver] = useState(null);
+    const open = Boolean(popOver);
+    const idPopOver = open ? "simple-popover" : undefined;
+    const idiomas = [
+        { codigo: "es", nombre: "Español (🇪🇸)", icono: IconoEspanol },
+        { codigo: "en", nombre: "English (🇬🇧)", icono: IconoIngles }
+    ];
+
+    function cerrarPopOver() {
+        setPopOver(null);
+    };
+
+    /**
+     * @param {string} idioma Código del idioma a cambiar.
+     */
+    function cambiarIdiomaApp(idioma) {
+        cambiarIdioma(idioma);
+        cerrarPopOver();
+    };
+
+    /**
+     * @param {Event} event
+     */
+    function manejadorMousePopOver(event) {
+        setPopOver(event.currentTarget);
+    };
+
+    return (
+        <>
+            <Tooltip title={i18n.t('txtAyudaSelectIdioma')}>
+                <Button
+                    aria-describedby={idPopOver}
+                    onClick={manejadorMousePopOver}
+                    color="inherit"
+                    startIcon={<TranslateIcon fontSize="large" />}
+                    sx={{ textTransform: "uppercase" }}>
+                    {idioma}
+                </Button>
+            </Tooltip>
+            <Popover
+                id={idPopOver}
+                open={open}
+                onClose={cerrarPopOver}
+                anchorEl={popOver}
+                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                transformOrigin={{ vertical: "top", horizontal: "left" }}
+                PaperProps={{
+                    sx: {
+                        p: 0,
+                        mt: 1.5,
+                        ml: 0.75,
+                        "& .MuiMenuItem-root": {
+                            typography: "body2",
+                            borderRadius: 0.75,
+                        },
+                    },
+                }}>
+                {idiomas.map((idioma) => (
+                    <MenuItem key={idioma.codigo} onClick={() => cambiarIdiomaApp(idioma.codigo)}>
+                        <Stack direction="row" spacing={1} display="flex" alignItems="center">
+                            <img src={idioma.icono} alt={idioma.nombre} style={{ width: 30, height: 15 }} />
+                            <Typography variant="body1" sx={{ p: 0.5 }}>
+                                {idioma.nombre}
+                            </Typography>
+                            {idioma == idioma.codigo ? <CheckIcon /> : null}
+                        </Stack>
+                    </MenuItem>
+                ))}
+            </Popover>
+        </>
+    );
+};

@@ -12,11 +12,11 @@ import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../../constants";
 import fondoClaro from "../../assets/fondos/fondo_claro.png";
 import fondoOscuro from "../../assets/fondos/fondo_oscuro.png";
 import icono from "../../assets/iconos/icono.png";
-import ModalSimple from "../../components/modals/ModalSimple";
+import { ModalSimple } from "../../components/modals";
 import CloseIcon from "@mui/icons-material/Close";
-import Check from "../../components/tabs/Check";
+import { Check } from "../../components/tabs";
 import SelectIdioma from "../../components/tabs/SelectIdioma";
-import Captcha from "../../components/captcha";
+import { Captcha } from "../../components/captcha";
 
 /**
  * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.
@@ -35,26 +35,6 @@ export default function IniciarSesionPage() {
     const [modal, setModal] = useState({
         mensaje: "", mostrar: false
     });
-    /*const width = useMemo(() => {
-        const { dispositivoMovil, orientacion, ancho } = navegacion;
-        if (!dispositivoMovil && (ancho >= 1020)) {
-            return "35vw";
-        } else if (!dispositivoMovil && (ancho >= 550 && ancho < 1020)) {
-            return "57vw";
-        } else if ((!dispositivoMovil && (ancho < 550)) || (dispositivoMovil && (orientacion == "vertical"))) {
-            return "100vw";
-        } else {
-            return "40vw";
-        }
-    }, [navegacion]);*/
-    /*const centrar = useMemo(() => {
-        const { dispositivoMovil, orientacion, alto } = navegacion;
-        if ((!dispositivoMovil && (alto >= 800)) || (dispositivoMovil && (orientacion == "vertical"))) {
-            return "center";
-        } else {
-            return null;
-        }
-    }, [navegacion]);*/
 
     useEffect(() => {
         paginaAnterior.current = "";
@@ -109,13 +89,19 @@ export default function IniciarSesionPage() {
                     alignItems="center"
                     height="100vh"
                     sx={{
-                        backgroundImage: `url(${tema === "light" ? fondoClaro : fondoOscuro})`,
+                        backgroundImage: `url(${tema == "light" ? fondoClaro : fondoOscuro})`,
                         backgroundSize: "cover"
                     }}>
                     <Paper
                         sx={{
-                            width: width, padding: "4vh", overflow: "auto", height: "100%",
-                            display: "flex", alignItems: centrar
+                            display: "flex",
+                            alignItems: "center",
+                            width: {
+                                xs: "100vw", sm: "100vw", md: "57vw", lg: "35vw"
+                            },
+                            height: "100%",
+                            padding: "4vh",
+                            overflow: "auto"
                         }}>
                         <Grid columns={12} spacing={2} container>
                             <Grid
@@ -161,15 +147,14 @@ export default function IniciarSesionPage() {
                             {(!autenticado) ? (
                                 <Grid size={12} display="flex" justifyContent="left">
                                     <Check
-                                        activado={terminosAceptados}
+                                        marcado={terminosAceptados}
                                         manejadorCambios={(e) => setTerminosAceptados(e.target.checked)}
                                         etiqueta={
                                             <Trans i18nKey="txt4InicioSesion" t={t}>
                                                 He leído y acepto la&nbsp;
                                                 <Link
                                                     target="_blank"
-                                                    href={URL_CONDICIONES}
-                                                >
+                                                    href={URL_CONDICIONES}>
                                                     política de privacidad
                                                 </Link>.
                                             </Trans>} />
