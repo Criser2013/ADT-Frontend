@@ -1,9 +1,9 @@
 import CheckIcon from '@mui/icons-material/Check';
-import IconoEspanol from "/iconos/icono_espanol.svg";
-import IconoIngles from "/iconos/icono_ingles.svg";
+import IconoEspanol from "/icons/icono_espanol.svg";
+import IconoIngles from "/icons/icono_ingles.svg";
 import TranslateIcon from '@mui/icons-material/Translate';
 import { Button, MenuItem, Popover, Stack, Tooltip, Typography } from "@mui/material";
-import { useNavegacion } from "../../hooks/Navegacion";
+import { useNavegacion } from "../../hooks";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 

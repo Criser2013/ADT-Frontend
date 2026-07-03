@@ -1,4 +1,6 @@
+import CloseIcon from "@mui/icons-material/Close";
 import ReCAPTCHA from "react-google-recaptcha";
+import { ModalSimple } from "../../components/modals";
 import { peticionApi } from "../../services/Api";
 import { useCredenciales, useNavegacion } from "../../hooks";
 import { useRef, useState } from "react";
@@ -58,6 +60,7 @@ export default function Captcha({ setCarga, setCaptchaAceptado }) {
     return (
         <>
             <ReCAPTCHA
+                key={`${tema}-${idioma}`}
                 theme={tema}
                 onChange={manejadorCambiosCaptcha}
                 sitekey={reCAPTCHA}

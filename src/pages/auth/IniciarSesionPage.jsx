@@ -10,13 +10,11 @@ import { Check } from "../../components/tabs";
 import { ModalSimple } from "../../components/modals";
 import { SelectIdioma } from "../../components/selects";
 import { Trans } from "react-i18next";
-import { useAuth } from "../../hooks";
-import { useCredenciales } from "../../hooks";
+import { useAuth, useCredenciales, useNavegacion } from "../../hooks";
 import { useEffect, useState } from "react";
-import { useNavegacion } from "../../hooks/Navegacion";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../../constants";
+import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../constants";
 
 /**
  * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.

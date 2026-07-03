@@ -27,13 +27,6 @@ export function AuthProvider({ children }) {
         }
     }, [usuario, autenticado]);
 
-    const value = useMemo(() => ({
-        cargando, error, setAuth, setScopes, cerrarSesion, autenticado,
-        requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion, datosHelper: helper
-    }), [cargando, error, setAuth, setScopes, cerrarSesion, autenticado,
-        requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion, helper
-    ]);
-
     /**
      * Retira el indicador de carga cuando se tiene la instancia de FirebaseAuth y permisos de Drive requeridos.
      */
@@ -44,16 +37,48 @@ export function AuthProvider({ children }) {
         }
     }, [auth, scopes, setCargando]);
 
-    /**
-     * Recupera la sesión si el usuario no la ha cerrado. También refresca los tokens
-     * cuando caducan.
-     */
-    useEffect(() => {
-        if (auth) {
-            const suscribed = onAuthStateChanged(auth, manejadorCambiosAuth);
-            return () => suscribed();
+    const cerrarSesion = useCallback(async () => {
+        setCargando(true);
+        const { success, error } = await cerrarSesionFirebase(auth, idTareaRefresco);
+        if (!success) {
+            setError(error);
         }
-    }, [auth, manejadorCambiosAuth]);
+        setCargando(false);
+    }, [auth, idTareaRefresco, setCargando, setError]);
+
+    const cambiarModoUsuario = useCallback((modo) => {
+        setUsuario((x) => {
+            const nuevoUsuario = structuredClone(x);
+            nuevoUsuario.cambiarModoUsuario(modo);
+            return nuevoUsuario;
+        });
+    }, [setUsuario]);
+
+    const mostrarRefrescoTokens = useCallback(() => {
+        setRequiereRefresco(true);
+        idTareaRefresco.current = null;
+    }, [setRequiereRefresco]);
+
+    const iniciarSesion = useCallback(async (usuario = null) => {
+        setCargando(true);
+
+        const res = await iniciarSesionFirebase(auth, scopes, usuario);
+
+        if (res.success) {
+            const { usuario, accessToken, rol, tiempoExpiracion } = res;
+            const user = new UsuarioAutenticado(usuario, usuario.uid, rol, accessToken);
+            const idTarea = setTimeout(mostrarRefrescoTokens, tiempoExpiracion);
+
+            idTareaRefresco.current = idTarea;
+            setUsuario(user);
+        } else {
+            setError(res.error);
+        }
+
+        setCargando(false);
+
+        return res.success;
+    }, [auth, scopes, setCargando, setError, setUsuario, mostrarRefrescoTokens]);
 
     /**
      * Maneja los cambios en la autenticación del usuario.
@@ -89,49 +114,23 @@ export function AuthProvider({ children }) {
         }
     }, [setUsuario, setCargando, mostrarRefrescoTokens, iniciarSesion]);
 
-
-    const iniciarSesion = useCallback(async (usuario = null) => {
-        setCargando(true);
-
-        const res = await iniciarSesionFirebase(auth, scopes, usuario);
-
-        if (res.success) {
-            const { usuario, accessToken, rol, tiempoExpiracion } = res;
-            const user = new UsuarioAutenticado(usuario, usuario.uid, rol, accessToken);
-            const idTarea = setTimeout(mostrarRefrescoTokens, tiempoExpiracion);
-
-            idTareaRefresco.current = idTarea;
-            setUsuario(user);
-        } else {
-            setError(res.error);
+    /**
+     * Recupera la sesión si el usuario no la ha cerrado. También refresca los tokens
+     * cuando caducan.
+     */
+    useEffect(() => {
+        if (auth) {
+            const suscribed = onAuthStateChanged(auth, manejadorCambiosAuth);
+            return () => suscribed();
         }
+    }, [auth, manejadorCambiosAuth]);
 
-        setCargando(false);
-
-        return res.success;
-    }, [auth, scopes, setCargando, setError, setUsuario, mostrarRefrescoTokens]);
-
-    const cerrarSesion = useCallback(async () => {
-        setCargando(true);
-        const { success, error } = await cerrarSesionFirebase(auth, idTareaRefresco);
-        if (!success) {
-            setError(error);
-        }
-        setCargando(false);
-    }, [auth, idTareaRefresco, setCargando, setError]);
-
-    const cambiarModoUsuario = useCallback((modo) => {
-        setUsuario((x) => {
-            const nuevoUsuario = structuredClone(x);
-            nuevoUsuario.cambiarModoUsuario(modo);
-            return nuevoUsuario;
-        });
-    }, [setUsuario]);
-
-    const mostrarRefrescoTokens = useCallback(() => {
-        setRequiereRefresco(true);
-        idTareaRefresco.current = null;
-    }, [setRequiereRefresco]);
+    const value = useMemo(() => ({
+        cargando, error, setAuth, setScopes, cerrarSesion, autenticado,
+        requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion, datosHelper: helper
+    }), [cargando, error, setAuth, setScopes, cerrarSesion, autenticado,
+        requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion, helper
+    ]);
 
     return (
         <AuthContext value={value}>

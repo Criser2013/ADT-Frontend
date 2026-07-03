@@ -44,9 +44,8 @@ export function NavegacionProvider({ children }) {
         }
     }, [mode, setMode]);
 
-    const cambiarIdioma = useCallback((idioma, loc = location) => {
+    const cambiarIdioma = useCallback((idioma) => {
         i18n.changeLanguage(idioma);
-        loc.reload();
     }, [i18n]);
 
     const value = useMemo(() => ({

@@ -1,7 +1,7 @@
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import { IconButton, Tooltip } from "@mui/material";
-import { useNavegacion } from "../../hooks/Navegacion";
+import { useNavegacion } from "../../hooks";
 import { useTranslation } from "react-i18next";
 
 /**
