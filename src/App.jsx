@@ -1,40 +1,32 @@
 
-import { useAuth } from "./contexts/AuthContext";
-import { useCredenciales } from "./contexts/CredencialesContext";
-import { useEffect, useState } from "react";
-import { useNavegacion } from "./hooks/Navegacion";
-import { useTranslation } from "react-i18next";
-import Router from "./router";
-import ModalSimple from "./components/modals/ModalSimple";
-import ModalAccion from "./components/modals/ModalAccion";
+import dayjs from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
 import LogoutIcon from "@mui/icons-material/Logout";
+import Router from "./router";
 import UpdateIcon from '@mui/icons-material/Update';
-import dayjs from "dayjs";
 import { IconoPermisos } from "./components/icons/IconosModal";
+import { ModalSimple, ModalDoble } from "./components/modals";
+import { useAuth, useCredenciales } from "./hooks";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 
 /**
  * Componente principal que provee las credenciales de autenticación y muestra los 
- * errores relacionados con el servicio de autenticación.
+ * errores y novedades relacionados con el servicio de autenticación.
  * @returns {JSX.Element}
  */
 export default function App() {
-    const { error, requiereRefresco, setAuth, setScopes, iniciarSesion, usuario } = useAuth();
-    const { t } = useTranslation();
-    const navegacion = useNavegacion();
+    const { cerrarSesion, error, iniciarSesion, requiereRefresco, setAuth, setScopes, usuario } = useAuth();
     const { firebaseAuth, scopesDrive } = useCredenciales();
-    const [modal, setModal] = useState({
+    const { t } = useTranslation();
+    const [modalSimple, setModalSimple] = useState({
         mostrar: false, mensaje: ""
     });
-    const [modal2Btn, setModal2Btn] = useState({
+    const [modalDoble, setModalDoble] = useState({
         mostrar: false, mensaje: "", titulo: "", txtBtn: "", icono: null
     });
 
-    /**
-     * Configura el formato en que se mostrarán las fechas de la aplicación según
-     * el idioma seleccionado por el usuario.
-     */
     useEffect(() => {
         import("dayjs/locale/es").then(() => {
             const idioma = localStorage.getItem("i18nextLng");
@@ -42,95 +34,73 @@ export default function App() {
         });
     }, []);
 
-    /**
-     * Actualiza las instancia de Firebase y permisos de Drive
-     * cuando se cargan las credenciales.
-    */
     useEffect(() => { 
         setAuth(firebaseAuth);
         setScopes(scopesDrive);
-    }, [firebaseAuth, scopesDrive]);
+    }, [firebaseAuth, scopesDrive, setAuth, setScopes]);
 
-    /**
-     * Muestra un modal para extender la sesión cuando el token de acceso ha caducado o está por caducar.
-     */
     useEffect(() => {
         if (requiereRefresco) {
-            setModal2Btn({
+            setModalDoble({
                 mostrar: true, titulo: t("titModalSesionCaducada"), mensaje: t("txtModalSesionCaducada"),
                 txtBtn: t("txtBtnExtenderSesion"), icono: <UpdateIcon />
             });
         }
-    }, [requiereRefresco]);
+    }, [requiereRefresco, setModalDoble, t]);
 
-    /** 
-     * Muestra los errores de autenticación que se presenten en un modal.
-    */
     useEffect(() => {
-        if (error && error !== "errPermisos") {
-            setModal({ mostrar: true, mensaje: t(error, { usuario: usuario.nombre, correo: usuario.correo }) });
-        } else if (error === "errPermisos") {
-            setModal2Btn({
+        if (error && error != "errPermisos") {
+            const params = usuario ? { usuario: usuario.nombre, correo: usuario.correo } : {};
+            setModalSimple({ mostrar: true, mensaje: t(error, params) });
+        } else if (error == "errPermisos") {
+            setModalDoble({ 
                 mostrar: true, mensaje: t("txtModalPermisos"), titulo: t("titModalPermisos"),
                 txtBtn: t("txtBtnPermisos"), icono: <IconoPermisos />
             });
         }
     }, [error, usuario, t]);
 
-    /**
-     * Manejador de eventos del botón de cerrar el modal de error.
-     */
-    const manejadorBtnModalSimple = () => {
-        setModal((x) => ({ ...x, mostrar: false }));
-
-        if ((navegacion.callbackError.fn != null) && (typeof (navegacion.callbackError.fn) == "function")) {
-            navegacion.callbackError.fn();
+    async function manejadorBtnAutenticar() {
+        setModalDoble((x) => ({ ...x, mostrar: false }));
+        const res = await iniciarSesion(usuario);
+        if (res && (location.pathname == "/")) {
+            location.replace("/menu");
         }
-
-        navegacion.setCallbackError({ fn: null });
     };
 
-    /**
-     * Manejador de eventos del botón que se muestra en el modal para autenticar un usuario
-     * cuando la sesión ha caducado o el usuario no ha otorgado los permisos necesarios.
-     */
-    const manejadorBtnAutenticar = async () => {
-        setModal2Btn((x) => ({ ...x, mostrar: false }));
-        await iniciarSesion(usuario);
+    function manejadorBtnCerrar() {
+        setModalSimple((x) => ({ ...x, mostrar: false }));
     };
 
-    /**
-     * Manejador de eventos del botón de cerrar sesión.
-     * Solo está presente cuando el usuario no ha otorgado los permisos.
-     */
-    const manejadorBtnCerrarSesion = () => {
-        setModal2Btn((x) => ({ ...x, mostrar: false }));
-        navegacion.paginaAnterior.current = location.pathname;
-        location.replace("/cerrar-sesion");
+    async function manejadorBtnCerrarSesion() {
+        setModalDoble((x) => ({ ...x, mostrar: false }));
+        const res = await cerrarSesion();
+        if (res) {
+            location.replace("/");
+        }
     };
 
     return (
         <span style={{ height: "100vh", width: "100vw" }}>
             <Router />
-            <ModalAccion
-                abrir={modal2Btn.mostrar}
-                mensaje={modal2Btn.mensaje}
-                titulo={modal2Btn.titulo}
-                manejadorBtnPrimario={manejadorBtnAutenticar}
-                manejadorBtnSecundario={manejadorBtnCerrarSesion}
-                mostrarBtnSecundario={true}
-                txtBtnSimple={modal2Btn.txtBtn}
+            <ModalDoble
+                mostrar={modalDoble.mostrar}
+                titulo={modalDoble.titulo}
+                texto={modalDoble.mensaje}
+                txtBtnPrincipal={modalDoble.txtBtn}
                 txtBtnSecundario={t("txtBtnCerrarSesion")}
+                manejadorBtnPrincipal={manejadorBtnAutenticar}
+                manejadorBtnSecundario={manejadorBtnCerrarSesion}
                 iconoBtnSecundario={<LogoutIcon />}
-                iconoBtnPrincipal={modal2Btn.icono}
-                txtBtnSimpleAlt={modal2Btn.txtBtn}
+                iconoBtnPrincipal={modalDoble.icono}
+                txtBtnSimpleAlt={modalDoble.txtBtn}
             />
             <ModalSimple
-                abrir={modal.mostrar}
+                mostrar={modalSimple.mostrar}
                 titulo={t("tituloErr")}
-                mensaje={modal.mensaje}
-                manejadorBtnModal={manejadorBtnModalSimple}
+                texto={modalSimple.mensaje}
                 txtBtn={t("txtBtnCerrar")}
+                manejadorBtn={manejadorBtnCerrar}
                 iconoBtn={<CloseIcon />}
             />
         </span>

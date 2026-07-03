@@ -1,8 +1,9 @@
-import { signInWithPopup, reauthenticateWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
-import { peticionApi } from "../services/Api";
-import { AES, enc } from "crypto-js";
 import i18n from "i18next";
+import { AES, enc } from "crypto-js";
 import { AES_KEY } from "../constants";
+import { peticionApi } from "../services/Api";
+import { signInWithPopup, reauthenticateWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
+
 
 /**
  * Inicia sesión con Google dentro de Firebase. Si la autenticación es exitosa almacena las credenciales
@@ -34,7 +35,7 @@ export async function iniciarSesionGoogle(firebaseAuth, permisos, usuario = null
     } catch (error) {
         return { success: false, error: manejadorErroresAuth(error) };
     }
-};
+}; 
 
 /**
  * Cierra la sesión del usuario, borra la crendenciales almacenadas en el sessionStorage y 
@@ -50,8 +51,7 @@ export async function cerrarSesion(firebaseAuth, idTareaRefresco = null) {
         }
         borrarCredsOAuth();
         return { success: true };
-    } catch (error) {
-        console.error("Error al cerrar sesión:", error);
+    } catch {
         return { success: false, error: "errCerrarSesion" };
     }
 };
@@ -63,8 +63,8 @@ export async function cerrarSesion(firebaseAuth, idTareaRefresco = null) {
  * @returns {Object} Objeto con la propiedad success indicando si el registro fue exitoso.
  */
 export async function registrarUsuario(usuario, idioma = i18n.language) {
-    const { createdAt, lastLoginAt } = usuario.metadata;
-    const estaRegistrado = createdAt !== lastLoginAt;
+    const token = await usuario.getIdTokenResult(false);
+    const estaRegistrado = token.claims.admin !== undefined;
 
     if (estaRegistrado) {
         return { success: true };
@@ -133,22 +133,16 @@ export function manejadorErroresAuth(error, loc = location) {
                 loc.replace("/");
             }
             break;
-
         // El usuario cancela la autenticación y no otorga los permisos
         case "auth/user-cancelled":
             return "errPermisos";
-
         // Usuario que intenta iniciar sesión no coincide con el usuario actual
         case "auth/user-mismatch":
             return "errSesionIniciada";
-
-        // Usuario deshabilitado
         case "auth/user-disabled":
             return "errUsuarioBaneado";
-
         // Todo lo demás
         default:
-            console.error("Error de autenticación:", error);
             return "errIniciarSesion";
     }
 };

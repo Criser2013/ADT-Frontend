@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useDrive } from "../../contexts/DriveContext";
 import dayjs from "dayjs";
-import ModalAccion from "../../components/modals/ModalAccion";
+import ModalDoble from "../../components/modals/ModalDoble";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import CloseIcon from "@mui/icons-material/Close";
@@ -249,7 +249,7 @@ export default function VerPacientesPage() {
                         />
                     </Grid>
                 </>)}
-            <ModalAccion
+            <ModalDoble
                 abrir={modal.mostrar}
                 titulo={modal.titulo}
                 mensaje={modal.mensaje}

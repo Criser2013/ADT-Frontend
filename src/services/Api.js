@@ -2,19 +2,19 @@ import { API_URL } from "../constants";
 
 /**
  * Función para realizar peticiones fácilmente al backend.
- * @param {String} ruta - Ruta del API a consultar.
- * @param {String} metodo - Método HTTP a utilizar (GET, POST, PUT, DELETE).
- * @param {Object} parametros - Parámetros de la petición (opcional).
- * @param {Object|FormData|ArrayBuffer|null} cuerpo - Cuerpo de la petición (opcional).
- * @param {String|null} token - Token de autenticación (opcional).
- * @param {String} idioma - Idioma actual de la aplicación (opcional).
- * @param {String} txtError - Mensaje de error a mostrar en caso de fallo (opcional).
- * @params {AbortController} controlador - Controlador para abortar la petición si es necesario (opcional).
+ * @param {String} ruta Ruta del API a consultar.
+ * @param {String} metodo Método HTTP a utilizar (GET, POST, PUT, DELETE).
+ * @param {Object} parametros Parámetros de la petición (opcional).
+ * @param {Object|FormData|ArrayBuffer|null} cuerpo Cuerpo de la petición (opcional).
+ * @param {String|null} token Token de autenticación (opcional).
+ * @param {String} idioma Idioma actual de la aplicación (opcional).
+ * @param {String} txtError Mensaje de error a mostrar en caso de fallo (opcional).
+ * @param {AbortController} controlador Controlador para abortar la petición si es necesario (opcional).
  * @returns {JSON} Resultado de la petición con formato { success: Boolean, data: JSON, error: String }
  */
 export async function peticionApi(ruta, metodo, parametros = {}, cuerpo = null, token = null, idioma = "es", txtError = "", controlador = null) {
     try {
-        let resultado = { success: false, data: null, error: null };
+        let resultado = { success: false, error: null };
         const params = new URLSearchParams(parametros).toString();
         const opciones = {
             method: metodo,
@@ -39,10 +39,11 @@ export async function peticionApi(ruta, metodo, parametros = {}, cuerpo = null, 
         } else {
             resultado.success = true;
             resultado.data = json;
+            delete json.error;
         }
 
         return resultado;
     } catch {
-        return { success: false, data: null, error: txtError };
+        return { success: false, error: txtError };
     }
 };

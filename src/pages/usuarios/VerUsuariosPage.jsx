@@ -8,7 +8,7 @@ import { useNavigate } from "react-router";
 import { useNavegacion } from "../../hooks/Navegacion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import ModalAccion from "../../components/modals/ModalAccion";
+import ModalDoble from "../../components/modals/ModalDoble";
 import { peticionApi } from "../../services/Api";
 import { verDiagnosticos } from "../../firestore/diagnosticos-collection";
 import { useCredenciales } from "../../contexts/CredencialesContext";
@@ -670,7 +670,7 @@ export default function VerUsuariosPage() {
                         </Grid>
                     </Grid>
                 </>)}
-            <ModalAccion
+            <ModalDoble
                 abrir={modal.mostrar}
                 titulo={modal.titulo}
                 mensaje={modal.mensaje}
@@ -683,7 +683,7 @@ export default function VerUsuariosPage() {
                 txtBtnSecundario={t("txtBtnCancelar")}
                 txtBtnSimpleAlt={t("txtBtnCerrar")}>
                 <CuerpoModal />
-            </ModalAccion>
+            </ModalDoble>
         </MenuLayout>
     );
 };

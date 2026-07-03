@@ -15,7 +15,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import ModalAccion from "../../components/modals/ModalAccion";
+import ModalDoble from "../../components/modals/ModalDoble";
 import { cambiarDiagnostico, eliminarDiagnostico, verDiagnostico } from "../../firestore/diagnosticos-collection";
 import { oneHotDecoderOtraEnfermedad, detTxtDiagnostico, procLime } from "../../utils/TratarDatos";
 import { COMORBILIDADES, DIAGNOSTICOS } from "../../../constants";
@@ -658,7 +658,7 @@ export default function VerDiagnosticoPage() {
                         <BtnValidar />
                     </>
                 )}
-                <ModalAccion
+                <ModalDoble
                     abrir={modal.mostrar}
                     titulo={modal.titulo}
                     mensaje={modal.mensaje}
@@ -671,7 +671,7 @@ export default function VerDiagnosticoPage() {
                     iconoBtnSecundario={<CloseIcon />}
                     txtBtnSimpleAlt={t("txtBtnCerrar")}>
                     <CuerpoModal />
-                </ModalAccion>
+                </ModalDoble>
             </MenuLayout>
         </>
     );

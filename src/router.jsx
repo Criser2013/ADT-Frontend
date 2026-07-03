@@ -1,7 +1,6 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
-import IniciarSesionPage from "./pages/auth/IniciarSesionPage";
-import CerrarSesionPage from "./pages/auth/CerrarSesionPage";
-import AnadirPacientePage from "./pages/pacientes/AnadirPacientePage";
+import { IniciarSesionPage } from "./pages/auth";
+/*import AnadirPacientePage from "./pages/pacientes/AnadirPacientePage";
 import { DriveProvider } from "./src/contexts/DriveContext";
 import EditarPacientePage from "./pages/pacientes/EditarPacientePage";
 import VerPacientePage from "./pages/pacientes/VerPacientePage";
@@ -11,12 +10,12 @@ import DiagnosticoPacientePage from "./pages/diagnosticos/DiagnosticoPacientePag
 import VerDiagnosticoPage from "./pages/diagnosticos/VerDiagnosticoPage";
 import VerDiagnosticosPage from "./pages/diagnosticos/VerDiagnosticosPage";
 import VerUsuariosPage from "./pages/usuarios/VerUsuariosPage";
-import MenuPage from "./pages/utils/MenuPage";
+import MenuPage from "./pages/utils/MenuPage";*/
 import Page404 from "./pages/utils/Page404";
 
 /**
  * Enrutador principal de la aplicación que define las rutas y páginas.
- * @returns JSX.Element
+ * @returns {JSX.Element}
  */
 export default function Router() {
     return (
@@ -24,8 +23,7 @@ export default function Router() {
             <Routes>
                 <Route path="/" element={<IniciarSesionPage />} />
                 <Route path="/404" element={<Page404 />} />
-                <Route path="/cerrar-sesion" element={<CerrarSesionPage />} />
-                <Route path="/diagnostico-anonimo" element={<DiagnosticoAnonimoPage />} />
+                {/*<Route path="/diagnostico-anonimo" element={<DiagnosticoAnonimoPage />} />
                 <Route path="/usuarios" element={<VerUsuariosPage />} />
                 <Route path="/menu" element={
                     <DriveProvider>
@@ -65,7 +63,7 @@ export default function Router() {
                     <DriveProvider>
                         <VerDiagnosticosPage />
                     </DriveProvider>
-                } />
+                } />*/}
                 <Route path="*" element={<Navigate to={"/404"} replace/>} />
             </Routes>
         </BrowserRouter>
