@@ -1,6 +1,5 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
-import IniciarSesionPage from "./pages/auth/IniciarSesionPage";
-import CerrarSesionPage from "./pages/auth/CerrarSesionPage";
+import { IniciarSesionPage } from "./pages/auth";
 /*import AnadirPacientePage from "./pages/pacientes/AnadirPacientePage";
 import { DriveProvider } from "./src/contexts/DriveContext";
 import EditarPacientePage from "./pages/pacientes/EditarPacientePage";
@@ -24,7 +23,6 @@ export default function Router() {
             <Routes>
                 <Route path="/" element={<IniciarSesionPage />} />
                 <Route path="/404" element={<Page404 />} />
-                <Route path="/cerrar-sesion" element={<CerrarSesionPage />} />
                 {/*<Route path="/diagnostico-anonimo" element={<DiagnosticoAnonimoPage />} />
                 <Route path="/usuarios" element={<VerUsuariosPage />} />
                 <Route path="/menu" element={

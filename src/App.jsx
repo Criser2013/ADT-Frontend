@@ -6,21 +6,20 @@ import Router from "./router";
 import UpdateIcon from '@mui/icons-material/Update';
 import { IconoPermisos } from "./components/icons/IconosModal";
 import { ModalSimple, ModalDoble } from "./components/modals";
-import { useAuth, useCredenciales, useNavegacion } from "./hooks";
+import { useAuth, useCredenciales } from "./hooks";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 
 /**
  * Componente principal que provee las credenciales de autenticación y muestra los 
- * errores relacionados con el servicio de autenticación.
+ * errores y novedades relacionados con el servicio de autenticación.
  * @returns {JSX.Element}
  */
 export default function App() {
-    const { error, requiereRefresco, setAuth, setScopes, iniciarSesion, usuario } = useAuth();
-    const { t } = useTranslation();
-    const { callbackError, paginaAnterior } = useNavegacion();
+    const { cerrarSesion, error, iniciarSesion, requiereRefresco, setAuth, setScopes, usuario } = useAuth();
     const { firebaseAuth, scopesDrive } = useCredenciales();
+    const { t } = useTranslation();
     const [modalSimple, setModalSimple] = useState({
         mostrar: false, mensaje: ""
     });
@@ -61,23 +60,24 @@ export default function App() {
         }
     }, [error, usuario, t]);
 
-    function manejadorBtnCerrar() {
-        setModalSimple((x) => ({ ...x, mostrar: false }));
-        if ((typeof callbackError) === "function") {
-            callbackError();
-        }
-        callbackError.current = null;
-    };
-
     async function manejadorBtnAutenticar() {
         setModalDoble((x) => ({ ...x, mostrar: false }));
-        await iniciarSesion(usuario);
+        const res = await iniciarSesion(usuario);
+        if (res && (location.pathname == "/")) {
+            location.replace("/menu");
+        }
     };
 
-    function manejadorBtnCerrarSesion() {
+    function manejadorBtnCerrar() {
+        setModalSimple((x) => ({ ...x, mostrar: false }));
+    };
+
+    async function manejadorBtnCerrarSesion() {
         setModalDoble((x) => ({ ...x, mostrar: false }));
-        paginaAnterior.current = location.pathname;
-        location.replace("/cerrar-sesion");
+        const res = await cerrarSesion();
+        if (res) {
+            location.replace("/");
+        }
     };
 
     return (

@@ -11,49 +11,48 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
  * @returns {JSX.Element}
  */
 export function AuthProvider({ children }) {
+    const idTareaRefresco = useRef(null);
     const [auth, setAuth] = useState(null);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState(null);
+    const [requiereRefresco, setRequiereRefresco] = useState(false);
     const [scopes, setScopes] = useState(null);
     const [usuario, setUsuario] = useState(null);
-    const [error, setError] = useState(null);
-    const [cargando, setCargando] = useState(true);
-    const [requiereRefresco, setRequiereRefresco] = useState(false);
-    const idTareaRefresco = useRef(null);
     const autenticado = useMemo(() => usuario instanceof UsuarioAutenticado, [usuario]);
     const helper = useMemo(() => {
         if (autenticado) {
-            return new DriveHelper(usuario.accessToken);
+            return new DriveHelper(usuario.tokenDrive);
         } else {
             return null;
         }
     }, [usuario, autenticado]);
 
     /**
-     * Retira el indicador de carga cuando se tiene la instancia de FirebaseAuth y permisos de Drive requeridos.
+     * @returns {Promise<Boolean>} Retorna true si la sesión se cerró correctamente, de lo contrario retorna false.
      */
-    useEffect(() => {
-        const ruta = location.pathname == "/";
-        if (auth && scopes && ruta) {
-            setCargando(false);
-        }
-    }, [auth, scopes, setCargando]);
-
     const cerrarSesion = useCallback(async () => {
         let res = false;
+
         setCargando(true);
-        if (auth) {
-            const { success, error } = await cerrarSesionFirebase(auth, idTareaRefresco);
-            if (!success) {
-                setError(error);
-            } else {
-                setUsuario(null);
-                setRequiereRefresco(false);
-            }
-            res = success;
+
+        const { success, error } = await cerrarSesionFirebase(auth, idTareaRefresco);
+
+        if (!success) {
+            setError(error);
+        } else {
+            setUsuario(null);
+            setRequiereRefresco(false);
         }
+        res = success;
+
         setCargando(false);
+
         return res;
     }, [auth, idTareaRefresco, setCargando, setError, setUsuario, setRequiereRefresco]);
 
+    /**
+     * @param {Boolean} modo Indica si se debe activar o desactivar el modo de usuario.
+     */
     const cambiarModoUsuario = useCallback((modo) => {
         setUsuario((x) => {
             const nuevoUsuario = structuredClone(x);
@@ -69,6 +68,7 @@ export function AuthProvider({ children }) {
 
     /**
      * @param {UsuarioAutenticado} usuario Instancia del usuario autenticado.
+     * @returns {Promise<Boolean>} Retorna true si la sesión se inició correctamente, de lo contrario retorna false.
      */
     const iniciarSesion = useCallback(async (usuario = null) => {
         setCargando(true);
@@ -83,6 +83,7 @@ export function AuthProvider({ children }) {
             idTareaRefresco.current = idTarea;
             setError(null);
             setUsuario(user);
+            setRequiereRefresco(false);
         } else {
             setError(res.error);
         }
@@ -100,10 +101,9 @@ export function AuthProvider({ children }) {
         if (usuario) {
             const { success, expires, accessToken } = cargarCredsOAuth();
             const tiempoPrevioRefresco = success ? ((parseInt(expires) - Date.now()) / 1000) : null;
-            const urlExcentas = ["/cerrar-sesion", "/"].includes(location.pathname);
+            const urlExcenta = location.pathname == "/";
 
-            if (!urlExcentas && tiempoPrevioRefresco > 180) {
-                console.log("xd")
+            if (tiempoPrevioRefresco > 180) {
                 const rol = await verRolUsuario(usuario);
                 const idTarea = setTimeout(mostrarRefrescoTokens, (tiempoPrevioRefresco - 180) * 1000);
 
@@ -112,18 +112,26 @@ export function AuthProvider({ children }) {
 
                 setUsuario(new UsuarioAutenticado(usuario, usuario.uid, rol, accessToken));
                 setCargando(false);
-            } else if (!urlExcentas && (tiempoPrevioRefresco > 20) && (tiempoPrevioRefresco <= 180)) {
+            } else if (!urlExcenta && (tiempoPrevioRefresco > 20) && (tiempoPrevioRefresco <= 180)) {
                 mostrarRefrescoTokens();
-            } else if (!urlExcentas) {
+            } else if (!urlExcenta) {
                 await iniciarSesion(usuario);
             }
         } else {
-            const rutasNoRedirigidas = ["/", "/cerrar-sesion"];
-            if (!rutasNoRedirigidas.includes(location.pathname)) {
+            if (location.pathname != "/") {
                 location.replace("/");
             }
         }
     }, [setUsuario, setCargando, mostrarRefrescoTokens, iniciarSesion]);
+
+    /**
+     * Retira el indicador de carga cuando se tiene la instancia de FirebaseAuth y permisos de Drive requeridos.
+     */
+    useEffect(() => {
+        if (auth && scopes) {
+            setCargando(false);
+        }
+    }, [auth, scopes, setCargando]);
 
     /**
      * Recupera la sesión si el usuario no la ha cerrado. También refresca los tokens
@@ -142,13 +150,6 @@ export function AuthProvider({ children }) {
     }), [cargando, error, setAuth, setScopes, cerrarSesion, autenticado,
         requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion, helper
     ]);
-
-    console.log("Instancia: ", auth)
-    console.log("Autenticado: ", autenticado)
-    console.log("Usuario: ",usuario)
-    console.log("Error: ", error)
-    console.log("Cargando ", cargando)
-    console.log("Requiere refresco", requiereRefresco)
 
     return (
         <AuthContext value={value}>

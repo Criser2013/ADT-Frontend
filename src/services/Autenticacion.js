@@ -133,19 +133,14 @@ export function manejadorErroresAuth(error, loc = location) {
                 loc.replace("/");
             }
             break;
-
         // El usuario cancela la autenticación y no otorga los permisos
         case "auth/user-cancelled":
             return "errPermisos";
-
         // Usuario que intenta iniciar sesión no coincide con el usuario actual
         case "auth/user-mismatch":
             return "errSesionIniciada";
-
-        // Usuario deshabilitado
         case "auth/user-disabled":
             return "errUsuarioBaneado";
-
         // Todo lo demás
         default:
             return "errIniciarSesion";

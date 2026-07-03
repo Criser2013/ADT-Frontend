@@ -10,7 +10,6 @@ import { useColorScheme } from "@mui/material/styles";
  */
 export function NavegacionProvider({ children }) {
     const paginaAnterior = useRef(null);
-    const callbackError = useRef(null);
     const { mode, setMode } = useColorScheme();
     const { i18n } = useTranslation();
     const idioma = useMemo(() => i18n.language.split("-")[0], [i18n.language]);
@@ -49,7 +48,7 @@ export function NavegacionProvider({ children }) {
     }, [i18n]);
 
     const value = useMemo(() => ({
-        paginaAnterior, callbackError, cambiarTema, tema, idioma, cambiarIdioma
+        paginaAnterior, cambiarTema, tema, idioma, cambiarIdioma
     }), [tema, idioma, cambiarIdioma, cambiarTema]);
 
     return (
