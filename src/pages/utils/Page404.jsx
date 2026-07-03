@@ -1,7 +1,7 @@
 import FondoClaro from "/backgrounds/fondo_claro.png";
 import FondoOscuro from "/backgrounds/fondo_oscuro.png";
 import { Box, Button, Paper, Typography, CircularProgress } from "@mui/material";
-import { useAuth, useNavegacion } from "../../hooks";
+import { useAuth, useCredenciales, useNavegacion } from "../../hooks";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -12,7 +12,8 @@ import { useTranslation } from "react-i18next";
  */
 export default function Page404() {
     const navigate = useNavigate();
-    const { autenticado, firebase } = useAuth();
+    const { autenticado } = useAuth();
+    const { firebase } = useCredenciales();
     const { idioma, tema } = useNavegacion();
     const { t } = useTranslation();
 

@@ -7,10 +7,9 @@ import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tool
 import { BtnTema } from "../../components/layout";
 import { Captcha } from "../../components/captcha";
 import { Check } from "../../components/tabs";
-import { ModalSimple } from "../../components/modals";
 import { SelectIdioma } from "../../components/selects";
 import { Trans } from "react-i18next";
-import { useAuth, useCredenciales, useNavegacion } from "../../hooks";
+import { useAuth, useNavegacion } from "../../hooks";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -23,13 +22,11 @@ import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../constants";
 export default function IniciarSesionPage() {
     const navigate = useNavigate();
     const { autenticado, iniciarSesion, cargando, usuario } = useAuth();
-    const { firebase } = useCredenciales();
     const { tema, idioma, paginaAnterior } = useNavegacion();
     const { t } = useTranslation();
     const [btnCargando, setBtnCargando] = useState(false);
     const [captchaAceptado, setCaptchaAceptado] = useState(false);
     const [desactivarBtn, setDesactivarBtn] = useState(true);
-    const [modal, setModal] = useState({ mensaje: "", mostrar: false });
     const [terminosAceptados, setTerminosAceptados] = useState(false);
 
     useEffect(() => {
@@ -54,18 +51,18 @@ export default function IniciarSesionPage() {
 
     async function manejadorBtnIniciarSesion() {
         const res = await iniciarSesion(usuario);
-        if (res){
+        if (res) {
             navigate("/menu", { replace: true });
+        } else {
+            setDesactivarBtn(true);
+            setTerminosAceptados(false);
+            setCaptchaAceptado(false);
         }
-    };
-
-    function manejadorBtnModal() {
-        setModal((x) => ({ ...x, mostrar: false }));
     };
 
     return (
         <>
-            {(cargando || !firebase) ? (
+            {(cargando) ? (
                 <Box display="flex" alignItems="center" justifyContent="center" height="100vh">
                     <CircularProgress />
                 </Box>
@@ -82,9 +79,8 @@ export default function IniciarSesionPage() {
                     <Paper
                         sx={{
                             display: "flex",
-                            alignItems: "center",
                             width: {
-                                xs: "100vw", sm: "100vw", md: "57vw", lg: "35vw"
+                                xs: "100vw", sm: "57vw", md: "57vw", lg: "45vw", xl: "25vw"
                             },
                             height: "100%",
                             padding: "4vh",
@@ -179,16 +175,7 @@ export default function IniciarSesionPage() {
                             </Grid>
                         </Grid>
                     </Paper>
-                    <ModalSimple
-                        mostrar={modal.mostrar}
-                        titulo={t("tituloErr")}
-                        mensaje={modal.mensaje}
-                        txtBtn={t("txtBtnCerrar")}
-                        manejadorBtn={manejadorBtnModal}
-                        iconoBtn={<CloseIcon />}
-                    />
                 </Box>)}
-
         </>
     );
 };

@@ -16,26 +16,29 @@ export default function CerrarSesionPage() {
     const { paginaAnterior, callbackError } = useNavegacion();
     const { cerrarSesion } = useAuth();
 
-    useEffect(() => {
-        callbackError.current = manejadorBtnModal;
-        const tareaCierre = cerrarSesion();
-        tareaCierre.then(() => {
-            navigate("/", { replace: true });
-        });
-        return () => {
-            callbackError.current = null;
-        };
-    }, [cerrarSesion, navigate, manejadorBtnModal, callbackError]);
-
     const manejadorBtnModal = useCallback(() => {
         const pagina = paginaAnterior.current;
         if (pagina) {
             paginaAnterior.current = null;
             navigate(`/${pagina}`, { replace: true });
-        } else{
+        } else {
             navigate("/", { replace: true });
         }
     }, [navigate, paginaAnterior]);
+
+    useEffect(() => {
+        callbackError.current = manejadorBtnModal;
+        const tareaCierre = cerrarSesion();
+        tareaCierre.then((res) => {
+            if (res) {
+                navigate("/", { replace: true });
+            }
+        });
+        
+        return () => {
+            callbackError.current = null;
+        };
+    }, [cerrarSesion, navigate, manejadorBtnModal, callbackError]);
 
     return (
         <Box height={{ sm: "96vh", md: "97.5vh" }} display="flex" justifyContent="center" alignItems="center">

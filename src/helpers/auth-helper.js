@@ -4,7 +4,7 @@ import { iniciarSesionGoogle, cerrarSesion, registrarUsuario, verRolUsuario, gua
  * Inicia sesión con Google dentro de Firebase, registra al usuario en la base de datos si es su primera vez y obtiene su rol.
  * @param {import("firebase/auth").FirebaseAuth} firebaseAuth Instancia de Firebase Auth.
  * @param {Array<String>} permisos Permisos de OAuth requeridos para la aplicación.
- * @param {import("firebase/auth").User} usuario Instancia de Usuario de Firebase. Si se proporciona,
+ * @param {import("firebase/auth").User|null} usuario Instancia de Usuario de Firebase. Si se proporciona,
  * se asume que es para reautenticar al usuario y refrescar las credenciales de acceso a Google, de lo contrario se inicia una nueva sesión.
  * @returns {Object} Objeto con la propiedad success indicando si la autenticación fue exitosa, el usuario autenticado (clave usuario),
  * token de acceso a Google (clave accessToken), el rol del usuario (clave rol), el tiempo (en milisegundos) de expiración del token OAuth (clave tiempoExpiracion).

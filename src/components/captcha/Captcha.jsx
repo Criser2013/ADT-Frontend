@@ -70,7 +70,7 @@ export default function Captcha({ setCarga, setCaptchaAceptado }) {
             <ModalSimple
                 mostrar={modal.mostrar}
                 titulo={t("tituloErr")}
-                mensaje={modal.mensaje}
+                texto={modal.mensaje}
                 txtBtn={t("txtBtnCerrar")}
                 manejadorBtn={manejadorBtnModal}
                 iconoBtn={<CloseIcon />}

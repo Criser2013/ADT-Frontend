@@ -50,10 +50,11 @@ export default function App() {
     }, [requiereRefresco, setModalDoble, t]);
 
     useEffect(() => {
-        if (error && error !== "errPermisos") {
-            setModalSimple({ mostrar: true, mensaje: t(error, { usuario: usuario.nombre, correo: usuario.correo }) });
-        } else if (error === "errPermisos") {
-            setModalDoble({
+        if (error && error != "errPermisos") {
+            const params = usuario ? { usuario: usuario.nombre, correo: usuario.correo } : {};
+            setModalSimple({ mostrar: true, mensaje: t(error, params) });
+        } else if (error == "errPermisos") {
+            setModalDoble({ 
                 mostrar: true, mensaje: t("txtModalPermisos"), titulo: t("titModalPermisos"),
                 txtBtn: t("txtBtnPermisos"), icono: <IconoPermisos />
             });
@@ -85,7 +86,7 @@ export default function App() {
             <ModalDoble
                 mostrar={modalDoble.mostrar}
                 titulo={modalDoble.titulo}
-                mensaje={modalDoble.mensaje}
+                texto={modalDoble.mensaje}
                 txtBtnPrincipal={modalDoble.txtBtn}
                 txtBtnSecundario={t("txtBtnCerrarSesion")}
                 manejadorBtnPrincipal={manejadorBtnAutenticar}
@@ -97,7 +98,7 @@ export default function App() {
             <ModalSimple
                 mostrar={modalSimple.mostrar}
                 titulo={t("tituloErr")}
-                mensaje={modalSimple.mensaje}
+                texto={modalSimple.mensaje}
                 txtBtn={t("txtBtnCerrar")}
                 manejadorBtn={manejadorBtnCerrar}
                 iconoBtn={<CloseIcon />}
