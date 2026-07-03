@@ -164,8 +164,8 @@ describe("Validar la función 'verRolUsuario'", () => {
 
 describe("Validar la función 'registrarUsuario'", () => {
     // -------------------------- Parámetros ---------------------------
-    const params1 = { metadata: { createdAt: "2024-01-01", lastLoginAt: "2024-01-02" } }
-    const params2 = { uid: "123", metadata: { createdAt: "2024-01-01", lastLoginAt: "2024-01-01" } };
+    const params1 = { getIdTokenResult: jest.fn().mockResolvedValue({ claims: { admin: true } }), metadata: { createdAt: "2024-01-01", lastLoginAt: "2024-01-02" } };
+    const params2 = { getIdTokenResult: jest.fn().mockResolvedValue({ claims: {} }), uid: "123", metadata: { createdAt: "2024-01-01", lastLoginAt: "2024-01-01" } };
 
     // -------------------------- Resultado esperado ---------------------------
     const res = { success: true };

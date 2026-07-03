@@ -35,7 +35,7 @@ export async function iniciarSesionGoogle(firebaseAuth, permisos, usuario = null
     } catch (error) {
         return { success: false, error: manejadorErroresAuth(error) };
     }
-};
+}; 
 
 /**
  * Cierra la sesión del usuario, borra la crendenciales almacenadas en el sessionStorage y 
@@ -63,8 +63,8 @@ export async function cerrarSesion(firebaseAuth, idTareaRefresco = null) {
  * @returns {Object} Objeto con la propiedad success indicando si el registro fue exitoso.
  */
 export async function registrarUsuario(usuario, idioma = i18n.language) {
-    const { createdAt, lastLoginAt } = usuario.metadata;
-    const estaRegistrado = createdAt !== lastLoginAt;
+    const token = await usuario.getIdTokenResult(false);
+    const estaRegistrado = token.claims.admin !== undefined;
 
     if (estaRegistrado) {
         return { success: true };

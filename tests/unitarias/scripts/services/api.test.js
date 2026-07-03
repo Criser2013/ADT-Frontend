@@ -35,8 +35,8 @@ describe("Validar la funcion 'peticionApi'", () => {
         success: true, data: { prediccion: true, probabilidad: 0.90812 },
         error: null
     };
-    const res2 = { success: false, error: "Acceso no autorizado", data: null };
-    const res3 = { success: false, data: null, error: "Ha ocurrido un error al generar el diagnóstico. Por favor reintenta nuevamente." };
+    const res2 = { success: false, error: "Acceso no autorizado" };
+    const res3 = { success: false, error: "Ha ocurrido un error al generar el diagnóstico. Por favor reintenta nuevamente." };
 
     const headers1 = {
                 "Content-Type": "application/json",
