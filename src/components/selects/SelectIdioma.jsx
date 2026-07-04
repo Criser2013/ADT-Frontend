@@ -3,7 +3,7 @@ import IconoEspanol from "/icons/icono_espanol.svg";
 import IconoIngles from "/icons/icono_ingles.svg";
 import TranslateIcon from '@mui/icons-material/Translate';
 import { Button, MenuItem, Popover, Stack, Tooltip, Typography } from "@mui/material";
-import { useNavegacion } from "../../hooks";
+import useIdioma, { idiomaEspanol, idiomaIngles } from "../../hooks/idioma-hook";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -14,13 +14,13 @@ import { useTranslation } from "react-i18next";
  */
 export default function SelectIdioma() {
     const { i18n } = useTranslation();
-    const { idioma, cambiarIdioma } = useNavegacion();
+    const { idioma, cambiarIdioma } = useIdioma();
     const [popOver, setPopOver] = useState(null);
     const open = Boolean(popOver);
     const idPopOver = open ? "simple-popover" : undefined;
     const idiomas = [
-        { codigo: "es", nombre: "Español (🇪🇸)", icono: IconoEspanol },
-        { codigo: "en", nombre: "English (🇬🇧)", icono: IconoIngles }
+        { codigo: idiomaEspanol, nombre: "Español (🇪🇸)", icono: IconoEspanol },
+        { codigo: idiomaIngles, nombre: "English (🇬🇧)", icono: IconoIngles }
     ];
 
     function cerrarPopOver() {

@@ -1,10 +1,11 @@
 import FondoClaro from "/backgrounds/fondo_claro.png";
 import FondoOscuro from "/backgrounds/fondo_oscuro.png";
 import { Box, Button, Paper, Typography, CircularProgress } from "@mui/material";
-import { useAuth, useCredenciales, useNavegacion } from "../../hooks";
+import { useAuth, useCredenciales, useIdioma } from "../../hooks";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
+import useTema, { temaClaro } from "../../hooks/tema-hook";
 
 /**
  * Página 404 de la aplicación.
@@ -14,8 +15,9 @@ export default function Page404() {
     const navigate = useNavigate();
     const { autenticado } = useAuth();
     const { firebase } = useCredenciales();
-    const { idioma, tema } = useNavegacion();
+    const { idioma } = useIdioma();
     const { t } = useTranslation();
+    const { tema } = useTema();
 
     useEffect(() => {
         document.title = `${t("tit404")}`;
@@ -39,7 +41,7 @@ export default function Page404() {
                 justifyContent="center"
                 alignItems="center"
                 sx={{
-                    backgroundImage: `url(${tema == "light" ? FondoClaro : FondoOscuro})`,
+                    backgroundImage: `url(${tema == temaClaro ? FondoClaro : FondoOscuro})`,
                     backgroundSize: "cover"
                 }}>
                 <Paper sx={{ padding: "6vh" }}>
