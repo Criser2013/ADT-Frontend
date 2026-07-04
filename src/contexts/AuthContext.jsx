@@ -3,6 +3,7 @@ import { cerrarSesion as cerrarSesionFirebase, cargarCredsOAuth, verRolUsuario }
 import { DriveHelper, iniciarSesion as iniciarSesionFirebase } from "../helpers";
 import { onAuthStateChanged } from "firebase/auth";
 import { UsuarioAutenticado } from "../models";
+import { useCredenciales } from "../hooks";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 
 /**
@@ -12,11 +13,10 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
  */
 export function AuthProvider({ children }) {
     const idTareaRefresco = useRef(null);
-    const [auth, setAuth] = useState(null);
+    const { auth, scopes } = useCredenciales();
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState(null);
     const [requiereRefresco, setRequiereRefresco] = useState(false);
-    const [scopes, setScopes] = useState(null);
     const [usuario, setUsuario] = useState(null);
     const autenticado = useMemo(() => usuario instanceof UsuarioAutenticado, [usuario]);
     const helper = useMemo(() => {
@@ -145,9 +145,9 @@ export function AuthProvider({ children }) {
     }, [auth, manejadorCambiosAuth]);
 
     const value = useMemo(() => ({
-        cargando, error, setAuth, setScopes, cerrarSesion, autenticado,
+        cargando, error, cerrarSesion, autenticado,
         requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion, datosHelper: helper
-    }), [cargando, error, setAuth, setScopes, cerrarSesion, autenticado,
+    }), [cargando, error, cerrarSesion, autenticado,
         requiereRefresco, usuario, cambiarModoUsuario, iniciarSesion, helper
     ]);
 
