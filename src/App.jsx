@@ -6,7 +6,7 @@ import Router from "./router";
 import UpdateIcon from '@mui/icons-material/Update';
 import { IconoPermisos } from "./components/icons/IconosModal";
 import { ModalSimple, ModalDoble } from "./components/modals";
-import { useAuth, useCredenciales } from "./hooks";
+import { useAuth } from "./hooks";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -17,8 +17,7 @@ import { useTranslation } from "react-i18next";
  * @returns {JSX.Element}
  */
 export default function App() {
-    const { cerrarSesion, error, iniciarSesion, requiereRefresco, setAuth, setScopes, usuario } = useAuth();
-    const { firebaseAuth, scopesDrive } = useCredenciales();
+    const { cerrarSesion, error, iniciarSesion, requiereRefresco, usuario } = useAuth();
     const { t } = useTranslation();
     const [modalSimple, setModalSimple] = useState({
         mostrar: false, mensaje: ""
@@ -33,11 +32,6 @@ export default function App() {
             dayjs.locale(idioma ? idioma : "es");
         });
     }, []);
-
-    useEffect(() => { 
-        setAuth(firebaseAuth);
-        setScopes(scopesDrive);
-    }, [firebaseAuth, scopesDrive, setAuth, setScopes]);
 
     useEffect(() => {
         if (requiereRefresco) {

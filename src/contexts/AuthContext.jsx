@@ -13,7 +13,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
  */
 export function AuthProvider({ children }) {
     const idTareaRefresco = useRef(null);
-    const { auth, scopes } = useCredenciales();
+    const { firebaseAuth, scopesDrive } = useCredenciales();
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState(null);
     const [requiereRefresco, setRequiereRefresco] = useState(false);
@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
 
         setCargando(true);
 
-        const { success, error } = await cerrarSesionFirebase(auth, idTareaRefresco);
+        const { success, error } = await cerrarSesionFirebase(firebaseAuth, idTareaRefresco);
 
         if (!success) {
             setError(error);
@@ -48,7 +48,7 @@ export function AuthProvider({ children }) {
         setCargando(false);
 
         return res;
-    }, [auth, idTareaRefresco, setCargando, setError, setUsuario, setRequiereRefresco]);
+    }, [firebaseAuth, idTareaRefresco, setCargando, setError, setUsuario, setRequiereRefresco]);
 
     /**
      * @param {Boolean} modo Indica si se debe activar o desactivar el modo de usuario.
@@ -73,7 +73,7 @@ export function AuthProvider({ children }) {
     const iniciarSesion = useCallback(async (usuario = null) => {
         setCargando(true);
 
-        const res = await iniciarSesionFirebase(auth, scopes, usuario ? usuario.usuarioFirebase : null);
+        const res = await iniciarSesionFirebase(firebaseAuth, scopesDrive, usuario ? usuario.usuarioFirebase : null);
 
         if (res.success) {
             const { usuario, accessToken, rol, tiempoExpiracion } = res;
@@ -91,7 +91,7 @@ export function AuthProvider({ children }) {
         setCargando(false);
 
         return res.success;
-    }, [auth, scopes, setCargando, setError, setUsuario, mostrarRefrescoTokens]);
+    }, [firebaseAuth, scopesDrive, setCargando, setError, setUsuario, mostrarRefrescoTokens]);
 
     /**
      * Maneja los cambios en la autenticación del usuario.
@@ -128,21 +128,21 @@ export function AuthProvider({ children }) {
      * Retira el indicador de carga cuando se tiene la instancia de FirebaseAuth y permisos de Drive requeridos.
      */
     useEffect(() => {
-        if (auth && scopes) {
+        if (firebaseAuth && scopesDrive) {
             setCargando(false);
         }
-    }, [auth, scopes, setCargando]);
+    }, [firebaseAuth, scopesDrive, setCargando]);
 
     /**
      * Recupera la sesión si el usuario no la ha cerrado. También refresca los tokens
      * cuando caducan.
      */
     useEffect(() => {
-        if (auth) {
-            const suscribed = onAuthStateChanged(auth, manejadorCambiosAuth);
+        if (firebaseAuth) {
+            const suscribed = onAuthStateChanged(firebaseAuth, manejadorCambiosAuth);
             return () => suscribed();
         }
-    }, [auth, manejadorCambiosAuth]);
+    }, [firebaseAuth, manejadorCambiosAuth]);
 
     const value = useMemo(() => ({
         cargando, error, cerrarSesion, autenticado,
