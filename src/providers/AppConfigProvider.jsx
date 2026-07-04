@@ -3,7 +3,7 @@ import {
     cargarCredencialesCache,
     almacenarCredencialesCache
 } from "../services/Credenciales";
-import { CredencialesContext } from "../hooks/credenciales-hook";
+import { AppConfigContext } from "../hooks/appConfig-hook";
 import { inicializarFirebase } from "../services/Firebase";
 import { useEffect, useMemo, useReducer } from "react";
 
@@ -19,12 +19,12 @@ const estadoInicial = {
 };
 
 /**
- * Reducer encargado de administrar el estado global credenciales de la aplicación.
+ * Reducer encargado de administrar el estado global de la aplicación.
  * @param {import("react").ReducerState} state Estado actual del contexto.
  * @param {Object} action Acción a ejecutar sobre el estado.
  * @returns {Object} Nuevo estado del contexto.
  */
-function credencialesReducer(state, action) {
+function appConfigReducer(state, action) {
     switch (action.type) {
         case "INICIALIZAR_APP":
             return {
@@ -49,14 +49,13 @@ function credencialesReducer(state, action) {
 }
 
 /**
- * Provider de credenciales globales de la aplicación.
- * Inicializa Firebase y expone las instancias necesarias.
+ * Provider de instancias de Firebase y credenciales de la aplicación.
  * @param {JSX.Element} children
  * @returns {JSX.Element}
  */
-export function CredencialesProvider({ children }) {
+export function AppConfigProvider({ children }) {
     const [state, dispatch] = useReducer(
-        credencialesReducer, estadoInicial
+        appConfigReducer, estadoInicial
     );
     const aplicacionIniciada = useMemo(() => (
         [state.firebase, state.firestore, state.firebaseAuth].every((x) => x)
@@ -127,8 +126,8 @@ export function CredencialesProvider({ children }) {
     };
 
     return (
-        <CredencialesContext value={value}>
+        <AppConfigContext value={value}>
             {children}
-        </CredencialesContext>
+        </AppConfigContext>
     );
 }

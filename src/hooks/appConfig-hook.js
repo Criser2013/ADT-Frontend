@@ -1,17 +1,17 @@
 import { createContext, useContext } from "react";
 
-export const CredencialesContext = createContext(null);
+export const AppConfigContext = createContext(null);
 
 /**
  * Hook para acceder al contexto de credenciales.
  * @returns {Object}
  */
-export const useCredenciales = () => {
-    const context = useContext(CredencialesContext);
+export const useAppConfig = () => {
+    const context = useContext(AppConfigContext);
 
     if (!context) {
         throw new Error(
-            "useCredenciales debe usarse dentro de CredencialesProvider."
+            "useAppConfig debe usarse dentro de AppConfigProvider."
         );
     }
 

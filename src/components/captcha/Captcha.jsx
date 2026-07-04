@@ -2,7 +2,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ReCAPTCHA from "react-google-recaptcha";
 import { ModalSimple } from "../../components/modals";
 import { peticionApi } from "../../services/Api";
-import { useCredenciales, useIdioma, useTema } from "../../hooks";
+import { useAppConfig, useIdioma, useTema } from "../../hooks";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
  */
 export default function Captcha({ setCarga, setCaptchaAceptado }) {
     const { idioma } = useIdioma();
-    const { reCAPTCHA } = useCredenciales();
+    const { reCAPTCHA } = useAppConfig();
     const { tema } = useTema();
     const captcha = useRef(null);
     const { t } = useTranslation();
