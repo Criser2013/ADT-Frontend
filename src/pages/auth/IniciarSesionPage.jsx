@@ -12,6 +12,7 @@ import { Trans } from "react-i18next";
 import { useAuth, useNavegacion } from "../../hooks";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useTema, { temaClaro } from "../../hooks/tema-hook";
 import { useTranslation } from "react-i18next";
 import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../constants";
 
@@ -22,7 +23,8 @@ import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../constants";
 export default function IniciarSesionPage() {
     const navigate = useNavigate();
     const { autenticado, iniciarSesion, cargando, usuario } = useAuth();
-    const { tema, idioma, paginaAnterior } = useNavegacion();
+    const { idioma, paginaAnterior } = useNavegacion();
+    const { tema } = useTema();
     const { t } = useTranslation();
     const [btnCargando, setBtnCargando] = useState(false);
     const [captchaAceptado, setCaptchaAceptado] = useState(false);
@@ -73,7 +75,7 @@ export default function IniciarSesionPage() {
                     alignItems="center"
                     height="100vh"
                     sx={{
-                        backgroundImage: `url(${tema == "light" ? FondoClaro : FondoOscuro})`,
+                        backgroundImage: `url(${tema == temaClaro ? FondoClaro : FondoOscuro})`,
                         backgroundSize: "cover"
                     }}>
                     <Paper
