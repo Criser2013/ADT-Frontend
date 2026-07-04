@@ -1,7 +1,7 @@
 import FondoClaro from "/backgrounds/fondo_claro.png";
 import FondoOscuro from "/backgrounds/fondo_oscuro.png";
 import { Box, Button, Paper, Typography, CircularProgress } from "@mui/material";
-import { useAuth, useCredenciales, useIdioma } from "../../hooks";
+import { useAppConfig, useAuth, useIdioma } from "../../hooks";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -14,7 +14,7 @@ import useTema, { temaClaro } from "../../hooks/tema-hook";
 export default function Page404() {
     const navigate = useNavigate();
     const { autenticado } = useAuth();
-    const { firebase } = useCredenciales();
+    const { aplicacionIniciada } = useAppConfig();
     const { idioma } = useIdioma();
     const { t } = useTranslation();
     const { tema } = useTema();
@@ -29,7 +29,7 @@ export default function Page404() {
     };
 
     return (
-        !firebase ? (
+        !aplicacionIniciada ? (
             <Box display="flex" height="100vh" alignItems="center" justifyContent="center">
                 <CircularProgress />
             </Box>

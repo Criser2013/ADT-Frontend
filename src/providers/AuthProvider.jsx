@@ -3,7 +3,7 @@ import { cerrarSesion as cerrarSesionFirebase, cargarCredsOAuth, verRolUsuario }
 import { DriveHelper, iniciarSesion as iniciarSesionFirebase } from "../helpers";
 import { onAuthStateChanged } from "firebase/auth";
 import { UsuarioAutenticado } from "../models";
-import { useCredenciales } from "../hooks";
+import { useAppConfig } from "../hooks";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 
 /**
@@ -13,7 +13,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
  */
 export function AuthProvider({ children }) {
     const idTareaRefresco = useRef(null);
-    const { firebaseAuth, scopesDrive } = useCredenciales();
+    const { firebaseAuth, scopesDrive } = useAppConfig();
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState(null);
     const [requiereRefresco, setRequiereRefresco] = useState(false);
