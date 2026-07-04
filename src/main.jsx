@@ -2,7 +2,7 @@ import "./i18n";
 import App from './App.jsx';
 import CssBaseline from "@mui/material/CssBaseline";
 import InstanciaTema from './theme';
-import { AuthProvider, CredencialesProvider, NavegacionProvider } from './contexts';
+import { AuthProvider, CredencialesProvider } from './contexts';
 import { createRoot } from 'react-dom/client';
 import { StrictMode } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
@@ -14,9 +14,7 @@ createRoot(document.getElementById('root')).render(
 			<CssBaseline />
 			<CredencialesProvider>
 				<AuthProvider>
-					<NavegacionProvider>
 						<App />
-					</NavegacionProvider>
 				</AuthProvider>
 			</CredencialesProvider>
 		</ThemeProvider>
