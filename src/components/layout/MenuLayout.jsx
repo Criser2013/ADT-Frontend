@@ -1,10 +1,10 @@
 import { Box, CircularProgress, Toolbar } from "@mui/material";
 import NavBar from "./NavBar";
 import Sidebar from "./Sidebar";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks";
 import { useNavigate } from "react-router";
-import { useNavegacion } from "../../hooks/Navegacion";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo , useState} from "react";
+import MenuContext from "../../contexts/MenuContext";
 
 /**
  * Layout que contiene la sidebar y la barra de navegación superior.
@@ -15,6 +15,7 @@ export default function MenuLayout({ children }) {
     const { cargando } = useAuth();
     const navigate = useNavigate();
     const navegacion = useNavegacion();
+    const [mostrarMenu, setMostrarMenu] = useState(false);
     const height = useMemo(() => {
         return navegacion.dispositivoMovil ? "96vh" : "97.5vh";
     }, [navegacion.dispositivoMovil]);
@@ -57,13 +58,15 @@ export default function MenuLayout({ children }) {
     }, []);
 
     return (
-        <>
+        <MenuContext value={{ mostrarMenu, setMostrarMenu }}>
             {cargando ? (
                 <Box display="flex" justifyContent="center" alignItems="center" height={height}>
                     <CircularProgress />
                 </Box>
             ) : (
-                <Box width={width} marginLeft={marginMenu}>
+                <Box 
+                    width={width}
+                    marginLeft={marginMenu}>
                     <NavBar />
                     <Sidebar />
                     <Box component="main" sx={{ padding: `2vh ${margin}`}}>
@@ -71,6 +74,6 @@ export default function MenuLayout({ children }) {
                         {children}
                     </Box>
                 </Box>)}
-        </>
+        </MenuContext>
     );
 }
