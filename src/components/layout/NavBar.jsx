@@ -1,30 +1,27 @@
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArticleIcon from '@mui/icons-material/Article';
-import LogoutIcon from '@mui/icons-material/Logout';
 import MenuContext from "../../contexts/MenuContext";
 import MenuIcon from "@mui/icons-material/Menu";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import {
-    AppBar, Avatar, IconButton, Popover, Tooltip, Typography, Toolbar, Box,
-    MenuItem, Divider, Stack
+    AppBar, Avatar, IconButton, Tooltip, Typography, Toolbar, Box,
+    Stack
 } from "@mui/material";
 import { BtnTema } from "../layout";
 import { SelectIdioma } from "../selects";
-import { SwitchLabel } from "../tabs";
 import { useAuth } from "../../hooks";
 import { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../constants";
+
 
 /**
  * Barra de navegación que se muestra en las pewstañas que requieren autenticación.
  * @returns {JSX.Element}
  */
 export default function Navbar() {
-    const navigate = useNavigate();
-    const { autenticado, cerrarSesion, usuario } = useAuth();
+    const { autenticado, usuario } = useAuth();
     const { mostrarMenu, setMostrarMenu } = useContext(MenuContext);
     const { t } = useTranslation();
     const [urlImg, setUrlImg] = useState("");
@@ -38,10 +35,6 @@ export default function Navbar() {
         }
     }, [usuario, autenticado]);
 
-    function cerrarPopOver() {
-        setPopOver(null);
-    };
-
     function manejadorAbrirMenu() {
         setMostrarMenu((mostrarMenu) => !mostrarMenu);
     };
@@ -49,20 +42,6 @@ export default function Navbar() {
     function manejadorBtnInstrucciones() {
         const url = usuario?.rolVisible ? URL_MANUAL_ADMIN : URL_MANUAL_USUARIO;
         window.open(url, "_blank");
-    };
-
-    async function manejadorCerrarSesion() {
-        const res = await cerrarSesion();
-        if (res) {
-            navigate("/", { replace: true });
-        }
-    };
-
-    /**
-     * @param {Event} e 
-     */
-    function manejadorSwitchModoUsuario(e) {
-        usuario.modoUsuario = e.target.checked;
     };
 
     /**
@@ -111,60 +90,11 @@ export default function Navbar() {
                             </IconButton>
                         </Tooltip>
                     </Stack>
-                    <Popover
+                    <PopOver
                         id={idPopOver}
-                        open={mostrarPopOver}
-                        onClose={cerrarPopOver}
+                        mostrar={mostrarPopOver}
                         anchorEl={popOver}
-                        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                        transformOrigin={{ vertical: "top", horizontal: "right" }}
-                        PaperProps={{
-                            sx: {
-                                padding: 0,
-                                marginTop: 1.5,
-                                marginLeft: 0.75,
-                                "& .MuiMenuItem-root": {
-                                    typography: "body2",
-                                    borderRadius: 0.75,
-                                },
-                            },
-                        }}>
-                        <Box padding="1vh 15px" maxWidth="90vw" fontWeight="bold">
-                            <Typography variant="h6">
-                                {usuario ? usuario.nombre : t("txtUsuario")}
-                            </Typography>
-                            <Typography variant="body2" maxWidth="100%" fontWeight="bold">
-                                {usuario?.rol ? t("txtAdministrador") : t("txtMedico")}
-                            </Typography>
-                            <Typography variant="body2" color="textSecondary" maxWidth="100%">
-                                <span>
-                                    <b>{t("txtCorreo")}: </b>
-                                    {usuario ? usuario?.correo : "Correo@correo.com"}
-                                </span>
-                            </Typography>
-                        </Box>
-                        <Divider />
-                        {usuario?.rol ? (
-                            <>
-                                <MenuItem>
-                                    <SwitchLabel
-                                        activado={usuario?.modoUsuario}
-                                        etiqueta={usuario?.modoUsuario ?
-                                            t("txtDesactivarModoUsuario") : t("txtActivarModoUsuario")
-                                        }
-                                        manejadorCambios={manejadorSwitchModoUsuario} />
-                                </MenuItem>
-                                <Divider />
-                            </>) : null}
-                        <MenuItem onClick={manejadorCerrarSesion}>
-                            <Stack direction="row" spacing={1} display="flex" alignItems="center">
-                                <LogoutIcon />
-                                <Typography variant="body1" sx={{ padding: 0.5 }}>
-                                    {t("txtBtnCerrarSesion")}
-                                </Typography>
-                            </Stack>
-                        </MenuItem>
-                    </Popover>
+                        setPopOver={setPopOver}/>
                 </Box>
             </Toolbar>
         </AppBar>
