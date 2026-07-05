@@ -1,55 +1,48 @@
+import WestIcon from '@mui/icons-material/West';
 import { Link, Breadcrumbs, Stack, Typography, Box, IconButton, Tooltip, Divider } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { useNavegacion } from "../../hooks/Navegacion";
-import WestIcon from '@mui/icons-material/West';
 import { useTranslation } from "react-i18next";
+
 
 /**
  * Header de las pestañas CRUD.
- * @param {String} urlPredet - URL predeterminada para la navegación.
- * @param {String} titulo - Título de la pestaña actual
- * @param {Array} pestanas - Lista de pestañas con sus textos y URLs
- * @param {String} tooltip - Texto del tooltip para el botón de retroceso.
- * @param {Boolean} activarBtnAtras - Si se debe mostrar el botón de volver atrás
+ * @param {String} titulo Título de la pestaña actual
+ * @param {Array<Object>} pestanas Lista de pestañas con objetos de la forma { texto: String, url: String }.
+ * @param {String} tooltip Texto ayuda para el botón de retroceso.
+ * @param {Boolean} activarBtnAtras Indicador para mostrar el botón de volver atrás, de forma predeterminada es true.
  * @returns {JSX.Element}
  */
-export default function TabHeader({ urlPredet, titulo, pestanas, tooltip, activarBtnAtras = true }) {
+export default function TabHeader({ titulo, pestanas, tooltip, activarBtnAtras = true }) {
     const navigate = useNavigate();
-    const navegacion = useNavegacion();
     const { t } = useTranslation();
 
-    /**
-     * Manejador de eventos del botón "Atrás".
-     */
-    const manejadorBtnAtras = () => {
-        if (navegacion.paginaAnterior != "" && navegacion.paginaAnterior != null) {
-            navigate(navegacion.paginaAnterior);
-        } else if (urlPredet != null && urlPredet != undefined) {
-            navigate(urlPredet);
-        } else {
-            navigate("/menu");
-        }
+    function manejadorBtnAtras() {
+        navigate(-1);
     };
 
     return (
         <Box>
             <Stack direction="row" spacing={1}>
                 {activarBtnAtras ? (
-                    <Tooltip
-                        title={(tooltip != null && tooltip != undefined) ? tooltip : t("txtVolverAtras")}>
+                    <Tooltip title={tooltip ? tooltip : t("txtVolverAtras")}>
                         <IconButton onClick={manejadorBtnAtras}>
                             <WestIcon />
                         </IconButton>
                     </Tooltip>) : null}
                 <Box>
-                    <Typography variant="h5">
-                        <b>{titulo}</b>
+                    <Typography variant="h5" fontWeight="bold">
+                        {titulo}
                     </Typography>
                     <Breadcrumbs>
-                        {pestanas && pestanas.length > 0 ? (
+                        {(pestanas && (pestanas.length > 0)) ? (
                             pestanas.map((x) => {
                                 return (
-                                    <Link key={x.url} underline="hover" color="inherit" onClick={() => { navigate(x.url); }} sx={{ cursor: "pointer" }}>
+                                    <Link
+                                        key={x.url}
+                                        underline="hover"
+                                        color="inherit"
+                                        onClick={() => navigate(x.url)}
+                                        sx={{ cursor: "pointer" }}>
                                         {x.texto}
                                     </Link>
                                 );
@@ -58,7 +51,7 @@ export default function TabHeader({ urlPredet, titulo, pestanas, tooltip, activa
                     </Breadcrumbs>
                 </Box>
             </Stack>
-            <Divider orientation="horizontal" sx={{ margin: "1vh 0 vw" }} />
+            <Divider orientation="horizontal" sx={{ margin: "1vh 0vw" }}/>
         </Box>
     );
 };
