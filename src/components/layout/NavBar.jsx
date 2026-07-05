@@ -1,19 +1,22 @@
-import { AppBar, Avatar, IconButton, Popover, Tooltip, Typography, Toolbar, Box, MenuItem, Divider, Stack } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
-import MenuIcon from "@mui/icons-material/Menu";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { useAuth } from "../../hooks";
-import { useNavigate } from "react-router";
-import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import { BtnTema } from "../layout";
-import LogoutIcon from '@mui/icons-material/Logout';
-import { URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../constants";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArticleIcon from '@mui/icons-material/Article';
-import { SwitchLabel } from "../tabs";
-import { useTranslation } from "react-i18next";
-import { SelectIdioma } from "../selects";
+import LogoutIcon from '@mui/icons-material/Logout';
 import MenuContext from "../../contexts/MenuContext";
+import MenuIcon from "@mui/icons-material/Menu";
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import {
+    AppBar, Avatar, IconButton, Popover, Tooltip, Typography, Toolbar, Box,
+    MenuItem, Divider, Stack
+} from "@mui/material";
+import { BtnTema } from "../layout";
+import { SelectIdioma } from "../selects";
+import { SwitchLabel } from "../tabs";
+import { useAuth } from "../../hooks";
+import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
+import { URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../constants";
 
 /**
  * Barra de navegación que se muestra en las pewstañas que requieren autenticación.
@@ -143,13 +146,13 @@ export default function Navbar() {
                         <Divider />
                         {usuario?.rol ? (
                             <>
-                                <MenuItem onClick={() => manejadorSwitchModoUsuario(null)}>
+                                <MenuItem>
                                     <SwitchLabel
                                         activado={usuario?.modoUsuario}
-                                        etiqueta={usuario?.modoUsuario ? 
+                                        etiqueta={usuario?.modoUsuario ?
                                             t("txtDesactivarModoUsuario") : t("txtActivarModoUsuario")
                                         }
-                                        manejadorCambios={manejadorSwitchModoUsuario}/>
+                                        manejadorCambios={manejadorSwitchModoUsuario} />
                                 </MenuItem>
                                 <Divider />
                             </>) : null}
