@@ -1,10 +1,10 @@
-import { Box, CircularProgress, Toolbar } from "@mui/material";
+import MenuContext from "../../contexts/MenuContext";
 import NavBar from "./NavBar";
 import Sidebar from "./Sidebar";
 import { useAuth } from "../../hooks";
-import { useNavigate } from "react-router";
-import { useEffect, useMemo , useState} from "react";
-import MenuContext from "../../contexts/MenuContext";
+import { useState } from "react";
+import { Box, CircularProgress, Toolbar } from "@mui/material";
+
 
 /**
  * Layout que contiene la sidebar y la barra de navegación superior.
@@ -13,63 +13,33 @@ import MenuContext from "../../contexts/MenuContext";
  */
 export default function MenuLayout({ children }) {
     const { cargando } = useAuth();
-    const navigate = useNavigate();
-    const navegacion = useNavegacion();
     const [mostrarMenu, setMostrarMenu] = useState(false);
-    const height = useMemo(() => {
-        return navegacion.dispositivoMovil ? "96vh" : "97.5vh";
-    }, [navegacion.dispositivoMovil]);
-    const margin = useMemo(() => {
-        const { dispositivoMovil, orientacion } = navegacion;
-
-        if (dispositivoMovil && orientacion == "vertical") {
-            return "4vw";
-        } else {
-            return "1.9vw";
-        }
-    }, [navegacion]);
-    const marginMenu = useMemo(() => {
-        const { dispositivoMovil, orientacion, mostrarMenu } = navegacion;
-        if (dispositivoMovil && orientacion == "vertical") {
-            return "0px";
-        } else if (orientacion == "horizontal" && mostrarMenu) {
-            return "240px";
-        }
-    }, [navegacion]);
-    const width = useMemo(() => {
-        const { dispositivoMovil, orientacion, mostrarMenu } = navegacion;
-        if ((!dispositivoMovil && !mostrarMenu)|| (dispositivoMovil && orientacion == "vertical")) {
-            return "99vw";
-        } else if (orientacion == "horizontal" && mostrarMenu) {
-            return "calc(100vw - 240px - 1.9vw)";
-        }
-    }, [navegacion]);
-
-    /**
-     * Si hay algún error de autenticación, muestra un modal con el mensaje de error y al cerrarlo
-     * redirige a la página de inicio.
-     */
-    useEffect(() => {
-        navegacion.setCallbackError({
-            fn: () => {
-                navigate("/", { replace: true });
-            }
-        });
-    }, []);
 
     return (
         <MenuContext value={{ mostrarMenu, setMostrarMenu }}>
             {cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" height={height}>
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    height={{ xs: "96vh", md: "97.5vh" }}>
                     <CircularProgress />
                 </Box>
             ) : (
-                <Box 
-                    width={width}
-                    marginLeft={marginMenu}>
+                <Box
+                    width={{
+                        xs: "100vw", md: mostrarMenu ? "100vw" : `calc(100vw - 240px)`,
+                    }}
+                    marginLeft={{
+                        xs: "0px", md: mostrarMenu ? "240px" : "0px"
+                    }}>
                     <NavBar />
                     <Sidebar />
-                    <Box component="main" sx={{ padding: `2vh ${margin}`}}>
+                    <Box component="main"
+                        sx={{ 
+                            paddingVertical: "2vh", paddingHorizontal: {
+                                xs: "4vw", md: "1.9vw"
+                                }}}>
                         <Toolbar />
                         {children}
                     </Box>

@@ -52,10 +52,7 @@ export default function Sidebar() {
 
     return (
         <Drawer
-            variant={{
-                xs: "temporary", sm: "temporary", md: "temporary",
-                lg: "permanent", xl: "permanent"
-            }}
+            variant={{ xs: "temporary", lg: "permanent" }}
             open={mostrarMenu}
             onClose={manejadorCerrarMenu}
             sx={{
