@@ -8,7 +8,7 @@ import {
     AppBar, Avatar, IconButton, Tooltip, Typography, Toolbar, Box,
     Stack
 } from "@mui/material";
-import { BtnTema } from "../layout";
+import { BtnTema, PopOver } from "../layout";
 import { SelectIdioma } from "../selects";
 import { useAuth } from "../../hooks";
 import { useContext, useEffect, useState } from "react";

@@ -3,16 +3,17 @@ import MenuContext from "../../contexts/MenuContext";
 import PeopleIcon from '@mui/icons-material/People';
 import {
     Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
-    Toolbar
+    Toolbar, useMediaQuery
 } from "@mui/material";
 import {
     DiagnosticoIcono, DiagAnonimoIcono, HistDiagnosticoIcono, ListPacienteIcono,
     DatosIcono
 } from "../icons/IconosSidebar";
-import { useAuth } from "../../contexts/AuthContext";
-import { useContext } from "react";
+import { useAuth } from "../../hooks";
+import { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "@mui/material/styles";
 
 
 /**
@@ -21,6 +22,7 @@ import { useTranslation } from "react-i18next";
  */
 export default function Sidebar() {
     const navigate = useNavigate();
+    const theme = useTheme();
     const { usuario } = useAuth();
     const { t } = useTranslation();
     const { mostrarMenu, setMostrarMenu } = useContext(MenuContext);
@@ -36,7 +38,12 @@ export default function Sidebar() {
         { txt: t("txtDatosRecolectados"), icono: <DatosIcono />, ruta: "/diagnosticos" },
         { txt: t("txtUsuarios"), icono: <PeopleIcon />, ruta: "/usuarios" },
     ];
-    const filas = usuario.rolVisible ? urlAdmin : urlUsuarios;
+    const filas = usuario?.rolVisible ? urlAdmin : urlUsuarios;
+    const escritorio = useMediaQuery(theme.breakpoints.up("lg"));
+
+    useEffect(() => {
+        setMostrarMenu(escritorio);
+    }, [escritorio, setMostrarMenu]);
 
     function manejadorCerrarMenu() {
         setMostrarMenu(false);
@@ -52,7 +59,7 @@ export default function Sidebar() {
 
     return (
         <Drawer
-            variant={{ xs: "temporary", lg: "permanent" }}
+            variant={escritorio ? "persistent" : "temporary"}
             open={mostrarMenu}
             onClose={manejadorCerrarMenu}
             sx={{

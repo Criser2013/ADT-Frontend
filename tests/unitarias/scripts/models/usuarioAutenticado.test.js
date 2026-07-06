@@ -110,4 +110,37 @@ describe("Pruebas para la clase UsuarioAutenticado", () => {
             }
         });
     });
+
+    describe("Validar el método 'deepClone'", () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        test("CP - 165", () => {
+            const usuario = new UsuarioAutenticado(
+                {
+                    uid: "123", accessToken: "tokenFirebase", photoURL: "url",
+                    displayName: "nombre", email: "correo"
+                }, "123", true, "tokenDrive"
+            );
+
+            jest.spyOn(Storage.prototype, "getItem").mockReturnValue(null);
+
+            const clon = usuario.deepClone();
+
+            expect(clon).toBeInstanceOf(UsuarioAutenticado);
+            expect(clon).not.toBe(usuario);
+            expect(clon.uid).toBe(usuario.uid);
+            expect(clon.tokenDrive).toBe(usuario.tokenDrive);
+            expect(clon.tokenFirebase).toBe(usuario.tokenFirebase);
+            expect(clon.usuarioFirebase).toEqual(usuario.usuarioFirebase);
+            expect(clon.fotoUrl).toBe(usuario.fotoUrl);
+            expect(clon.nombre).toBe(usuario.nombre);
+            expect(clon.correo).toBe(usuario.correo);
+            expect(clon.rolVisible).toBe(usuario.rolVisible);
+
+            expect(Storage.prototype.getItem).toHaveBeenCalledTimes(2);
+            expect(Storage.prototype.getItem).toHaveBeenCalledWith("modo-usuario");
+        });
+    });
 });

@@ -20,7 +20,7 @@ import { useNavigate } from "react-router";
  */
 export default function PopOver({ id, mostrar, anchorEl, setPopOver }) {
     const navigate = useNavigate();
-    const { cerrarSesion, usuario } = useAuth();
+    const { cambiarModoUsuario, cerrarSesion, usuario } = useAuth();
     const { t } = useTranslation();
 
     function cerrarPopOver() {
@@ -38,7 +38,7 @@ export default function PopOver({ id, mostrar, anchorEl, setPopOver }) {
      * @param {Event} e 
      */
     function manejadorSwitchModoUsuario(e) {
-        usuario.modoUsuario = e.target.checked;
+        cambiarModoUsuario(e.target.checked);
     };
 
     return (
@@ -51,6 +51,8 @@ export default function PopOver({ id, mostrar, anchorEl, setPopOver }) {
             transformOrigin={{ vertical: "top", horizontal: "right" }}
             PaperProps={{
                 sx: {
+                    width: "min(90vw, 360px)",
+                    maxWidth: "90vw",
                     padding: 0,
                     marginTop: 1.5,
                     marginLeft: 0.75,
@@ -60,17 +62,17 @@ export default function PopOver({ id, mostrar, anchorEl, setPopOver }) {
                     },
                 },
             }}>
-            <Box padding="1vh 15px" maxWidth="90vw" fontWeight="bold">
-                <Typography variant="h6">
+            <Box padding="1vh 15px" width="100%" boxSizing="border-box">
+                <Typography variant="h6" fontWeight="bold" sx={{ overflowWrap: "break-word" }}>
                     {usuario ? usuario.nombre : t("txtUsuario")}
                 </Typography>
                 <Typography variant="body2" maxWidth="100%" fontWeight="bold">
                     {usuario?.rol ? t("txtAdministrador") : t("txtMedico")}
                 </Typography>
-                <Typography variant="body2" color="textSecondary" maxWidth="100%">
+                <Typography variant="body2" color="textSecondary" maxWidth="100%" sx={{ wordWrap: "break-word", overflowWrap: "anywhere" }}>
                     <span>
                         <b>{t("txtCorreo")}: </b>
-                        {usuario ? usuario?.correo : "Correo@correo.com"}
+                        {usuario ? usuario?.correo : null}
                     </span>
                 </Typography>
             </Box>

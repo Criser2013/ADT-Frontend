@@ -3,7 +3,7 @@ import NavBar from "./NavBar";
 import Sidebar from "./Sidebar";
 import { useAuth } from "../../hooks";
 import { useState } from "react";
-import { Box, CircularProgress, Toolbar } from "@mui/material";
+import { Box, CircularProgress, Toolbar, useTheme, useMediaQuery } from "@mui/material";
 
 
 /**
@@ -12,8 +12,10 @@ import { Box, CircularProgress, Toolbar } from "@mui/material";
  * @returns {JSX.Element}
  */
 export default function MenuLayout({ children }) {
+    const theme = useTheme();
+    const escritorio = useMediaQuery(theme.breakpoints.up("md"));
     const { cargando } = useAuth();
-    const [mostrarMenu, setMostrarMenu] = useState(false);
+    const [mostrarMenu, setMostrarMenu] = useState(escritorio);
 
     return (
         <MenuContext value={{ mostrarMenu, setMostrarMenu }}>
@@ -28,7 +30,7 @@ export default function MenuLayout({ children }) {
             ) : (
                 <Box
                     width={{
-                        xs: "100vw", md: mostrarMenu ? "100vw" : `calc(100vw - 240px)`,
+                        xs: "100vw", md: mostrarMenu ? `calc(100vw - 240px)` : "100vw"
                     }}
                     marginLeft={{
                         xs: "0px", md: mostrarMenu ? "240px" : "0px"

@@ -4,7 +4,9 @@ import Roboto from "/fonts/Roboto/Roboto-regular.ttf";
 
 const tema = createTheme({
     breakpoints: {
-        xs: 0, sm: 600, md: 900, lg: 1200, xl: 1920
+        values: {
+            xs: 0, sm: 600, md: 900, lg: 1200, xl: 1920
+        }
     },
     typography: {
         htmlFontSize: 16,
