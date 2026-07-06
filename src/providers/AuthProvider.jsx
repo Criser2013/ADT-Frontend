@@ -55,9 +55,8 @@ export function AuthProvider({ children }) {
      */
     const cambiarModoUsuario = useCallback((modo) => {
         setUsuario((x) => {
-            const nuevoUsuario = structuredClone(x);
-            nuevoUsuario.cambiarModoUsuario(modo);
-            return nuevoUsuario;
+            x.modoUsuario = modo;
+            return x.deepClone();
         });
     }, [setUsuario]);
 
@@ -77,12 +76,18 @@ export function AuthProvider({ children }) {
 
         if (res.success) {
             const { usuario, accessToken, rol, tiempoExpiracion } = res;
-            const user = new UsuarioAutenticado(usuario, usuario.uid, rol, accessToken);
             const idTarea = setTimeout(mostrarRefrescoTokens, tiempoExpiracion);
 
             idTareaRefresco.current = idTarea;
             setError(null);
-            setUsuario(user);
+            setUsuario((x) => {
+                if (x) {
+                    x.actualizarEstadoAutenticacion(usuario, usuario.uid, rol, accessToken);
+                    return x.deepClone();
+                } else {
+                    return new UsuarioAutenticado(usuario, usuario.uid, rol, accessToken);
+                }
+            });
             setRequiereRefresco(false);
         } else {
             setError(res.error);

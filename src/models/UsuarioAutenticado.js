@@ -96,4 +96,13 @@ export default class UsuarioAutenticado {
         this.#tokenDrive = tokenDrive;
         this.rolVisible = (this.#modoUsuario ? false : this.#rol);
     }
+
+    /**
+     * Crea una copia profunda del objeto actual.
+     * @returns {UsuarioAutenticado}
+     */
+    deepClone() {
+        const clon = new UsuarioAutenticado({...this.#usuarioFirebase}, this.#uid, this.#rol, this.#tokenDrive);
+        return clon;
+    }
 };

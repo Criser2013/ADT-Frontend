@@ -9,9 +9,8 @@ import DiagnosticoAnonimoPage from "./pages/diagnosticos/DiagnosticoAnonimoPage"
 import DiagnosticoPacientePage from "./pages/diagnosticos/DiagnosticoPacientePage";
 import VerDiagnosticoPage from "./pages/diagnosticos/VerDiagnosticoPage";
 import VerDiagnosticosPage from "./pages/diagnosticos/VerDiagnosticosPage";
-import VerUsuariosPage from "./pages/usuarios/VerUsuariosPage";
-import MenuPage from "./pages/utils/MenuPage";*/
-import Page404 from "./pages/utils/Page404";
+import VerUsuariosPage from "./pages/usuarios/VerUsuariosPage";*/
+import { MenuPage, Page404 } from "./pages/utils";
 
 /**
  * Enrutador principal de la aplicación que define las rutas y páginas.
@@ -23,6 +22,7 @@ export default function Router() {
             <Routes>
                 <Route path="/" element={<IniciarSesionPage />} />
                 <Route path="/404" element={<Page404 />} />
+                <Route path="/menu" element={<MenuPage />} />
                 {/*<Route path="/diagnostico-anonimo" element={<DiagnosticoAnonimoPage />} />
                 <Route path="/usuarios" element={<VerUsuariosPage />} />
                 <Route path="/menu" element={
@@ -64,7 +64,9 @@ export default function Router() {
                         <VerDiagnosticosPage />
                     </DriveProvider>
                 } />*/}
-                <Route path="*" element={<Navigate to={"/404"} replace/>} />
+                <Route path="*" element={
+                    <Navigate to={"/404"} replace/>
+                    }/>
             </Routes>
         </BrowserRouter>
     );
