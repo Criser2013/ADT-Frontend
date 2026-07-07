@@ -38,10 +38,11 @@ export default function MenuLayout({ children }) {
                     <NavBar />
                     <Sidebar />
                     <Box component="main"
-                        sx={{ 
-                            paddingVertical: "2vh", paddingHorizontal: {
-                                xs: "4vw", md: "1.9vw"
-                                }}}>
+                        sx={{
+                            paddingTop: "2vh",
+                            paddingLeft: { xs: "4vw", md: "1.9vw" },
+                            paddingRight: { xs: "4vw", md: "1.9vw" }
+                        }}>
                         <Toolbar />
                         {children}
                     </Box>

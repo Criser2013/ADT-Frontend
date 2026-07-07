@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
  * @param {Array} datosSeleccionados Arreglo de datos seleccionados.
  * @param {Array<String>} camposBusqueda Arreglo de campos en los que buscar.
  * @param {String} lblSeleccion Etiqueta para mostrar el número de datos seleccionados.
- * @param {String} lblBusq Etiqueta para el campo de búsqueda.
+ * @param {String} lblBusqueda Etiqueta para el campo de búsqueda.
  * @param {String} tooltipBtnAccion Tooltip para el botón de acción.
  * @param {Function} manejadorBtnAccion Manejador del botón de acción.
  * @param {import("react").SetStateAction} setDatosVisibles Setter para actualizar los datos visibles en el Datatable.
@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next";
  * @returns {JSX.Element}
  */
 export default function CuadroBusqueda({
-    datos, datosSeleccionados, camposBusqueda, lblSeleccion, lblBusq,
+    datos, datosSeleccionados, camposBusqueda, lblSeleccion, lblBusqueda,
     tooltipBtnAccion, manejadorBtnAccion, setDatosVisibles, iconoBtnAccion
 }) {
     const { t } = useTranslation();
@@ -42,12 +42,12 @@ export default function CuadroBusqueda({
     function manejadorBtnLimpiar() {
         setTxtBusqueda("");
         setDatosVisibles(datos);
-        //document.getElementsByName("busq")[0].value = "";;
+        document.getElementsByName("busq")[0].value = "";;
     };
 
     return (
         <Toolbar
-            sx={{ padding: "1vh 0vw" }}>
+            sx={{ padding: "2vh 0vw" }}>
             <Stack
                 direction="column"
                 display="flex"
@@ -81,7 +81,7 @@ export default function CuadroBusqueda({
                 <TextField
                     name="busq"
                     defaultValue={txtBusqueda}
-                    placeholder={lblBusq}
+                    placeholder={lblBusqueda}
                     onChange={manejadorBusqueda}
                     sx={{
                         width: { xs: "90%", md: "100%" },

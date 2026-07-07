@@ -69,9 +69,10 @@ export default function Datatable({
     }, [datos]);
 
     /**
+     * @param {Event} e
      * @param {Number} pagina Número de página a mostrar.
      */
-    function manejadorBtnCambiarPagina(pagina) {
+    function manejadorBtnCambiarPagina(e, pagina) {
         setPagina(pagina);
     };
 
@@ -91,7 +92,7 @@ export default function Datatable({
         if (e.target.checked) {
             setSeleccionados((prev) => [...prev, instancia]);
         } else {
-            setSeleccionados((prev) => prev.filter((x) => x.id != instancia));
+            setSeleccionados((prev) => prev.filter((x) => x.id != instancia.id));
         }
     };
 
@@ -100,7 +101,7 @@ export default function Datatable({
      * @param {Object} instancia Datos de la instancia a la que se hizo clic.
      */
     function manejadorClicCelda(e, instancia) {
-        if (modoSeleccion) {
+        if (modoSeleccion && e.target.checked == undefined) {
             const estaSeleccionado = seleccionados.includes(instancia);
             manejadorBtnSeleccionarFila({ target: { checked: !estaSeleccionado } }, instancia);
         } else if (!modoSeleccion && callbackClicCelda) {
@@ -137,7 +138,7 @@ export default function Datatable({
                             numDatos={datos.length}
                             numSeleccionados={seleccionados.length}
                             setDatosSeleccionados={setSeleccionados}
-                            setdireccionOrdenInicial={setOrden}
+                            setDirOrden={setOrden}
                             setCampoOrden={setCampoOrden} />
                         <TableBody>
                             {filas.map((x) => (
@@ -175,6 +176,7 @@ export default function Datatable({
                 </TableContainer>
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
                     count={datos.length}
                     rowsPerPage={filasEnPagina}
                     page={pagina}

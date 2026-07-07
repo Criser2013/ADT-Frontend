@@ -22,7 +22,7 @@ export default function VerPacientesPage() {
     const navigate = useNavigate();
     const { datosHelper } = useAuth();
     const { idioma } = useIdioma();
-    const { t } = useTranslation();    
+    const { t } = useTranslation();
     const [cargando, setCargando] = useState(true);
     const [datos, setDatos] = useState([]);
     const [modalEliminacion, setModalEliminacion] = useState({
@@ -31,29 +31,18 @@ export default function VerPacientesPage() {
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
     const [pacientesSeleccionados, setPacientesSeleccionados] = useState([]);
     const campos = useMemo(() => [
-        { id: "cedula", label: t("txtCedula"), componente: null, ordenable: true},
-        { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true},
-        { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true},
-        { id: "edad", label: t("txtCampoEdad"), componente: null, ordenable: true},
-        { id: "telefono", label: t("txtTelefono"), componente: null, ordenable: true},
+        { id: "cedula", label: t("txtCedula"), componente: null, ordenable: true },
+        { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
+        { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true },
+        { id: "edad", label: t("txtCampoEdad"), componente: null, ordenable: true },
+        { id: "telefono", label: t("txtTelefono"), componente: null, ordenable: true },
     ], [t]);
     const listadoPestanas = [{ texto: t("titListaPacientes"), url: "/pacientes" }];
 
-    useEffect(() => {
-        document.title = t("titListaPacientes");
-    }, [idioma, t]);
-
-    useEffect(() => {
-        cargarDatos();
-        return () => {
-            datosHelper.cancelarPeticiones();
-        };
-    }, [datosHelper, cargarDatos]);
-
-
     async function manejadorBtnRecargar() {
         setCargando(true);
-        setModalEliminacion(false);
+        setModalEliminacion({...modalEliminacion, mostrar: false });
+        setModalError({...modalError, mostrar: false });
         setPacientesSeleccionados([]);
         await cargarDatos();
     };
@@ -61,13 +50,14 @@ export default function VerPacientesPage() {
     const cargarDatos = useCallback(async () => {
         const res = await datosHelper.descargarArchivoPacientes();
         if (!res.success) {
-            setModalError({ mostrar: true, texto: res.error });
+            setDatos([]);
+            setModalError({ mostrar: true, texto: t(res.error) });
         } else {
             setDatos(datosHelper.pacientes);
         }
 
         setCargando(false);
-    }, [datosHelper, setModalError, setDatos, setCargando]);
+    }, [datosHelper, setModalError, setDatos, setCargando, t]);
 
     function manejadorBtnAnadir() {
         navigate("/pacientes/anadir");
@@ -101,13 +91,13 @@ export default function VerPacientesPage() {
      * @param {Array<String>} idsPacientes Arreglo con los IDs de pacientes a eliminar.
      */
     async function eliminarPacientes(idsPacientes) {
-        const res = await datosHelper.operacionSobreArchivo("eliminar", { idPacientes: idsPacientes });
+        const res = await datosHelper.operacionSobreArchivo("eliminar", { idPacientes: idsPacientes, varios: true });
         if (!res.success) {
-            setModalError({ mostrar: true, texto: res.error });
+            setModalError({ mostrar: true, texto: t(res.error) });
         } else {
             setPacientesSeleccionados([]);
         }
-        setCargando(false);
+        await cargarDatos();
     };
 
     function cerrarModalEliminacion() {
@@ -118,6 +108,20 @@ export default function VerPacientesPage() {
         setModalError({ ...modalError, mostrar: false });
     };
 
+    useEffect(() => {
+        document.title = t("titListaPacientes");
+    }, [idioma, t]);
+
+    useEffect(() => {
+        if (datosHelper) {
+            cargarDatos();
+            return () => {
+                datosHelper.cancelarPeticiones();
+            };
+        }
+    }, [datosHelper, cargarDatos]);
+
+
     return (
         <MenuLayout>
             {cargando ? (
@@ -127,10 +131,9 @@ export default function VerPacientesPage() {
             ) : (
                 <>
                     <TabHeader
-                        url="/pacientes"
                         titulo={t("titListaPacientes")}
                         pestanas={listadoPestanas}
-                        activarBtnAtras={true} />
+                        activarBtnAtras={false} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh" }}>
                         <Grid
                             display="flex"
@@ -164,7 +167,7 @@ export default function VerPacientesPage() {
                             activarSeleccion={true}
                             camposBusqueda={["nombre", "cedula"]}
                             campoOrdenInicial="cedula"
-                            direccionOrdenInicial="desc"                            
+                            direccionOrdenInicial="desc"
                             callbackClicCelda={manejadorClicCelda}
                             callbackBtnAccion={manejadorBtnEliminar}
                             icono={<DeleteIcon />} />
@@ -178,9 +181,9 @@ export default function VerPacientesPage() {
                 manejadorBtn={cerrarModalError}
                 iconoBtn={<CloseIcon />} />
             <ModalDoble
-                mostrar={modalError.mostrar}
-                titulo={modalError.titulo}
-                texto={modalError.texto}
+                mostrar={modalEliminacion.mostrar}
+                titulo={modalEliminacion.titulo}
+                texto={modalEliminacion.texto}
                 txtBtnPrincipal={t("txtBtnEliminar")}
                 txtBtnSecundario={t("txtBtnCancelar")}
                 manejadorBtnPrincipal={manejadorBtnModalEliminacion}

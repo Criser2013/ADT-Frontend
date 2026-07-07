@@ -1,6 +1,6 @@
 import { Chip } from "@mui/material";
 import { useMemo } from "react";
-import { useNavegacion } from "../../hooks/Navegacion";
+import { useTema } from "../../hooks";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -66,7 +66,7 @@ export function ChipEstado({ estado }) {
  * @returns {JSX.Element}
  */
 export default function Chips({ valor, fnColor = () => "primary" }) {
-    const { tema } = useNavegacion();
+    const { tema } = useTema();
     const variante = useMemo(() => {
         return (tema == "light") ? "filled" : "outlined";
     }, [tema]);

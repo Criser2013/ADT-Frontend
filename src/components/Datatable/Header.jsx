@@ -29,9 +29,9 @@ export default function Header({
      */
     function seleccionarTodo(e) {
         if (e.target.checked) {
-            setDatosSeleccionados([]);
-        } else {
             setDatosSeleccionados(datos);
+        } else {
+            setDatosSeleccionados([]);
         }
     };
 
@@ -40,16 +40,10 @@ export default function Header({
      */
     function cambiarOrden(campo) {
         if (campo == campoOrden) {
-            setDirOrden((x) => {
-                if (x == "asc") {
-                    return "desc";
-                } else {
-                    return "asc";
-                }
-            });
+            setDirOrden((x) => (x == "asc") ? "desc" : "asc");
         } else {
             setCampoOrden(campo);
-            setDirOrden("asc");
+            setDirOrden("desc");
         }  
     };
 

@@ -42,8 +42,8 @@ export default function Fila({
                         }} />
                 </TableCell>) : null}
             {campos.map((campo) => (
-                <TableCell key={`${datos[campoId]}-${campo}`}>
-                    {campo.componente ? campo.componente(datos) : datos[campo]}
+                <TableCell key={`${datos[campoId]}-${campo.id}`}>
+                    {campo.componente ? campo.componente(datos) : datos[campo.id]}
                 </TableCell>
             ))}
         </TableRow>
