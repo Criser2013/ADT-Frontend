@@ -30,7 +30,7 @@ export default function MenuLayout({ children }) {
             ) : (
                 <Box
                     width={{
-                        xs: "100vw", md: mostrarMenu ? `calc(100vw - 240px)` : "100vw"
+                        xs: "99vw", md: mostrarMenu ? `calc(99vw - 240px)` : "99vw"
                     }}
                     marginLeft={{
                         xs: "0px", md: mostrarMenu ? "240px" : "0px"

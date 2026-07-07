@@ -312,5 +312,6 @@
     "formatoCalendario": "MM/DD/YYYY",
     "formatoFechaHoraResumida": "MM/DD/YYYY [-] hh:mm A",
     "titLime": "Contribution of each feature",
-    "errRegistrarUsuario": "Something was wrong trying to register the user. Please try again."
+    "errRegistrarUsuario": "Something was wrong trying to register the user. Please try again.",
+    "txtAyudaBtnBuscar": "Search"
 }

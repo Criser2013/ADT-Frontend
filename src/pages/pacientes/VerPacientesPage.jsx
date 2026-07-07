@@ -165,7 +165,7 @@ export default function VerPacientesPage() {
                             tooltipBtnAccion={t("txtAyudaBtnEliminarPacientes")}
                             activarBusqueda={true}
                             activarSeleccion={true}
-                            camposBusqueda={["nombre", "cedula"]}
+                            camposBusqueda={["nombre", "cedula", "id"]}
                             campoOrdenInicial="cedula"
                             direccionOrdenInicial="desc"
                             callbackClicCelda={manejadorClicCelda}

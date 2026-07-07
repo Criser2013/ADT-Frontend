@@ -1,11 +1,12 @@
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import ClearIcon from "@mui/icons-material/Clear";
 import SearchIcon from "@mui/icons-material/Search";
-
 import { buscar } from "../../utils/Busqueda";
-import { IconButton, InputAdornment, Stack, TextField, Toolbar, Tooltip, Typography } from "@mui/material";
-import { useState } from "react";
+import { Button, IconButton, InputAdornment, Stack, TextField, Toolbar, Tooltip, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { useForm, Controller } from "react-hook-form";
+
+const valoresPredet = { busqueda: "" };
 
 /**
  * Cuadro de búsqueda del componente Datatable.
@@ -25,24 +26,20 @@ export default function CuadroBusqueda({
     tooltipBtnAccion, manejadorBtnAccion, setDatosVisibles, iconoBtnAccion
 }) {
     const { t } = useTranslation();
-    const [txtBusqueda, setTxtBusqueda] = useState("");
+    const { getValues, control, handleSubmit, reset, watch } = useForm({
+        defaultValues: valoresPredet, mode: "onBlur"
+    });
+    const texto = watch("busqueda");
 
-    /**
-     * Manejador de cambios en el campo de búsqueda. Realiza la búsqueda y actualiza los datos 
-     * mientras el usuario escribe.
-     * @param {Event} e 
-     */
-    function manejadorBusqueda(e) {
-        const texto = e.target.value;
-        setTxtBusqueda(texto);
+    function manejadorBusqueda() {
+        const texto = getValues("busqueda");
         const res = buscar(datos, texto, camposBusqueda);
         setDatosVisibles(res);
     };
 
     function manejadorBtnLimpiar() {
-        setTxtBusqueda("");
         setDatosVisibles(datos);
-        document.getElementsByName("busq")[0].value = "";;
+        reset(valoresPredet);
     };
 
     return (
@@ -67,45 +64,67 @@ export default function CuadroBusqueda({
                             variant="body1"
                             component="div">
                             <span style={{ display: "flex", alignItems: "center" }}>
-                                <CheckBoxIcon sx={{ mr: 1.5 }} />
+                                <CheckBoxIcon sx={{ marginLeft: 1.5, mr: 1.5 }} />
                                 <b>{datosSeleccionados.length} {lblSeleccion}</b>
                             </span>
                         </Typography>
                         <Tooltip title={tooltipBtnAccion}>
-                            <IconButton onClick={() => manejadorBtnAccion(datosSeleccionados)}>
+                            <IconButton
+                                onClick={() => manejadorBtnAccion(datosSeleccionados)}
+                                sx={{ marginRight: 1 }} >
                                 {iconoBtnAccion ? iconoBtnAccion : null}
                             </IconButton>
                         </Tooltip>
                     </Stack>
                 ) : null}
-                <TextField
-                    name="busq"
-                    defaultValue={txtBusqueda}
-                    placeholder={lblBusqueda}
-                    onChange={manejadorBusqueda}
-                    sx={{
-                        width: { xs: "90%", md: "100%" },
-                        paddingTop: (datosSeleccionados.length > 0) ? "0vh" : "1vh"
-                    }}
-                    slotProps={{
-                        input: {
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon />
-                                </InputAdornment>
-                            ),
-                            endAdornment: (txtBusqueda.length > 0) ? (
-                                <InputAdornment position="end">
-                                    <Tooltip title={t("txtVaciarBusq")}>
-                                        <IconButton onClick={manejadorBtnLimpiar}>
-                                            <ClearIcon />
-                                        </IconButton>
-                                    </Tooltip>
-                                </InputAdornment>
-                            ) : null
-                        }
-                    }}
-                />
+                <Stack
+                    direction="row"
+                    spacing={1}
+                    alignItems="stretch"
+                    width="100%" >
+                    <Controller
+                        name="busqueda"
+                        control={control}
+                        render={({ field }) => (
+                            <TextField
+                                {...field}
+                                placeholder={lblBusqueda}
+                                sx={{
+                                    width: { xs: "90%", md: "95%" },
+                                    "& .MuiOutlinedInput-root": {
+                                        height: 56
+                                    },
+                                }}
+                                slotProps={{
+                                    input: {
+                                        endAdornment:
+                                            (texto.length > 0) ? (
+                                                <InputAdornment position="end">
+                                                    <Tooltip title={t("txtVaciarBusq")}>
+                                                        <IconButton onClick={manejadorBtnLimpiar}>
+                                                            <ClearIcon />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </InputAdornment>
+                                            ) : null,
+                                    },
+                                }}
+                            />
+                        )}
+                    />
+                    <Tooltip title={t("txtAyudaBtnBuscar")}>
+                        <Button
+                            variant="contained"
+                            onClick={handleSubmit(manejadorBusqueda)}
+                            sx={{
+                                width: { xs: "10%", md: "5%" },
+                                height: 56,
+                                minWidth: 56
+                            }} >
+                            <SearchIcon />
+                        </Button>
+                    </Tooltip>
+                </Stack>
             </Stack>
         </Toolbar>);
 };

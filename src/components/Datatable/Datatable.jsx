@@ -104,7 +104,7 @@ export default function Datatable({
         if (modoSeleccion && e.target.checked == undefined) {
             const estaSeleccionado = seleccionados.includes(instancia);
             manejadorBtnSeleccionarFila({ target: { checked: !estaSeleccionado } }, instancia);
-        } else if (!modoSeleccion && callbackClicCelda) {
+        } else if (!modoSeleccion && callbackClicCelda && e.target.checked == undefined) {
             callbackClicCelda(instancia);
         }
     };

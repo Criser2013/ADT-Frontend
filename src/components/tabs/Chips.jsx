@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
  * @param {string} rol - Rol del usuario.
  * @returns {JSX.Element}
  */
-export function ChipRol ({ rol }) {
+export function ChipRol({ rol }) {
     const { t } = useTranslation();
     return <Chips valor={rol} fnColor={(valor) => (valor === t("txtAdministrador") ? "error" : "success")} />;
 }
@@ -20,7 +20,12 @@ export function ChipRol ({ rol }) {
  */
 export function ChipSexo({ sexo }) {
     const { t } = useTranslation();
-    return <Chips valor={sexo == 0 ? t("txtMasculino") : t("txtFemenino")} fnColor={(valor) => (valor == 0 ? "info" : "secondary")} />;
+    return (
+        <Chips
+            etiqueta={sexo == 0 ? t("txtMasculino") : t("txtFemenino")}
+            valor={sexo}
+            fnColor={(valor) => (valor == 0 ? "info" : "secondary")} />
+    );
 }
 
 /**
@@ -61,15 +66,23 @@ export function ChipEstado({ estado }) {
 
 /**
  * Componente para mostrar un dato dentro de un chip. Se recomienda usarlo en las tablas.
- * @param {string} valor - Valor del campo.
- * @param {function} fnColor - Función que determina el color del chip dependiendo del dato.
+ * @param {String} etiqueta Etiqueta a mostrar en el chip.
+ * @param {String|Number} valor Valor del campo.
+ * @param {Function} fnColor Función que determina el color del chip dependiendo del valor del dato.
  * @returns {JSX.Element}
  */
-export default function Chips({ valor, fnColor = () => "primary" }) {
+export default function Chips({ etiqueta, valor, fnColor = () => "primary" }) {
     const { tema } = useTema();
     const variante = useMemo(() => {
         return (tema == "light") ? "filled" : "outlined";
     }, [tema]);
 
-    return <Chip clickable={false} variant={variante} size="small" label={valor} color={fnColor(valor)} />;
+    return (
+        <Chip
+            clickable={false}
+            variant={variante}
+            size="small"
+            label={etiqueta}
+            color={fnColor(valor)} />
+    );
 };

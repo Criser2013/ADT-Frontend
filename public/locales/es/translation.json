@@ -312,5 +312,6 @@
     "formatoCalendario": "DD/MM/YYYY",
     "formatoFechaHoraResumida": "DD/MM/YYYY [-] hh:mm A",
     "titLime": "Contribución de cada característica",
-    "errRegistrarUsuario": "Se ha producido un error al registrar el usuario. Por favor, inténtalo de nuevo más tarde."
+    "errRegistrarUsuario": "Se ha producido un error al registrar el usuario. Por favor, inténtalo de nuevo más tarde.",
+    "txtAyudaBtnBuscar": "Buscar"
 }
