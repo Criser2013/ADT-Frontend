@@ -5,7 +5,7 @@ import MenuLayout from "../../components/layout/MenuLayout";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { Button, Grid, Box, CircularProgress, Tooltip, IconButton } from "@mui/material";
 import { ChipSexo } from "../../components/tabs/Chips";
-import Datatable from "../../components/tabs/Datatable";
+import Datatable from "../../components/Datatable/Datatable";
 import { ModalDoble, ModalSimple } from "../../components/modals";
 import { TabHeader } from "../../components/layout";
 import { useAuth, useIdioma } from "../../hooks";

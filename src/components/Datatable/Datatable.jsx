@@ -3,14 +3,12 @@ import {
     TableRow, TablePagination, TableSortLabel, TextField, Typography, InputAdornment,
     Toolbar, IconButton, Stack, Tooltip
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import ClearIcon from "@mui/icons-material/Clear";
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import { CuadroBusqueda } from "./CuadroBusqueda";
+
 import { useState, useMemo, useEffect } from "react";
 import { visuallyHidden } from "@mui/utils";
 import { obtenerComparadorStrNum } from "../../utils/Ordenamiento";
-import { buscar } from "../../utils/Busqueda";
-import { useNavegacion } from "../../hooks/Navegacion";
+
 import { t } from "i18next";
 
 /**
@@ -46,7 +44,6 @@ import { t } from "i18next";
 export default function Datatable({ campos, datos, lblSeleccion, campoId = "id", lblBusq = "", activarBusqueda = false,
     activarSeleccion = true, terminoBusqueda = "", camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "",
     campoOrdenInicial = null, dirOrden = "desc", cargarInfoToda = false }) {
-    const navegacion = useNavegacion();
     const [orden, setOrden] = useState(dirOrden);
     const [campoOrden, setCampoOrden] = useState(campoOrdenInicial != null ? campoOrdenInicial : campos[0].id);
     const [numSeleccionados, setNumSeleccionados] = useState(0);
@@ -56,9 +53,6 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     const [busqueda, setBusqueda] = useState(terminoBusqueda);
     const [auxDatos, setAuxDatos] = useState(datos);
     const [modoSeleccion, setModoSeleccion] = useState(false);
-    const padding = useMemo(() => {
-        return !modoSeleccion ? "1vh" : "0vh";
-    }, [modoSeleccion]);
     const filas = useMemo(() =>
         [...auxDatos]
             .sort(obtenerComparadorStrNum(orden, campoOrden))
@@ -73,9 +67,6 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
         });
         return aux;
     }, [campos]);
-    const tamCampoBusq = useMemo(() => {
-        return (navegacion.dispositivoMovil && navegacion.orientacion != "horizontal") ? "90%" : "100%";
-    }, [navegacion.dispositivoMovil, navegacion.orientacion]);
     const indeterminado = useMemo(() => numSeleccionados > 0 && (numSeleccionados < numFilas || numSeleccionados < datos.length),
         [numSeleccionados, numFilas, datos.length]);
     const seleccionTodos = useMemo(() => numFilas > 0 && (numSeleccionados === numFilas || numSeleccionados === datos.length),
@@ -164,26 +155,6 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     };
 
     /**
-     * Manejador de cambios en el campo de búsqueda.
-     * @param {Event} e 
-     */
-    const manejadorBusqueda = (e) => {
-        setBusqueda(e.target.value);
-        setAuxDatos(
-            ((e.target.value.length > 0) && (camposBusq.length > 0)) ? buscar(datos, e.target.value, camposBusq) : datos);
-    };
-
-    /**
-     * Manejador del botón de limpiar búsqueda.
-     */
-    const manejadorBtnLimpiarBusq = () => {
-        setPagina(0);
-        setAuxDatos(datos);
-        setBusqueda("");
-        document.getElementsByName("busq")[0].value = "";
-    };
-
-    /**
      * Manejador de clic en una celda de la tabla.
      * @param {Event} e - Evento de clic.
      * @param {JSON} instancia - Instancia de fila de datos.
@@ -201,60 +172,16 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
         <Box sx={{ width: "100%" }}>
             <Paper sx={{ width: "100%", mb: 2 }}>
                 {(numSeleccionados > 0 || activarBusqueda) ? (
-                    <Toolbar
-                        sx={{ padding: "1vh 0vw" }}>
-                        <Stack
-                            direction="column"
-                            display="flex"
-                            spacing={2}
-                            width="100%"
-                            alignItems="center">
-                            {numSeleccionados > 0 ? (
-                                <Stack direction="row" display="flex" width="100%" justifyContent="space-between" alignItems="center">
-                                    <Typography
-                                        sx={{ flex: "1 1 100%" }}
-                                        color="inherit"
-                                        variant="body1"
-                                        component="div">
-                                            <span style={{ display: "flex", alignItems: "center" }}>
-                                                <CheckBoxIcon sx={{ mr: 1.5 }} />
-                                                <b>{numSeleccionados} {lblSeleccion}</b>
-                                            </span>
-                                    </Typography>
-                                    <Tooltip title={tooltipAccion}>
-                                        <IconButton onClick={(e) => cbAccion(seleccionados, e)}>
-                                            {icono ? icono : null}
-                                        </IconButton>
-                                    </Tooltip>
-                                </Stack>
-                            ) : null}
-                            <TextField
-                                name="busq"
-                                placeholder={lblBusq}
-                                defaultValue={terminoBusqueda}
-                                onChange={manejadorBusqueda}
-                                sx={{ width: tamCampoBusq, paddingTop: padding }}
-                                slotProps={{
-                                    input: {
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <SearchIcon />
-                                            </InputAdornment>
-                                        ),
-                                        endAdornment: (busqueda.length > 0) ? (
-                                            <InputAdornment position="end">
-                                                <Tooltip title={t("txtVaciarBusq")}>
-                                                    <IconButton onClick={manejadorBtnLimpiarBusq}>
-                                                        <ClearIcon />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </InputAdornment>
-                                        ) : null
-                                    }
-                                }}
-                            />
-                        </Stack>
-                    </Toolbar>) : null}
+                    <CuadroBusqueda
+                        datos={datos}
+                        datosSeleccionados={seleccionados}
+                        camposBusqueda={camposBusq}
+                        lblSeleccion={lblSeleccion}
+                        lblBusq={lblBusq}
+                        tooltipBtnAccion={tooltipAccion}
+                        manejadorBtnAccion={cbAccion}
+                        setDatosVisibles={setAuxDatos} />
+                ) : null}
                 <TableContainer>
                     <Table
                         sx={{ minWidth: 750 }}
@@ -357,7 +284,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                     onPageChange={cambiarPagina}
                     onRowsPerPageChange={cambiarFilasPorPagina}
                     labelRowsPerPage={t("txtFilasPorPag")}
-                    labelDisplayedRows={({ from, to, count }) => t("txtPagina", {from: from, to: to, count: (count !== -1) ? count : t("txtPagina2", { to: to })})}
+                    labelDisplayedRows={({ from, to, count }) => t("txtPagina", { from: from, to: to, count: (count !== -1) ? count : t("txtPagina2", { to: to }) })}
                 />
             </Paper>
         </Box>
