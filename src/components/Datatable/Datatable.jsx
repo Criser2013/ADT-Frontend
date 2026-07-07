@@ -3,7 +3,8 @@ import {
     TableRow, TablePagination, TableSortLabel, TextField, Typography, InputAdornment,
     Toolbar, IconButton, Stack, Tooltip
 } from "@mui/material";
-import { CuadroBusqueda } from "./CuadroBusqueda";
+import CuadroBusqueda from "./CuadroBusqueda";
+import Fila from "./Fila";
 
 import { useState, useMemo, useEffect } from "react";
 import { visuallyHidden } from "@mui/utils";
@@ -59,14 +60,6 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
             .slice(pagina * filasEnPagina, pagina * filasEnPagina + filasEnPagina),
         [auxDatos, orden, campoOrden, pagina, filasEnPagina]);
     const numFilas = useMemo(() => auxDatos.length, [auxDatos]);
-    const nombresCampos = useMemo(() => campos.map((campo) => campo.id), [campos]);
-    const compsCampos = useMemo(() => {
-        const aux = {};
-        campos.forEach((campo) => {
-            aux[campo.id] = campo.componente;
-        });
-        return aux;
-    }, [campos]);
     const indeterminado = useMemo(() => numSeleccionados > 0 && (numSeleccionados < numFilas || numSeleccionados < datos.length),
         [numSeleccionados, numFilas, datos.length]);
     const seleccionTodos = useMemo(() => numFilas > 0 && (numSeleccionados === numFilas || numSeleccionados === datos.length),
@@ -220,50 +213,28 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {filas.length == 0 ? (
+                            {(auxDatos.length == 0) ? (
                                 <TableRow>
                                     <Typography
                                         variant="body2"
                                         align="center" component="th"
                                         width="100%" colSpan={campos.length + 1}
                                         sx={{ padding: "10vh 0vw" }}>
-                                        {busqueda.length > 0 ? t("txtNoResBusq") : t("txtNoDatosTabla")}
+                                        {t("txtNoDatosTabla")}
                                     </Typography>
                                 </TableRow>
                             ) : null}
-                            {filas.map((x, i) => {
-                                const estaSeleccionada = seleccionados.includes(cargarInfoToda ? x : x[campoId]);
-                                const labelId = `enhanced-table-checkbox-${i}`;
-                                return (
-                                    <TableRow
-                                        hover
-                                        onClick={(e) => manejadorClicCelda(e, x)}
-                                        tabIndex={-1}
-                                        key={x[campoId]}
-                                        selected={estaSeleccionada}
-                                        sx={{ cursor: cbClicCelda != null ? "pointer" : "default" }}>
-                                        {activarSeleccion ? (
-                                            <TableCell padding="checkbox">
-                                                <Checkbox
-                                                    color="primary"
-                                                    checked={estaSeleccionada}
-                                                    onClick={(e) => seleccionarFila(e, x[campoId])}
-                                                    inputProps={{
-                                                        "aria-labelledby": labelId,
-                                                    }}
-                                                />
-                                            </TableCell>) : null}
-                                        {nombresCampos.map((y) => {
-                                            return (
-                                                <TableCell key={`${x.id}-${y}`}>
-                                                    {compsCampos[y] ? compsCampos[y](x) : x[y]}
-                                                </TableCell>
-                                            );
-                                        })
-                                        }
-                                    </TableRow>
-                                );
-                            })}
+                            {filas.map((x) => (
+                                <Fila
+                                    key={x[campoId]}
+                                    datos={x}
+                                    datosSeleccionados={seleccionados}
+                                    campoId={campoId}
+                                    activarSeleccion={activarSeleccion}
+                                    manejadorClicCelda={manejadorClicCelda}
+                                    manejadorClicSeleccion={seleccionarFila}
+                                    campos={campos} />
+                            ))}
                             {filasVacias > 0 && (
                                 <TableRow
                                     style={{

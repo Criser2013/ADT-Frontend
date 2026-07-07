@@ -224,7 +224,6 @@
     "txtPacientesMes": "Patients registered this month",
     "titGraficoPastelMenuUsuario": "Patient distribution by sex",
     "txtVaciarBusq": "Clear search box",
-    "txtNoResBusq": "No results found for the search.",
     "txtNoDatosTabla": "No data to display.",
     "txtFilasPorPag": "Rows per page",
     "txtPagina": "{{from}}-{{to}} of {{count}}",
