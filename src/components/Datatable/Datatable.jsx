@@ -1,145 +1,127 @@
+import CuadroBusqueda from "./CuadroBusqueda";
+import Fila from "./Fila";
+import Header from "./Header";
 import {
     Box, Paper, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead,
     TableRow, TablePagination, TableSortLabel, TextField, Typography, InputAdornment,
     Toolbar, IconButton, Stack, Tooltip
 } from "@mui/material";
-import CuadroBusqueda from "./CuadroBusqueda";
-import Fila from "./Fila";
-import Header from "./Header";
-
-import { useState, useMemo, useEffect } from "react";
 import { obtenerComparadorStrNum } from "../../utils/Ordenamiento";
-
+import { useState, useMemo, useEffect } from "react";
 import { t } from "i18next";
 
 /**
  * Datatable con paginación, ordenamiento y selección de filas.
- * @param {JSON} param0 - Propiedades del componente.
- * @param {Array[JSON]} campos - Lista de campos a motrar, debe ser un JSON con la estructura:
- * {
- *   id: "idCampo", // Identificador del campo - string
- *   label: "Nombre del campo" // Nombre del campo a mostrar - string
- * }
- * @param {Array[JSON]} datos - Lista de datos a mostrar, debe ser un JSON con la estructura: |
- * {
- *   id: Id del dato // Debe ser un identificador único - string o number
- *   campo1: <valor>
- *   campo2: <valor>,
- *   ...
- * @param {String} lblSeleccion - Texto del botón de selección de filas.
- * @param {String} campoId - Nombre del campo que se usará como identificador único de cada fila.
- * @param {String} lblBusq - Texto del placeholder del campo de búsqueda.
- * @param {Boolean} activarBusqueda - Si se muestra el campo de búsqueda.
- * @param {Boolean} activarSeleccion - Si se activa el modo de selección de filas.
- * @param {String} terminoBusqueda - Valor inicial del campo de búsqueda.
- * @param {Array[String]} camposBusq - Lista de campos en los que se buscará el término ingresado.
- * @param {Function} cbClicCelda - Callback para manejar el clic en una
- * @param {Function} cbAccion - Callback para manejar la acción del botón de selección de filas.
- * @param {JSX.Element} icono - Icono a mostrar en el botón de acción de selección de filas.
- * @param {String} tooltipAccion - Texto del tooltip del botón de acción de selección de filas.
- * @param {String|null} campoOrdenInicial - Campo por el cual se ordenarán inicialmente los datos.
- * @param {String} dirOrden - Dirección del orden inicial ("asc" o "desc").
- * @param {Boolean} cargarInfoToda - Si se cargan todos los datos al seleccionar todos las filas o solo el campo establecido en el parámetro campoId.
+ * @param {Array<Object>} datos Lista de datos a mostrar, debe tener un atributo o campo que sirva 
+ * como identificador único de cada fila.
+ * @param {Array<Object>} campos Lista de campos a motrar, debe ser un JSON con la estructura:
+ * - id (String): Identificador del campo.
+ * - label (String): Etiqueta del campo.
+ * - componente (JSX.Element|null): Componente para renderizar el campo. Si es null, se mostrará 
+ * el valor del campo directamente.
+ * @param {String} campoId Nombre del campo que se usará como identificador único de cada fila.
+ * @param {String} lblBusqueda Texto del placeholder del campo de búsqueda.
+ * @param {String} lblSeleccion Texto a mostrar cuando hay filas seleccionadas.
+ * @param {String} tooltipBtnAccion Tooltip del botón de acción de selección de filas.
+ * @param {Boolean} activarBusqueda Indicador para activar el campo de búsqueda.
+ * @param {Boolean} activarSeleccion Indicador para activar el modo de selección de filas.
+ * @param {Array<String>} camposBusqueda Lista de campos en los que se buscará el término ingresado.
+ * @param {String} campoOrdenInicial Campo por el cual se ordenarán los datos inicialmente.
+ * @param {String} direccionOrdenInicial Dirección del orden inicial ("asc" o "desc").
+ * @param {Function} callbackClicCelda Callback para ejecutar una acción cuando se hace clic en una 
+ * celda de la tabla.
+ * @param {Function} callbackBtnAccion Callback para ejecutar una acción cuando se hace clic en el 
+ * botón de acción de selección de filas.
+ * @param {JSX.Element} icono Icono a mostrar en el botón de acción de selección de filas.
  * @returns {JSX.Element}
  */
-export default function Datatable({ campos, datos, lblSeleccion, campoId = "id", lblBusq = "", activarBusqueda = false,
-    activarSeleccion = true, camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "",
-    campoOrdenInicial = null, dirOrden = "desc", cargarInfoToda = false }) {
-    const [orden, setOrden] = useState(dirOrden);
-    const [campoOrden, setCampoOrden] = useState(campoOrdenInicial != null ? campoOrdenInicial : campos[0].id);
-    const [numSeleccionados, setNumSeleccionados] = useState(0);
-    const [seleccionados, setSeleccionados] = useState([]);
-    const [pagina, setPagina] = useState(0);
-    const [filasEnPagina, setFilasEnPagina] = useState(5);
+export default function Datatable({ 
+    datos, campos, campoId = "id", lblBusqueda = "", lblSeleccion, tooltipBtnAccion = "", activarBusqueda = true,
+    activarSeleccion = true, camposBusqueda = [], campoOrdenInicial = "id", direccionOrdenInicial = "desc",
+    callbackClicCelda = null, callbackBtnAccion = null, icono = null
+}) {
+
     const [auxDatos, setAuxDatos] = useState(datos);
+    const [campoOrden, setCampoOrden] = useState(campoOrdenInicial ? campoOrdenInicial : campos[0].id);
+    const [filasEnPagina, setFilasEnPagina] = useState(5);
     const [modoSeleccion, setModoSeleccion] = useState(false);
+    const [orden, setOrden] = useState(direccionOrdenInicial);
+    const [pagina, setPagina] = useState(0);
+    const [seleccionados, setSeleccionados] = useState([]); 
     const filas = useMemo(() =>
         [...auxDatos]
             .sort(obtenerComparadorStrNum(orden, campoOrden))
             .slice(pagina * filasEnPagina, pagina * filasEnPagina + filasEnPagina),
         [auxDatos, orden, campoOrden, pagina, filasEnPagina]);
-    const numFilas = useMemo(() => auxDatos.length, [auxDatos]);
-    const filasVacias = pagina > 0 ? Math.max(0, (1 + pagina) * filasEnPagina - datos.length) : 0;
+    const filasVacias = (pagina > 0) ? Math.max(0, (1 + pagina) * filasEnPagina - datos.length) : 0;
 
-    /**
-     * Activando el modo de selección si hay filas seleccionadas.
-     */
     useEffect(() => {
-        if (numSeleccionados > 0) {
+        if (seleccionados.length > 0) {
             setModoSeleccion(true);
         } else {
             setModoSeleccion(false);
         }
 
-    }, [numSeleccionados]);
+    }, [seleccionados, setModoSeleccion]);
 
-    /**
-     * Actualizando los datos auxiliares cuando cambian los datos originales.
-     */
     useEffect(() => {
-        setAuxDatos(datos);
+        setAuxDatos([...datos]);
     }, [datos]);
 
     /**
-     * Manejador de cambio de página en la tabla.
-     * @param {Event} event 
-     * @param {Int} pagina 
+     * @param {Number} pagina Número de página a mostrar.
      */
-    const cambiarPagina = (event, pagina) => {
+    function manejadorBtnCambiarPagina(pagina) {
         setPagina(pagina);
     };
 
     /**
-     * Manejador de cambios de la cantidad de filas por página en la tabla.
-     * @param {Event} event 
+     * @param {Event} e 
      */
-    const cambiarFilasPorPagina = (event) => {
-        setFilasEnPagina(parseInt(event.target.value, 10));
+    function manejadorBtnCambiarFilasPorPagina(e) {
+        setFilasEnPagina(parseInt(e.target.value, 10));
         setPagina(0);
     };
 
     /**
-     * Manejador de selección/deselección de una fila.
      * @param {Event} e 
-     * @param {String|Number} id 
+     * @param {Object} instancia Datos de la instancia seleccionada/deseleccionada.
      */
-    const seleccionarFila = (e, id) => {
+    function manejadorBtnSeleccionarFila(e, instancia) {
         if (e.target.checked) {
-            setNumSeleccionados((x) => x + 1);
-            setSeleccionados((prev) => [...prev, cargarInfoToda ? auxDatos.find((x) => x[campoId] == id) : id]);
+            setSeleccionados((prev) => [...prev, instancia]);
         } else {
-            setNumSeleccionados((x) => x - 1);
-            setSeleccionados((prev) => prev.filter((x) => cargarInfoToda ? x[campoId] != id : x != id));
+            setSeleccionados((prev) => prev.filter((x) => x.id != instancia));
         }
     };
 
     /**
-     * Manejador de clic en una celda de la tabla.
-     * @param {Event} e - Evento de clic.
-     * @param {JSON} instancia - Instancia de fila de datos.
+     * @param {Event} e
+     * @param {Object} instancia Datos de la instancia a la que se hizo clic.
      */
-    const manejadorClicCelda = (e, instancia) => {
-        if (cbClicCelda != null && !modoSeleccion && e.target.checked == undefined) {
-            cbClicCelda(instancia);
-        } else if (modoSeleccion && e.target.checked == undefined) {
-            const id = !seleccionados.includes(instancia[campoId]);
-            seleccionarFila({ target: { checked: id } }, instancia[campoId]);
+    function manejadorClicCelda(e, instancia) {
+        if (modoSeleccion) {
+            const estaSeleccionado = seleccionados.includes(instancia);
+            manejadorBtnSeleccionarFila({ target: { checked: !estaSeleccionado } }, instancia);
+        } else if (!modoSeleccion && callbackClicCelda) {
+            callbackClicCelda(instancia);
         }
     };
 
     return (
         <Box sx={{ width: "100%" }}>
             <Paper sx={{ width: "100%", mb: 2 }}>
-                {(numSeleccionados > 0 || activarBusqueda) ? (
+                {((seleccionados.length > 0) || activarBusqueda) ? (
                     <CuadroBusqueda
-                        datos={auxDatos}
+                        datos={datos}
                         datosSeleccionados={seleccionados}
-                        camposBusqueda={camposBusq}
+                        camposBusqueda={camposBusqueda}
                         lblSeleccion={lblSeleccion}
-                        lblBusq={lblBusq}
-                        tooltipBtnAccion={tooltipAccion}
-                        manejadorBtnAccion={cbAccion}
-                        setDatosVisibles={setAuxDatos} />
+                        lblBusqueda={lblBusqueda}
+                        tooltipBtnAccion={tooltipBtnAccion}
+                        manejadorBtnAccion={callbackBtnAccion}
+                        setDatosVisibles={setAuxDatos}
+                        iconoBtnAccion={icono} />
                 ) : null}
                 <TableContainer>
                     <Table
@@ -155,9 +137,20 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                             numDatos={datos.length}
                             numSeleccionados={seleccionados.length}
                             setDatosSeleccionados={setSeleccionados}
-                            setDirOrden={setOrden}
+                            setdireccionOrdenInicial={setOrden}
                             setCampoOrden={setCampoOrden} />
                         <TableBody>
+                            {filas.map((x) => (
+                                <Fila
+                                    key={x[campoId]}
+                                    campos={campos}
+                                    datos={x}
+                                    datosSeleccionados={seleccionados}
+                                    campoId={campoId}
+                                    activarSeleccion={activarSeleccion}
+                                    manejadorClicCelda={manejadorClicCelda}
+                                    manejadorClicSeleccion={manejadorBtnSeleccionarFila} />
+                            ))}
                             {(auxDatos.length == 0) ? (
                                 <TableRow>
                                     <Typography
@@ -169,18 +162,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                                     </Typography>
                                 </TableRow>
                             ) : null}
-                            {filas.map((x) => (
-                                <Fila
-                                    key={x[campoId]}
-                                    datos={x}
-                                    datosSeleccionados={seleccionados}
-                                    campoId={campoId}
-                                    activarSeleccion={activarSeleccion}
-                                    manejadorClicCelda={manejadorClicCelda}
-                                    manejadorClicSeleccion={seleccionarFila}
-                                    campos={campos} />
-                            ))}
-                            {filasVacias > 0 && (
+                            {(filasVacias > 0) && (
                                 <TableRow
                                     style={{
                                         height: 53 * filasVacias,
@@ -193,15 +175,17 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                 </TableContainer>
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
-                    component="div"
-                    count={numFilas}
+                    count={datos.length}
                     rowsPerPage={filasEnPagina}
                     page={pagina}
-                    onPageChange={cambiarPagina}
-                    onRowsPerPageChange={cambiarFilasPorPagina}
+                    onPageChange={manejadorBtnCambiarPagina}
+                    onRowsPerPageChange={manejadorBtnCambiarFilasPorPagina}
                     labelRowsPerPage={t("txtFilasPorPag")}
-                    labelDisplayedRows={({ from, to, count }) => t("txtPagina", { from: from, to: to, count: (count !== -1) ? count : t("txtPagina2", { to: to }) })}
-                />
+                    labelDisplayedRows={({ from, to, count }) => (
+                        t("txtPagina", {
+                            from: from, to: to, 
+                            count: (count != -1) ? count : t("txtPagina2", { to: to }) })
+                    )} />
             </Paper>
         </Box>
     );

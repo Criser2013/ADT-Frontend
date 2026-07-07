@@ -21,8 +21,8 @@ export default function Fila({
     manejadorClicSeleccion, campos
 }) {
     const celdaSeleccionada = useMemo(() => (
-        datosSeleccionados.includes(datos[campoId])
-    ),[datosSeleccionados, datos, campoId]);
+        datosSeleccionados.includes(datos)
+    ),[datosSeleccionados, datos]);
 
     return (
         <TableRow
@@ -36,7 +36,7 @@ export default function Fila({
                     <Checkbox
                         color="primary"
                         checked={celdaSeleccionada}
-                        onClick={(e) => manejadorClicSeleccion(e, datos[campoId])}
+                        onClick={(e) => manejadorClicSeleccion(e, datos)}
                         inputProps={{
                             "aria-labelledby": `enhanced-table-checkbox-${datos[campoId]}`,
                         }} />

@@ -74,10 +74,10 @@ export default function VerPacientesPage() {
     };
 
     /**
-     * @param {Array<String>} pacientes Lista de IDs de los pacientes seleccionados.
+     * @param {Array<Paciente>} pacientes Lista de pacientes seleccionados.
      */
     function manejadorBtnEliminar(pacientes) {
-        setPacientesSeleccionados(pacientes);
+        setPacientesSeleccionados(pacientes.map((x) => x.id));
         setModalEliminacion({
             mostrar: true, titulo: t("titAlerta"),
             texto: t("txtEliminarPacientes")
@@ -85,10 +85,10 @@ export default function VerPacientesPage() {
     };
 
     /**
-     * @param {String} id ID del paciente
+     * @param {Paciente} paciente Objeto del paciente
      */
-    function manejadorClicCelda(id) {
-        navigate(`/pacientes/ver-paciente?id=${id}`);
+    function manejadorClicCelda(paciente) {
+        navigate(`/pacientes/ver-paciente?id=${paciente.id}`);
     };
 
     async function manejadorBtnModalEliminacion() {
@@ -98,10 +98,10 @@ export default function VerPacientesPage() {
     };
 
     /**
-     * @param {Array<String>} pacientes Arreglo con los IDs de pacientes a eliminar.
+     * @param {Array<String>} idsPacientes Arreglo con los IDs de pacientes a eliminar.
      */
-    async function eliminarPacientes(pacientes) {
-        const res = await datosHelper.operacionSobreArchivo("eliminar", { idPacientes: pacientes });
+    async function eliminarPacientes(idsPacientes) {
+        const res = await datosHelper.operacionSobreArchivo("eliminar", { idPacientes: idsPacientes });
         if (!res.success) {
             setModalError({ mostrar: true, texto: res.error });
         } else {
@@ -154,21 +154,20 @@ export default function VerPacientesPage() {
                             </Tooltip>
                         </Grid>
                         <Datatable
-                            campos={campos}
                             datos={datos}
-                            lblBusq={t("txtBusqPaciente")}
-                            activarBusqueda={true}
+                            campos={campos}
                             campoId="id"
-                            terminoBusqueda={""}
+                            lblBusqueda={t("txtBusqPaciente")}
                             lblSeleccion={t("txtSufijoPacientesSelecs")}
-                            camposBusq={["nombre", "cedula"]}
-                            cbClicCelda={manejadorClicCelda}
-                            cbAccion={manejadorBtnEliminar}
-                            tooltipAccion={t("txtAyudaBtnEliminarPacientes")}
-                            icono={<DeleteIcon />}
-                            campoOrdenInicial="nombre"
-                            dirOrden="asc"
-                        />
+                            tooltipBtnAccion={t("txtAyudaBtnEliminarPacientes")}
+                            activarBusqueda={true}
+                            activarSeleccion={true}
+                            camposBusqueda={["nombre", "cedula"]}
+                            campoOrdenInicial="cedula"
+                            direccionOrdenInicial="desc"                            
+                            callbackClicCelda={manejadorClicCelda}
+                            callbackBtnAccion={manejadorBtnEliminar}
+                            icono={<DeleteIcon />} />
                     </Grid>
                 </>)}
             <ModalSimple
