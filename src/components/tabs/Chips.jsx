@@ -20,7 +20,7 @@ export function ChipRol ({ rol }) {
  */
 export function ChipSexo({ sexo }) {
     const { t } = useTranslation();
-    return <Chips valor={sexo} fnColor={(valor) => (valor === t("txtMasculino") ? "info" : "secondary")} />;
+    return <Chips valor={sexo == 0 ? t("txtMasculino") : t("txtFemenino")} fnColor={(valor) => (valor == 0 ? "info" : "secondary")} />;
 }
 
 /**
