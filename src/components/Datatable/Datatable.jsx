@@ -5,9 +5,9 @@ import {
 } from "@mui/material";
 import CuadroBusqueda from "./CuadroBusqueda";
 import Fila from "./Fila";
+import Header from "./Header";
 
 import { useState, useMemo, useEffect } from "react";
-import { visuallyHidden } from "@mui/utils";
 import { obtenerComparadorStrNum } from "../../utils/Ordenamiento";
 
 import { t } from "i18next";
@@ -43,7 +43,7 @@ import { t } from "i18next";
  * @returns {JSX.Element}
  */
 export default function Datatable({ campos, datos, lblSeleccion, campoId = "id", lblBusq = "", activarBusqueda = false,
-    activarSeleccion = true, terminoBusqueda = "", camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "",
+    activarSeleccion = true, camposBusq = [], cbClicCelda = null, cbAccion = null, icono = null, tooltipAccion = "",
     campoOrdenInicial = null, dirOrden = "desc", cargarInfoToda = false }) {
     const [orden, setOrden] = useState(dirOrden);
     const [campoOrden, setCampoOrden] = useState(campoOrdenInicial != null ? campoOrdenInicial : campos[0].id);
@@ -51,7 +51,6 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     const [seleccionados, setSeleccionados] = useState([]);
     const [pagina, setPagina] = useState(0);
     const [filasEnPagina, setFilasEnPagina] = useState(5);
-    const [busqueda, setBusqueda] = useState(terminoBusqueda);
     const [auxDatos, setAuxDatos] = useState(datos);
     const [modoSeleccion, setModoSeleccion] = useState(false);
     const filas = useMemo(() =>
@@ -60,10 +59,6 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
             .slice(pagina * filasEnPagina, pagina * filasEnPagina + filasEnPagina),
         [auxDatos, orden, campoOrden, pagina, filasEnPagina]);
     const numFilas = useMemo(() => auxDatos.length, [auxDatos]);
-    const indeterminado = useMemo(() => numSeleccionados > 0 && (numSeleccionados < numFilas || numSeleccionados < datos.length),
-        [numSeleccionados, numFilas, datos.length]);
-    const seleccionTodos = useMemo(() => numFilas > 0 && (numSeleccionados === numFilas || numSeleccionados === datos.length),
-        [numSeleccionados, numFilas, datos.length]);
     const filasVacias = pagina > 0 ? Math.max(0, (1 + pagina) * filasEnPagina - datos.length) : 0;
 
     /**
@@ -84,20 +79,6 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     useEffect(() => {
         setAuxDatos(datos);
     }, [datos]);
-
-    /**
-     * Manejador de evento para seleccionar o deseleccionar todas las filas.
-     * @param {Event} event 
-     */
-    const seleccionarTodo = (event) => {
-        if (event.target.checked) {
-            setNumSeleccionados(numFilas);
-            setSeleccionados(auxDatos.map((x) => cargarInfoToda ? x : x[campoId]));
-        } else {
-            setNumSeleccionados(0);
-            setSeleccionados([]);
-        }
-    };
 
     /**
      * Manejador de cambio de página en la tabla.
@@ -133,21 +114,6 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
     };
 
     /**
-     * Manejador de cambios de orden en la tabla.
-     * @param {String} campo 
-     */
-    const cambiarOrden = (campo) => {
-        if (campo == campoOrden && orden == "asc") {
-            setOrden("desc");
-        } else if (campo == campoOrden && orden == "desc") {
-            setOrden("asc");
-        } else {
-            setCampoOrden(campo);
-            setOrden("asc");
-        }
-    };
-
-    /**
      * Manejador de clic en una celda de la tabla.
      * @param {Event} e - Evento de clic.
      * @param {JSON} instancia - Instancia de fila de datos.
@@ -166,7 +132,7 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
             <Paper sx={{ width: "100%", mb: 2 }}>
                 {(numSeleccionados > 0 || activarBusqueda) ? (
                     <CuadroBusqueda
-                        datos={datos}
+                        datos={auxDatos}
                         datosSeleccionados={seleccionados}
                         camposBusqueda={camposBusq}
                         lblSeleccion={lblSeleccion}
@@ -180,38 +146,17 @@ export default function Datatable({ campos, datos, lblSeleccion, campoId = "id",
                         sx={{ minWidth: 750 }}
                         aria-labelledby="tableTitle"
                         size="medium">
-                        <TableHead>
-                            <TableRow>
-                                {activarSeleccion ? (
-                                    <TableCell padding="checkbox">
-                                        <Checkbox
-                                            color="primary"
-                                            indeterminate={indeterminado}
-                                            checked={seleccionTodos}
-                                            onChange={seleccionarTodo}
-                                        />
-                                    </TableCell>
-                                ) : null}
-                                {campos.map((headCell) => (
-                                    <TableCell
-                                        key={headCell.id}
-                                        align="left"
-                                        onClick={() => (headCell.ordenable ? cambiarOrden(headCell.id) : null)}
-                                        sortDirection={campoOrden === headCell.id ? orden : false}>
-                                        <TableSortLabel
-                                            active={campoOrden === headCell.id}
-                                            direction={campoOrden === headCell.id ? orden : "asc"}>
-                                            <b>{headCell.label}</b>
-                                            {campoOrden === headCell.id ? (
-                                                <Box component="span" sx={visuallyHidden}>
-                                                    {orden === "desc" ? "sorted descending" : "sorted ascending"}
-                                                </Box>
-                                            ) : null}
-                                        </TableSortLabel>
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        </TableHead>
+                        <Header
+                            datos={datos}
+                            campos={campos}
+                            orden={orden}
+                            campoOrden={campoOrden}
+                            activarSeleccion={activarSeleccion}
+                            numDatos={datos.length}
+                            numSeleccionados={seleccionados.length}
+                            setDatosSeleccionados={setSeleccionados}
+                            setDirOrden={setOrden}
+                            setCampoOrden={setCampoOrden} />
                         <TableBody>
                             {(auxDatos.length == 0) ? (
                                 <TableRow>
