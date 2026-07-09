@@ -39,7 +39,7 @@ export default function Sidebar() {
         { txt: t("txtUsuarios"), icono: <PeopleIcon />, ruta: "/usuarios" },
     ];
     const filas = usuario?.rolVisible ? urlAdmin : urlUsuarios;
-    const escritorio = useMediaQuery(theme.breakpoints.up("lg"));
+    const escritorio = useMediaQuery(theme.breakpoints.up("md"));
 
     useEffect(() => {
         setMostrarMenu(escritorio);

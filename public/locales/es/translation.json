@@ -224,7 +224,6 @@
     "txtPacientesMes": "Pacientes registrados este mes",
     "titGraficoPastelMenuUsuario": "Distribución de pacientes por sexo",
     "txtVaciarBusq": "Vaciar cuadro de búsqueda",
-    "txtNoResBusq": "No se encontraron resultados para la búsquerda.",
     "txtNoDatosTabla": "No hay datos para mostrar.",
     "txtFilasPorPag": "Filas por página",
     "txtPagina": "{{from}}-{{to}} de {{count}}",
@@ -313,5 +312,6 @@
     "formatoCalendario": "DD/MM/YYYY",
     "formatoFechaHoraResumida": "DD/MM/YYYY [-] hh:mm A",
     "titLime": "Contribución de cada característica",
-    "errRegistrarUsuario": "Se ha producido un error al registrar el usuario. Por favor, inténtalo de nuevo más tarde."
+    "errRegistrarUsuario": "Se ha producido un error al registrar el usuario. Por favor, inténtalo de nuevo más tarde.",
+    "txtAyudaBtnBuscar": "Buscar"
 }

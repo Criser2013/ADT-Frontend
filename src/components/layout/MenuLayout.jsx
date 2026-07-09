@@ -30,7 +30,7 @@ export default function MenuLayout({ children }) {
             ) : (
                 <Box
                     width={{
-                        xs: "100vw", md: mostrarMenu ? `calc(100vw - 240px)` : "100vw"
+                        xs: "99vw", md: mostrarMenu ? `calc(99vw - 240px)` : "99vw"
                     }}
                     marginLeft={{
                         xs: "0px", md: mostrarMenu ? "240px" : "0px"
@@ -38,10 +38,11 @@ export default function MenuLayout({ children }) {
                     <NavBar />
                     <Sidebar />
                     <Box component="main"
-                        sx={{ 
-                            paddingVertical: "2vh", paddingHorizontal: {
-                                xs: "4vw", md: "1.9vw"
-                                }}}>
+                        sx={{
+                            paddingTop: "2vh",
+                            paddingLeft: { xs: "4vw", md: "1.9vw" },
+                            paddingRight: { xs: "4vw", md: "1.9vw" }
+                        }}>
                         <Toolbar />
                         {children}
                     </Box>

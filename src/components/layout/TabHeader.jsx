@@ -6,18 +6,23 @@ import { useTranslation } from "react-i18next";
 
 /**
  * Header de las pestañas CRUD.
+ * @param {String} url URL de la ruta a la que se redirige al hacer click en el botón de retroceder.
  * @param {String} titulo Título de la pestaña actual
  * @param {Array<Object>} pestanas Lista de pestañas con objetos de la forma { texto: String, url: String }.
  * @param {String} tooltip Texto ayuda para el botón de retroceso.
  * @param {Boolean} activarBtnAtras Indicador para mostrar el botón de volver atrás, de forma predeterminada es true.
  * @returns {JSX.Element}
  */
-export default function TabHeader({ titulo, pestanas, tooltip, activarBtnAtras = true }) {
+export default function TabHeader({ url = null, titulo, pestanas, tooltip, activarBtnAtras = true }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
     function manejadorBtnAtras() {
-        navigate(-1);
+        if (url) {
+            navigate(url);
+        } else {
+            navigate(-1);
+        }
     };
 
     return (
