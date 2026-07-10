@@ -19,7 +19,7 @@ export default function usePacientes({ setCargando, setModalError }) {
         const res = await datosHelper.descargarArchivoPacientes();
         if (!res.success) {
             setDatos([]);
-            setModalError({ mostrar: true, texto: t(res.error) });
+            setModalError((x) => ({ ...x, mostrar: true, texto: t(res.error) }));
         } else {
             setDatos(datosHelper.pacientes);
         }
@@ -28,18 +28,27 @@ export default function usePacientes({ setCargando, setModalError }) {
     }, [datosHelper, setModalError, setDatos, setCargando, t]);
 
     /**
-     * @param {Array<String>} idsPacientes Arreglo con los IDs de pacientes a eliminar.
+     * @param {String} id ID del paciente a ver.
+     */
+    const verPaciente = useCallback(async (id) => {
+        return await datosHelper.operacionSobreArchivo("ver", { id });
+    }, [datosHelper]);
+
+    /**
+     * @param {Array<String>|String} idsPacientes Arreglo con los IDs de pacientes a eliminar o el ID
+     * del paciente a eliminar en caso de solo ser 1.
      */
     const eliminarPacientes = useCallback(async (idsPacientes) => {
-        const res = await datosHelper.operacionSobreArchivo("eliminar", { idPacientes: idsPacientes, varios: true });
+        const res = await datosHelper.operacionSobreArchivo("eliminar", { idPacientes: idsPacientes, varios: Array.isArray(idsPacientes) });
         if (!res.success) {
-            setModalError({ mostrar: true, texto: t(res.error) });
+            setModalError((x) => ({ ...x, mostrar: true, texto: t(res.error) }));
+            setCargando(false);
         } else {
             await cargarDatos();
         }
 
         return res.success;
-    }, [datosHelper, setModalError, cargarDatos, t]);
+    }, [datosHelper, setModalError, setCargando, cargarDatos, t]);
 
     useEffect(() => {
         if (datosHelper) {
@@ -51,8 +60,8 @@ export default function usePacientes({ setCargando, setModalError }) {
     }, [datosHelper, cargarDatos]);
 
     const value = useMemo(() => ({
-        pacientes: datos, cargarDatos, eliminarPacientes
-    }), [datos, cargarDatos, eliminarPacientes]);
+        pacientes: datos, cargarDatos, eliminarPacientes, verPaciente
+    }), [datos, cargarDatos, eliminarPacientes, verPaciente]);
 
     return value;
 };

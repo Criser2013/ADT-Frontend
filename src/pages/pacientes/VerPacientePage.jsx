@@ -2,10 +2,8 @@ import {
     Box, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
     Button, Popover, IconButton
 } from "@mui/material";
-import { useDrive } from "../../contexts/DriveContext";
-import { useAuth } from "../../contexts/AuthContext";
-import { useNavegacion } from "../../hooks/Navegacion";
-import { useEffect, useMemo, useState } from "react";
+import { useIdioma, usePacientes } from "../../hooks";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import TabHeader from "../../components/layout/TabHeader";
 import MenuLayout from "../../components/layout/MenuLayout";
 import { useNavigate, useParams } from "react-router";
@@ -14,145 +12,78 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
 import ModalDoble from "../../components/modals/ModalDoble";
 import ContComorbilidades from "../../components/diagnosticos/ContComorbilidades";
 import { ChipSexo } from "../../components/tabs/Chips";
 import { useTranslation } from "react-i18next";
-import { AES, enc } from "crypto-js";
-import { AES_KEY } from "../../../constants";
+import { ModalSimple } from "../../components/modals";
+import { PopOver } from "../../components/tabs";
 
 /**
  * Página para ver los datos de un paciente.
  * @returns {JSX.Element}
  */
 export default function VerPacientePage() {
-    const { autenticado, usuario } = useAuth();
-    const drive = useDrive();
-    const navegacion = useNavegacion();
-    const { t } = useTranslation();
     const navigate = useNavigate();
     const { id } = useParams();
+    const { idioma } = useIdioma();
+    const { t } = useTranslation();
     const [cargando, setCargando] = useState(true);
-    const [modoEliminar, setModoEliminar] = useState(false);
-    const [archivoDescargado, setArchivoDescargado] = useState(false);
+    const [datos, setDatos] = useState(null);
+    const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
+    const [modalEliminacion, setModalEliminacion] = useState({
+        mostrar: false, texto: "", titulo: ""
+    });
     const [popOver, setPopOver] = useState(null);
-    const open = Boolean(popOver);
-    const elem = open ? "simple-popover" : undefined;
-    const [modal, setModal] = useState({
-        mostrar: false, mensaje: "", titulo: "", icono: null
-    });
-    const [datos, setDatos] = useState({
-        personales: {
-            id: "", nombre: "", cedula: "", sexo: "",
-            telefono: "", fechaNacimiento: "",
-            edad: ""
-        },
-        comorbilidades: []
-    });
-    const padding = useMemo(() => !navegacion.dispositivoMovil ? "2vh" : "0vh", [navegacion.dispositivoMovil]);
+    const mostrarPopOver = Boolean(popOver);
+    const idPopOver = mostrarPopOver ? "simple-popover" : undefined;
+    const { verPaciente, eliminarPacientes } = usePacientes(setCargando, setModalError);
     const campos = useMemo(() => [
-        { titulo: t("txtNombre"), valor: datos.personales.nombre },
-        { titulo: t("txtCedula"), valor: datos.personales.cedula },
-        { titulo: t("txtFechaNacimiento"), valor: datos.personales.fechaNacimiento },
-        { titulo: t("txtCampoEdad"), valor: `${datos.personales.edad} ${t("txtSufijoEdad")}` },
-        { titulo: t("txtTelefono"), valor: datos.personales.telefono },
-        { titulo: t("txtCampoSexo"), valor: datos.personales.sexo == 0 ? t("txtMasculino") : t("txtFemenino") }
-    ], [datos.personales, navegacion.idioma]);
-    const listadoPestanas = useMemo(() => [
+        { titulo: t("txtNombre"), valor: datos.nombre },
+        { titulo: t("txtCedula"), valor: datos.cedula },
+        { titulo: t("txtFechaNacimiento"), valor: datos.fechaNacimientoFormateada.format(t("formatoFechaCompletaSinHora")) },
+        { titulo: t("txtCampoEdad"), valor: `${datos.edad} ${t("txtSufijoEdad")}` },
+        { titulo: t("txtTelefono"), valor: datos.telefono },
+        { titulo: t("txtCampoSexo"), valor: datos.sexo == 0 ? t("txtMasculino") : t("txtFemenino") }
+    ], [datos, t]);
+    const listadoPestanas = [
         { texto: t("titListaPacientes"), url: "/pacientes" },
-        { texto: `${t("txtPaciente")}-${datos.personales.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
-    ], [datos, navegacion.idioma]);
-    const mostrarComor = useMemo(() => {
-        return datos.comorbilidades.length > 0;
-    }, [datos]);
-
-    /**
-     * Carga el token de sesión y comienza a descargar el archivo de pacientes.
-     */
-    useEffect(() => {
-        const token = sessionStorage.getItem("session-tokens");
-        if (autenticado && token) {
-            const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
-            drive.setToken(tokens.accessToken);
-        } else if (usuario?.tokenDrive) {
-            drive.setToken(usuario.tokenDrive);
-        }
-    }, [usuario?.tokenDrive]);
-
-    /**
-     * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
-     */
-    useEffect(() => {
-        const descargar = sessionStorage.getItem("descargando-drive");
-        if (drive.token != null && (descargar == null || descargar == "false")) {
-            sessionStorage.setItem("descargando-drive", "true");
-            cargarDatos();
-        }
-    }, [drive.token]);
+        { texto: `${t("txtPaciente")}-${datos.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
+    ];
 
     useEffect(() => {
-        setCargando(drive.descargando);
-    }, [drive.descargando]);
-
-    /**
-     * Coloca el título de la página.
-     */
-    useEffect(() => {
-        document.title = `${datos.personales.nombre != "" ? `${t("txtPaciente")} — ${datos.personales.nombre}` : t("titVerPaciente")}`;
-        const res = (id != null && id != undefined) ? validarId(id) : false;
+        document.title = `${datos ? `${t("txtPaciente")} — ${datos.nombre}` : t("titVerPaciente")}`;
+        const res = id ? validarId(id) : false;
 
         if (!res) {
-            navigate("/pacientes", { replace: true });
+            navigate("/pacientes");
+        } else {
+            cargarPaciente(id);
         }
+    }, [idioma, t, datos, id, navigate, cargarPaciente]);
 
-        navegacion.paginaAnterior.current = "/pacientes";
-    }, [datos.personales.nombre]);
-
-
-    /**
-     * Una vez se carguen los datos de los pacientes, se cargan los datos del paciente.
-     */
-    useEffect(() => {
-        if (drive.datos != null && archivoDescargado) {
-            cargarPaciente();
-        }
-    }, [drive.datos, archivoDescargado]);
-
-    /**
-     * Carga los datos de los pacientes.
-     */
-    const cargarDatos = async () => {
-        let res = await drive.cargarDatos();
-
-        if (!res.success) {
-            setModal({
-                mostrar: true, mensaje: res.error,
-                titulo: t("errTitCargarDatosPacientes"),
-            });
-            return;
-        }
-
-        setArchivoDescargado(true);
-    };
-
-    /**
-     * Carga los datos del paciente.
-     */
-    const cargarPaciente = () => {
-        const res = drive.cargarDatosPaciente(id);
-        if (res.success) {
-            dayjs.extend(customParseFormat);
-            res.data.personales.edad = dayjs().diff(dayjs(
-                res.data.personales.fechaNacimiento, "DD-MM-YYYY"), "year", false
-            );
-            res.data.personales.fechaNacimiento = dayjs(
-                res.data.personales.fechaNacimiento, "DD-MM-YYYY"
-            ).format(t("formatoFechaCompletaSinHora"));
-            setDatos(res.data);
+    const cargarPaciente = useCallback(async (id) => {
+        const res = await verPaciente(id);
+        if (res) {
+            setDatos(res);
             setCargando(false);
         } else {
+            navigate("/pacientes");
+        }
+    }, [setDatos, setCargando, navigate, verPaciente]);
+
+    function cerrarModalEliminacion() {
+        setModalEliminacion({ ...modalEliminacion, mostrar: false });
+    };
+
+    function cerrarModalError() {
+        setModalError({ ...modalError, mostrar: false });  
+    };
+
+    async function eliminarPaciente() {
+        setCargando(true);
+        const res = await eliminarPacientes(datos.id);
+        if (res) {
             navigate("/pacientes");
         }
     };
@@ -177,69 +108,27 @@ export default function VerPacientePage() {
         }
     };
 
-    /**
-     * Manejador del botón de editar paciente.
-     */
-    const manejadorBtnEditar = () => {
-        navegacion.paginaAnterior.current = `/pacientes/ver-paciente?id=${datos.personales.id}`;
-        navigate(`/pacientes/editar?id=${datos.personales.id}`);
+    function manejadorBtnEditar() {
+        navigate(`/pacientes/${datos.id}/editar`);
     };
 
-    /**
-     * Elimina el paciente actual de la hoja de Excel.
-     */
-    const eliminarPaciente = async () => {
-        setCargando(true);
-        const res = await drive.eliminarPaciente(datos.personales.id);
-        if (res.success) {
-            navigate("/pacientes", { replace: true });
-        } else {
-            setCargando(false);
-            setModal({ mostrar: true, titulo: t("tituloErr"), mensaje: res.error, icono: <CloseIcon /> });
-        }
-    };
-
-    /**
-     * Manejador del botón de cerrar el modal.
-     */
-    const manejadorBtnModal = () => {
-        if (modoEliminar) {
-            eliminarPaciente();
-        }
-
-        if (!archivoDescargado) {
-            navigate("/pacientes", { replace: true });
-        }
-
-        setModoEliminar(false);
-        setModal({ ...modal, mostrar: false });
-    };
-
-    /**
-     * Manejador del botón de eliminar paciente.
-     */
-    const manejadorBtnEliminar = () => {
-        cerrarPopover();
-        setModoEliminar(true);
-        setModal({
-            mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
-            mensaje: t("txtEliminarPaciente")
+    function manejadorBtnEliminar() {
+        setModalEliminacion({
+            mostrar: true, titulo: t("titAlerta"),
+            texto: t("txtEliminarPaciente")
         });
     };
 
-    /**
-     * Manejador del botón de más opciones.
-     * @param {Event} event 
-     */
-    const manejadorBtnMas = (event) => {
-        setPopOver(event.currentTarget);
+    async function manejadorBtnModalEliminar() {
+        cerrarModalEliminacion();
+        await eliminarPaciente();
     };
 
     /**
-     * Cierra el popover de opciones.
+     * @param {Event} e 
      */
-    const cerrarPopover = () => {
-        setPopOver(null);
+    function manejadorBtnOpciones(e) {
+        setPopOver(e.currentTarget);
     };
 
     return (
@@ -252,34 +141,32 @@ export default function VerPacientePage() {
                 ) : (
                     <>
                         <TabHeader
-                            urlPredet="/pacientes"
+                            url="/pacientes"
                             titulo={t("titDatosPaciente")}
                             pestanas={listadoPestanas}
-                            tooltip={t("txtAtrasDatosPaciente")} />
+                            tooltip={t("txtAtrasDatosPaciente")}
+                            activarBtnAtras={true} />
                         <Grid container
                             columns={12}
                             spacing={1}
-                            paddingRight={padding}
                             marginTop="3vh">
                             <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                                 <Tooltip title={t("txtAyudaMasOpciones")}>
-                                    <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
+                                    <IconButton aria-describedby={idPopOver} onClick={manejadorBtnOpciones}>
                                         <MoreVertIcon />
                                     </IconButton>
-                                </Tooltip>
-                                <Popover
-                                    id={elem}
-                                    open={open}
+                                </Tooltip>ç
+                                <PopOver
+                                    id={idPopOver}
+                                    mostrar={mostrarPopOver}
                                     anchorEl={popOver}
-                                    onClose={cerrarPopover}
                                     anchorOrigin={{
-                                        vertical: "bottom",
-                                        horizontal: "left",
+                                        vertical: "bottom", horizontal: "left",
                                     }}
                                     transformOrigin={{
-                                        vertical: "top",
-                                        horizontal: "center",
-                                    }}>
+                                        vertical: "top", horizontal: "center",
+                                    }}
+                                    setPopOver={setPopOver}>
                                     <Tooltip title={t("txtAyudaEliminarPaciente")}>
                                         <Button
                                             color="error"
@@ -289,7 +176,7 @@ export default function VerPacientePage() {
                                             {t("txtBtnEliminar")}
                                         </Button>
                                     </Tooltip>
-                                </Popover>
+                                </PopOver>
                             </Grid>
                             {campos.map((campo, index) => (
                                 <Grid key={index} size={detVisualizacion(index)}>
@@ -312,7 +199,7 @@ export default function VerPacientePage() {
                                     <b>{t("titComor")}</b>
                                 </Typography>
                             </Grid>
-                            {mostrarComor ? (
+                            {datos.otraEnfermedad ? (
                                 <Grid size={12}>
                                     <ContComorbilidades comorbilidades={datos.comorbilidades} />
                                 </Grid>
@@ -328,7 +215,13 @@ export default function VerPacientePage() {
                             <Fab onClick={manejadorBtnEditar}
                                 color="primary"
                                 variant="extended"
-                                sx={{ textTransform: "none", display: "flex", position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
+                                sx={{
+                                    textTransform: "none",
+                                    display: "flex",
+                                    position: "fixed",
+                                    bottom: 20,
+                                    right: 20,
+                                    zIndex: 1000 }} >
                                 <EditIcon sx={{ mr: 1 }} />
                                 <b>{t("txtBtnEditar")}</b>
                             </Fab>
@@ -336,17 +229,22 @@ export default function VerPacientePage() {
                     </>
                 )}
                 <ModalDoble
-                    abrir={modal.mostrar}
-                    titulo={modal.titulo}
-                    mensaje={modal.mensaje}
-                    iconoBtnPrincipal={modal.icono}
-                    iconoBtnSecundario={<CloseIcon />}
-                    manejadorBtnPrimario={manejadorBtnModal}
-                    manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
-                    mostrarBtnSecundario={modoEliminar}
-                    txtBtnSimple={t("txtBtnEliminar")}
+                    mostrar={modalEliminacion.mostrar}
+                    titulo={modalEliminacion.titulo}
+                    texto={modalEliminacion.texto}
+                    txtBtnPrincipal={t("txtBtnEliminar")}
                     txtBtnSecundario={t("txtBtnCancelar")}
-                    txtBtnSimpleAlt={t("txtBtnCerrar")} />
+                    manejadorBtnPrincipal={manejadorBtnModalEliminar}
+                    manejadorBtnSecundario={cerrarModalEliminacion}
+                    iconoBtnPrincipal={<DeleteIcon />}
+                    iconoBtnSecundario={<CloseIcon />} />
+                <ModalSimple
+                    mostrar={modalError.mostrar}
+                    titulo={modalError.titulo}
+                    texto={modalError.texto}
+                    txtBtn={t("txtBtnCerrar")}
+                    manejadorBtn={cerrarModalError}
+                    iconoBtn={<CloseIcon />} />
             </MenuLayout>
         </>
     );
