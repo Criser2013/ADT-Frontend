@@ -8,7 +8,7 @@ import {
     AppBar, Avatar, IconButton, Tooltip, Typography, Toolbar, Box,
     Stack
 } from "@mui/material";
-import { BtnTema, PopOver } from "../layout";
+import { BtnTema, PopOverAuth } from "../layout";
 import { SelectIdioma } from "../selects";
 import { useAuth } from "../../hooks";
 import { useContext, useEffect, useState } from "react";
@@ -90,13 +90,13 @@ export default function Navbar() {
                             </IconButton>
                         </Tooltip>
                     </Stack>
-                    <PopOver
+                    <PopOverAuth
                         id={idPopOver}
                         mostrar={mostrarPopOver}
                         anchorEl={popOver}
                         setPopOver={setPopOver}/>
                 </Box>
             </Toolbar>
-        </AppBar>
+        </AppBar> 
     );
 };

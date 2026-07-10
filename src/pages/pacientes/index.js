@@ -1,3 +1,4 @@
 import VerPacientesPage from "./VerPacientesPage";
+import VerPacientePage from "./VerPacientePage";
 
-export { VerPacientesPage };
+export { VerPacientesPage, VerPacientePage };

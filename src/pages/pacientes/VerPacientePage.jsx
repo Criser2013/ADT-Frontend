@@ -8,7 +8,7 @@ import { useNavegacion } from "../../hooks/Navegacion";
 import { useEffect, useMemo, useState } from "react";
 import TabHeader from "../../components/layout/TabHeader";
 import MenuLayout from "../../components/layout/MenuLayout";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { validarId } from "../../utils/Validadores";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
@@ -33,7 +33,7 @@ export default function VerPacientePage() {
     const navegacion = useNavegacion();
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const [params] = useSearchParams();
+    const { id } = useParams();
     const [cargando, setCargando] = useState(true);
     const [modoEliminar, setModoEliminar] = useState(false);
     const [archivoDescargado, setArchivoDescargado] = useState(false);
@@ -67,7 +67,6 @@ export default function VerPacientePage() {
     const mostrarComor = useMemo(() => {
         return datos.comorbilidades.length > 0;
     }, [datos]);
-    const id = useMemo(() => params.get("id"), [params]);
 
     /**
      * Carga el token de sesión y comienza a descargar el archivo de pacientes.
