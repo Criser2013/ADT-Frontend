@@ -8,8 +8,8 @@ import { ChipSexo } from "../../components/tabs/Chips";
 import Datatable from "../../components/Datatable/Datatable";
 import { ModalDoble, ModalSimple } from "../../components/modals";
 import { TabHeader } from "../../components/layout";
-import { useAuth, useIdioma } from "../../hooks";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useIdioma, usePacientes } from "../../hooks";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
@@ -20,16 +20,15 @@ import { useNavigate } from "react-router";
  */
 export default function VerPacientesPage() {
     const navigate = useNavigate();
-    const { datosHelper } = useAuth();
     const { idioma } = useIdioma();
     const { t } = useTranslation();
     const [cargando, setCargando] = useState(true);
-    const [datos, setDatos] = useState([]);
     const [modalEliminacion, setModalEliminacion] = useState({
         mostrar: false, titulo: "", texto: ""
     });
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
     const [pacientesSeleccionados, setPacientesSeleccionados] = useState([]);
+    const { cargarDatos, pacientes, eliminarPacientes } = usePacientes({ setCargando, setModalError });
     const campos = useMemo(() => [
         { id: "cedula", label: t("txtCedula"), componente: null, ordenable: true },
         { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
@@ -46,18 +45,6 @@ export default function VerPacientesPage() {
         setPacientesSeleccionados([]);
         await cargarDatos();
     };
-
-    const cargarDatos = useCallback(async () => {
-        const res = await datosHelper.descargarArchivoPacientes();
-        if (!res.success) {
-            setDatos([]);
-            setModalError({ mostrar: true, texto: t(res.error) });
-        } else {
-            setDatos(datosHelper.pacientes);
-        }
-
-        setCargando(false);
-    }, [datosHelper, setModalError, setDatos, setCargando, t]);
 
     function manejadorBtnAnadir() {
         navigate("/pacientes/anadir");
@@ -84,20 +71,19 @@ export default function VerPacientesPage() {
     async function manejadorBtnModalEliminacion() {
         cerrarModalEliminacion();
         setCargando(true);
-        await eliminarPacientes(pacientesSeleccionados);
+        await borrarPacientes(pacientesSeleccionados);
     };
 
     /**
      * @param {Array<String>} idsPacientes Arreglo con los IDs de pacientes a eliminar.
      */
-    async function eliminarPacientes(idsPacientes) {
-        const res = await datosHelper.operacionSobreArchivo("eliminar", { idPacientes: idsPacientes, varios: true });
-        if (!res.success) {
-            setModalError({ mostrar: true, texto: t(res.error) });
+    async function borrarPacientes(idsPacientes) {
+        const res = await eliminarPacientes(idsPacientes);
+        if (!res) {
+            setCargando(false);
         } else {
             setPacientesSeleccionados([]);
         }
-        await cargarDatos();
     };
 
     function cerrarModalEliminacion() {
@@ -111,15 +97,6 @@ export default function VerPacientesPage() {
     useEffect(() => {
         document.title = t("titListaPacientes");
     }, [idioma, t]);
-
-    useEffect(() => {
-        if (datosHelper) {
-            cargarDatos();
-            return () => {
-                datosHelper.cancelarPeticiones();
-            };
-        }
-    }, [datosHelper, cargarDatos]);
 
 
     return (
@@ -157,7 +134,7 @@ export default function VerPacientesPage() {
                             </Tooltip>
                         </Grid>
                         <Datatable
-                            datos={datos}
+                            datos={pacientes}
                             campos={campos}
                             campoId="id"
                             lblBusqueda={t("txtBusqPaciente")}
