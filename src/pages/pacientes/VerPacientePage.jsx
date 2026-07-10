@@ -1,23 +1,21 @@
+import CloseIcon from "@mui/icons-material/Close";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
     Box, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
     Button, Popover, IconButton
 } from "@mui/material";
-import { useIdioma, usePacientes } from "../../hooks";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import TabHeader from "../../components/layout/TabHeader";
-import MenuLayout from "../../components/layout/MenuLayout";
-import { useNavigate, useParams } from "react-router";
-import { validarId } from "../../utils/Validadores";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import EditIcon from "@mui/icons-material/Edit";
-import CloseIcon from "@mui/icons-material/Close";
-import DeleteIcon from "@mui/icons-material/Delete";
-import ModalDoble from "../../components/modals/ModalDoble";
-import ContComorbilidades from "../../components/diagnosticos/ContComorbilidades";
 import { ChipSexo } from "../../components/tabs/Chips";
-import { useTranslation } from "react-i18next";
-import { ModalSimple } from "../../components/modals";
+import { ContComorbilidades } from "../../components/diagnosticos";
+import { MenuLayout, TabHeader} from "../components/layout";
+import { ModalSimple, ModalDoble } from "../../components/modals";
 import { PopOver } from "../../components/tabs";
+import { useCallback, useEffect, useState } from "react";
+import { useIdioma, usePacientes } from "../../hooks";
+import { useNavigate, useParams } from "react-router";
+import { useTranslation } from "react-i18next";
+import { validarId } from "../../utils/Validadores";
 
 /**
  * Página para ver los datos de un paciente.
@@ -38,14 +36,15 @@ export default function VerPacientePage() {
     const mostrarPopOver = Boolean(popOver);
     const idPopOver = mostrarPopOver ? "simple-popover" : undefined;
     const { verPaciente, eliminarPacientes } = usePacientes(setCargando, setModalError);
-    const campos = useMemo(() => [
-        { titulo: t("txtNombre"), valor: datos.nombre },
-        { titulo: t("txtCedula"), valor: datos.cedula },
-        { titulo: t("txtFechaNacimiento"), valor: datos.fechaNacimientoFormateada.format(t("formatoFechaCompletaSinHora")) },
-        { titulo: t("txtCampoEdad"), valor: `${datos.edad} ${t("txtSufijoEdad")}` },
-        { titulo: t("txtTelefono"), valor: datos.telefono },
-        { titulo: t("txtCampoSexo"), valor: datos.sexo == 0 ? t("txtMasculino") : t("txtFemenino") }
-    ], [datos, t]);
+    const campos = [
+        { id: "nombre", titulo: t("txtNombre"), valor: datos.nombre },
+        { id: "cedula", titulo: t("txtCedula"), valor: datos.cedula },
+        { id: "fechaNacimiento", titulo: t("txtFechaNacimiento"), 
+            valor: datos.fechaNacimientoFormateada.format(t("formatoFechaCompletaSinHora")) },
+        { id: "edad", titulo: t("txtCampoEdad"), valor: `${datos.edad} ${t("txtSufijoEdad")}` },
+        { id: "telefono", titulo: t("txtTelefono"), valor: datos.telefono },
+        { id: "sexo", titulo: t("txtCampoSexo"), valor: datos.sexo }
+    ];
     const listadoPestanas = [
         { texto: t("titListaPacientes"), url: "/pacientes" },
         { texto: `${t("txtPaciente")}-${datos.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
@@ -85,26 +84,6 @@ export default function VerPacientePage() {
         const res = await eliminarPacientes(datos.id);
         if (res) {
             navigate("/pacientes");
-        }
-    };
-
-    /**
-     * Determina el tamaño del elemento dentro de la malla.
-     * Si se visualiza desde un dispositivo movil en orientación horizontal y el menú o en escritorio,
-     * se ajusta el contenido a 2 columnas, en caso contrario se deja en 1 columna.
-     * @param {Int} indice 
-     * @returns Int
-     */
-    const detVisualizacion = (indice) => {
-        const { orientacion, mostrarMenu, dispositivoMovil } = navegacion;
-
-        if (indice == 2 && dispositivoMovil && ((orientacion == "horizontal" && mostrarMenu) || orientacion == "vertical")) {
-            return 12;
-        }
-        if (dispositivoMovil && (orientacion == "vertical" || (orientacion == "horizontal" && mostrarMenu))) {
-            return 12;
-        } else {
-            return indice % 2 == 0 ? 7 : 5;
         }
     };
 
@@ -152,7 +131,9 @@ export default function VerPacientePage() {
                             marginTop="3vh">
                             <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                                 <Tooltip title={t("txtAyudaMasOpciones")}>
-                                    <IconButton aria-describedby={idPopOver} onClick={manejadorBtnOpciones}>
+                                    <IconButton
+                                        aria-describedby={idPopOver}
+                                        onClick={manejadorBtnOpciones} >
                                         <MoreVertIcon />
                                     </IconButton>
                                 </Tooltip>ç
@@ -178,13 +159,13 @@ export default function VerPacientePage() {
                                     </Tooltip>
                                 </PopOver>
                             </Grid>
-                            {campos.map((campo, index) => (
-                                <Grid key={index} size={detVisualizacion(index)}>
+                            {campos.map((campo) => (
+                                <Grid key={campo.id} size={{ xs: 12, md: 6 }}>
                                     <Stack direction="row" spacing={1} alignItems="center">
-                                        <Typography variant="body1">
-                                            <b>{campo.titulo}: </b>
+                                        <Typography variant="body1" fontWeight="bold">
+                                            {campo.titulo}:
                                         </Typography>
-                                        {(campo.titulo == t("txtCampoSexo")) ? <ChipSexo sexo={campo.valor} /> : (
+                                        {(campo.id == "sexo") ? <ChipSexo sexo={campo.valor} /> : (
                                             <Typography variant="body1">
                                                 {campo.valor}
                                             </Typography>)}
@@ -195,8 +176,8 @@ export default function VerPacientePage() {
                                 <Divider />
                             </Grid>
                             <Grid size={12}>
-                                <Typography variant="h6">
-                                    <b>{t("titComor")}</b>
+                                <Typography variant="h6" fontWeight="bold">
+                                    {t("titComor")}
                                 </Typography>
                             </Grid>
                             {datos.otraEnfermedad ? (
