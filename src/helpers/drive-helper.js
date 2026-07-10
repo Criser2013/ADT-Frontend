@@ -62,17 +62,13 @@ export default class DriveHelper {
 
     /**
      * Descarga el archivo de pacientes desde Google Drive y lo hace accesible mediante el 
-     * atributo "pacientes".
+     * atributo "pacientes". En caso de no existir el archivo, se crea uno nuevo y vacío.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
     async descargarArchivoPacientes() {
-        const existe = await this.#verificarEstructuraArchivos();
-        if (!existe.success) {
-            return { success: false, error: existe.error };
-        }
-        return await this.#descargarArchivo(this.#idArchivo);
+        return await this.#actualizarEstado();
     };
 
     /**

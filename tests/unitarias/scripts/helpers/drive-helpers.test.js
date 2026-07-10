@@ -1,4 +1,4 @@
-import { jest, expect, beforeEach, describe } from "@jest/globals";
+import { jest, expect, beforeAll, beforeEach, describe } from "@jest/globals";
 
 import { DRIVE_FOLDER_NAME, DRIVE_FILENAME } from "../../../../src/constants";
 import Paciente from "../../../../src/models/Paciente";
@@ -132,64 +132,33 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
     });
 
     describe("Validar el método 'descargarArchivoPacientes'", () => {
-        // -------------------- Resultados esperados ---------------------
-        const res1 = { success: true };
-        const res2 = { success: false, error: "No se encontró el archivo" };
-
-        // -------------------- Mocks ---------------------
-        const mocks1 = {
-            buscarArchivo: [{ success: true, data: { files: [{ id: "carpetaId" }] } }, { success: true, data: { files: [{ id: "archivoId" }] } }],
-            descargarArchivo: { success: true, data: new Uint8Array([1, 2, 3]) },
-            leerArchivoXlsx: {
-                success: true, data: [{
-                    id: "1", cedula: "1234567890", nombre: "Juan Pérez", sexo: 0, fechaNacimiento: "01-01-1990", telefono: "0987654321", fechaCreacion: "01-01-2023", otraEnfermedad: 0,
-                    "Hipertensión arterial": 0, "VIH": 0, "Trombofilia": 0, "Enfermedad coronaria": 0,
-                    "Enfermedad Cardíaca": 0, "Enfermedad renal": 0, "Enfermedad vascular": 0, "Enfermedad endocrina": 0,
-                    "Diabetes": 0, "Enfermedad pulmonar": 0, "Hepatopatía crónica": 0, "Enfermedad hematológica": 0, "Enfermedad gastrointestinal": 0,
-                    "Enfermedad urológica": 0, "Enfermedad neurológica": 0
-                }]
-            }
-        };
-        const mocks2 = {
-            buscarArchivo: [{ success: true, data: { files: [{ id: "carpetaId" }] } }, { success: false, error: "No se encontró el archivo" }],
-        };
-
-        beforeEach(() => {
+        beforeAll(() => {
             jest.clearAllMocks();
         });
 
-        test.each([
-            ["155", mocks1, res1],
-            ["156", mocks2, res2]
-        ])("CP - %s", async (idPrueba, mocks, resEsperada) => {
-            if (Array.isArray(mocks.buscarArchivo)) {
-                driveService.buscarArchivo.mockResolvedValueOnce(mocks.buscarArchivo[0]).
-                    mockResolvedValueOnce(mocks.buscarArchivo[1]);
-            } else {
-                driveService.buscarArchivo.mockResolvedValue(mocks.buscarArchivo);
-            }
+        test("CP - 155", async () => {
+            const res = { success: true };
+            const mocks = {
+                buscarArchivo: [{ success: true, data: { files: [{ id: "carpetaId" }] } }, { success: true, data: { files: [{ id: "archivoId" }] } }],
+                descargarArchivo: { success: true, data: new Uint8Array([1, 2, 3]) },
+                leerArchivoXlsx: { success: true, data: [] },
+            };
 
+            driveService.buscarArchivo.mockResolvedValueOnce(mocks.buscarArchivo[0]).
+                mockResolvedValueOnce(mocks.buscarArchivo[1]);
             driveService.descargarArchivo.mockResolvedValue(mocks.descargarArchivo);
-            xlsxFiles.leerArchivoXlsx.mockReturnValue(mocks.leerArchivoXlsx)
+            xlsxFiles.leerArchivoXlsx.mockReturnValue(mocks.leerArchivoXlsx);
             const res = await new DriveHelper("token").descargarArchivoPacientes();
 
             expect(res).toEqual(resEsperada);
 
-            if (resEsperada.success) {
-                expect(driveService.buscarArchivo).toHaveBeenCalledTimes(2);
-                expect(driveService.buscarArchivo).toHaveBeenNthCalledWith(1, "token", `name='${DRIVE_FOLDER_NAME}' and trashed=false and mimeType='application/vnd.google-apps.folder'`, expect.any(AbortController));
-                expect(driveService.buscarArchivo).toHaveBeenNthCalledWith(2, "token", `name='${DRIVE_FILENAME}' and trashed=false and mimeType!='application/vnd.google-apps.folder' and '${mocks.buscarArchivo[0].data.files[0].id}' in parents`, expect.any(AbortController));
-                expect(driveService.descargarArchivo).toHaveBeenCalledTimes(1);
-                expect(driveService.descargarArchivo).toHaveBeenCalledWith("token", "archivoId", expect.any(AbortController));
-                expect(xlsxFiles.leerArchivoXlsx).toHaveBeenCalledTimes(1);
-                expect(xlsxFiles.leerArchivoXlsx).toHaveBeenCalledWith(new Uint8Array([1, 2, 3]), "Datos", "errLeerArchivo");
-            } else {
-                expect(driveService.buscarArchivo).toHaveBeenCalledTimes(2);
-                expect(driveService.buscarArchivo).toHaveBeenNthCalledWith(1, "token", `name='${DRIVE_FOLDER_NAME}' and trashed=false and mimeType='application/vnd.google-apps.folder'`, expect.any(AbortController));
-                expect(driveService.buscarArchivo).toHaveBeenNthCalledWith(2, "token", `name='${DRIVE_FILENAME}' and trashed=false and mimeType!='application/vnd.google-apps.folder' and '${mocks.buscarArchivo[0].data.files[0].id}' in parents`, expect.any(AbortController));
-                expect(driveService.descargarArchivo).not.toHaveBeenCalled();
-                expect(xlsxFiles.leerArchivoXlsx).not.toHaveBeenCalled();
-            }
+            expect(driveService.buscarArchivo).toHaveBeenCalledTimes(2);
+            expect(driveService.buscarArchivo).toHaveBeenNthCalledWith(1, "token", `name='${DRIVE_FOLDER_NAME}' and trashed=false and mimeType='application/vnd.google-apps.folder'`, expect.any(AbortController));
+            expect(driveService.buscarArchivo).toHaveBeenNthCalledWith(2, "token", `name='${DRIVE_FILENAME}' and trashed=false and mimeType!='application/vnd.google-apps.folder' and '${mocks.buscarArchivo[0].data.files[0].id}' in parents`, expect.any(AbortController));
+            expect(driveService.descargarArchivo).toHaveBeenCalledTimes(1);
+            expect(driveService.descargarArchivo).toHaveBeenCalledWith("token", "archivoId", expect.any(AbortController));
+            expect(xlsxFiles.leerArchivoXlsx).toHaveBeenCalledTimes(1);
+            expect(xlsxFiles.leerArchivoXlsx).toHaveBeenCalledWith(new Uint8Array([1, 2, 3]), "Datos", "errLeerArchivo");
         });
     });
 
