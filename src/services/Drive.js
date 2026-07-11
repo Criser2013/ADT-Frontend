@@ -55,6 +55,7 @@ export function clasificarError(codigoPet, contenido) {
  * - "success" (Boolean) - Indica si la operación fue exitosa o no.
  * - "data" (JSON) - Contiene la respuesta de la API de Google Drive si la operación fue exitosa, de lo contrario es null.
  * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
+ * - "cancelled" (Boolean) - Indica si la operación fue cancelada por el usuario.
  */
 export async function buscarArchivo(token, params, controlador = null) {
     try {
@@ -71,7 +72,7 @@ export async function buscarArchivo(token, params, controlador = null) {
 
         return clasificarError(pet.status, res);
     } catch (error) {
-        return { success: false, error: error };
+        return { success: false, error: error, cancelled: error.name == "AbortError" };
     }
 };
 
@@ -86,6 +87,7 @@ export async function buscarArchivo(token, params, controlador = null) {
  * - "success" (Boolean) - Indica si la operación fue exitosa o no.
  * - "data" (JSON) - Contiene los metadatos del archivo creado si la operación fue exitosa, de lo contrario es null.
  * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
+ * - "cancelled" (Boolean) - Indica si la operación fue cancelada por el usuario.
  */
 export async function crearArchivo(token, contenido, esCarpeta = false, controlador = null) {
     try {
@@ -107,7 +109,7 @@ export async function crearArchivo(token, contenido, esCarpeta = false, controla
 
         return clasificarError(pet.status, res);
     } catch (error) {
-        return { success: false, error: error };
+        return { success: false, error: error, cancelled: error.name == "AbortError" };
     }
 };
 
@@ -122,6 +124,7 @@ export async function crearArchivo(token, contenido, esCarpeta = false, controla
  * - "success" (Boolean) - Indica si la operación fue exitosa o no.
  * - "data" (JSON) - Contiene los metadatos del archivo subido si la operación fue exitosa, de lo contrario es null.
  * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
+ * - "cancelled" (Boolean) - Indica si la operación fue cancelada por el usuario.
  */
 export async function subirArchivo(token, idArchivo, contenido, mimeType = "application/octet-stream", controlador = null) {
     try {
@@ -139,7 +142,7 @@ export async function subirArchivo(token, idArchivo, contenido, mimeType = "appl
 
         return clasificarError(pet.status, res);
     } catch (error) {        
-        return { success: false, error: error };
+        return { success: false, error: error, cancelled: error.name == "AbortError" };
     }
 };
 
@@ -153,6 +156,7 @@ export async function subirArchivo(token, idArchivo, contenido, mimeType = "appl
  * - "success" (boolean) - Indica si la operación fue exitosa o no.
  * - "data" (ArrayBuffer) - Contiene el archivo descargado si la operación fue exitosa, de lo contrario es null.
  * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
+ * - "cancelled" (Boolean) - Indica si la operación fue cancelada por el usuario.
  */
 export async function descargarArchivo(token, idArchivo, controlador = null) {
     try {
@@ -168,6 +172,6 @@ export async function descargarArchivo(token, idArchivo, controlador = null) {
         
         return clasificarError(pet.status, (res instanceof ArrayBuffer) ? res : await pet.json());
     } catch (error) {
-        return { success: false, error: error };
+        return { success: false, error: error, cancelled: error.name == "AbortError" };
     }
 };
