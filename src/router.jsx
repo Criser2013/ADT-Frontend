@@ -1,9 +1,7 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { IniciarSesionPage } from "./pages/auth";
-import { VerPacientesPage, VerPacientePage } from "./pages/pacientes";
-/*import AnadirPacientePage from "./pages/pacientes/AnadirPacientePage";
-import { DriveProvider } from "./src/contexts/DriveContext";
-import EditarPacientePage from "./pages/pacientes/EditarPacientePage";
+import { AnadirPacientePage, VerPacientesPage, VerPacientePage } from "./pages/pacientes";
+/*import EditarPacientePage from "./pages/pacientes/EditarPacientePage";
 import VerPacientePage from "./pages/pacientes/VerPacientePage";
 import DiagnosticoAnonimoPage from "./pages/diagnosticos/DiagnosticoAnonimoPage";
 import DiagnosticoPacientePage from "./pages/diagnosticos/DiagnosticoPacientePage";
@@ -25,6 +23,7 @@ export default function Router() {
                 <Route path="/menu" element={<MenuPage />} />
                 <Route path="/pacientes" element={<VerPacientesPage />} />
                 <Route path="/pacientes/:id" element={<VerPacientePage />} />
+                <Route path="/pacientes/añadir" element={<AnadirPacientePage />} />
                 {/*<Route path="/diagnostico-anonimo" element={<DiagnosticoAnonimoPage />} />
                 <Route path="/usuarios" element={<VerUsuariosPage />} />
                 <Route path="/menu" element={
@@ -32,10 +31,7 @@ export default function Router() {
                         <MenuPage />
                     </DriveProvider>
                 } />
-                <Route path="/pacientes/anadir" element={
-                    <DriveProvider>
-                        <AnadirPacientePage />
-                    </DriveProvider>} />
+                
                 <Route path="/pacientes/editar" element={
                     <DriveProvider>
                         <EditarPacientePage />
