@@ -44,10 +44,10 @@ export default class DriveHelper {
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
     async crearCopiaDiagnosticos(nombreArchivo, datos, tipo) {
-        const { cancelled, data, success } = await this.#verificarExistenciaArchivo(DRIVE_FOLDER_NAME, true);
+        const { data, success } = await this.#verificarExistenciaArchivo(DRIVE_FOLDER_NAME, true);
         this.#idCarpeta = success ? data.id : null;
 
-        if (!success && !cancelled) {
+        if (!success) {
             const resCarpeta = await this.#crearArchivo(DRIVE_FOLDER_NAME, true);
 
             if (!resCarpeta.success) {
@@ -55,8 +55,6 @@ export default class DriveHelper {
             }
 
             this.#idCarpeta = resCarpeta.data.id;
-        } else if (!success && cancelled) {
-            return { success, cancelled };
         }
 
         return await this.#subirCopiaDiagnosticos(nombreArchivo, this.#idCarpeta, datos, tipo);
@@ -205,17 +203,16 @@ export default class DriveHelper {
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
-     * - "cancelled" (Boolean) - Indica si la operación fue cancelada por el usuario.
      */
     async #descargarArchivo(idArchivo) {
         const controlador = new AbortController();
         this.#peticiones.push(controlador);
-        const { success, data, error, cancelled } = await descargarArchivo(this.#token, idArchivo, controlador);
+        const { success, data, error } = await descargarArchivo(this.#token, idArchivo, controlador);
         this.#peticiones.pop();
         if (success) {
             return this.#leerArchivo(data);
         }
-        return { success, error, cancelled };
+        return { success, error };
     };
 
     /**

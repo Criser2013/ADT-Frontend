@@ -28,11 +28,12 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
             const spy = jest.spyOn(AbortController.prototype, "abort");
             const helper = new DriveHelper("token");
 
-            helper.descargarArchivoPacientes();
+            const res = helper.descargarArchivoPacientes();
             helper.operacionSobreArchivo("ver", { id: "archivoId" });
             helper.cancelarPeticiones();
 
             expect(spy).toHaveBeenCalledTimes(2);
+            expect(res).resolves.toEqual({ success: false, error: expect.any(Error), cancelled: true });
         });
     });
 
@@ -137,7 +138,7 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
         });
 
         test("CP - 155", async () => {
-            const res = { success: true };
+            const resEsperada = { success: true };
             const mocks = {
                 buscarArchivo: [{ success: true, data: { files: [{ id: "carpetaId" }] } }, { success: true, data: { files: [{ id: "archivoId" }] } }],
                 descargarArchivo: { success: true, data: new Uint8Array([1, 2, 3]) },
