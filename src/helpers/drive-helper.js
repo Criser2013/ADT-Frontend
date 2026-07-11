@@ -16,7 +16,7 @@ export default class DriveHelper {
 
     get pacientes() {
         return this.#archivo.pacientes;
-    }
+    };
 
     set token(token) {
         this.#token = token;
@@ -44,10 +44,10 @@ export default class DriveHelper {
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
     async crearCopiaDiagnosticos(nombreArchivo, datos, tipo) {
-        const existe = await this.#verificarExistenciaArchivo(DRIVE_FOLDER_NAME, true);
-        this.#idCarpeta = existe.success ? existe.data.id : null;
+        const { data, success } = await this.#verificarExistenciaArchivo(DRIVE_FOLDER_NAME, true);
+        this.#idCarpeta = success ? data.id : null;
 
-        if (!existe.success) {
+        if (!success) {
             const resCarpeta = await this.#crearArchivo(DRIVE_FOLDER_NAME, true);
 
             if (!resCarpeta.success) {
@@ -62,17 +62,14 @@ export default class DriveHelper {
 
     /**
      * Descarga el archivo de pacientes desde Google Drive y lo hace accesible mediante el 
-     * atributo "pacientes".
+     * atributo "pacientes". En caso de no existir el archivo, se crea uno nuevo y vacío.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
+     * - "cancelled" (Boolean) - Indica si la operación fue cancelada por el usuario.
      */
     async descargarArchivoPacientes() {
-        const existe = await this.#verificarEstructuraArchivos();
-        if (!existe.success) {
-            return { success: false, error: existe.error };
-        }
-        return await this.#descargarArchivo(this.#idArchivo);
+        return await this.#actualizarEstado();
     };
 
     /**
@@ -89,11 +86,10 @@ export default class DriveHelper {
      */
     async operacionSobreArchivo(tipo, parametros) {
         try {
-            const { success, error } = await this.#actualizarEstado();
+            const { success, error, cancelled } = await this.#actualizarEstado();
             if (!success) {
-                return { success: false, error: error };
+                return { success: false, error: error, cancelled: cancelled };
             }
-
             switch (tipo) {
                 case "añadir":
                     this.#archivo.anadirPaciente(parametros.paciente);
@@ -138,14 +134,17 @@ export default class DriveHelper {
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
+     * - "cancelled" (Boolean) - Indica si la operación fue cancelada por el usuario.
      */
     async #actualizarEstado() {
-        const { success } = await this.#verificarEstructuraArchivos();
-        if (!success) {
+        const { cancelled, success } = await this.#verificarEstructuraArchivos();
+        if (!success && !cancelled) {
             const res = await this.#crearEstructuraArchivos();
             if (!res.success) {
                 return { success: false, error: res.error };
             }
+        } else if (!success && cancelled) {
+            return { success, cancelled };
         } else {
             const res = await this.#descargarArchivo(this.#idArchivo);
             if (!res.success) {
@@ -165,7 +164,8 @@ export default class DriveHelper {
      * - "data" (JSON) - Contiene los metadatos del archivo creado si la operación fue exitosa, de lo contrario es null.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
-    async #crearArchivo(nombre, esCarpeta = false, idPadre = "", mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+    async #crearArchivo(nombre, esCarpeta = false, idPadre = "",
+        mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
         const controlador = new AbortController();
         const mime = esCarpeta ? "application/vnd.google-apps.folder" : mimeType;
         const params = {
@@ -286,16 +286,17 @@ export default class DriveHelper {
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
+     * - "cancelled" (Boolean) - Indica si la operación fue cancelada por el usuario.
      */
     async #verificarEstructuraArchivos() {
         const resCarpeta = await this.#verificarExistenciaArchivo(DRIVE_FOLDER_NAME, true);
         if (!resCarpeta.success) {
-            return { success: false, error: resCarpeta.error };
+            return { success: false, error: resCarpeta.error, cancelled: resCarpeta.cancelled };
         }
         this.#idCarpeta = resCarpeta.data.id;
         const resArchivo = await this.#verificarExistenciaArchivo(DRIVE_FILENAME, false, this.#idCarpeta);
         if (!resArchivo.success) {
-            return { success: false, error: resArchivo.error };
+            return { success: false, error: resArchivo.error, cancelled: resArchivo.cancelled };
         }
         this.#idArchivo = resArchivo.data.id;
         return { success: true };
@@ -323,7 +324,7 @@ export default class DriveHelper {
 
         const controlador = new AbortController();
         this.#peticiones.push(controlador);
-        const { success, data, error } = await buscarArchivo(this.#token, params, controlador);
+        const { success, data, error, cancelled } = await buscarArchivo(this.#token, params, controlador);
         this.#peticiones.pop();
 
         if (success && (data.files.length > 0)) {
@@ -331,7 +332,7 @@ export default class DriveHelper {
         } else if (success && (data.files.length == 0)) {
             return { success: false, error: "errArchivoInexistente" };
         } else {
-            return { success: false, error: error };
+            return { success: false, error: error, cancelled: cancelled };
         }
     };
 };

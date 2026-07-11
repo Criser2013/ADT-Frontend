@@ -4,12 +4,12 @@ import { DRIVE_UPLOAD_API_URL, DRIVE_API_URL } from "../../../../src/constants";
 
 describe("Validar la funcion 'descargarArchivo'", () => {
     // ------------------------ Mocks ------------------------
-    const mock_1 = () => Promise.resolve({
+    const mock1 = () => Promise.resolve({
         status: 200,
         arrayBuffer: () => Promise.resolve(new ArrayBuffer(1)),
     });
     const mock2 = () => { throw Error("Error de red"); };
-    const mock_3 = () => Promise.resolve({
+    const mock3 = () => Promise.resolve({
         status: 404,
         arrayBuffer: () => Promise.resolve(1),
         json: () => Promise.resolve({ error: { message: "File not found" } })
@@ -17,7 +17,7 @@ describe("Validar la funcion 'descargarArchivo'", () => {
 
     // ------------------------ Respuestas esperadas ------------------------
     const res1 = { success: true, data: new ArrayBuffer(1) };
-    const res2 = { success: false, error: new Error("Error de red") };
+    const res2 = { success: false, error: new Error("Error de red"), cancelled: false };
     const res3 = { success: false, error: "errArchivoInexistente" };
 
     afterEach(() => {
@@ -25,9 +25,9 @@ describe("Validar la funcion 'descargarArchivo'", () => {
     });
 
     test.each([
-        ["36", mock_1, res1],
+        ["36", mock1, res1],
         ["37", mock2, res2],
-        ["38", mock_3, res3]
+        ["38", mock3, res3]
     ])("CP - %s", async (idPrueba, mock, respuestaEsperada) => {
         global.fetch = jest.fn(mock);
 
@@ -90,7 +90,7 @@ describe("Validar la funcion 'crearArchivo'", () => {
             kind: "drive#folder", mimeType: "application/vnd.google-apps.folder"
         }
     };
-    const res3 = { success: false, error: new Error("Error de red") };
+    const res3 = { success: false, error: new Error("Error de red"), cancelled: false };
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -159,7 +159,7 @@ describe("Validar la funcion 'buscarArchivo'", () => {
         }
     };
     const res2 = {
-        success: false, error: new Error("Error de red")
+        success: false, error: new Error("Error de red"), cancelled: false
     };
 
     const url1 = `${DRIVE_API_URL}/files?q=name+%3D+%27archivo%27+and+mimeType+%3D+%27application%2Fvnd.google-apps.folder%27`;
@@ -221,7 +221,7 @@ describe("Validar la funcion 'subirArchivo'", () => {
             "mimeType": "application/vnd.google-apps.folder"
         }
     };
-    const res2 = { success: false, error: new Error("Error de red") };
+    const res2 = { success: false, error: new Error("Error de red"), cancelled: false };
 
     afterEach(() => {
         jest.clearAllMocks();

@@ -59,6 +59,12 @@ export default class Paciente {
         );
     }
 
+    get fechaNacimientoFormateada() {
+        return dayjs(
+            this.fechaNacimiento, "DD-MM-YYYY"
+        );
+    }
+
     /**
      * @param {Object} json JSON con los datos del paciente.
      * @returns {Paciente} Una instancia de la clase Paciente creada a partir de un objeto JSON.

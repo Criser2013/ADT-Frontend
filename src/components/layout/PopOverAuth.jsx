@@ -1,9 +1,9 @@
 import LogoutIcon from '@mui/icons-material/Logout';
 import {
-    IconButton, Popover, Typography, Box,
+    IconButton, Typography, Box,
     MenuItem, Divider, Stack
 } from "@mui/material";
-import { SwitchLabel } from "../tabs";
+import { PopOver, SwitchLabel } from "../tabs";
 import { useAuth } from "../../hooks";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -18,14 +18,10 @@ import { useNavigate } from "react-router";
  * @param {import("react").SetStateAction} setPopOver Función para cerrar el popover.
  * @returns {JSX.Element} 
  */
-export default function PopOver({ id, mostrar, anchorEl, setPopOver }) {
+export default function PopOverAuth({ id, mostrar, anchorEl, setPopOver }) {
     const navigate = useNavigate();
     const { cambiarModoUsuario, cerrarSesion, usuario } = useAuth();
     const { t } = useTranslation();
-
-    function cerrarPopOver() {
-        setPopOver(null);
-    };
 
     async function manejadorCerrarSesion() {
         const res = await cerrarSesion();
@@ -42,10 +38,9 @@ export default function PopOver({ id, mostrar, anchorEl, setPopOver }) {
     };
 
     return (
-        <Popover
+        <PopOver
             id={id}
-            open={mostrar}
-            onClose={cerrarPopOver}
+            mostrar={mostrar}
             anchorEl={anchorEl}
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             transformOrigin={{ vertical: "top", horizontal: "right" }}
@@ -61,7 +56,8 @@ export default function PopOver({ id, mostrar, anchorEl, setPopOver }) {
                         borderRadius: 0.75,
                     },
                 },
-            }}>
+            }}
+            setPopOver={setPopOver} >
             <Box padding="1vh 15px" width="100%" boxSizing="border-box">
                 <Typography variant="h6" fontWeight="bold" sx={{ overflowWrap: "break-word" }}>
                     {usuario ? usuario.nombre : t("txtUsuario")}
@@ -97,6 +93,6 @@ export default function PopOver({ id, mostrar, anchorEl, setPopOver }) {
                     </Typography>
                 </Stack>
             </MenuItem>
-        </Popover>
+        </PopOver>
     );
 };
