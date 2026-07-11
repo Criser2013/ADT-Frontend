@@ -9,7 +9,7 @@ import { Captcha } from "../../components/captcha";
 import { Check } from "../../components/tabs";
 import { SelectIdioma } from "../../components/selects";
 import { Trans } from "react-i18next";
-import { useAuth, useIdioma } from "../../hooks";
+import { useAuth } from "../../hooks";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useTema, { temaClaro } from "../../hooks/tema-hook";
@@ -23,7 +23,6 @@ import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../constants";
 export default function IniciarSesionPage() {
     const navigate = useNavigate();
     const { autenticado, iniciarSesion, cargando, usuario } = useAuth();
-    const { idioma } = useIdioma();
     const { tema } = useTema();
     const { t } = useTranslation();
     const [btnCargando, setBtnCargando] = useState(false);
@@ -33,7 +32,7 @@ export default function IniciarSesionPage() {
 
     useEffect(() => {
         document.title = t("titInicioSesion");
-    }, [idioma, t]);
+    }, [t]);
 
     /**
      * Habilita o deshabilita el botón de inicio de sesión basado en si el usuario ha 

@@ -8,14 +8,15 @@ import {
 } from "@mui/material";
 import { ChipSexo } from "../../components/tabs/Chips";
 import { ContComorbilidades } from "../../components/diagnosticos";
-import { MenuLayout, TabHeader} from "../components/layout";
+import { MenuLayout, TabHeader} from "../../components/layout";
 import { ModalSimple, ModalDoble } from "../../components/modals";
 import { PopOver } from "../../components/tabs";
 import { useCallback, useEffect, useState } from "react";
-import { useIdioma, usePacientes } from "../../hooks";
+import { usePacientes } from "../../hooks";
 import { useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { validarId } from "../../utils/Validadores";
+import { Paciente } from "../../models";
 
 /**
  * Página para ver los datos de un paciente.
@@ -24,7 +25,6 @@ import { validarId } from "../../utils/Validadores";
 export default function VerPacientePage() {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { idioma } = useIdioma();
     const { t } = useTranslation();
     const [cargando, setCargando] = useState(true);
     const [datos, setDatos] = useState(null);
@@ -35,35 +35,24 @@ export default function VerPacientePage() {
     const [popOver, setPopOver] = useState(null);
     const mostrarPopOver = Boolean(popOver);
     const idPopOver = mostrarPopOver ? "simple-popover" : undefined;
-    const { verPaciente, eliminarPacientes } = usePacientes(setCargando, setModalError);
+    const { verPaciente, eliminarPacientes, helperListo, cancelarPeticiones } = usePacientes(setCargando, setModalError);
     const campos = [
-        { id: "nombre", titulo: t("txtNombre"), valor: datos.nombre },
-        { id: "cedula", titulo: t("txtCedula"), valor: datos.cedula },
+        { id: "nombre", titulo: t("txtNombre"), valor: datos?.nombre },
+        { id: "cedula", titulo: t("txtCedula"), valor: datos?.cedula },
         { id: "fechaNacimiento", titulo: t("txtFechaNacimiento"), 
-            valor: datos.fechaNacimientoFormateada.format(t("formatoFechaCompletaSinHora")) },
-        { id: "edad", titulo: t("txtCampoEdad"), valor: `${datos.edad} ${t("txtSufijoEdad")}` },
-        { id: "telefono", titulo: t("txtTelefono"), valor: datos.telefono },
-        { id: "sexo", titulo: t("txtCampoSexo"), valor: datos.sexo }
+            valor: datos?.fechaNacimientoFormateada.format(t("formatoFechaCompletaSinHora")) },
+        { id: "edad", titulo: t("txtCampoEdad"), valor: `${datos?.edad} ${t("txtSufijoEdad")}` },
+        { id: "telefono", titulo: t("txtTelefono"), valor: datos?.telefono },
+        { id: "sexo", titulo: t("txtCampoSexo"), valor: datos?.sexo }
     ];
     const listadoPestanas = [
         { texto: t("titListaPacientes"), url: "/pacientes" },
-        { texto: `${t("txtPaciente")}-${datos.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
+        { texto: `${t("txtPaciente")}-${datos?.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
     ];
-
-    useEffect(() => {
-        document.title = `${datos ? `${t("txtPaciente")} — ${datos.nombre}` : t("titVerPaciente")}`;
-        const res = id ? validarId(id) : false;
-
-        if (!res) {
-            navigate("/pacientes");
-        } else {
-            cargarPaciente(id);
-        }
-    }, [idioma, t, datos, id, navigate, cargarPaciente]);
 
     const cargarPaciente = useCallback(async (id) => {
         const res = await verPaciente(id);
-        if (res) {
+        if (res instanceof Paciente) {
             setDatos(res);
             setCargando(false);
         } else {
@@ -81,9 +70,12 @@ export default function VerPacientePage() {
 
     async function eliminarPaciente() {
         setCargando(true);
-        const res = await eliminarPacientes(datos.id);
-        if (res) {
+        const { success, error } = await eliminarPacientes(datos.id);
+        if (success) {
             navigate("/pacientes");
+        } else {
+            setModalError({ mostrar: true, texto: t(error) });
+            setCargando(false);
         }
     };
 
@@ -99,6 +91,7 @@ export default function VerPacientePage() {
     };
 
     async function manejadorBtnModalEliminar() {
+        setPopOver(null);
         cerrarModalEliminacion();
         await eliminarPaciente();
     };
@@ -109,6 +102,24 @@ export default function VerPacientePage() {
     function manejadorBtnOpciones(e) {
         setPopOver(e.currentTarget);
     };
+
+    useEffect(() => {
+        document.title = `${datos ? `${t("txtPaciente")} — ${datos?.nombre}` : t("titVerPaciente")}`;
+    }, [t, datos]);
+
+    useEffect(() => {
+        const res = id ? validarId(id) : false;
+        if (!res) {
+            navigate("/pacientes");
+        }
+
+        if (helperListo) {
+            cargarPaciente(id);
+            return () => {
+                cancelarPeticiones();
+            };
+        }
+    }, [id, navigate, cargarPaciente, helperListo, cancelarPeticiones]);
 
     return (
         <>
@@ -136,7 +147,7 @@ export default function VerPacientePage() {
                                         onClick={manejadorBtnOpciones} >
                                         <MoreVertIcon />
                                     </IconButton>
-                                </Tooltip>ç
+                                </Tooltip>
                                 <PopOver
                                     id={idPopOver}
                                     mostrar={mostrarPopOver}
@@ -221,7 +232,7 @@ export default function VerPacientePage() {
                     iconoBtnSecundario={<CloseIcon />} />
                 <ModalSimple
                     mostrar={modalError.mostrar}
-                    titulo={modalError.titulo}
+                    titulo={t("tituloErr")}
                     texto={modalError.texto}
                     txtBtn={t("txtBtnCerrar")}
                     manejadorBtn={cerrarModalError}

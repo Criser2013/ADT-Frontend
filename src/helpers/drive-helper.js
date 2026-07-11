@@ -89,7 +89,6 @@ export default class DriveHelper {
             if (!success) {
                 return { success: false, error: error };
             }
-
             switch (tipo) {
                 case "añadir":
                     this.#archivo.anadirPaciente(parametros.paciente);
@@ -137,6 +136,10 @@ export default class DriveHelper {
      */
     async #actualizarEstado() {
         const { success } = await this.#verificarEstructuraArchivos();
+
+        console.log("Existen los archivos: ", success)
+        console.log("ID carpeta: ", this.#idCarpeta);
+        console.log("ID archivo: ", this.#idArchivo);
         if (!success) {
             const res = await this.#crearEstructuraArchivos();
             if (!res.success) {
@@ -182,11 +185,13 @@ export default class DriveHelper {
      */
     async #crearEstructuraArchivos() {
         const resCarpeta = await this.#crearArchivo(DRIVE_FOLDER_NAME, true);
+        console.log("Creando carpeta: ", resCarpeta);
         if (!resCarpeta.success) {
             return { success: false, error: resCarpeta.error };
         }
         this.#idCarpeta = resCarpeta.data.id;
         const resArchivo = await this.#crearArchivo(DRIVE_FILENAME, false, resCarpeta.data.id);
+        console.log("Creando archivo: ", resArchivo);
         if (!resArchivo.success) {
             return { success: false, error: resArchivo.error };
         }
@@ -285,11 +290,13 @@ export default class DriveHelper {
      */
     async #verificarEstructuraArchivos() {
         const resCarpeta = await this.#verificarExistenciaArchivo(DRIVE_FOLDER_NAME, true);
+        console.log("Verificando carpeta: ", resCarpeta);
         if (!resCarpeta.success) {
             return { success: false, error: resCarpeta.error };
         }
         this.#idCarpeta = resCarpeta.data.id;
         const resArchivo = await this.#verificarExistenciaArchivo(DRIVE_FILENAME, false, this.#idCarpeta);
+        console.log("Verificando archivo: ", resArchivo);
         if (!resArchivo.success) {
             return { success: false, error: resArchivo.error };
         }

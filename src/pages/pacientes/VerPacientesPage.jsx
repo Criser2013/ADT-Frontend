@@ -8,8 +8,8 @@ import { ChipSexo } from "../../components/tabs/Chips";
 import Datatable from "../../components/Datatable/Datatable";
 import { ModalDoble, ModalSimple } from "../../components/modals";
 import { TabHeader } from "../../components/layout";
-import { useEffect, useMemo, useState } from "react";
-import { useIdioma, usePacientes } from "../../hooks";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePacientes } from "../../hooks";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
@@ -20,7 +20,6 @@ import { useNavigate } from "react-router";
  */
 export default function VerPacientesPage() {
     const navigate = useNavigate();
-    const { idioma } = useIdioma();
     const { t } = useTranslation();
     const [cargando, setCargando] = useState(true);
     const [modalEliminacion, setModalEliminacion] = useState({
@@ -28,7 +27,7 @@ export default function VerPacientesPage() {
     });
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
     const [pacientesSeleccionados, setPacientesSeleccionados] = useState([]);
-    const { cargarDatos, pacientes, eliminarPacientes } = usePacientes({ setCargando, setModalError });
+    const { cargarDatos, pacientes, eliminarPacientes, helperListo, cancelarPeticiones } = usePacientes();
     const campos = useMemo(() => [
         { id: "cedula", label: t("txtCedula"), componente: null, ordenable: true },
         { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
@@ -38,12 +37,20 @@ export default function VerPacientesPage() {
     ], [t]);
     const listadoPestanas = [{ texto: t("titListaPacientes"), url: "/pacientes" }];
 
+    const manejadorCarga = useCallback(async () => {
+        const { success, error } = await cargarDatos();
+        if (!success) {
+            setModalError({ mostrar: true, texto: t(error) });
+        }
+        setCargando(false);
+    }, [cargarDatos, setModalError, setCargando, t]);
+
     async function manejadorBtnRecargar() {
         setCargando(true);
         setModalEliminacion({...modalEliminacion, mostrar: false });
         setModalError({...modalError, mostrar: false });
         setPacientesSeleccionados([]);
-        await cargarDatos();
+        await manejadorCarga();
     };
 
     function manejadorBtnAnadir() {
@@ -65,7 +72,7 @@ export default function VerPacientesPage() {
      * @param {Paciente} paciente Objeto del paciente
      */
     function manejadorClicCelda(paciente) {
-        navigate(`/pacientes/ver-paciente?id=${paciente.id}`);
+        navigate(`/pacientes/${paciente.id}`);
     };
 
     async function manejadorBtnModalEliminacion() {
@@ -78,11 +85,13 @@ export default function VerPacientesPage() {
      * @param {Array<String>} idsPacientes Arreglo con los IDs de pacientes a eliminar.
      */
     async function borrarPacientes(idsPacientes) {
-        const res = await eliminarPacientes(idsPacientes);
-        if (!res) {
+        const { success, error } = await eliminarPacientes(idsPacientes);
+        if (!success) {
+            setModalError({ mostrar: true, texto: t(error) });
             setCargando(false);
         } else {
             setPacientesSeleccionados([]);
+            await manejadorCarga();
         }
     };
 
@@ -96,8 +105,16 @@ export default function VerPacientesPage() {
 
     useEffect(() => {
         document.title = t("titListaPacientes");
-    }, [idioma, t]);
+    }, [t]);
 
+    useEffect(() => {
+        if (helperListo) {
+            manejadorCarga();
+            return () => {
+                cancelarPeticiones();
+            }; 
+        }
+    }, [helperListo, manejadorCarga, cancelarPeticiones]);
 
     return (
         <MenuLayout>
