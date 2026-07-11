@@ -47,7 +47,7 @@ export default function VerPacientePage() {
     ];
     const listadoPestanas = [
         { texto: t("titListaPacientes"), url: "/pacientes" },
-        { texto: `${t("txtPaciente")}-${datos?.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
+        { texto: `${t("txtPaciente")} — ${datos?.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
     ];
 
     const cargarPaciente = useCallback(async (id) => {
@@ -56,7 +56,9 @@ export default function VerPacientePage() {
             setDatos(res);
             setCargando(false);
         } else {
-            navigate("/pacientes");
+            if (!res.cancelled) {
+                navigate("/pacientes");
+            }
         }
     }, [setDatos, setCargando, navigate, verPaciente]);
 

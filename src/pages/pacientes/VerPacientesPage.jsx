@@ -38,11 +38,13 @@ export default function VerPacientesPage() {
     const listadoPestanas = [{ texto: t("titListaPacientes"), url: "/pacientes" }];
 
     const manejadorCarga = useCallback(async () => {
-        const { success, error } = await cargarDatos();
-        if (!success) {
+        const { success, error, cancelled } = await cargarDatos();
+        if (!success && !cancelled) {
             setModalError({ mostrar: true, texto: t(error) });
         }
-        setCargando(false);
+        if (!cancelled) {
+            setCargando(false);
+        }
     }, [cargarDatos, setModalError, setCargando, t]);
 
     async function manejadorBtnRecargar() {

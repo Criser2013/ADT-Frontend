@@ -37,6 +37,16 @@ export default function CuadroBusqueda({
         setDatosVisibles(res);
     };
 
+    /**
+     * @param {Event} e 
+     */
+    function manejadorBtnEnter(e) {
+        if (e.key == "Enter") {
+            e.preventDefault();
+            handleSubmit(manejadorBusqueda)();
+        }
+    };
+
     function manejadorBtnLimpiar() {
         setDatosVisibles(datos);
         reset(valoresPredet);
@@ -88,6 +98,7 @@ export default function CuadroBusqueda({
                         render={({ field }) => (
                             <TextField
                                 {...field}
+                                onKeyUp={manejadorBtnEnter}
                                 placeholder={lblBusqueda}
                                 sx={{
                                     width: { xs: "90%", md: "95%" },
