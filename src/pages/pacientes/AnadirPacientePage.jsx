@@ -1,6 +1,6 @@
 
 import { FormPaciente } from "../../components/forms";
-import { MenuLayout } from "../../components/layout";
+import { MenuLayout, TabHeader } from "../../components/layout";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 /**
@@ -20,10 +20,14 @@ export default function AnadirPacientePage() {
 
     return (
         <MenuLayout>
+            <TabHeader
+                url="/pacientes"
+                titulo={t("titAnadirPaciente")}
+                pestanas={listadoPestanas}
+                tooltip={t("txtAtrasDatosPaciente")}
+                activarBtnAtras={true} />
             <FormPaciente
-                listadoPestanas={listadoPestanas}
-                esAnadir={true}
-                titPestana={t("titAnadirPaciente")} />
+                esAnadir={true} />
         </MenuLayout>
     );
 };

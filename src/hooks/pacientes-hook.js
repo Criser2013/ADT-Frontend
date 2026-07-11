@@ -55,14 +55,25 @@ export default function usePacientes() {
         );
     }, [datosHelper]);
 
+    /**
+     * @param {Paciente} paciente Objeto Paciente a añadir.
+     * @returns {Promise<Object>} Objeto con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa.
+     * - "error" (String) - Mensaje de error en caso de que la operación falle.
+     */
+    const anadirPaciente = useCallback(async (paciente) => {
+        return await datosHelper.operacionSobreArchivo("anadir", { paciente });
+    }, [datosHelper]);
+
     const cancelarPeticiones = useCallback(() => {
         datosHelper.cancelarPeticiones();
     }, [datosHelper]);
 
     const value = useMemo(() => ({
         pacientes: datos, cargarDatos, eliminarPacientes, verPaciente, 
-        cancelarPeticiones, helperListo
-    }), [datos, cargarDatos, eliminarPacientes, verPaciente, cancelarPeticiones, helperListo]);
+        cancelarPeticiones, helperListo, anadirPaciente
+    }), [datos, cargarDatos, eliminarPacientes, verPaciente,
+        cancelarPeticiones, helperListo, anadirPaciente]);
 
     return value;
 };
