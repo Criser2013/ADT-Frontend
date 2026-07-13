@@ -11,8 +11,9 @@ import { SelectIdioma } from "../../components/selects";
 import { Trans } from "react-i18next";
 import { useAuth } from "../../hooks";
 import { useEffect, useState } from "react";
+import { useIdioma, useTema } from "../../hooks";
 import { useNavigate } from "react-router-dom";
-import useTema, { temaClaro } from "../../hooks/tema-hook";
+import { temaClaro } from "../../hooks/tema-hook";
 import { useTranslation } from "react-i18next";
 import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../constants";
 
@@ -23,6 +24,7 @@ import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../constants";
 export default function IniciarSesionPage() {
     const navigate = useNavigate();
     const { autenticado, iniciarSesion, cargando, usuario } = useAuth();
+    const { idioma } = useIdioma();
     const { tema } = useTema();
     const { t } = useTranslation();
     const [btnCargando, setBtnCargando] = useState(false);
@@ -45,6 +47,10 @@ export default function IniciarSesionPage() {
             setDesactivarBtn(!(captchaAceptado && terminosAceptados));
         }
     }, [captchaAceptado, terminosAceptados, autenticado]);
+
+    useEffect(() => {
+        setCaptchaAceptado(false);
+    }, [tema, idioma]);
 
     async function manejadorBtnIniciarSesion() {
         const res = await iniciarSesion(usuario);

@@ -56,7 +56,7 @@ export default function VerPacientesPage() {
     };
 
     function manejadorBtnAnadir() {
-        navigate("/pacientes/anadir");
+        navigate("/pacientes/añadir");
     };
 
     /**

@@ -1,47 +1,45 @@
+import dayjs from "dayjs";
+import CloseIcon from "@mui/icons-material/Close";
+import SaveIcon from '@mui/icons-material/Save';
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import {
     Grid, Typography, TextField, Button, MenuItem, Box, Tooltip, CircularProgress
 } from "@mui/material";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import SaveIcon from '@mui/icons-material/Save';
-import dayjs from "dayjs";
+import { Check } from "../tabs";
 import { COMORBILIDADES } from "../../constants";
-import { useCallback, useEffect, useState } from "react";
-import { validarNombre, validarNumero, validarTelefono } from "../../utils/Validadores";
-import { useNavigate } from "react-router";
-import SelectChip from "../selects/SelectChip";
-import CloseIcon from "@mui/icons-material/Close";
-import ModalSimple from "../modals/ModalSimple";
 import { Controller, useForm } from "react-hook-form";
-import Check from "../tabs/Check";
-import { v6 } from "uuid";
-import { useTranslation } from "react-i18next";
-import { usePacientes } from "../../hooks";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { ModalSimple } from "../modals";
 import { Paciente } from "../../models";
+import { SelectChip } from "../selects";
+import { useCallback, useEffect, useState } from "react";
+import { usePacientes } from "../../hooks";
+import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
+import { v6 } from "uuid";
+import { validarNombre, validarNumero, validarTelefono } from "../../utils/Validadores";
+
 
 /**
  * Componente que representa el formularios para añadir/editar los datos de
  * un paciente.
- * @param {String} id - ID del paciente.
- * @param {Boolean} esAnadir - Indica si es para añadir un nuevo paciente o editar uno existente.
+ * @param {Paciente|null} paciente Objeto Paciente a cargar en el formulario. Solo 
+ * se provee si es para editar un paciente existente. Si es null, se asume que es para añadir un nuevo paciente.
  * @returns {JSX.Element}
  */
-export default function FormPaciente({ paciente = null, esAnadir = true }) {
+export default function FormPaciente({ paciente = null }) {
     const navigate = useNavigate();
     const { anadirPaciente } = usePacientes();
     const { t } = useTranslation();
-    
-    const [cargando, setCargando] = useState(true);
-    const [modal, setModal] = useState({ mostrar: false, texto: "" });
-
-    
-    const { setValue, control, handleSubmit, watch, formState: { errors } } = useForm({
+    const { setValues, control, handleSubmit, watch, formState: { errors } } = useForm({
         defaultValues: {
             id: v6(), nombre: "", cedula: "", sexo: 2, telefono: "",
             fechaNacimiento: null, fechaCreacion: null, otraEnfermedad: false,
             comorbilidades: []
         }, mode: "onBlur"
     });
+    const [cargando, setCargando] = useState(paciente);
+    const [modal, setModal] = useState({ mostrar: false, texto: "" });
     const fechaActual = dayjs();
     const otraEnfermedad = watch("otraEnfermedad");
     const sexos = [
@@ -49,22 +47,27 @@ export default function FormPaciente({ paciente = null, esAnadir = true }) {
         { texto: t("txtMasculino"), val: 0 },
         { texto: t("txtFemenino"), val: 1 }
     ];
-    
 
     /**
      * @param {Paciente} paciente Objeto Paciente a cargar en el formulario.
      */
-    const cargarPaciente = useCallback((paciente) => {
-            setValue("id", paciente?.id);
-            setValue("nombre", paciente?.nombre);
-            setValue("cedula", paciente?.cedula);
-            setValue("sexo", paciente?.sexo);
-            setValue("telefono", paciente?.telefono);
-            setValue("fechaNacimiento", paciente?.fechaNacimientoFormateada);
-            setValue("fechaCreacion", paciente?.fechaCreacion);
-            setValue("otraEnfermedad", paciente?.otraEnfermedad);
-            setValue("comorbilidades", paciente?.comorbilidades);
-    }, [setValue]);
+    const colocarDatosPaciente = useCallback((paciente) => {
+        setValues({
+            id: paciente ? paciente.id : v6(),
+            nombre: paciente ? paciente.nombre : "",
+            cedula: paciente ? paciente.cedula : "",
+            sexo: paciente ? paciente.sexo : 2,
+            telefono: paciente ? paciente.telefono : "",
+            fechaNacimiento: paciente ? paciente.fechaNacimientoFormateada : null,
+            fechaCreacion: paciente ? paciente.fechaCreacion : null,
+            otraEnfermedad: paciente ? paciente.otraEnfermedad : false,
+            comorbilidades: paciente ? paciente.comorbilidades : []
+        });
+    }, [setValues]);
+
+    function cerrarModal() {
+        setModal({ ...modal, mostrar: false });
+    };
 
     /**
      * @param {Object} datos Objeto con los datos del paciente a guardar.
@@ -74,31 +77,28 @@ export default function FormPaciente({ paciente = null, esAnadir = true }) {
 
         const { id, nombre, sexo, fechaNacimiento, telefono,
             cedula, otraEnfermedad, comorbilidades } = datos;
-        const paciente = new Paciente(
-            esAnadir ? id : paciente.id, cedula, nombre, sexo,
+        const esModificar = paciente !== null;
+        const instancia = new Paciente(
+            esModificar ? paciente.id : id, cedula, nombre, sexo,
             fechaNacimiento.format("DD-MM-YYYY"), telefono,
-            esAnadir ? dayjs().format("DD-MM-YYYY") : paciente.fechaCreacion,
+            esModificar ? paciente.fechaCreacion : dayjs().format("DD-MM-YYYY"),
             otraEnfermedad ? 1 : 0, comorbilidades
         );
 
-        const res = await anadirPaciente(paciente);
+        const res = await anadirPaciente(instancia);
         if (!res.success) {
-            setModal({ mostrar: true, mensaje: res.error });
+            setModal({ mostrar: true, texto: t(res.error) });
             setCargando(false);
         } else {
             navigate("/pacientes");
         }
     };
 
-    function cerrarModal() {
-        setModal({ ...modal, mostrar: false });
-    };
-
     useEffect(() => {
-        if (!esAnadir) {
-            cargarPaciente(paciente);
+        if (paciente) {
+            colocarDatosPaciente(paciente);
         }
-    }, [cargarPaciente, paciente, esAnadir]);
+    }, [colocarDatosPaciente, paciente]);
 
     return (
         <>
@@ -107,13 +107,13 @@ export default function FormPaciente({ paciente = null, esAnadir = true }) {
                     <CircularProgress />
                 </Box>
             ) : (<Grid
-                    container
-                    columns={2}
-                    spacing={1}
-                    rowSpacing={2}
-                    paddingTop="2vh"
-                    overflow="auto"
-                    paddingRight="0.5vw">
+                container
+                columns={2}
+                spacing={1}
+                rowSpacing={2}
+                paddingTop="2vh"
+                overflow="auto"
+                paddingRight="0.5vw">
                 <Grid size={2}>
                     <Typography variant="h5" fontWeight="bold">
                         {t("titDatosPersonales")}
@@ -124,50 +124,48 @@ export default function FormPaciente({ paciente = null, esAnadir = true }) {
                         name="nombre"
                         control={control}
                         rules={{
-                            required: t("errCampoObligatorio"),
-                            validate: (x) => validarNombre(x) || t("errNombrePaciente")
+                            required: "errCampoObligatorio",
+                            validate: (x) => validarNombre(x) || "errNombrePaciente"
                         }}
                         render={({ field }) => (
                             <TextField
                                 fullWidth
                                 label={t("txtNombre")}
                                 {...field}
-                                error={!!errors.nombre}
-                                helperText={errors.nombre?.message}
-                            />)} />
+                                error={errors.nombre}
+                                helperText={t(errors.nombre?.message)} />)} />
                 </Grid>
                 <Grid size={1}>
                     <Controller
                         name="cedula"
                         control={control}
                         rules={{
-                            required: t("errCampoObligatorio"),
-                            validate: (x) => (validarNumero(x) && x.length > 6) || t("errCedula")
+                            required: "errCampoObligatorio",
+                            validate: (x) => (validarNumero(x) && x.length > 6) || "errCedula"
                         }}
                         render={({ field }) => (
                             <TextField
                                 fullWidth
                                 label={t("txtCedula")}
                                 {...field}
-                                error={!!errors.cedula}
-                                helperText={errors.cedula?.message}
-                            />)} />
+                                error={errors.cedula}
+                                helperText={t(errors.cedula?.message)} />)} />
                 </Grid>
                 <Grid size={1}>
                     <Controller
                         name="sexo"
                         control={control}
                         rules={{
-                            required: t("errCampoObligatorio"),
-                            validate: (x) => x != 2 || t("errValidarSexo")
+                            required: "errCampoObligatorio",
+                            validate: (x) => (x != 2) || "errValidarSexo"
                         }}
                         render={({ field }) => (
                             <TextField
                                 select
                                 label={t("txtCampoSexo")}
                                 {...field}
-                                error={!!errors.sexo}
-                                helperText={errors.sexo?.message}
+                                error={errors.sexo}
+                                helperText={t(errors.sexo?.message)}
                                 fullWidth>
                                 {sexos.map((x) => (
                                     <MenuItem key={x.val} value={x.val}>
@@ -181,16 +179,16 @@ export default function FormPaciente({ paciente = null, esAnadir = true }) {
                         name="telefono"
                         control={control}
                         rules={{
-                            required: t("errCampoObligatorio"),
-                            validate: (x) => validarTelefono(x) || t("errTelefono")
+                            required: "errCampoObligatorio",
+                            validate: (x) => validarTelefono(x) || "errTelefono"
                         }}
                         render={({ field }) => (
                             <TextField
                                 fullWidth
                                 label={t("txtTelefono")}
                                 {...field}
-                                error={!!errors.telefono}
-                                helperText={errors.telefono?.message} />)} />
+                                error={errors.telefono}
+                                helperText={t(errors.telefono?.message)} />)} />
                 </Grid>
                 <Grid size={1}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -198,21 +196,20 @@ export default function FormPaciente({ paciente = null, esAnadir = true }) {
                             name="fechaNacimiento"
                             control={control}
                             rules={{
-                                required: t("errCampoObligatorio"),
-                                validate: (x) => (x && !x.isAfter(fechaActual)) || t("errFechaNacimiento")
+                                required: "errCampoObligatorio",
+                                validate: (x) => (x && !x.isAfter(fechaActual)) || "errFechaNacimiento"
                             }}
                             render={({ field }) => (
                                 <DatePicker
                                     label={t("txtFechaNacimiento")}
                                     disableFuture={true}
-                                    name="fechaNacimiento"
                                     format={t("formatoCalendario")}
                                     onChange={field.onChange}
                                     value={field.value}
                                     slotProps={{
                                         textField: {
                                             error: !!errors.fechaNacimiento,
-                                            helperText: errors.fechaNacimiento?.message,
+                                            helperText: t(errors.fechaNacimiento?.message),
                                         }
                                     }}
                                     sx={{ width: "100%" }} />)} />
@@ -229,28 +226,27 @@ export default function FormPaciente({ paciente = null, esAnadir = true }) {
                         control={control}
                         render={({ field }) => (
                             <Check
-                                nombre="otraEnfermedad"
                                 etiqueta={t("txtOtraEnfermedad")}
-                                activado={field.value}
-                                manejadorCambios={field.onChange} />)} />
+                                marcado={field.value}
+                                manejadorCambios={field.onChange} />)
+                        } />
                 </Grid>
                 {otraEnfermedad ? (
                     <Grid size={12}>
                         <Controller
-                            name="otrasEnfermedades"
+                            name="comorbilidades"
                             control={control}
                             rules={{
-                                required: otraEnfermedad ? t("errComor") : false
+                                required: otraEnfermedad ? "errComor" : false
                             }}
                             render={({ field }) => (
                                 <SelectChip
-                                    valor={field.value}
+                                    valores={field.value}
                                     listaValores={COMORBILIDADES}
+                                    etiqueta={t("txtComorbilidades")}
                                     manejadorCambios={field.onChange}
-                                    nombre="otrasEnfermedades"
-                                    error={!!errors.otrasEnfermedades}
-                                    txtError={errors.otrasEnfermedades?.message}
-                                    etiqueta={t("txtComorbilidades")} />)} />
+                                    error={errors.comorbilidades}
+                                    txtError={t(errors.comorbilidades?.message)} />)} />
                     </Grid>
                 ) : null}
                 <Grid display="flex" justifyContent="center" size={12}>

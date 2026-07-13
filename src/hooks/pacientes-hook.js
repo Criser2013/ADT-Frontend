@@ -62,7 +62,7 @@ export default function usePacientes() {
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
      */
     const anadirPaciente = useCallback(async (paciente) => {
-        return await datosHelper.operacionSobreArchivo("anadir", { paciente });
+        return await datosHelper.operacionSobreArchivo("añadir", { paciente });
     }, [datosHelper]);
 
     const cancelarPeticiones = useCallback(() => {

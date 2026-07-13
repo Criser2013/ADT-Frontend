@@ -16,8 +16,8 @@ import { useTranslation } from "react-i18next";
  * @returns {JSX.Element}
  */
 export default function SelectChip({ 
-    valores, listaValores, etiqueta, manejadorCambios, nombre, error, txtError, 
-    desactivar = false
+    valores, listaValores, etiqueta, manejadorCambios, nombre = "selectChip",
+    error, txtError, desactivar = false
 }) {
     const { t } = useTranslation();
     return (

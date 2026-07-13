@@ -11,7 +11,7 @@ export default function AnadirPacientePage() {
     const { t } = useTranslation();
     const listadoPestanas = [
         { texto: t("titListaPacientes"), url: "/pacientes" },
-        { texto: t("titAnadirPaciente"), url: "/pacientes/anadir" }
+        { texto: t("titAnadirPaciente"), url: "/pacientes/añadir" }
     ];
 
     useEffect(() => {
@@ -26,8 +26,7 @@ export default function AnadirPacientePage() {
                 pestanas={listadoPestanas}
                 tooltip={t("txtAtrasDatosPaciente")}
                 activarBtnAtras={true} />
-            <FormPaciente
-                esAnadir={true} />
+            <FormPaciente />
         </MenuLayout>
     );
 };
