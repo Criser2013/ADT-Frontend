@@ -1,6 +1,6 @@
 import { FormPaciente } from "../../components/forms";
-import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
-import { useEffect, useState } from "react";
+import { MenuLayout, PantallaCarga } from "../../components/layout";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 
@@ -10,7 +10,6 @@ import { useTranslation } from "react-i18next";
  */
 export default function AnadirPacientePage() {
     const { t } = useTranslation();
-    const [cargando, setCargando] = useState(false);
     const listadoPestanas = [
         { texto: t("titListaPacientes"), url: "/pacientes" },
         { texto: t("titAnadirPaciente"), url: "/pacientes/añadir" }
@@ -22,16 +21,11 @@ export default function AnadirPacientePage() {
 
     return (
         <MenuLayout>
-            {cargando ? <PantallaCarga /> : (
-                <>
-                    <TabHeader
-                        url="/pacientes"
-                        titulo={t("titAnadirPaciente")}
-                        pestanas={listadoPestanas}
-                        tooltip={t("txtAtrasDatosPaciente")}
-                        activarBtnAtras={true} />
-                    <FormPaciente mostrarCarga={setCargando} />
-                </>)}
+            <FormPaciente
+                url="/pacientes"
+                titulo={t("titAnadirPaciente")}
+                pestanas={listadoPestanas}
+                tooltip={t("txtAtrasDatosPaciente")} />
         </MenuLayout>
     );
 };

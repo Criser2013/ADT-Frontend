@@ -84,7 +84,7 @@ export default function VerPacientePage() {
     };
 
     function manejadorBtnEditar() {
-        navigate(`/pacientes/${datos.id}/editar`);
+        navigate(`/pacientes/${id}/editar`);
     };
 
     function manejadorBtnEliminar() {
@@ -108,7 +108,7 @@ export default function VerPacientePage() {
     };
 
     useEffect(() => {
-        document.title = `${datos ? `${t("txtPaciente")} — ${datos?.nombre}` : t("titVerPaciente")}`;
+        document.title = datos ? `${t("txtPaciente")} — ${datos?.nombre}` : t("titVerPaciente");
     }, [t, datos]);
 
     useEffect(() => {

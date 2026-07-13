@@ -1,6 +1,7 @@
 import { useAuth } from "./auth-hook";
 import { useCallback, useMemo, useState } from "react";
 
+
 /**
  * Hook para realizar operaciones relacionadas con los pacientes.
  * @returns {Object} Objeto con las claves:

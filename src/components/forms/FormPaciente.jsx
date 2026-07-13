@@ -11,6 +11,7 @@ import { Controller, useForm } from "react-hook-form";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { ModalSimple } from "../modals";
 import { Paciente } from "../../models";
+import { PantallaCarga, TabHeader } from "../layout";
 import { SelectChip } from "../selects";
 import { useCallback, useEffect, useState } from "react";
 import { usePacientes } from "../../hooks";
@@ -26,13 +27,15 @@ import { validarNombre, validarNumero, validarTelefono } from "../../utils/Valid
  * @param {Paciente|null} paciente Objeto Paciente a cargar en el formulario. Solo 
  * se provee si es para editar un paciente existente. Si es null, se asume que es para añadir 
  * un nuevo paciente.
- * @param {import("react").SetStateAction<boolean>} mostrarCarga Función para mostrar u ocultar 
- * la pantalla de carga mientras se procesan los datos del paciente.
+ * @param {String} url URL de la ruta a la que se redirige al hacer click en el botón de retroceder.
+ * @param {String} titulo Título de la pestaña actual
+ * @param {Array<Object>} pestanas Lista de pestañas con objetos de la forma { texto: String, url: String }.
+ * @param {String} tooltip Texto ayuda para el botón de retroceso.
  * @returns {JSX.Element}
  */
-export default function FormPaciente({ paciente = null, mostrarCarga }) {
+export default function FormPaciente({ url, titulo, pestanas, tooltip, paciente = null, esModificar = false }) {
     const navigate = useNavigate();
-    const { anadirPaciente } = usePacientes();
+    const { anadirPaciente, editarPaciente } = usePacientes();
     const { t } = useTranslation();
     const { setValues, control, handleSubmit, watch, formState: { errors } } = useForm({
         defaultValues: {
@@ -41,6 +44,7 @@ export default function FormPaciente({ paciente = null, mostrarCarga }) {
             comorbilidades: []
         }, mode: "onBlur"
     });
+    const [cargando, setCargando] = useState(esModificar);
     const [modal, setModal] = useState({ mostrar: false, texto: "" });
     const fechaActual = dayjs();
     const otraEnfermedad = watch("otraEnfermedad");
@@ -55,15 +59,15 @@ export default function FormPaciente({ paciente = null, mostrarCarga }) {
      */
     const colocarDatosPaciente = useCallback((paciente) => {
         setValues({
-            id: paciente ? paciente.id : v6(),
-            nombre: paciente ? paciente.nombre : "",
-            cedula: paciente ? paciente.cedula : "",
-            sexo: paciente ? paciente.sexo : 2,
-            telefono: paciente ? paciente.telefono : "",
-            fechaNacimiento: paciente ? paciente.fechaNacimientoFormateada : null,
-            fechaCreacion: paciente ? paciente.fechaCreacion : null,
-            otraEnfermedad: paciente ? paciente.otraEnfermedad : false,
-            comorbilidades: paciente ? paciente.comorbilidades : []
+            id: paciente.id,
+            nombre: paciente.nombre,
+            cedula: paciente.cedula,
+            sexo: paciente.sexo,
+            telefono: paciente.telefono,
+            fechaNacimiento: paciente.fechaNacimientoFormateada,
+            fechaCreacion: paciente.fechaCreacion,
+            otraEnfermedad: paciente.otraEnfermedad,
+            comorbilidades: paciente.comorbilidades
         });
     }, [setValues]);
 
@@ -75,7 +79,7 @@ export default function FormPaciente({ paciente = null, mostrarCarga }) {
      * @param {Object} datos Objeto con los datos del paciente a guardar.
      */
     async function manejadorGuardado(datos) {
-        mostrarCarga(true);
+        setCargando(true);
 
         const { id, nombre, sexo, fechaNacimiento, telefono,
             cedula, otraEnfermedad, comorbilidades } = datos;
@@ -87,10 +91,11 @@ export default function FormPaciente({ paciente = null, mostrarCarga }) {
             otraEnfermedad ? 1 : 0, comorbilidades
         );
 
-        const res = await anadirPaciente(instancia);
+        const res = await (esModificar ? editarPaciente(paciente.id, instancia)
+            : anadirPaciente(instancia));
         if (!res.success) {
             setModal({ mostrar: true, texto: t(res.error) });
-            mostrarCarga(false);
+            setCargando(false);
         } else {
             navigate("/pacientes");
         }
@@ -99,11 +104,18 @@ export default function FormPaciente({ paciente = null, mostrarCarga }) {
     useEffect(() => {
         if (paciente) {
             colocarDatosPaciente(paciente);
+            setCargando(false);
         }
-    }, [colocarDatosPaciente, paciente]);
+    }, [colocarDatosPaciente, paciente, setCargando]);
 
-    return (
+    return cargando ? <PantallaCarga /> : (
         <>
+            <TabHeader
+                url={url}
+                titulo={titulo}
+                pestanas={pestanas}
+                tooltip={tooltip}
+                activarBtnAtras={true} />
             <Grid
                 container
                 columns={2}
