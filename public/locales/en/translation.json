@@ -249,7 +249,7 @@
     "txtSelecSexo": "Select sex",
     "errNombrePaciente": "You must enter a valid name (at least 5 characters)",
     "errCedula": "You must enter a valid ID number (at least 7 characters)",
-    "errTelefono": "You must enter a valid phone number (between 8 and 10 characters)",
+    "errTelefono": "You must enter a valid phone number (7 or 10 characters)",
     "errFechaNacimiento": "You must enter a birthdate earlier than the current date",
     "txtAyudaBtnGuardarPaciente": "Save patient information",
     "errVerificarRegistro": "Could not verify if the user is registered.",
@@ -312,5 +312,7 @@
     "formatoFechaHoraResumida": "MM/DD/YYYY [-] hh:mm A",
     "titLime": "Contribution of each feature",
     "errRegistrarUsuario": "Something was wrong trying to register the user. Please try again.",
-    "txtAyudaBtnBuscar": "Search"
+    "txtAyudaBtnBuscar": "Search",
+    "txtBtnReiniciar": "Reset",
+    "txtAyudaBtnReiniciar": "Reset the form with the current patient data."
 }

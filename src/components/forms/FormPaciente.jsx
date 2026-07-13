@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
+import RestoreIcon from '@mui/icons-material/Restore';
 import SaveIcon from '@mui/icons-material/Save';
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import {
@@ -11,7 +12,7 @@ import { Controller, useForm } from "react-hook-form";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { ModalSimple } from "../modals";
 import { Paciente } from "../../models";
-import { PantallaCarga } from "../layout";
+import { PantallaCarga, TabHeader } from "../layout";
 import { SelectChip } from "../selects";
 import { useCallback, useEffect, useState } from "react";
 import { usePacientes } from "../../hooks";
@@ -25,21 +26,26 @@ import { validarNombre, validarNumero, validarTelefono } from "../../utils/Valid
  * Componente que representa el formularios para añadir/editar los datos de
  * un paciente.
  * @param {Paciente|null} paciente Objeto Paciente a cargar en el formulario. Solo 
- * se provee si es para editar un paciente existente. Si es null, se asume que es para añadir un nuevo paciente.
+ * se provee si es para editar un paciente existente. Si es null, se asume que es para añadir 
+ * un nuevo paciente.
+ * @param {String} url URL de la ruta a la que se redirige al hacer click en el botón de retroceder.
+ * @param {String} titulo Título de la pestaña actual
+ * @param {Array<Object>} pestanas Lista de pestañas con objetos de la forma { texto: String, url: String }.
+ * @param {String} tooltip Texto ayuda para el botón de retroceso.
  * @returns {JSX.Element}
  */
-export default function FormPaciente({ paciente = null }) {
+export default function FormPaciente({ url, titulo, pestanas, tooltip, paciente = null, esModificar = false }) {
     const navigate = useNavigate();
-    const { anadirPaciente } = usePacientes();
+    const { anadirPaciente, editarPaciente } = usePacientes();
     const { t } = useTranslation();
-    const { setValues, control, handleSubmit, watch, formState: { errors } } = useForm({
+    const { setValues, clearErrors, control, handleSubmit, watch, formState: { errors } } = useForm({
         defaultValues: {
             id: v6(), nombre: "", cedula: "", sexo: 2, telefono: "",
             fechaNacimiento: null, fechaCreacion: null, otraEnfermedad: false,
             comorbilidades: []
         }, mode: "onBlur"
     });
-    const [cargando, setCargando] = useState(paciente);
+    const [cargando, setCargando] = useState(esModificar);
     const [modal, setModal] = useState({ mostrar: false, texto: "" });
     const fechaActual = dayjs();
     const otraEnfermedad = watch("otraEnfermedad");
@@ -52,19 +58,23 @@ export default function FormPaciente({ paciente = null }) {
     /**
      * @param {Paciente} paciente Objeto Paciente a cargar en el formulario.
      */
-    const colocarDatosPaciente = useCallback((paciente) => {
+    const colocarDatosPaciente = useCallback((paciente, quitarErrores = false) => {
         setValues({
-            id: paciente ? paciente.id : v6(),
-            nombre: paciente ? paciente.nombre : "",
-            cedula: paciente ? paciente.cedula : "",
-            sexo: paciente ? paciente.sexo : 2,
-            telefono: paciente ? paciente.telefono : "",
-            fechaNacimiento: paciente ? paciente.fechaNacimientoFormateada : null,
-            fechaCreacion: paciente ? paciente.fechaCreacion : null,
-            otraEnfermedad: paciente ? paciente.otraEnfermedad : false,
-            comorbilidades: paciente ? paciente.comorbilidades : []
+            id: paciente.id,
+            nombre: paciente.nombre,
+            cedula: paciente.cedula,
+            sexo: paciente.sexo,
+            telefono: paciente.telefono,
+            fechaNacimiento: paciente.fechaNacimientoFormateada,
+            fechaCreacion: paciente.fechaCreacion,
+            otraEnfermedad: paciente.otraEnfermedad,
+            comorbilidades: paciente.comorbilidades
         });
-    }, [setValues]);
+
+        if (quitarErrores) {
+            clearErrors();
+        }
+    }, [setValues, clearErrors]);
 
     function cerrarModal() {
         setModal({ ...modal, mostrar: false });
@@ -86,7 +96,8 @@ export default function FormPaciente({ paciente = null }) {
             otraEnfermedad ? 1 : 0, comorbilidades
         );
 
-        const res = await anadirPaciente(instancia);
+        const res = await (esModificar ? editarPaciente(paciente.id, instancia)
+            : anadirPaciente(instancia));
         if (!res.success) {
             setModal({ mostrar: true, texto: t(res.error) });
             setCargando(false);
@@ -97,15 +108,20 @@ export default function FormPaciente({ paciente = null }) {
 
     useEffect(() => {
         if (paciente) {
-            colocarDatosPaciente(paciente);
+            colocarDatosPaciente(paciente, false);
+            setCargando(false);
         }
-    }, [colocarDatosPaciente, paciente]);
+    }, [colocarDatosPaciente, paciente, setCargando]);
 
-    return (
+    return cargando ? <PantallaCarga /> : (
         <>
-            {cargando ? (
-                <PantallaCarga />
-            ) : (<Grid
+            <TabHeader
+                url={url}
+                titulo={titulo}
+                pestanas={pestanas}
+                tooltip={tooltip}
+                activarBtnAtras={true} />
+            <Grid
                 container
                 columns={2}
                 spacing={1}
@@ -248,7 +264,20 @@ export default function FormPaciente({ paciente = null }) {
                                     txtError={t(errors.comorbilidades?.message)} />)} />
                     </Grid>
                 ) : null}
-                <Grid display="flex" justifyContent="center" size={12}>
+                <Grid display="flex" justifyContent="center" size={12} columnGap={1}>
+                    {esModificar ? (
+                        <Tooltip title={t("txtAyudaBtnReiniciar")}>
+                            <Button
+                                startIcon={<RestoreIcon />}
+                                variant="contained"
+                                onClick={() => colocarDatosPaciente(paciente, true)}
+                                sx={{
+                                    textTransform: "none"
+                                }}>
+                                <b>{t("txtBtnReiniciar")}</b>
+                            </Button>
+                        </Tooltip>
+                    ) : null}
                     <Tooltip title={t("txtAyudaBtnGuardarPaciente")}>
                         <Button
                             startIcon={<SaveIcon />}
@@ -261,7 +290,7 @@ export default function FormPaciente({ paciente = null }) {
                         </Button>
                     </Tooltip>
                 </Grid>
-            </Grid>)}
+            </Grid>
             <ModalSimple
                 mostrar={modal.mostrar}
                 titulo={t("tituloErr")}

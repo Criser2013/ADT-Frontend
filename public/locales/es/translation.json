@@ -249,7 +249,7 @@
     "txtSelecSexo": "Selecciona el sexo",
     "errNombrePaciente": "Debes ingresar un nombre válido (de mínimo 5 caracteres)",
     "errCedula": "Debes ingresar un número de cédula válido (de mínimo 7 caracteres)",
-    "errTelefono": "Debes ingresar un número de teléfono válido (de entre 8 y 10 caracteres)",
+    "errTelefono": "Debes ingresar un número de teléfono válido (de 7 o 10 caracteres)",
     "errFechaNacimiento": "Debes ingresar una fecha de nacimiento menor a la fecha actual",
     "txtAyudaBtnGuardarPaciente": "Guardar los datos del paciente",
     "errVerificarRegistro": "No se pudo verificar si el usuario está registrado.",
@@ -312,5 +312,7 @@
     "formatoFechaHoraResumida": "DD/MM/YYYY [-] hh:mm A",
     "titLime": "Contribución de cada característica",
     "errRegistrarUsuario": "Se ha producido un error al registrar el usuario. Por favor, inténtalo de nuevo más tarde.",
-    "txtAyudaBtnBuscar": "Buscar"
+    "txtAyudaBtnBuscar": "Buscar",
+    "txtBtnReiniciar": "Reiniciar",
+    "txtAyudaBtnReiniciar": "Reinicia el formulario colocando los datos actuales del paciente."
 }

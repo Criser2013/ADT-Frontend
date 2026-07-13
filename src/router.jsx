@@ -1,6 +1,9 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { IniciarSesionPage } from "./pages/auth";
-import { AnadirPacientePage, VerPacientesPage, VerPacientePage } from "./pages/pacientes";
+import {
+    AnadirPacientePage, EditarPacientePage,
+    VerPacientesPage, VerPacientePage
+} from "./pages/pacientes";
 /*import EditarPacientePage from "./pages/pacientes/EditarPacientePage";
 import VerPacientePage from "./pages/pacientes/VerPacientePage";
 import DiagnosticoAnonimoPage from "./pages/diagnosticos/DiagnosticoAnonimoPage";
@@ -24,17 +27,12 @@ export default function Router() {
                 <Route path="/pacientes" element={<VerPacientesPage />} />
                 <Route path="/pacientes/:id" element={<VerPacientePage />} />
                 <Route path="/pacientes/añadir" element={<AnadirPacientePage />} />
+                <Route path="/pacientes/:id/editar" element={<EditarPacientePage />} />
                 {/*<Route path="/diagnostico-anonimo" element={<DiagnosticoAnonimoPage />} />
                 <Route path="/usuarios" element={<VerUsuariosPage />} />
                 <Route path="/menu" element={
                     <DriveProvider>
                         <MenuPage />
-                    </DriveProvider>
-                } />
-                
-                <Route path="/pacientes/editar" element={
-                    <DriveProvider>
-                        <EditarPacientePage />
                     </DriveProvider>
                 } />
                 <Route path="/diagnostico-paciente" element={
@@ -53,8 +51,8 @@ export default function Router() {
                     </DriveProvider>
                 } />*/}
                 <Route path="*" element={
-                    <Navigate to={"/404"} replace/>
-                    }/>
+                    <Navigate to={"/404"} replace />
+                } />
             </Routes>
         </BrowserRouter>
     );

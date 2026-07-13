@@ -1,8 +1,9 @@
-
 import { FormPaciente } from "../../components/forms";
-import { MenuLayout, TabHeader } from "../../components/layout";
+import { MenuLayout, PantallaCarga } from "../../components/layout";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+
+
 /**
  * Página para añadir un nuevo paciente al sistema.
  * @returns {JSX.Element}
@@ -20,13 +21,11 @@ export default function AnadirPacientePage() {
 
     return (
         <MenuLayout>
-            <TabHeader
+            <FormPaciente
                 url="/pacientes"
                 titulo={t("titAnadirPaciente")}
                 pestanas={listadoPestanas}
-                tooltip={t("txtAtrasDatosPaciente")}
-                activarBtnAtras={true} />
-            <FormPaciente />
+                tooltip={t("txtAtrasDatosPaciente")} />
         </MenuLayout>
     );
 };
