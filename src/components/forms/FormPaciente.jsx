@@ -3,7 +3,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from '@mui/icons-material/Save';
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import {
-    Grid, Typography, TextField, Button, MenuItem, Box, Tooltip, CircularProgress
+    Grid, Typography, TextField, Button, MenuItem, Tooltip
 } from "@mui/material";
 import { Check } from "../tabs";
 import { COMORBILIDADES } from "../../constants";
@@ -11,6 +11,7 @@ import { Controller, useForm } from "react-hook-form";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { ModalSimple } from "../modals";
 import { Paciente } from "../../models";
+import { PantallaCarga } from "../layout";
 import { SelectChip } from "../selects";
 import { useCallback, useEffect, useState } from "react";
 import { usePacientes } from "../../hooks";
@@ -103,9 +104,7 @@ export default function FormPaciente({ paciente = null }) {
     return (
         <>
             {cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
-                    <CircularProgress />
-                </Box>
+                <PantallaCarga />
             ) : (<Grid
                 container
                 columns={2}

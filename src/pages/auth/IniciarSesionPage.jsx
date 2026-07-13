@@ -3,10 +3,11 @@ import FondoClaro from "/backgrounds/fondo_claro.png";
 import FondoOscuro from "/backgrounds/fondo_oscuro.png";
 import GoogleIcon from '@mui/icons-material/Google';
 import Logo from "/logo.png";
-import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip, Paper } from "@mui/material";
+import { Box, Button, Grid, IconButton, Typography, Link, Tooltip, Paper } from "@mui/material";
 import { BtnTema } from "../../components/layout";
 import { Captcha } from "../../components/captcha";
 import { Check } from "../../components/tabs";
+import { PantallaCarga } from "../../components/layout";
 import { SelectIdioma } from "../../components/selects";
 import { Trans } from "react-i18next";
 import { useAuth } from "../../hooks";
@@ -66,9 +67,7 @@ export default function IniciarSesionPage() {
     return (
         <>
             {(cargando) ? (
-                <Box display="flex" alignItems="center" justifyContent="center" height="100vh">
-                    <CircularProgress />
-                </Box>
+                <PantallaCarga altura="100vh" />
             ) : (
                 <Box
                     display="flex"

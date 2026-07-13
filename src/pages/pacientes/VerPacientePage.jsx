@@ -3,12 +3,12 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
-    Box, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
+    Grid, Typography, Divider, Stack, Fab, Tooltip,
     Button, Popover, IconButton
 } from "@mui/material";
 import { ChipSexo } from "../../components/tabs/Chips";
 import { ContComorbilidades } from "../../components/diagnosticos";
-import { MenuLayout, TabHeader } from "../../components/layout";
+import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
 import { ModalSimple, ModalDoble } from "../../components/modals";
 import { PopOver } from "../../components/tabs";
 import { useCallback, useEffect, useState } from "react";
@@ -128,9 +128,7 @@ export default function VerPacientePage() {
     return (
         <MenuLayout>
             {cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
-                    <CircularProgress />
-                </Box>
+                <PantallaCarga />
             ) : (
                 <>
                     <TabHeader
