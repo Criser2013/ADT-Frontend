@@ -9,7 +9,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useDrive } from "../../contexts/DriveContext";
 import dayjs from "dayjs";
-import ModalDoble from "../../components/modals/ModalDoble";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import { cambiarDiagnostico, verDiagnosticos, verDiagnosticosPorMedico, eliminarDiagnostico } from "../../firestore/diagnosticos-collection";
 import { peticionApi } from "../../services/Api";
@@ -27,6 +26,9 @@ import { ChipDiagnostico, ChipValidado, ChipSexo } from "../../components/tabs/C
 import { useTranslation } from "react-i18next";
 import { AES, enc } from "crypto-js";
 import { AES_KEY } from "../../../constants";
+
+import { ModalDoble, ModalSimple } from "../../components/modals";
+import { PantallaCarga } from "../../components/layout";
 
 /**
  * Página para ver los diagnósticos del usuario.
@@ -612,16 +614,12 @@ export default function VerDiagnosticosPage() {
 
     return (
         <MenuLayout>
-            {cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
-                    <CircularProgress />
-                </Box>
-            ) : (
+            {cargando ? <PantallaCarga /> : (
                 <>
                     <TabHeader
-                        activarBtnAtras={false}
                         titulo={titulo}
-                        pestanas={listadoPestanas} />
+                        pestanas={listadoPestanas}
+                        activarBtnAtras={false} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh" }}>
                         <AdvertenciaEspacio rol={admin} cantidadDiagnosticos={cantDiagnosticos} />
                         <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
@@ -664,20 +662,23 @@ export default function VerDiagnosticosPage() {
                     </Grid>
                 </>)}
             <ModalDoble
-                abrir={modal.mostrar}
+                mostrar={modal.mostrar}
                 titulo={modal.titulo}
-                mensaje={modal.mensaje}
-                iconoBtnPrincipal={modal.icono}
-                iconoBtnSecundario={<CloseIcon />}
-                manejadorBtnPrimario={manejadorBtnModal}
-                manejadorBtnSecundario={manejadorBtnCancelar}
-                mostrarBtnSecundario={activar2Btn}
-                txtBtnSimple={lblBtnPrimarioModal}
+                txtBtnPrincipal={lblBtnPrimarioModal}
                 txtBtnSecundario={t("txtBtnCancelar")}
-                txtBtnSimpleAlt={t("txtBtnCerrar")}
-                desactivarBtnPrimario={desactivarBtnModal}>
+                manejadorBtnPrincipal={manejadorBtnModal}
+                manejadorBtnSecundario={manejadorBtnCancelar}
+                iconoBtnPrincipal={modal.icono}
+                iconoBtnSecundario={<CloseIcon />}>
                 <CuerpoModal />
             </ModalDoble>
+            <ModalSimple
+                mostrar={errorDiagnostico}
+                titulo={t("titErr")}
+                texto={modal.mensaje}
+                txtBtn={t("txtBtnCerrar")}
+                manejadorBtn={manejadorBtnCancelar}
+                iconoBtn={<CloseIcon />} />
         </MenuLayout>
     );
 };

@@ -4,12 +4,12 @@ import {
     AnadirPacientePage, EditarPacientePage,
     VerPacientesPage, VerPacientePage
 } from "./pages/pacientes";
-/*import EditarPacientePage from "./pages/pacientes/EditarPacientePage";
+import { VerDiagnosticosPage } from "./pages/diagnosticos";
+/*
 import VerPacientePage from "./pages/pacientes/VerPacientePage";
 import DiagnosticoAnonimoPage from "./pages/diagnosticos/DiagnosticoAnonimoPage";
 import DiagnosticoPacientePage from "./pages/diagnosticos/DiagnosticoPacientePage";
 import VerDiagnosticoPage from "./pages/diagnosticos/VerDiagnosticoPage";
-import VerDiagnosticosPage from "./pages/diagnosticos/VerDiagnosticosPage";
 import VerUsuariosPage from "./pages/usuarios/VerUsuariosPage";*/
 import { MenuPage, Page404 } from "./pages/utils";
 
@@ -28,6 +28,7 @@ export default function Router() {
                 <Route path="/pacientes/:id" element={<VerPacientePage />} />
                 <Route path="/pacientes/añadir" element={<AnadirPacientePage />} />
                 <Route path="/pacientes/:id/editar" element={<EditarPacientePage />} />
+                <Route path="/diagnosticos" element={<VerDiagnosticosPage />} />
                 {/*<Route path="/diagnostico-anonimo" element={<DiagnosticoAnonimoPage />} />
                 <Route path="/usuarios" element={<VerUsuariosPage />} />
                 <Route path="/menu" element={
@@ -45,11 +46,7 @@ export default function Router() {
                         <VerDiagnosticoPage />
                     </DriveProvider>
                 } />
-                <Route path="/diagnosticos" element={
-                    <DriveProvider>
-                        <VerDiagnosticosPage />
-                    </DriveProvider>
-                } />*/}
+                */}
                 <Route path="*" element={
                     <Navigate to={"/404"} replace />
                 } />
