@@ -1,67 +1,73 @@
-import { useDrive } from "../../contexts/DriveContext";
-import { useAuth } from "../../contexts/AuthContext";
-import { useEffect } from "react";
-import FormPaciente from "../../components/forms/FormPaciente";
-import MenuLayout from "../../components/layout/MenuLayout";
-import { useNavigate, useSearchParams } from "react-router";
-import { validarId } from "../../utils/Validadores";
+
+import { FormPaciente } from "../../components/forms";
+import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { usePacientes } from "../../hooks";
 import { useTranslation } from "react-i18next";
-import { useNavegacion } from "../../hooks/Navegacion";
-import { AES, enc } from "crypto-js";
-import { AES_KEY } from "../../../constants";
+import { validarId } from "../../utils/Validadores";
+import { Paciente } from "../../models";
+
 
 /**
  * Página para editar los datos de un paciente.
  * @returns {JSX.Element}
  */
 export default function EditarPacientePage() {
-    const { autenticado, usuario } = useAuth();
-    const drive = useDrive();
-    const { t } = useTranslation();
-    const { idioma } = useNavegacion();
     const navigate = useNavigate();
-    const [params] = useSearchParams();
+    const { id } = useParams();
+    const { t } = useTranslation();
+    const [cargando, setCargando] = useState(true);
+    const [datos, setDatos] = useState(null);
+    const { verPaciente, helperListo, cancelarPeticiones } = usePacientes();
     const listadoPestanas = [
         { texto: t("titListaPacientes"), url: "/pacientes" },
-        { texto: t("titEditarPaciente"), url: `/pacientes/editar${location.search}` }
+        { texto: `${t("txtPaciente")} — ${datos?.nombre}`, url: `/pacientes/${id}` },
+        { texto: t("titEditarPaciente"), url: `/pacientes/${id}/editar` }
     ];
-    const id = params.get("id");
 
-    /**
-     * Carga el token de sesión y comienza a descargar el archivo de pacientes.
-     */
-    useEffect(() => {
-        const token = sessionStorage.getItem("session-tokens");
-        if (autenticado && token) {
-            const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
-            drive.setToken(tokens.accessToken);
-        } else if (usuario?.tokenDrive) {
-            drive.setToken(usuario.tokenDrive);
+    const cargarPaciente = useCallback(async (id) => {
+        const res = await verPaciente(id);
+        if (res instanceof Paciente) {
+            setDatos(res);
+            setCargando(false);
+        } else {
+            if (!res.cancelled) {
+                navigate("/pacientes");
+            }
         }
-    }, [usuario?.tokenDrive]);
-    
-    /**
-     * Coloca el título de la página.
-     */
-    useEffect(() => {
-        const res = (id != null && id != undefined) ? validarId(id) : false;
+    }, [setDatos, setCargando, navigate, verPaciente]);
 
+    useEffect(() => {
+        document.title = `${t("titEditarPaciente")} — ${datos?.nombre}`;
+    }, [t, datos]);
+
+    useEffect(() => {
+        const res = id ? validarId(id) : false;
         if (!res) {
-            navigate("/pacientes", { replace: true });
+            navigate("/pacientes");
         }
-    }, []);
 
-    useEffect(() => {
-        document.title = t("titEditarPaciente");
-    }, [idioma]);
+        if (helperListo) {
+            cargarPaciente(id);
+            return () => {
+                cancelarPeticiones();
+            };
+        }
+    }, [id, navigate, cargarPaciente, helperListo, cancelarPeticiones]);
 
     return (
         <MenuLayout>
-            <FormPaciente
-                listadoPestanas={listadoPestanas}
-                esAnadir={false}
-                titPestana={t("titEditarPaciente")}
-                id={id} />
+            {cargando ? <PantallaCarga /> : (
+                <>
+                    <TabHeader
+                        url={`/pacientes/${id}`}
+                        titulo={t("titEditarPaciente")}
+                        pestanas={listadoPestanas}
+                        tooltip={t("txtVolverAtras")}
+                        activarBtnAtras={true} />
+                    <FormPaciente paciente={datos} mostrarCarga={setCargando} />
+                </>)}
         </MenuLayout>
     );
 };

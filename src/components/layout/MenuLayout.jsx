@@ -8,7 +8,7 @@ import { Box, CircularProgress, Toolbar, useTheme, useMediaQuery } from "@mui/ma
 
 /**
  * Layout que contiene la sidebar y la barra de navegación superior.
- * @param {children} Children - Contenido a renderizar dentro del layout del menú
+ * @param {children} Children Contenido a renderizar dentro del layout del menú
  * @returns {JSX.Element}
  */
 export default function MenuLayout({ children }) {

@@ -35,7 +35,7 @@ export default function VerPacientePage() {
     const [popOver, setPopOver] = useState(null);
     const mostrarPopOver = Boolean(popOver);
     const idPopOver = mostrarPopOver ? "simple-popover" : undefined;
-    const { verPaciente, eliminarPacientes, helperListo, cancelarPeticiones } = usePacientes(setCargando, setModalError);
+    const { verPaciente, eliminarPacientes, helperListo, cancelarPeticiones } = usePacientes();
     const campos = [
         { id: "nombre", titulo: t("txtNombre"), valor: datos?.nombre },
         { id: "cedula", titulo: t("txtCedula"), valor: datos?.cedula },
@@ -49,7 +49,7 @@ export default function VerPacientePage() {
     ];
     const listadoPestanas = [
         { texto: t("titListaPacientes"), url: "/pacientes" },
-        { texto: `${t("txtPaciente")} — ${datos?.nombre}`, url: `/pacientes/ver-paciente${location.search}` }
+        { texto: `${t("txtPaciente")} — ${datos?.nombre}`, url: `/pacientes/${id}` }
     ];
 
     const cargarPaciente = useCallback(async (id) => {
