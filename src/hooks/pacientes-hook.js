@@ -10,11 +10,27 @@ import { useCallback, useMemo, useState } from "react";
  * - "verPaciente" (Function): Función para ver los datos de un paciente por su ID.
  * - "cancelarPeticiones" (Function): Función para cancelar las peticiones en curso.
  * - "helperListo" (Boolean): Indica si el helper de datos está listo para usarse.
+ * - "anadirPaciente" (Function): Función para añadir un nuevo paciente.
+ * - "editarPaciente" (Function): Función para editar los datos de un paciente existente.
  */
 export default function usePacientes() {
     const { datosHelper } = useAuth();
     const [datos, setDatos] = useState([]);
     const helperListo = useMemo(() => datosHelper !== null, [datosHelper]);
+
+    /**
+     * @param {Paciente} paciente Objeto Paciente a añadir.
+     * @returns {Promise<Object>} Objeto con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa.
+     * - "error" (String) - Mensaje de error en caso de que la operación falle.
+     */
+    const anadirPaciente = useCallback(async (paciente) => {
+        return await datosHelper.operacionSobreArchivo("añadir", { paciente });
+    }, [datosHelper]);
+
+    const cancelarPeticiones = useCallback(() => {
+        datosHelper.cancelarPeticiones();
+    }, [datosHelper]);
 
     /**
      * @returns {Promise<Object>} Objeto con las claves:
@@ -32,14 +48,14 @@ export default function usePacientes() {
     }, [datosHelper, setDatos]);
 
     /**
-     * @param {String} id ID del paciente a ver.
-     * @returns {Promise<Object>|Paciente} En caso de error es un Objeto con las claves:
+     * @param {String} id ID del paciente a editar.
+     * @param {Paciente} paciente Objeto Paciente con los nuevos datos.
+     * @returns {Promise<Object>} Objeto con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa.
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
-     * En caso de éxito es el objeto Paciente correspondiente al ID proporcionado.
      */
-    const verPaciente = useCallback(async (id) => {
-        return await datosHelper.operacionSobreArchivo("ver", { id });
+    const editarPaciente = useCallback(async (id, paciente) => {
+        return await datosHelper.operacionSobreArchivo("modificar", { id, paciente });
     }, [datosHelper]);
 
     /**
@@ -56,24 +72,20 @@ export default function usePacientes() {
     }, [datosHelper]);
 
     /**
-     * @param {Paciente} paciente Objeto Paciente a añadir.
-     * @returns {Promise<Object>} Objeto con las claves:
+     * @param {String} id ID del paciente a ver.
+     * @returns {Promise<Object>|Paciente} En caso de error es un Objeto con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa.
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
+     * En caso de éxito es el objeto Paciente correspondiente al ID proporcionado.
      */
-    const anadirPaciente = useCallback(async (paciente) => {
-        return await datosHelper.operacionSobreArchivo("añadir", { paciente });
-    }, [datosHelper]);
-
-    const cancelarPeticiones = useCallback(() => {
-        datosHelper.cancelarPeticiones();
+    const verPaciente = useCallback(async (id) => {
+        return await datosHelper.operacionSobreArchivo("ver", { id });
     }, [datosHelper]);
 
     const value = useMemo(() => ({
         pacientes: datos, cargarDatos, eliminarPacientes, verPaciente, 
-        cancelarPeticiones, helperListo, anadirPaciente
+        cancelarPeticiones, helperListo, anadirPaciente, editarPaciente
     }), [datos, cargarDatos, eliminarPacientes, verPaciente,
-        cancelarPeticiones, helperListo, anadirPaciente]);
-
+        cancelarPeticiones, helperListo, anadirPaciente, editarPaciente]);
     return value;
 };
