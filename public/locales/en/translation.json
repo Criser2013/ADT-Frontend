@@ -312,5 +312,7 @@
     "formatoFechaHoraResumida": "MM/DD/YYYY [-] hh:mm A",
     "titLime": "Contribution of each feature",
     "errRegistrarUsuario": "Something was wrong trying to register the user. Please try again.",
-    "txtAyudaBtnBuscar": "Search"
+    "txtAyudaBtnBuscar": "Search",
+    "txtBtnReiniciar": "Reset",
+    "txtAyudaBtnReiniciar": "Reset the form with the current patient data."
 }

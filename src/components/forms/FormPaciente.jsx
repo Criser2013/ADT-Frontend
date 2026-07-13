@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
+import RestoreIcon from '@mui/icons-material/Restore';
 import SaveIcon from '@mui/icons-material/Save';
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import {
@@ -37,7 +38,7 @@ export default function FormPaciente({ url, titulo, pestanas, tooltip, paciente 
     const navigate = useNavigate();
     const { anadirPaciente, editarPaciente } = usePacientes();
     const { t } = useTranslation();
-    const { setValues, control, handleSubmit, watch, formState: { errors } } = useForm({
+    const { setValues, clearErrors, control, handleSubmit, watch, formState: { errors } } = useForm({
         defaultValues: {
             id: v6(), nombre: "", cedula: "", sexo: 2, telefono: "",
             fechaNacimiento: null, fechaCreacion: null, otraEnfermedad: false,
@@ -57,7 +58,7 @@ export default function FormPaciente({ url, titulo, pestanas, tooltip, paciente 
     /**
      * @param {Paciente} paciente Objeto Paciente a cargar en el formulario.
      */
-    const colocarDatosPaciente = useCallback((paciente) => {
+    const colocarDatosPaciente = useCallback((paciente, quitarErrores = false) => {
         setValues({
             id: paciente.id,
             nombre: paciente.nombre,
@@ -69,7 +70,11 @@ export default function FormPaciente({ url, titulo, pestanas, tooltip, paciente 
             otraEnfermedad: paciente.otraEnfermedad,
             comorbilidades: paciente.comorbilidades
         });
-    }, [setValues]);
+
+        if (quitarErrores) {
+            clearErrors();
+        }
+    }, [setValues, clearErrors]);
 
     function cerrarModal() {
         setModal({ ...modal, mostrar: false });
@@ -103,7 +108,7 @@ export default function FormPaciente({ url, titulo, pestanas, tooltip, paciente 
 
     useEffect(() => {
         if (paciente) {
-            colocarDatosPaciente(paciente);
+            colocarDatosPaciente(paciente, false);
             setCargando(false);
         }
     }, [colocarDatosPaciente, paciente, setCargando]);
@@ -259,7 +264,20 @@ export default function FormPaciente({ url, titulo, pestanas, tooltip, paciente 
                                     txtError={t(errors.comorbilidades?.message)} />)} />
                     </Grid>
                 ) : null}
-                <Grid display="flex" justifyContent="center" size={12}>
+                <Grid display="flex" justifyContent="center" size={12} columnGap={1}>
+                    {esModificar ? (
+                        <Tooltip title={t("txtAyudaBtnReiniciar")}>
+                            <Button
+                                startIcon={<RestoreIcon />}
+                                variant="contained"
+                                onClick={() => colocarDatosPaciente(paciente, true)}
+                                sx={{
+                                    textTransform: "none"
+                                }}>
+                                <b>{t("txtBtnReiniciar")}</b>
+                            </Button>
+                        </Tooltip>
+                    ) : null}
                     <Tooltip title={t("txtAyudaBtnGuardarPaciente")}>
                         <Button
                             startIcon={<SaveIcon />}
