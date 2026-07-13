@@ -247,7 +247,6 @@
     "txtBtnDiagnosticar": "Diagnose",
     "txtAyudaBtnDiagnosticar": "Generate PE diagnosis.",
     "txtSelecSexo": "Select sex",
-    "errTitAnadirPaciente": "❌ Error adding patient",
     "errNombrePaciente": "You must enter a valid name (at least 5 characters)",
     "errCedula": "You must enter a valid ID number (at least 7 characters)",
     "errTelefono": "You must enter a valid phone number (between 8 and 10 characters)",

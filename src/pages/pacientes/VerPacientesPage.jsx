@@ -1,11 +1,11 @@
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
+import Datatable from "../../components/Datatable/Datatable";
 import DeleteIcon from "@mui/icons-material/Delete";
-import MenuLayout from "../../components/layout/MenuLayout";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { Button, Grid, Box, CircularProgress, Tooltip, IconButton } from "@mui/material";
 import { ChipSexo } from "../../components/tabs/Chips";
-import Datatable from "../../components/Datatable/Datatable";
+import { MenuLayout, PantallaCarga } from "../../components/layout";
 import { ModalDoble, ModalSimple } from "../../components/modals";
 import { TabHeader } from "../../components/layout";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -56,7 +56,7 @@ export default function VerPacientesPage() {
     };
 
     function manejadorBtnAnadir() {
-        navigate("/pacientes/anadir");
+        navigate("/pacientes/añadir");
     };
 
     /**
@@ -121,9 +121,7 @@ export default function VerPacientesPage() {
     return (
         <MenuLayout>
             {cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
-                    <CircularProgress />
-                </Box>
+                <PantallaCarga />
             ) : (
                 <>
                     <TabHeader

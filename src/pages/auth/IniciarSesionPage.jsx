@@ -3,16 +3,18 @@ import FondoClaro from "/backgrounds/fondo_claro.png";
 import FondoOscuro from "/backgrounds/fondo_oscuro.png";
 import GoogleIcon from '@mui/icons-material/Google';
 import Logo from "/logo.png";
-import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip, Paper } from "@mui/material";
+import { Box, Button, Grid, IconButton, Typography, Link, Tooltip, Paper } from "@mui/material";
 import { BtnTema } from "../../components/layout";
 import { Captcha } from "../../components/captcha";
 import { Check } from "../../components/tabs";
+import { PantallaCarga } from "../../components/layout";
 import { SelectIdioma } from "../../components/selects";
 import { Trans } from "react-i18next";
 import { useAuth } from "../../hooks";
 import { useEffect, useState } from "react";
+import { useIdioma, useTema } from "../../hooks";
 import { useNavigate } from "react-router-dom";
-import useTema, { temaClaro } from "../../hooks/tema-hook";
+import { temaClaro } from "../../hooks/tema-hook";
 import { useTranslation } from "react-i18next";
 import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../constants";
 
@@ -23,6 +25,7 @@ import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../constants";
 export default function IniciarSesionPage() {
     const navigate = useNavigate();
     const { autenticado, iniciarSesion, cargando, usuario } = useAuth();
+    const { idioma } = useIdioma();
     const { tema } = useTema();
     const { t } = useTranslation();
     const [btnCargando, setBtnCargando] = useState(false);
@@ -46,6 +49,10 @@ export default function IniciarSesionPage() {
         }
     }, [captchaAceptado, terminosAceptados, autenticado]);
 
+    useEffect(() => {
+        setCaptchaAceptado(false);
+    }, [tema, idioma]);
+
     async function manejadorBtnIniciarSesion() {
         const res = await iniciarSesion(usuario);
         if (res) {
@@ -60,9 +67,7 @@ export default function IniciarSesionPage() {
     return (
         <>
             {(cargando) ? (
-                <Box display="flex" alignItems="center" justifyContent="center" height="100vh">
-                    <CircularProgress />
-                </Box>
+                <PantallaCarga altura="100vh" />
             ) : (
                 <Box
                     display="flex"

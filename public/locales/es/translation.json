@@ -247,7 +247,6 @@
     "txtBtnDiagnosticar": "Diagnosticar",
     "txtAyudaBtnDiagnosticar": "Genera el diagnóstico de TEP.",
     "txtSelecSexo": "Selecciona el sexo",
-    "errTitAnadirPaciente": "❌ Error al añadir paciente",
     "errNombrePaciente": "Debes ingresar un nombre válido (de mínimo 5 caracteres)",
     "errCedula": "Debes ingresar un número de cédula válido (de mínimo 7 caracteres)",
     "errTelefono": "Debes ingresar un número de teléfono válido (de entre 8 y 10 caracteres)",

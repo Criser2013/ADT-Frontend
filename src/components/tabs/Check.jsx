@@ -10,7 +10,10 @@ import { Checkbox, FormControlLabel, FormGroup } from "@mui/material";
  * @param {string} tamano Tamaño del componente (valores: "small", "medium", "large")
  * @returns {JSX.Element}
  */
-export default function Check({ marcado, desactivar = false, manejadorCambios, etiqueta, nombre = "", tamano = "medium" }) {
+export default function Check({
+    marcado, desactivar = false, manejadorCambios, etiqueta,
+    nombre = "check", tamano = "medium"
+}) {
     return (
         <FormGroup>
             <FormControlLabel

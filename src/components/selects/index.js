@@ -1,3 +1,4 @@
+import SelectChip from "./SelectChip";
 import SelectIdioma from "./SelectIdioma";
 
-export { SelectIdioma };
+export { SelectChip, SelectIdioma };

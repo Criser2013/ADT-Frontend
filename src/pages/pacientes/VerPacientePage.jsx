@@ -3,12 +3,12 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
-    Box, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
+    Grid, Typography, Divider, Stack, Fab, Tooltip,
     Button, Popover, IconButton
 } from "@mui/material";
 import { ChipSexo } from "../../components/tabs/Chips";
 import { ContComorbilidades } from "../../components/diagnosticos";
-import { MenuLayout, TabHeader} from "../../components/layout";
+import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
 import { ModalSimple, ModalDoble } from "../../components/modals";
 import { PopOver } from "../../components/tabs";
 import { useCallback, useEffect, useState } from "react";
@@ -39,8 +39,10 @@ export default function VerPacientePage() {
     const campos = [
         { id: "nombre", titulo: t("txtNombre"), valor: datos?.nombre },
         { id: "cedula", titulo: t("txtCedula"), valor: datos?.cedula },
-        { id: "fechaNacimiento", titulo: t("txtFechaNacimiento"), 
-            valor: datos?.fechaNacimientoFormateada.format(t("formatoFechaCompletaSinHora")) },
+        {
+            id: "fechaNacimiento", titulo: t("txtFechaNacimiento"),
+            valor: datos?.fechaNacimientoFormateada.format(t("formatoFechaCompletaSinHora"))
+        },
         { id: "edad", titulo: t("txtCampoEdad"), valor: `${datos?.edad} ${t("txtSufijoEdad")}` },
         { id: "telefono", titulo: t("txtTelefono"), valor: datos?.telefono },
         { id: "sexo", titulo: t("txtCampoSexo"), valor: datos?.sexo }
@@ -67,7 +69,7 @@ export default function VerPacientePage() {
     };
 
     function cerrarModalError() {
-        setModalError({ ...modalError, mostrar: false });  
+        setModalError({ ...modalError, mostrar: false });
     };
 
     async function eliminarPaciente() {
@@ -124,122 +126,119 @@ export default function VerPacientePage() {
     }, [id, navigate, cargarPaciente, helperListo, cancelarPeticiones]);
 
     return (
-        <>
-            <MenuLayout>
-                {cargando ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
-                        <CircularProgress />
-                    </Box>
-                ) : (
-                    <>
-                        <TabHeader
-                            url="/pacientes"
-                            titulo={t("titDatosPaciente")}
-                            pestanas={listadoPestanas}
-                            tooltip={t("txtAtrasDatosPaciente")}
-                            activarBtnAtras={true} />
-                        <Grid container
-                            columns={12}
-                            spacing={1}
-                            marginTop="3vh">
-                            <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
-                                <Tooltip title={t("txtAyudaMasOpciones")}>
-                                    <IconButton
-                                        aria-describedby={idPopOver}
-                                        onClick={manejadorBtnOpciones} >
-                                        <MoreVertIcon />
-                                    </IconButton>
+        <MenuLayout>
+            {cargando ? (
+                <PantallaCarga />
+            ) : (
+                <>
+                    <TabHeader
+                        url="/pacientes"
+                        titulo={t("titDatosPaciente")}
+                        pestanas={listadoPestanas}
+                        tooltip={t("txtAtrasDatosPaciente")}
+                        activarBtnAtras={true} />
+                    <Grid container
+                        columns={12}
+                        spacing={1}
+                        marginTop="3vh">
+                        <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
+                            <Tooltip title={t("txtAyudaMasOpciones")}>
+                                <IconButton
+                                    aria-describedby={idPopOver}
+                                    onClick={manejadorBtnOpciones} >
+                                    <MoreVertIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <PopOver
+                                id={idPopOver}
+                                mostrar={mostrarPopOver}
+                                anchorEl={popOver}
+                                anchorOrigin={{
+                                    vertical: "bottom", horizontal: "left",
+                                }}
+                                transformOrigin={{
+                                    vertical: "top", horizontal: "center",
+                                }}
+                                setPopOver={setPopOver}>
+                                <Tooltip title={t("txtAyudaEliminarPaciente")}>
+                                    <Button
+                                        color="error"
+                                        startIcon={<DeleteIcon />}
+                                        onClick={manejadorBtnEliminar}
+                                        sx={{ textTransform: "none", padding: 2 }}>
+                                        {t("txtBtnEliminar")}
+                                    </Button>
                                 </Tooltip>
-                                <PopOver
-                                    id={idPopOver}
-                                    mostrar={mostrarPopOver}
-                                    anchorEl={popOver}
-                                    anchorOrigin={{
-                                        vertical: "bottom", horizontal: "left",
-                                    }}
-                                    transformOrigin={{
-                                        vertical: "top", horizontal: "center",
-                                    }}
-                                    setPopOver={setPopOver}>
-                                    <Tooltip title={t("txtAyudaEliminarPaciente")}>
-                                        <Button
-                                            color="error"
-                                            startIcon={<DeleteIcon />}
-                                            onClick={manejadorBtnEliminar}
-                                            sx={{ textTransform: "none", padding: 2 }}>
-                                            {t("txtBtnEliminar")}
-                                        </Button>
-                                    </Tooltip>
-                                </PopOver>
+                            </PopOver>
+                        </Grid>
+                        {campos.map((campo) => (
+                            <Grid key={campo.id} size={{ xs: 12, md: 6 }}>
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                    <Typography variant="body1" fontWeight="bold">
+                                        {campo.titulo}:
+                                    </Typography>
+                                    {(campo.id == "sexo") ? <ChipSexo sexo={campo.valor} /> : (
+                                        <Typography variant="body1">
+                                            {campo.valor}
+                                        </Typography>)}
+                                </Stack>
                             </Grid>
-                            {campos.map((campo) => (
-                                <Grid key={campo.id} size={{ xs: 12, md: 6 }}>
-                                    <Stack direction="row" spacing={1} alignItems="center">
-                                        <Typography variant="body1" fontWeight="bold">
-                                            {campo.titulo}:
-                                        </Typography>
-                                        {(campo.id == "sexo") ? <ChipSexo sexo={campo.valor} /> : (
-                                            <Typography variant="body1">
-                                                {campo.valor}
-                                            </Typography>)}
-                                    </Stack>
-                                </Grid>
-                            ))}
+                        ))}
+                        <Grid size={12}>
+                            <Divider />
+                        </Grid>
+                        <Grid size={12}>
+                            <Typography variant="h6" fontWeight="bold">
+                                {t("titComor")}
+                            </Typography>
+                        </Grid>
+                        {datos.otraEnfermedad ? (
                             <Grid size={12}>
-                                <Divider />
+                                <ContComorbilidades comorbilidades={datos.comorbilidades} />
                             </Grid>
+                        ) : (
                             <Grid size={12}>
-                                <Typography variant="h6" fontWeight="bold">
-                                    {t("titComor")}
+                                <Typography variant="body1">
+                                    <b>{t("txtNoComor")}</b>
                                 </Typography>
                             </Grid>
-                            {datos.otraEnfermedad ? (
-                                <Grid size={12}>
-                                    <ContComorbilidades comorbilidades={datos.comorbilidades} />
-                                </Grid>
-                            ) : (
-                                <Grid size={12}>
-                                    <Typography variant="body1">
-                                        <b>{t("txtNoComor")}</b>
-                                    </Typography>
-                                </Grid>
-                            )}
-                        </Grid>
-                        <Tooltip title={t("txtAyudaBtnEditarPaciente")}>
-                            <Fab onClick={manejadorBtnEditar}
-                                color="primary"
-                                variant="extended"
-                                sx={{
-                                    textTransform: "none",
-                                    display: "flex",
-                                    position: "fixed",
-                                    bottom: 20,
-                                    right: 20,
-                                    zIndex: 1000 }} >
-                                <EditIcon sx={{ mr: 1 }} />
-                                <b>{t("txtBtnEditar")}</b>
-                            </Fab>
-                        </Tooltip>
-                    </>
-                )}
-                <ModalDoble
-                    mostrar={modalEliminacion.mostrar}
-                    titulo={modalEliminacion.titulo}
-                    texto={modalEliminacion.texto}
-                    txtBtnPrincipal={t("txtBtnEliminar")}
-                    txtBtnSecundario={t("txtBtnCancelar")}
-                    manejadorBtnPrincipal={manejadorBtnModalEliminar}
-                    manejadorBtnSecundario={cerrarModalEliminacion}
-                    iconoBtnPrincipal={<DeleteIcon />}
-                    iconoBtnSecundario={<CloseIcon />} />
-                <ModalSimple
-                    mostrar={modalError.mostrar}
-                    titulo={t("tituloErr")}
-                    texto={modalError.texto}
-                    txtBtn={t("txtBtnCerrar")}
-                    manejadorBtn={cerrarModalError}
-                    iconoBtn={<CloseIcon />} />
-            </MenuLayout>
-        </>
+                        )}
+                    </Grid>
+                    <Tooltip title={t("txtAyudaBtnEditarPaciente")}>
+                        <Fab onClick={manejadorBtnEditar}
+                            color="primary"
+                            variant="extended"
+                            sx={{
+                                textTransform: "none",
+                                display: "flex",
+                                position: "fixed",
+                                bottom: 20,
+                                right: 20,
+                                zIndex: 1000
+                            }} >
+                            <EditIcon sx={{ mr: 1 }} />
+                            <b>{t("txtBtnEditar")}</b>
+                        </Fab>
+                    </Tooltip>
+                </>
+            )}
+            <ModalDoble
+                mostrar={modalEliminacion.mostrar}
+                titulo={modalEliminacion.titulo}
+                texto={modalEliminacion.texto}
+                txtBtnPrincipal={t("txtBtnEliminar")}
+                txtBtnSecundario={t("txtBtnCancelar")}
+                manejadorBtnPrincipal={manejadorBtnModalEliminar}
+                manejadorBtnSecundario={cerrarModalEliminacion}
+                iconoBtnPrincipal={<DeleteIcon />}
+                iconoBtnSecundario={<CloseIcon />} />
+            <ModalSimple
+                mostrar={modalError.mostrar}
+                titulo={t("tituloErr")}
+                texto={modalError.texto}
+                txtBtn={t("txtBtnCerrar")}
+                manejadorBtn={cerrarModalError}
+                iconoBtn={<CloseIcon />} />
+        </MenuLayout>
     );
 }
