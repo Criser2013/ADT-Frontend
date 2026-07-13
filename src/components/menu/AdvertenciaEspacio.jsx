@@ -1,7 +1,8 @@
 import { Alert } from "@mui/material";
-import { CANT_LIM_DIAGNOSTICOS } from "../../../constants";
-import { useTranslation } from "react-i18next";
+import { CANT_LIM_DIAGNOSTICOS } from "../../constants";
 import { useAuth } from "../../hooks";
+import { useTranslation } from "react-i18next";
+
 
 /**
  * Componente de alerta de espacio cuando se está llegando  al límite 

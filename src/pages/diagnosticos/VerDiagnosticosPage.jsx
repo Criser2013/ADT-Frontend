@@ -1,52 +1,47 @@
-import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography } from "@mui/material";
-import MenuLayout from "../../components/layout/MenuLayout";
-import Datatable from "../../components/tabs/Datatable";
-import TabHeader from "../../components/layout/TabHeader";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { useNavigate } from "react-router";
-import { useNavegacion } from "../../hooks/Navegacion";
-import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
-import { useDrive } from "../../contexts/DriveContext";
-import dayjs from "dayjs";
-import { useCredenciales } from "../../contexts/CredencialesContext";
-import { cambiarDiagnostico, verDiagnosticos, verDiagnosticosPorMedico, eliminarDiagnostico } from "../../firestore/diagnosticos-collection";
-import { peticionApi } from "../../services/Api";
-import { detTxtDiagnostico, nombresCampos } from "../../utils/TratarDatos";
+import AddToDriveIcon from '@mui/icons-material/AddToDrive';
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import { descargarArchivoXlsx } from "../../utils/XlsxFiles";
+import CloseIcon from "@mui/icons-material/Close";
+import Datatable from "../../components/Datatable";
+import dayjs from "dayjs";
+import DeleteIcon from "@mui/icons-material/Delete";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FormSeleccionar from "../../components/forms/FormSeleccionar";
-import Check from "../../components/tabs/Check";
-import AddToDriveIcon from '@mui/icons-material/AddToDrive';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import AdvertenciaEspacio from "../../components/menu/AdvertenciaEspacio";
-import CloseIcon from "@mui/icons-material/Close";
-import { ChipDiagnostico, ChipValidado, ChipSexo } from "../../components/tabs/Chips";
-import { useTranslation } from "react-i18next";
-import { AES, enc } from "crypto-js";
-import { AES_KEY } from "../../../constants";
 
+import { AdvertenciaEspacio } from "../../components/menu";
+import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography } from "@mui/material";
+import { Check } from "../../components/tabs";
+import { cambiarDiagnostico, verDiagnosticos, verDiagnosticosPorMedico, eliminarDiagnostico } from "../../services/Firestore";
+import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
+import { descargarArchivoXlsx } from "../../utils/XlsxFiles";
+import { detTxtDiagnostico, nombresCampos } from "../../utils/TratarDatos";
+import { MenuLayout, TabHeader, PantallaCarga } from "../../components/layout";
 import { ModalDoble, ModalSimple } from "../../components/modals";
-import { PantallaCarga } from "../../components/layout";
+import { peticionApi } from "../../services/Api";
+import { useAppConfig, useAuth, useIdioma, usePacientes } from "../../hooks";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
+
 
 /**
  * Página para ver los diagnósticos del usuario.
  * @returns {JSX.Element}
  */
 export default function VerDiagnosticosPage() {
-    const { autenticado, usuario } = useAuth();
-    const drive = useDrive();
+    const { idioma } = useIdioma();
+    const { usuario } = useAuth();
     const { t } = useTranslation();
+    const { cargarDatos, pacientes, helperListo, cancelarPeticiones } = usePacientes();
+
     const navigate = useNavigate();
-    const navegacion = useNavegacion();
-    const { firestore } = useCredenciales();
+    const { firestore } = useAppConfig();
     const [cargando, setCargando] = useState(true);
     const [modal, setModal] = useState({
-        mostrar: false, titulo: "", mensaje: "", icono: null
+        mostrar: false, titulo: ""
     });
+    const [modalError, setModalError] = useState({ mostrar: false, texto: ""});
     const [activar2Btn, setActivar2Btn] = useState(false);
-    const [archivoDescargado, setArchivoDescargado] = useState(false);
     const [datos, setDatos] = useState([]);
     const [diagnosticos, setDiagnosticos] = useState(null);
     const [personas, setPersonas] = useState(null);
@@ -125,50 +120,10 @@ export default function VerDiagnosticosPage() {
             return t("txtAyudaBtnExportar");
         }
     }, [admin, navegacion.idioma]);
-    const cantDiagnosticos = useMemo(() => {
-        return (diagnosticos != null) ? diagnosticos.length : 0;
-    }, [diagnosticos]);
-
-    /**
-     * Carga el token de sesión y comienza a descargar el archivo de pacientes.
-     */
-    useEffect(() => {
-        const token = sessionStorage.getItem("session-tokens");
-        if (autenticado && token) {
-            const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
-            drive.setToken(tokens.accessToken);
-        } else if (usuario?.tokenDrive) {
-            drive.setToken(usuario.tokenDrive);
-        }
-    }, [autenticado, usuario]);
-
-    /**
-     * Carga los diagnósticos y los pacientes dependiendo del rol del usuario.
-     */
-    useEffect(() => {
-        const { uid } = usuario;
-        const descargar = sessionStorage.getItem("descargando-drive");
-        const exp = (descargar == null || descargar == "false");
-
-        if (admin != null && uid != null && firestore != null && drive.token != null && exp && !archivoDescargado) {
-            sessionStorage.setItem("descargando-drive", "true");
-            manejadorRecargar(drive.token, uid, admin, firestore);
-        }
-    }, [usuario?.uid, drive.token, admin, firestore, archivoDescargado]);
 
     useEffect(() => {
-        document.title = admin ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos");
-    }, [admin, navegacion.idioma]);
-
-    /**
-     * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
-     */
-    useEffect(() => {
-        if (navegacion.recargarPagina) {
-            setArchivoDescargado(false);
-            navegacion.setRecargarPagina(false);
-        }
-    }, [navegacion.recargarPagina]);
+        document.title = usuario.rol ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos");
+    }, [usuario, t]);
 
     /**
      * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
@@ -233,7 +188,6 @@ export default function VerDiagnosticosPage() {
                 t("errCargarUsuarios")
             );
         let usuarios = [];
-        setArchivoDescargado(true);
         if (res.success && admin) {
             setPersonas(res.data.usuarios);
             usuarios = res.data.usuarios.map((x) => x.uid != undefined ? x.uid : x.paciente);
@@ -338,17 +292,11 @@ export default function VerDiagnosticosPage() {
     };
 
     /**
-     * Manejador del clic en una celda de la tabla.
-     * @param {JSON} dato - Instancia
+     * @param {Diagnostico} dato Instancia de diagnóstico de la tabla.
      */
-    const manejadorClicCelda = (dato) => {
-        const ejecutar = sessionStorage.getItem("ejecutar-callback");
-        if (ejecutar == "true" || ejecutar == null) {
-            navegacion.paginaAnterior.current = "/diagnosticos";
-            sessionStorage.removeItem("ejecutar-callback");
-            const id = admin ? dato.id : `${dato.id}-${usuario?.uid}`;
-            navigate(`/diagnosticos/ver-diagnostico?id=${id}`);
-        }
+    function manejadorClicCelda(dato) {
+        const id = admin ? dato.id : `${dato.id}-${dato.usuario}`;
+        navigate(`/diagnosticos/${id}`);
     };
 
     /**
@@ -376,51 +324,27 @@ export default function VerDiagnosticosPage() {
     };
 
     /**
-     * Eliminar los pacientes seleccionados de Drive y maneja la respuesta.
-     * @param {Array} pacientes - Lista de diagnósticos a eliminar.
+     * @param {Array<String>} idsDiagnosticos Lista IDs de los diagnósticos a eliminar.
      */
-    const borrarDiagnosticos = async (diagnosticos) => {
+    async function borrarDiagnosticos (idsDiagnosticos) {
         const peticiones = [];
-
-        for (let i = 0; i < diagnosticos.length; i++) {
-            peticiones[i] = null;
-        }
-
-        diagnosticos.forEach((x, i) => {
-            const uid = x.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-            peticiones[i] = eliminarDiagnostico(x, uid[1], firestore);
+        let res = true;
+        idsDiagnosticos.forEach((id) => {
+            const uid = id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/)[1];
+            const pet = eliminarDiagnostico(id, uid, firestore);
+            peticiones.push(pet);
         });
 
-        for (let i = 0; i < peticiones.length; i++) {
-            peticiones[i] = await peticiones[i];
+        for (const pet of peticiones) {
+            res &&= (await pet).success;
         }
 
-        if (peticiones.every((x) => x.success)) {
-            setCargando(true);
+        if (res) {
             const usuarios = await cargarPacientes(usuario?.tokenFirebase);
             cargarDiagnosticos(usuario?.uid, admin, firestore, usuarios);
         } else {
-            setModoModal(0);
-            setActivar2Btn(false);
-            setModal({
-                mostrar: true, titulo: t("titErrEliminarDiagApi"), icono: <CloseIcon />,
-                mensaje: t("errEliminarDiagApi")
-            });
+            setModalError({ mostrar: true, texto: t("errEliminarDiagApi") });
             setCargando(false);
-        }
-    };
-
-    /**
-     * Revisa que el valor de validación sea vàlido (0 o 1).
-     * Si es válido actualiza el diagnóstico.
-     */
-    const validarCambio = () => {
-        setErrorDiagnostico(validar == 2);
-
-        if (validar != 2) {
-            validarDiagnostico(instancia);
-            sessionStorage.setItem("ejecutar-callback", "true");
-            setModal((x) => ({ ...x, mostrar: false }));
         }
     };
 
@@ -478,25 +402,24 @@ export default function VerDiagnosticosPage() {
         );
     };
 
-    /**
-     * Manejador del botón cancelar del modal.
-     */
-    const manejadorBtnCancelar = () => {
+    function cerrarModalError() {
+        setModalError({ ...modalError, mostrar: false });
+    };
+
+    function cerrarModalDoble() {
         setModal({ ...modal, mostrar: false });
-        sessionStorage.setItem("ejecutar-callback", "true");
-        setInstancia(null);
     };
 
     /**
      * Manejador del botón para exportar los diagnósticos.
      */
-    const exportarDiagnosticos = async () => {
+    async function exportarDiagnosticos() {
         const aux = diagnosticos.map((x) => ({ ...x }));
         const opciones = {
             weekday: "long", year: "numeric", month: "long",
             day: "numeric", hour: "numeric", minute: "numeric"
         };
-        const fecha = new Date().toLocaleDateString(navegacion.idioma, opciones).replaceAll(".", "");
+        const fecha = new Date().toLocaleDateString(idioma, opciones).replaceAll(".", "");
         const auxArr = [];
         const nombreArchivo = preprocesar ? `HADT ${t("txtDiagnosticos")} — ${fecha}-${t("txtPreprocesados")}` : `HADT ${t("txtDiagnosticos")} — ${fecha}`;
 
@@ -505,7 +428,7 @@ export default function VerDiagnosticosPage() {
             if (!preprocesar || (preprocesar && aux[i].validado != 2)) {
                 aux[i].id = !admin ? aux[i].id.replace(/-\w{28}$/, "") : aux[i].id;
                 aux[i].paciente = datos[i].nombre;
-                aux[i] = nombresCampos(aux[i], admin, preprocesar, navegacion.idioma);
+                aux[i] = nombresCampos(aux[i], admin, preprocesar, idioma);
                 auxArr.push(aux[i]);
             }
         }
@@ -530,15 +453,10 @@ export default function VerDiagnosticosPage() {
         }
     };
 
-    /**
-     * Manejador del botón de exportar diagnósticos.
-     */
-    const manejadorBtnExportar = () => {
-        setActivar2Btn(true);
-        setModoModal(3);
+    function manejadorBtnExportar() {
         setModal({
             mostrar: true, titulo: t("titExportar"),
-            mensaje: "", icono: <FileDownloadIcon />
+            texto: "", icono: <FileDownloadIcon />
         });
     };
 
@@ -612,6 +530,26 @@ export default function VerDiagnosticosPage() {
         }
     };
 
+    const manejadorCarga = useCallback(async () => {
+            const { success, error, cancelled } = await cargarDatos();
+            if (!success && !cancelled) {
+                setModalError({ mostrar: true, texto: t(error) });
+            }
+            if (!cancelled) {
+                setCargando(false);
+            }
+        }, [cargarDatos, setModalError, setCargando, t]);
+
+    
+    useEffect(() => {
+        if (helperListo) {
+            manejadorCarga();
+            return () => {
+                cancelarPeticiones();
+            }; 
+        }
+    }, [helperListo, manejadorCarga, cancelarPeticiones]);
+
     return (
         <MenuLayout>
             {cargando ? <PantallaCarga /> : (
@@ -621,10 +559,10 @@ export default function VerDiagnosticosPage() {
                         pestanas={listadoPestanas}
                         activarBtnAtras={false} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh" }}>
-                        <AdvertenciaEspacio rol={admin} cantidadDiagnosticos={cantDiagnosticos} />
+                        <AdvertenciaEspacio numDiagnosticos={datos.length} />
                         <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
                             <Tooltip title={t("txtAyudaBtnRecargar")}>
-                                <IconButton onClick={() => manejadorRecargar()}>
+                                <IconButton onClick={manejadorRecargar}>
                                     <RefreshIcon />
                                 </IconButton>
                             </Tooltip>
@@ -643,22 +581,20 @@ export default function VerDiagnosticosPage() {
                             </Tooltip>
                         </Grid>
                         <Datatable
-                            campos={camposTabla}
                             datos={datos}
-                            lblBusq={lblBusq}
+                            campos={camposTabla}
+                            campoId="id"
+                            lblBusqueda={lblBusq}
+                            lblSeleccion={t("txtSufijoDiagsSelecs")}
+                            tooltipAccion={t("txtAyudaEliminarDiags")}
                             activarBusqueda={true}
                             activarSeleccion={activarSeleccion}
-                            campoId="id"
-                            terminoBusqueda=""
-                            lblSeleccion={t("txtSufijoDiagsSelecs")}
                             camposBusq={camposBusq}
-                            cbClicCelda={manejadorClicCelda}
-                            cbAccion={manejadorEliminar}
-                            tooltipAccion={t("txtAyudaEliminarDiags")}
-                            icono={<DeleteIcon />}
                             campoOrdenInicial="fecha"
-                            dirOrden="asc"
-                        />
+                            direccionOrdenInicial="desc"
+                            callbackClicCelda={manejadorClicCelda}
+                            callbackBtnbAccion={manejadorEliminar}
+                            icono={<DeleteIcon />} />
                     </Grid>
                 </>)}
             <ModalDoble
@@ -667,17 +603,17 @@ export default function VerDiagnosticosPage() {
                 txtBtnPrincipal={lblBtnPrimarioModal}
                 txtBtnSecundario={t("txtBtnCancelar")}
                 manejadorBtnPrincipal={manejadorBtnModal}
-                manejadorBtnSecundario={manejadorBtnCancelar}
+                manejadorBtnSecundario={cerrarModalDoble}
                 iconoBtnPrincipal={modal.icono}
                 iconoBtnSecundario={<CloseIcon />}>
                 <CuerpoModal />
             </ModalDoble>
             <ModalSimple
-                mostrar={errorDiagnostico}
+                mostrar={modalError.mostrar}
                 titulo={t("titErr")}
-                texto={modal.mensaje}
+                texto={modalError.texto}
                 txtBtn={t("txtBtnCerrar")}
-                manejadorBtn={manejadorBtnCancelar}
+                manejadorBtn={cerrarModalError}
                 iconoBtn={<CloseIcon />} />
         </MenuLayout>
     );
