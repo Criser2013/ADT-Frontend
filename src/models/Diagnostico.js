@@ -24,7 +24,7 @@ export default class Diagnostico {
      * @param {Boolean} otraEnfermedad Indicador de si el paciente tiene otra enfermedad.
      * @param {Object} sintomasBinarios Objeto con los síntomas binarios del paciente.
      * @param {Object} sintomasNumericos Objeto con los síntomas numéricos del paciente.
-     * @pàram {Number} probabilidad Probabilidad de TEP según el modelo.
+     * @param {Number} probabilidad Probabilidad de TEP según el modelo.
      * @param {ExplicacionLime} explicacion Explicación del modelo de diagnóstico.
      * @param {Number} diagnosticoModelo Diagnóstico de TEP dado por el modelo. 
      * Toma los siguientes valores:
