@@ -50,5 +50,4 @@ export default class Usuario {
     get fechaUltimoAcceso() {
         return this.#fechaUltimoAcceso;
     }
-
 }

@@ -24,19 +24,14 @@ export default class Diagnostico {
      * @param {Boolean} otraEnfermedad Indicador de si el paciente tiene otra enfermedad.
      * @param {Object} sintomasBinarios Objeto con los síntomas binarios del paciente.
      * @param {Object} sintomasNumericos Objeto con los síntomas numéricos del paciente.
-     * @param {Number} probabilidad Probabilidad de TEP según el modelo.
-     * @param {ExplicacionLime} explicacion Explicación del modelo de diagnóstico.
-     * @param {Number} diagnosticoModelo Diagnóstico de TEP dado por el modelo. 
-     * Toma los siguientes valores:
-     * - 0: Negativo
-     * - 1: Positivo
-     * - 2: No determinado
-     * @param {Number} diagnosticoMedico Diagnóstico de TEP dado por el médico. 
-     * Toma los mismos valores que el diagnóstico del modelo.
+     * @param {Number|null} probabilidad Probabilidad de TEP según el modelo.
+     * @param {ExplicacionLime|null} explicacion Explicación del modelo de diagnóstico.
+     * @param {Boolean|null} diagnosticoModelo Diagnóstico de TEP dado por el modelo.
+     * @param {Boolean|null} diagnosticoMedico Diagnóstico de TEP dado por el médico. 
      */
     constructor(
         id, usuario, paciente, comorbilidades, fecha, otraEnfermedad, sintomasBinarios,
-        sintomasNumericos, diagnosticoModelo = 2, diagnosticoMedico = 2, probabilidad = null,
+        sintomasNumericos, diagnosticoModelo = null, diagnosticoMedico = null, probabilidad = null,
         explicacion = null
     ) {
         this.id = id;
@@ -51,7 +46,7 @@ export default class Diagnostico {
         this.diagnosticoMedico = diagnosticoMedico;
         this.probabilidad = probabilidad;
         this.explicacion = explicacion;
-        this.validado = diagnosticoMedico != 2;
+        this.validado = diagnosticoMedico !== null;
     }
 
     /**
@@ -85,7 +80,7 @@ export default class Diagnostico {
     }
 
     get fechaFormateada() {
-        return dayjs(this.fecha, "DD-MM-YYYY");
+        return dayjs(this.fecha).format("DD-MM-YYYY");
     }
 
     /**
@@ -101,21 +96,17 @@ export default class Diagnostico {
             probabilidad, // numero
             explicacion, // Arreglo de JSON [{ campo: string, contribucion: number }]
             diagnosticoModelo, // booleano
-            diagnosticoMedicom, // booleano
+            diagnosticoMedico, // booleano
             comorbilidades // Arreglo de strings
         } = json;
         const sintomasBinarios = {};
         const sintomasNumericos = {};
 
-        for (const i of COMORBILIDADES) {
-            comorbilidades[i] = json[i]; // ya es booleano
-        }
-
         for (const i of CAMPOS_BIN) {
             sintomasBinarios[i] = json[i]; // ya es booleano
         }
 
-        for (const i of CAMPOS_NUMERICOS) {
+        for (const i of CAMPOS_NUM) {
             sintomasNumericos[i] = json[i]; // ya vienen convertidos a numero
         }
 
@@ -136,7 +127,7 @@ export default class Diagnostico {
             diagnosticoMedico: this.diagnosticoMedico,
             probabilidad: this.probabilidad,
             usuario: this.usuario,
-            explicacion: this.explicacion.toJson(),
+            explicacion: this.explicacion?.toJson(),
             comorbilidades: this.comorbilidades,
             ...this.sintomasBinarios,
             ...this.sintomasNumericos,
@@ -154,14 +145,21 @@ export default class Diagnostico {
             json[i] = procBool(this.sintomasBinarios[i]);
         }
         for (const i of CAMPOS_DECIMALES) {
-            json[i] = parseFloat(this.sintomasNumericos[i].replace(",", "."));
+            json[i] = this.sintomasNumericos[i];
         }
         for (const i of CAMPOS_ENTEROS) {
-            json[i] = parseInt(this.sintomasNumericos[i].replace(",", "."), 10);
+            json[i] = this.sintomasNumericos[i];
         }
         for (const i of COMORBILIDADES) {
-            const clave = "enfermedad_" + i.toLocaleLowerCase().replace(" ", "_").normalize('NFD').
-                replace(/[\u0300-\u036f]/g, "");
+            let clave = "";
+
+            if (i == "Enfermedad coronaria") {
+                clave = "enfermedad_coronaria";
+            } else {
+                clave = i.replace("Enfermedad ", "").toLocaleLowerCase().normalize('NFD').
+                replace(/[\u0300-\u036f]/g, "").replace(" ", "_");
+            }
+
             json[clave] = this.#comorbilidades[i];
         }
         return json;

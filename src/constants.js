@@ -30,12 +30,12 @@ export const CAMPOS_BIN = [
 ];
 export const CAMPOS_DECIMALES = ["saturacion_de_la_sangre", "plt", "hb", "wbc"];
 export const CAMPOS_ENTEROS = ["edad","presion_sistolica", "presion_diastolica", "frecuencia_respiratoria",
-    "frecuencia_cardiada"
+    "frecuencia_cardiaca"
 ];
 export const CAMPOS_NUM = [...CAMPOS_DECIMALES, ...CAMPOS_ENTEROS];
-export const CAMPOS_COMORBILIDADES = ["enfermedad_hematologica", "enfermedad_vascular", "enfermedad_pulmonar", "enfermedad_renal", "enfermedad_cardiaca",
-    "enfermedad_coronaria", "enfermedad_endocrina", "enfermedad_gastrointestinal", "enfermedad_urologica", "enfermedad_neurologica",
-    "enfermedad_trombofilia", "enfermedad_vih", "enfermedad_diabetes_mellitus", "enfermedad_hepatopatia_cronica", "enfermedad_hipertension_arterial"
+export const CAMPOS_COMORBILIDADES = ["hematologica", "vascular", "pulmonar", "renal", "cardiaca",
+    "enfermedad_coronaria", "endocrina", "gastrointestinal", "urologica", "neurologica",
+    "trombofilia", "vih", "diabetes_mellitus", "hepatopatia_cronica", "hipertension_arterial"
 ];
 export const COMORBILIDADES = ["Enfermedad vascular", "Trombofilia", "Enfermedad renal", "Enfermedad pulmonar",
     "Diabetes Mellitus", "Hipertensión arterial", "Hepatopatía crónica", "Enfermedad hematológica", "VIH", "Enfermedad cardíaca",
