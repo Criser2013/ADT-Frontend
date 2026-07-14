@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavegacion } from "../../hooks/Navegacion";
 import Check from "../tabs/Check";
 import SelectChip from "../tabs/SelectChip";
-import { CAMPOS_BIN, CAMPOS_TXT, COMORBILIDADES, SEXOS, SINTOMAS } from "../../constants";
+import { CAMPOS_BIN, CAMPOS_NUM, COMORBILIDADES, SEXOS, SINTOMAS } from "../../constants";
 import CloseIcon from "@mui/icons-material/Close";
 import ClearIcon from '@mui/icons-material/Clear';
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
@@ -148,7 +148,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             setValue("otraEnfermedad", pacienteSeleccionado.otraEnfermedad);
         } else {
             setValue("sexo", 2);
-            for (const i of CAMPOS_TXT) {
+            for (const i of CAMPOS_NUM) {
                 setValue(i, "");
             }
             for (const i of CAMPOS_BIN.slice(1)) {
@@ -169,8 +169,8 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         const oneHotComor = oneHotEncoderOtraEnfermedad(datos.otraEnfermedad ? datos.otrasEnfermedades : []);
 
         for (let i = 0; i < CAMPOS_BIN.length; i++) {
-            if (i < CAMPOS_TXT.length) {
-                aux[CAMPOS_TXT[i]] = datos[CAMPOS_TXT[i]];
+            if (i < CAMPOS_NUM.length) {
+                aux[CAMPOS_NUM[i]] = datos[CAMPOS_NUM[i]];
             }
 
             aux[CAMPOS_BIN[i]] = datos[CAMPOS_BIN[i]];
@@ -208,7 +208,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
         }
 
         // Transformando los datos de texto a números
-        for (const i of CAMPOS_TXT) {
+        for (const i of CAMPOS_NUM) {
             if (typeof datos[i] == "string") {
                 aux[i] = parseFloat(datos[i].replace(",", "."));
             } else {

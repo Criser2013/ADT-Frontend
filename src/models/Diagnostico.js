@@ -1,7 +1,9 @@
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import dayjs from "dayjs";
-import { CAMPOS_BIN, CAMPOS_TXT, COMORBILIDADES } from "../constants";
+import ExplicacionLime from "./ExplicacionLime";
+import { CAMPOS_BIN, CAMPOS_DECIMALES, CAMPOS_ENTEROS, CAMPOS_NUM, COMORBILIDADES } from "../constants";
 import { oneHotDecoderOtraEnfermedad } from "../utils/TratarDatos";
+import { procBool } from "../utils/TratarDatos";
 
 dayjs.extend(customParseFormat);
 
@@ -21,31 +23,23 @@ export default class Diagnostico {
      * @param {Boolean} otraEnfermedad Indicador de si el paciente tiene otra enfermedad.
      * @param {Object} sintomasBinarios Objeto con los síntomas binarios del paciente.
      * @param {Object} sintomasNumericos Objeto con los síntomas numéricos del paciente.
-     * @param {Number} diagnosticoModelo Valor del diagnóstico generado por el modelo. Los valores son:
-     * - 0: Negativo
-     * - 1: Positivo
-     * - 2: No diagnosticado
-     * @param {Number} diagnosticoMedico Valor del diagnóstico realizado por el médico toma los mismos 
-     * valores que el diagnóstico del modelo.
-     * @param {Number} probabilidad Probabilidad del diagnóstico estimada por el modelo.
-     * @param {String} explicacion Explicación del diagnóstico generada por el modelo LIME.
      */
     constructor(id, usuario, paciente, comorbilidades, fecha, otraEnfermedad, sintomasBinarios,
-        sintomasNumericos, diagnosticoModelo, diagnosticoMedico, probabilidad, explicacion) {
+        sintomasNumericos) {
         this.id = id;
         this.usuario = usuario;
         this.paciente = paciente;
         this.fecha = fecha;
         this.otraEnfermedad = otraEnfermedad;
         this.comorbilidades = comorbilidades;
-        this.diagnosticoModelo = diagnosticoModelo ? diagnosticoModelo : 2;
-        this.diagnosticoMedico = diagnosticoMedico ? diagnosticoMedico : 2;
-        this.probabilidad = probabilidad ? probabilidad : 0;
-        this.explicacion = explicacion ? explicacion : null;
-        this.sintomasBinarios = sintomasBinarios || {};
-        this.sintomasNumericos = sintomasNumericos || {};
+        this.sintomasBinarios = sintomasBinarios;
+        this.sintomasNumericos = sintomasNumericos;
 
-        this.validado = this.diagnosticoMedico != 2;
+        this.diagnosticoModelo = 2;
+        this.diagnosticoMedico = 2;
+        this.probabilidad = null;
+        this.explicacion = null;
+        this.validado = false;
     }
 
     /**
@@ -101,8 +95,8 @@ export default class Diagnostico {
             sintomasBinarios[i] = json[i] || 0;
         }
 
-        for (const i of CAMPOS_TXT) {
-            sintomasNumericos[i] = json[i] || "";
+        for (const i of CAMPOS_NUM) {
+            sintomasNumericos[i] = json[i] || 0;
         }
 
         return new Diagnostico(
@@ -122,10 +116,41 @@ export default class Diagnostico {
             diagnosticoMedico: this.diagnosticoMedico,
             probabilidad: this.probabilidad,
             usuario: this.usuario,
-            explicacion: this.explicacion.toJson(),
+            explicacion: this.explicacion.explicacion,
             ...this.sintomasBinarios,
             ...this.sintomasNumericos,
             ...this.#comorbilidades
         };
+    }
+
+    /**
+     * Transforma los datos del diagnóstico en un objeto JSON con el formato requerido por la API.
+     * @returns {Object} Objeto JSON con los datos del diagnóstico en el formato requerido por la 
+     * API.
+     */
+    toJsonApi() {
+        const json = {};
+        for (const i of CAMPOS_BIN) {
+            json[i] = procBool(this.sintomasBinarios[i]);
+        }
+        for (const i of CAMPOS_DECIMALES) {
+            json[i] = parseFloat(this.sintomasNumericos[i].replace(",", "."));
+        }
+        for (const i of CAMPOS_ENTEROS) {
+            json[i] = parseInt(this.sintomasNumericos[i].replace(",", "."), 10);
+        }
+        return json;
+    }
+
+    /**
+     * @param {Number} diagnosticoMedico Diagnóstico de TEP dado por el médico. 
+     * Toma los mismos valores que el diagnóstico del modelo:
+     * - 0: Negativo
+     * - 1: Positivo
+     * - 2: No determinado
+     */
+    validar(diagnosticoMedico) {
+        this.diagnosticoMedico = diagnosticoMedico;
+        this.validado = true;
     }
 }

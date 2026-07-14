@@ -71,61 +71,6 @@ export function validarArray(array, funcEval, funcVal, callback) {
 };
 
 /**
- * Transforma los datos del paciente a un formato adecuado para el modelo.
- * @param {JSON} datos - JSON con los datos del paciente sin incluir las comorbildiades.
- * @param {JSON} comorbilidades - JSON OneHot con las comorbilidades del paciente.
- * @returns {JSON}
- */
-export function transformarDatos(datos, comorbilidades) {
-    return {
-        edad: parseInt(datos.edad, 10),
-        sexo: datos.sexo,
-        bebedor: procBool(datos.bebedor),
-        fumador: procBool(datos.fumador),
-        proc_quirurgico_traumatismo: procBool(datos.cirugiaReciente),
-        inmovilidad_de_m_inferiores: procBool(datos.inmovilidad),
-        viaje_prolongado: procBool(datos.viajeProlongado),
-        TEP_TVP_previo: procBool(datos.tepPrevio),
-        malignidad: procBool(datos.malignidad),
-        disnea: procBool(datos.disnea),
-        dolor_toracico: procBool(datos.dolorToracico),
-        tos: procBool(datos.tos),
-        hemoptisis: procBool(datos.hemoptisis),
-        sintomas_disautonomicos: procBool(datos.disautonomicos),
-        edema_de_m_inferiores: procBool(datos.edema),
-        frecuencia_respiratoria: parseFloat(datos.frecRes.replace(",", ".")),
-        saturacion_de_la_sangre: parseFloat(datos.so2.replace(",", ".")),
-        frecuencia_cardiaca: parseInt(datos.frecCard.replace(",", "."), 10),
-        presion_sistolica: parseInt(datos.presionSis.replace(",", "."), 10),
-        presion_diastolica: parseInt(datos.presionDias.replace(",", "."), 10),
-        fiebre: procBool(datos.fiebre),
-        crepitaciones: procBool(datos.crepitaciones),
-        sibilancias: procBool(datos.sibilancias),
-        soplos: procBool(datos.soplos),
-        wbc: parseFloat(datos.wbc.replace(",", ".")),
-        hb: parseFloat(datos.hemoglobina.replace(",", ".")),
-        plt: parseInt(datos.plaquetas.replace(",", "."), 10),
-        derrame: procBool(datos.derrame),
-        otra_enfermedad: procBool(datos.otraEnfermedad),
-        hematologica: comorbilidades["Enfermedad hematológica"],
-        cardiaca: comorbilidades["Enfermedad cardíaca"],
-        enfermedad_coronaria: comorbilidades["Enfermedad coronaria"],
-        diabetes_mellitus: comorbilidades["Diabetes"],
-        endocrina: comorbilidades["Enfermedad endocrina"],
-        neurologica: comorbilidades["Enfermedad neurológica"],
-        gastrointestinal: comorbilidades["Enfermedad gastrointestinal"],
-        hepatopatia_cronica: comorbilidades["Hepatopatía crónica"],
-        hipertension_arterial: comorbilidades["Hipertensión arterial"],
-        pulmonar: comorbilidades["Enfermedad pulmonar"],
-        renal: comorbilidades["Enfermedad renal"],
-        trombofilia: comorbilidades["Trombofilia"],
-        urologica: comorbilidades["Enfermedad urológica"],
-        vascular: comorbilidades["Enfermedad vascular"],
-        vih: comorbilidades["VIH"]
-    };
-};
-
-/**
  * Convierte un valor booleano a un entero.
  * @param {Boolean} valor 
  * @returns {Integer}

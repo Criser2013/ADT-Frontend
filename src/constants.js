@@ -2,10 +2,6 @@ export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export const DRIVE_API_URL = import.meta.env.VITE_DRIVE_API_URL || "https://www.googleapis.com/drive/v3";
 export const DRIVE_UPLOAD_API_URL = import.meta.env.VITE_DRIVE_UPLOAD_API_URL || "https://www.googleapis.com/upload/drive/v3";
 export const DRIVE_FILENAME = import.meta.env.VITE_DRIVE_FILENAME || "HADT - Pacientes.xlsx";
-export const COMORBILIDADES = ["Enfermedad vascular", "Trombofilia", "Enfermedad renal", "Enfermedad pulmonar",
-    "Diabetes", "Hipertensión arterial", "Hepatopatía crónica", "Enfermedad hematológica", "VIH", "Enfermedad cardíaca",
-    "Enfermedad coronaria", "Enfermedad endocrina", "Enfermedad gastrointestinal", "Enfermedad urológica", "Enfermedad neurológica",
-];
 export const DRIVE_FOLDER_NAME = import.meta.env.VITE_DRIVE_FOLDER_NAME || "HADT: Herramienta para apoyar el diagnóstico de TEP";
 export const URL_MANUAL_USUARIO = import.meta.env.VITE_URL_MANUAL_USUARIO || "https://www.youtube.com";
 export const URL_MANUAL_ADMIN = import.meta.env.VITE_URL_MANUAL_ADMIN || "https://www.google.com";
@@ -15,10 +11,10 @@ export const SEXOS = [
     { texto: "txtMasculino", val: 0 },
     { texto: "txtFemenino", val: 1 }
 ];
-export const SINTOMAS = ["fumador", "bebedor", "tos", "fiebre", "edema",
-    "inmovilidad", "cirugiaReciente", "disautonomicos", "viajeProlongado",
+export const SINTOMAS = ["fumador", "bebedor", "tos", "fiebre", "edema_de_m_inferiores",
+    "inmovilidad_de_m_inferiores", "proc_quirurgico_traumatismo", "sintomas_disautonomicos", "viaje_prolongado",
     "disnea", "sibilancias", "crepitaciones", "derrame", "malignidad",
-    "hemoptisis", "dolorToracico", "tepPrevio", "soplos"
+    "hemoptisis", "dolor_toracico", "TEP_TVP_previo", "soplos"
 ];
 export const DIAGNOSTICOS = [
     { valor: 2, texto: "txtSelecDiagnostico" },
@@ -28,11 +24,20 @@ export const DIAGNOSTICOS = [
 export const URL_CONDICIONES = import.meta.env.VITE_URL_CONDICIONES || "https://google.com";
 export const CAMPOS_BIN = [
     "sexo", "fumador", "bebedor", "tos", "fiebre", "crepitaciones",
-    "dolorToracico", "malignidad", "hemoptisis", "disnea", "sibilancias",
-    "derrame", "tepPrevio", "edema", "disautonomicos", "inmovilidad",
-    "viajeProlongado", "cirugiaReciente", "otraEnfermedad", "soplos"
+    "dolor_toracico", "malignidad", "hemoptisis", "disnea", "sibilancias",
+    "derrame", "TEP_TVP_previo", "edema_de_m_inferiores", "sintomas_disautonomicos", "inmovilidad_de_m_inferiores",
+    "viaje_prolongado", "proc_quirurgico_traumatismo", "otra_enfermedad", "soplos"
 ];
-export const CAMPOS_TXT = ["edad", "presionSis", "presionDias", "frecRes",
-    "frecCard", "so2", "plaquetas", "hemoglobina", "wbc"];
+export const CAMPOS_DECIMALES = ["saturacion_de_la_sangre", "plt", "hb", "wbc"];
+export const CAMPOS_ENTEROS = ["edad","presion_sistolica", "presion_diastolica", "frecuencia_respiratoria",
+    "frecuencia_cardiada"
+];
+export const CAMPOS_NUM = [...CAMPOS_DECIMALES, ...CAMPOS_ENTEROS];
+export const COMORBILIDADES = ["Enfermedad vascular", "Trombofilia", "Enfermedad renal", "Enfermedad pulmonar",
+    "Diabetes", "Hipertensión arterial", "Hepatopatía crónica", "Enfermedad hematológica", "VIH", "Enfermedad cardíaca",
+    "Enfermedad coronaria", "Enfermedad endocrina", "Enfermedad gastrointestinal", "Enfermedad urológica", "Enfermedad neurológica",
+];
+
+
 
 export const AES_KEY = import.meta.env.VITE_CLAVE_AES || "1234567890123456"; // Clave de 16 caracteres para AES-128
