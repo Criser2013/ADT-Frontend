@@ -1,5 +1,5 @@
-import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import dayjs from "dayjs";
 import { COMORBILIDADES } from "../constants";
 import { oneHotDecoderOtraEnfermedad } from "../utils/TratarDatos";
 
@@ -11,7 +11,22 @@ dayjs.extend(customParseFormat);
 export default class Paciente {
     #comorbilidades = {};
 
-    constructor(id, cedula, nombre, sexo, fechaNacimiento, telefono, fechaCreacion, otraEnfermedad, comorbilidades = []) {
+    /**
+     * Instancia de paciente registrado en el sistema.
+     * @param {String} id ID del paciente.
+     * @param {String} cedula Número de cédula del paciente.
+     * @param {String} nombre Nombre del paciente.
+     * @param {Number} sexo Sexo del paciente. Los valores son:
+     * - 0: Masculino
+     * - 1: Femenino
+     * @param {String} fechaNacimiento Fecha de nacimiento del paciente en formato "DD-MM-YYYY".
+     * @param {String} telefono Número de teléfono del paciente.
+     * @param {String} fechaCreacion Fecha de creación del registro del paciente en formato "DD-MM-YYYY".
+     * @param {Boolean} otraEnfermedad Indicador de si el paciente tiene otra enfermedad.
+     * @param {Array<String>} comorbilidades Lista de comorbilidades del paciente.
+     */
+    constructor(id, cedula, nombre, sexo, fechaNacimiento, telefono, fechaCreacion, otraEnfermedad,
+        comorbilidades = []) {
         this.id = id;
         this.cedula = cedula;
         this.nombre = nombre;
