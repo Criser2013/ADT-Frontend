@@ -122,7 +122,7 @@ export default class Diagnostico {
         return new Diagnostico(
             id, usuario, paciente, comorbilidades, fecha.toDate(), otraEnfermedad,
             sintomasBinarios, sintomasNumericos, diagnosticoModelo, diagnosticoMedico,
-            probabilidad, ExplicacionLime.fromJson(explicacion)
+            probabilidad, new ExplicacionLime(explicacion)
         );
     }
 
@@ -136,7 +136,7 @@ export default class Diagnostico {
             diagnosticoMedico: this.diagnosticoMedico,
             probabilidad: this.probabilidad,
             usuario: this.usuario,
-            explicacion: this.explicacion.explicacion,
+            explicacion: this.explicacion.toJson(),
             comorbilidades: this.comorbilidades,
             ...this.sintomasBinarios,
             ...this.sintomasNumericos,
