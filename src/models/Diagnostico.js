@@ -119,14 +119,12 @@ export default class Diagnostico {
 
     toJson() {
         return {
-            id: this.id,
             otraEnfermedad: this.otraEnfermedad,
             fecha: Timestamp.fromDate(this.fecha),
             paciente: this.paciente,
             diagnosticoModelo: this.diagnosticoModelo,
             diagnosticoMedico: this.diagnosticoMedico,
             probabilidad: this.probabilidad,
-            usuario: this.usuario,
             explicacion: this.explicacion?.toJson(),
             comorbilidades: this.comorbilidades,
             ...this.sintomasBinarios,
@@ -166,11 +164,7 @@ export default class Diagnostico {
     }
 
     /**
-     * @param {Number} diagnosticoMedico Diagnóstico de TEP dado por el médico. 
-     * Toma los mismos valores que el diagnóstico del modelo:
-     * - 0: Negativo
-     * - 1: Positivo
-     * - 2: No determinado
+     * @param {Boolean} diagnosticoMedico Diagnóstico de TEP dado por el médico. 
      */
     validar(diagnosticoMedico) {
         if (this.validado) {
