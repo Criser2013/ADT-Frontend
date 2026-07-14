@@ -33,8 +33,12 @@ export const CAMPOS_ENTEROS = ["edad","presion_sistolica", "presion_diastolica",
     "frecuencia_cardiada"
 ];
 export const CAMPOS_NUM = [...CAMPOS_DECIMALES, ...CAMPOS_ENTEROS];
+export const CAMPOS_COMORBILIDADES = ["enfermedad_hematologica", "enfermedad_vascular", "enfermedad_pulmonar", "enfermedad_renal", "enfermedad_cardiaca",
+    "enfermedad_coronaria", "enfermedad_endocrina", "enfermedad_gastrointestinal", "enfermedad_urologica", "enfermedad_neurologica",
+    "enfermedad_trombofilia", "enfermedad_vih", "enfermedad_diabetes_mellitus", "enfermedad_hepatopatia_cronica", "enfermedad_hipertension_arterial"
+];
 export const COMORBILIDADES = ["Enfermedad vascular", "Trombofilia", "Enfermedad renal", "Enfermedad pulmonar",
-    "Diabetes", "Hipertensión arterial", "Hepatopatía crónica", "Enfermedad hematológica", "VIH", "Enfermedad cardíaca",
+    "Diabetes Mellitus", "Hipertensión arterial", "Hepatopatía crónica", "Enfermedad hematológica", "VIH", "Enfermedad cardíaca",
     "Enfermedad coronaria", "Enfermedad endocrina", "Enfermedad gastrointestinal", "Enfermedad urológica", "Enfermedad neurológica",
 ];
 

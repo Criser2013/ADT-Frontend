@@ -4,6 +4,7 @@ import ExplicacionLime from "./ExplicacionLime";
 import { CAMPOS_BIN, CAMPOS_DECIMALES, CAMPOS_ENTEROS, CAMPOS_NUM, COMORBILIDADES } from "../constants";
 import { oneHotDecoderOtraEnfermedad } from "../utils/TratarDatos";
 import { procBool } from "../utils/TratarDatos";
+import { Timestamp } from "firebase/firestore";
 
 dayjs.extend(customParseFormat);
 
@@ -19,13 +20,25 @@ export default class Diagnostico {
      * @param {String} usuario UID del usuario que realizó el diagnóstico.
      * @param {String} paciente UID del paciente al que pertenece el diagnóstico.
      * @param {Array<String>} comorbilidades Lista de comorbilidades del paciente.
-     * @param {String} fecha Fecha del diagnóstico en formato "DD-MM-YYYY".
+     * @param {Date} fecha Fecha del diagnóstico.
      * @param {Boolean} otraEnfermedad Indicador de si el paciente tiene otra enfermedad.
      * @param {Object} sintomasBinarios Objeto con los síntomas binarios del paciente.
      * @param {Object} sintomasNumericos Objeto con los síntomas numéricos del paciente.
+     * @pàram {Number} probabilidad Probabilidad de TEP según el modelo.
+     * @param {ExplicacionLime} explicacion Explicación del modelo de diagnóstico.
+     * @param {Number} diagnosticoModelo Diagnóstico de TEP dado por el modelo. 
+     * Toma los siguientes valores:
+     * - 0: Negativo
+     * - 1: Positivo
+     * - 2: No determinado
+     * @param {Number} diagnosticoMedico Diagnóstico de TEP dado por el médico. 
+     * Toma los mismos valores que el diagnóstico del modelo.
      */
-    constructor(id, usuario, paciente, comorbilidades, fecha, otraEnfermedad, sintomasBinarios,
-        sintomasNumericos) {
+    constructor(
+        id, usuario, paciente, comorbilidades, fecha, otraEnfermedad, sintomasBinarios,
+        sintomasNumericos, diagnosticoModelo = 2, diagnosticoMedico = 2, probabilidad = null,
+        explicacion = null
+    ) {
         this.id = id;
         this.usuario = usuario;
         this.paciente = paciente;
@@ -34,12 +47,11 @@ export default class Diagnostico {
         this.comorbilidades = comorbilidades;
         this.sintomasBinarios = sintomasBinarios;
         this.sintomasNumericos = sintomasNumericos;
-
-        this.diagnosticoModelo = 2;
-        this.diagnosticoMedico = 2;
-        this.probabilidad = null;
-        this.explicacion = null;
-        this.validado = false;
+        this.diagnosticoModelo = diagnosticoModelo;
+        this.diagnosticoMedico = diagnosticoMedico;
+        this.probabilidad = probabilidad;
+        this.explicacion = explicacion;
+        this.validado = diagnosticoMedico != 2;
     }
 
     /**
@@ -81,28 +93,36 @@ export default class Diagnostico {
      * @returns {Diagnostico} Una instancia de la clase Diagnostico creada a partir de un objeto JSON.
      */
     static fromJson(json) {
-        const { id, usuario, paciente, otraEnfermedad, fecha,
-            probabilidad, explicacion, diagnosticoModelo, diagnosticoMedico } = json;
-        const comorbilidades = {};
+        const { id, //string
+            usuario, //string
+            paciente, //string
+            otraEnfermedad, //string
+            fecha, //timeStamp de Firebase
+            probabilidad, // numero
+            explicacion, // Arreglo de JSON [{ campo: string, contribucion: number }]
+            diagnosticoModelo, // booleano
+            diagnosticoMedicom, // booleano
+            comorbilidades // Arreglo de strings
+        } = json;
         const sintomasBinarios = {};
         const sintomasNumericos = {};
 
         for (const i of COMORBILIDADES) {
-            comorbilidades[i] = json[i] || 0;
+            comorbilidades[i] = json[i]; // ya es booleano
         }
 
         for (const i of CAMPOS_BIN) {
-            sintomasBinarios[i] = json[i] || 0;
+            sintomasBinarios[i] = json[i]; // ya es booleano
         }
 
-        for (const i of CAMPOS_NUM) {
-            sintomasNumericos[i] = json[i] || 0;
+        for (const i of CAMPOS_NUMERICOS) {
+            sintomasNumericos[i] = json[i]; // ya vienen convertidos a numero
         }
 
         return new Diagnostico(
-            id, usuario, paciente, comorbilidades, fecha, otraEnfermedad,
+            id, usuario, paciente, comorbilidades, fecha.toDate(), otraEnfermedad,
             sintomasBinarios, sintomasNumericos, diagnosticoModelo, diagnosticoMedico,
-            probabilidad, explicacion
+            probabilidad, ExplicacionLime.fromJson(explicacion)
         );
     }
 
@@ -110,16 +130,16 @@ export default class Diagnostico {
         return {
             id: this.id,
             otraEnfermedad: this.otraEnfermedad,
-            fecha: this.fecha,
+            fecha: Timestamp.fromDate(this.fecha),
             paciente: this.paciente,
             diagnosticoModelo: this.diagnosticoModelo,
             diagnosticoMedico: this.diagnosticoMedico,
             probabilidad: this.probabilidad,
             usuario: this.usuario,
             explicacion: this.explicacion.explicacion,
+            comorbilidades: this.comorbilidades,
             ...this.sintomasBinarios,
             ...this.sintomasNumericos,
-            ...this.#comorbilidades
         };
     }
 
@@ -139,6 +159,11 @@ export default class Diagnostico {
         for (const i of CAMPOS_ENTEROS) {
             json[i] = parseInt(this.sintomasNumericos[i].replace(",", "."), 10);
         }
+        for (const i of COMORBILIDADES) {
+            const clave = "enfermedad_" + i.toLocaleLowerCase().replace(" ", "_").normalize('NFD').
+                replace(/[\u0300-\u036f]/g, "");
+            json[clave] = this.#comorbilidades[i];
+        }
         return json;
     }
 
@@ -150,7 +175,11 @@ export default class Diagnostico {
      * - 2: No determinado
      */
     validar(diagnosticoMedico) {
-        this.diagnosticoMedico = diagnosticoMedico;
-        this.validado = true;
+        if (this.validado) {
+            throw new Error("El diagnóstico ya ha sido validado previamente.");
+        } else {
+            this.diagnosticoMedico = diagnosticoMedico;
+            this.validado = true;
+        }
     }
 }
