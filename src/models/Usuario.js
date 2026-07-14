@@ -2,6 +2,13 @@
  * Modelo que representa un usuario del sistema.
  */
 export default class Usuario {
+    #uid = "";
+    #correo = "";
+    #nombre = "";
+    #esAdmin = false;
+    #estado = true;
+    #fechaRegistro = null;
+    #fechaUltimoAcceso = null;
 
     /**
      * Instancia de la clase Usuario.

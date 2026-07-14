@@ -1,11 +1,11 @@
 import { expect, describe, test } from '@jest/globals';
-import { detTxtDiagnostico, evaluarIntervalo, nombresCampos, oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, quitarDatosPersonales, transformarDatos, procLime } from "../../../../src/utils/TratarDatos";
+import { detTxtDiagnostico, evaluarIntervalo, nombresCampos, oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, quitarDatosPersonales, procLime } from "../../../../src/utils/TratarDatos";
 
 describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
     test("CP - 15", () => {
-        const res = oneHotEncoderOtraEnfermedad(["Enfermedad vascular", "Diabetes"]);
+        const res = oneHotEncoderOtraEnfermedad(["Enfermedad vascular", "Diabetes Mellitus"]);
         expect(res).toEqual({
-            "Enfermedad vascular": 1, "Diabetes": 1, "Trombofilia": 0, "Enfermedad renal": 0,
+            "Enfermedad vascular": 1, "Diabetes Mellitus": 1, "Trombofilia": 0, "Enfermedad renal": 0,
             "Enfermedad pulmonar": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0,
             "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0,
@@ -16,7 +16,7 @@ describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
     test("CP - 16", () => {
         const res = oneHotEncoderOtraEnfermedad([]);
         expect(res).toEqual({
-            "Enfermedad vascular": 0, "Diabetes": 0, "Trombofilia": 0, "Enfermedad renal": 0,
+            "Enfermedad vascular": 0, "Diabetes Mellitus": 0, "Trombofilia": 0, "Enfermedad renal": 0,
             "Enfermedad pulmonar": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0,
             "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0,
@@ -28,18 +28,18 @@ describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
 describe("Validar la función 'oneHotInversoOtraEnfermedad'", () => {
     test("CP - 51", () => {
         const res = oneHotDecoderOtraEnfermedad({
-            "Enfermedad vascular": 1, "Diabetes": 1, "Trombofilia": 0, "Enfermedad renal": 0,
+            "Enfermedad vascular": 1, "Diabetes Mellitus": 1, "Trombofilia": 0, "Enfermedad renal": 0,
             "Enfermedad pulmonar": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0,
             "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0,
             "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0
         });
-        expect(res).toEqual(["Enfermedad vascular", "Diabetes"]);
+        expect(res).toEqual(["Enfermedad vascular", "Diabetes Mellitus"]);
     });
 
     test("CP - 52", () => {
         const res = oneHotDecoderOtraEnfermedad({
-            "Enfermedad vascular": 0, "Diabetes": 0, "Trombofilia": 0, "Enfermedad renal": 0,
+            "Enfermedad vascular": 0, "Diabetes Mellitus": 0, "Trombofilia": 0, "Enfermedad renal": 0,
             "Enfermedad pulmonar": 0, "Hipertensión arterial": 0, "Hepatopatía crónica": 0,
             "Enfermedad hematológica": 0, "VIH": 0, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 0, "Enfermedad endocrina": 0,
@@ -54,7 +54,7 @@ describe("Validar la función 'quitarDatosPersonales'", () => {
         const res = quitarDatosPersonales({
             nombre: "Nombre de persona", sexo: 0, fechaNacimiento: "20/12/2025",
             telefono: "12345678", cedula: "123456789", "Enfermedad vascular": 1,
-            "Enfermedad vascular": 1, "Diabetes": 0, "Trombofilia": 0,
+            "Enfermedad vascular": 1, "Diabetes Mellitus": 0, "Trombofilia": 0,
             "Enfermedad pulmonar": 0, "Hipertensión arterial": 1, "Hepatopatía crónica": 0,
             "Enfermedad hematológica": 1, "VIH": 1, "Enfermedad cardíaca": 0,
             "Enfermedad coronaria": 1, "Enfermedad endocrina": 1,
@@ -71,7 +71,7 @@ describe("Validar la función 'quitarDatosPersonales'", () => {
         const res = quitarDatosPersonales({
             nombre: "Nombre de persona", sexo: 0, fechaNacimiento: "20/12/2025",
             telefono: "12345678", cedula: "123456789", "Enfermedad vascular": 1,
-            "Enfermedad vascular": 1, "Diabetes": 0, "Trombofilia": 0,
+            "Enfermedad vascular": 1, "Diabetes Mellitus": 0, "Trombofilia": 0,
             "Enfermedad pulmonar": 0, "Hipertensión arterial": 1, "Hepatopatía crónica": 0,
             "Enfermedad hematológica": 1, "VIH": 1, "Enfermedad cardíaca": 0,
         });
@@ -151,7 +151,7 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
             "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
             "Enfermedad hepática": 0, "Trombofilia": 0, "VIH": 0,
-            "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
+            "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
             diagnostico: 1, validado: 0, probabilidad: 0.5, fecha: mockFecha,
             paciente: "1f073a07-6630-6d90-ac94-34c18cc96549", id: "ID", lime: [{ "VIH": 51.85, "Hepatopatía crónica": -48.2 }]
         };
@@ -172,7 +172,7 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
             "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
             "Trombofilia": 0, "VIH": 0, "Paciente": "1f073a07-6630-6d90-ac94-34c18cc96549", "Probabilidad": "50.00",
-            "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
+            "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
             "TEP": 0, "ID": "ID", "Fecha": "1/10/2023", "Diagnóstico modelo": 1,
             "Campos Significativos para el diagnóstico": '[{"VIH":51.85,"Hepatopatía crónica":-48.2}]'
         };
@@ -203,7 +203,7 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
             "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
             "Enfermedad hepática": 0, "Trombofilia": 0, "VIH": 0,
-            "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
+            "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
             diagnostico: 1, validado: 0, probabilidad: 0.5, fecha: mockFecha,
             paciente: "Paciente Test", id: "ID", lime: [{ "VIH": 51.85, "Hepatopatía crónica": -48.2 }]
         };
@@ -224,7 +224,7 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
             "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
             "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
             "Trombofilia": 0, "VIH": 0,
-            "Diabetes": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
+            "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
             "TEP": 0, "ID": "ID"
         };
 

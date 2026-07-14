@@ -94,11 +94,11 @@ describe("Pruebas para la clase Paciente", () => {
             const paciente = new Paciente(
                 "id", "1234567890", "Paciente", 0,
                 "01-01-2000", "0987654321", "07-06-2026",
-                true, ["Diabetes", "Hipertensión arterial"]
+                true, ["Diabetes Mellitus", "Hipertensión arterial"]
             );
 
             expect(paciente.comorbilidadesCodificadas).toEqual({
-                "Diabetes": 1, "Hipertensión arterial": 1,
+                "Diabetes Mellitus": 1, "Hipertensión arterial": 1,
                 "Enfermedad vascular": 0, "Trombofilia": 0,
                 "Enfermedad renal": 0, "Enfermedad pulmonar": 0,
                 "Hepatopatía crónica": 0, "Enfermedad hematológica": 0,
