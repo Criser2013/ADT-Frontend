@@ -24,8 +24,8 @@ describe("Validar la función 'cambiarDiagnostico'", () => {
     };
 
     // ----------------- Resultado esperado -----------------
-    const res1 = { success: true, data: params1.json, error: null };
-    const res2 = { success: false, data: null, error: new Error("Error al cambiar el diagnóstico.") };
+    const res1 = { success: true, data: params1.json  };
+    const res2 = { success: false, error: new Error("Error al cambiar el diagnóstico.") };
 
     // ----------------- Mocks -----------------
     const mock1 = () => params1.json;
@@ -65,11 +65,11 @@ describe("Validar la función 'verDiagnostico'", () => {
     // ----------------- Resultado esperado -----------------
     const res1 = {
         success: true,
-        data: { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj", medico: "jlasdo1212kl1jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
-        error: null
+        data: { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj", usuario: "jlasdo1212kl1jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
+        
     };
-    const res2 = { success: false, data: null, error: "El diagnóstico no existe." };
-    const res3 = { success: false, data: null, error: new Error("Error al obtener el diagnóstico.") };
+    const res2 = { success: false, error: "El diagnóstico no existe." };
+    const res3 = { success: false, error: new Error("Error al obtener el diagnóstico.") };
 
     // ----------------- Mocks -----------------
     const mock1 = () => ({ exists: () => true, data: () => res1.data, id: params1.id });
@@ -103,19 +103,19 @@ describe("Validar la función 'verDiagnostico'", () => {
 describe("Validar la función 'verDiagnosticos'", () => {
     // ----------------- Parámetros -----------------
     const params1 = {
-        usuarios: ["jlasdo1212kl1jlasdo1212kl11", "jlasdo1212kl1jlasdo1212kl12"],
+        usuarios: ["jlasdo1212kl11", "jlasdo1212kl12"],
         db: { dbname: "testDB", authentication: "testAuth" }
     };
 
     // ----------------- Resultado esperado -----------------
     const res1 = {
-        success: true, error: null,
+        success: true,
         data: [
-            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", medico: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
-            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", medico: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
+            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", usuario: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
+            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", usuario: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
         ]
     };
-    const res2 = { success: false, data: null, error: new Error("Error al obtener los diagnósticos.") };
+    const res2 = { success: false, error: new Error("Error al obtener los diagnósticos.") };
 
     // ----------------- Mocks -----------------
     const mock1 = () => ({
@@ -155,27 +155,27 @@ describe("Validar la función 'verDiagnosticos'", () => {
 describe("Validar la función 'verDiagnosticosPorMedico'", () => {
     // ----------------- Parámetros -----------------
     const params1 = {
-        uid: "jlasdo1212kl1jlasdo1212kl11",
+        uid: "jlasdo1212kl11",
         db: { dbname: "testDB", authentication: "testAuth" },
         fecha: null
     };
     const params2 = {
-        uid: "jlasdo1212kl1jlasdo1212kl11",
+        uid: "jlasdo1212kl11",
         db: { dbname: "testDB", authentication: "testAuth" },
         fecha: new Date("2024-01-01")
     };
 
     // ----------------- Resultado esperado -----------------
     const res1 = {
-        success: true, error: null, data: [
-            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", medico: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
-            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjja-jlasdo1212kl11", medico: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjl" }
+        success: true, data: [
+            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", usuario: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
+            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjja-jlasdo1212kl11", usuario: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjl" }
         ]
     };
-    const res2 = { success: false, data: null, error: new Error("Error al obtener los diagnósticos del médico.") };
+    const res2 = { success: false, error: new Error("Error al obtener los diagnósticos del médico.") };
     const res3 = {
-        success: true, error: null, data: [
-            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", medico: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" }
+        success: true, data: [
+            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", usuario: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" }
         ]
     };
 
@@ -234,8 +234,8 @@ describe("Validar la función 'eliminarDiagnostico'", () => {
     };
 
     // ----------------- Resultado esperado -----------------
-    const res1 = { success: true, data: null, error: null };
-    const res2 = { success: false, data: null, error: new Error("Error al eliminar el diagnóstico.") };
+    const res1 = { success: true };
+    const res2 = { success: false, error: new Error("Error al eliminar el diagnóstico.") };
 
     // ----------------- Mocks -----------------
     const mock1 = () => Promise.resolve(true);

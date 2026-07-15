@@ -1,34 +1,54 @@
-import { cambiarDiagnostico, verDiagnostico, verDiagnosticos, verDiagnosticosPorMedico } from "../services/Firestore";
+import {
+    cambiarDiagnostico, verDiagnostico,
+    verDiagnosticos, verDiagnosticosPorMedico
+} from "../services/Firestore";
 import { Diagnostico, ExplicacionLime } from "../models";
 import { peticionApi } from "../services/Api";
 
+/**
+ * Clase que ayuda a manejar los diagnósticos, incluyendo la comunicación con la API y la base de datos.
+ */
 export default class DiagnosticosHelper {
     #token = "";
     #db = null;
     #diagnosticos = [];
+    #peticiones = [];
 
+    /**
+     * @param {String} token Access token de Firebase para la autenticación con la API.
+     * @param {import("firebase/firestore").Firestore} firestore Instancia de Firestore.
+     */
     constructor(token, firestore) {
         this.#token = token;
         this.#db = firestore;
-    }
-
-    set db(db) {
-        this.#db = db;
     }
 
     set token(token) {
         this.#token = token;
     }
 
+    cancelarPeticiones() {
+        for (const peticion of this.#peticiones) {
+            peticion.abort();
+        }
+        this.#peticiones = [];
+    }
+
     /**
      * @param {Diagnostico} diagnostico Instancia de la clase Diagnostico.
      * @param {String} idioma Código del idioma en el que se desea recibir la respuesta.
      * @param {String} txtErrorPredet Texto de error predeterminado en caso de fallo.
+     * @returns {Object} Resultado de la operación con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
     async diagnosticar(diagnostico, idioma, txtErrorPredet) {
+        const controlador = new AbortController();
+        this.#peticiones.push(controlador);
         const { success, data, error } = await peticionApi("diagnosticar", "POST", {},
-            diagnostico.toJsonApi(), this.#token, idioma, txtErrorPredet
+            diagnostico.toJsonApi(), this.#token, idioma, txtErrorPredet, controlador
         );
+        this.#peticiones.pop();
 
         if (success) {
             diagnostico.diagnosticoModelo = data.prediccion;
@@ -53,7 +73,12 @@ export default class DiagnosticosHelper {
 
     /**
      * @param {String} id ID del diagnóstico.
-     * @returns {Diagnostico} Una instancia de la clase Diagnostico creada a partir del guardado.
+     * @returns {Object} Resultado de la operación con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
+     * contrario es null.
+     * - "data" (Diagnostico) - Contiene la instancia de la clase Diagnostico si la operación fue 
+     * exitosa, de lo contrario es null.
      */
     async cargarDiagnostico(id) {
         const { id, uid } = this.#obtenerIdentificador(id);
@@ -87,7 +112,11 @@ export default class DiagnosticosHelper {
      * @param {String} uid UID del usuario por el cual consultar.
      * @param {import("firebase/firestore").Timestamp|null} fecha Fecha a partir de la cual se 
      * quieren obtener los diagnósticos. Si no se proporciona, se obtendrán todos los diagnósticos del médico.
-     * @returns {Object}
+     * @returns {Object} Resultado de la operación con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
+     * - "data" (Array<Diagnostico>) - Contiene un array con las instancias de la clase Diagnostico si la operación fue 
+     * exitosa, de lo contrario es null.
      */
     async #cargarDiagnosticosUsuario(uid, fecha = null) {
         const { success, data, error } = await verDiagnosticosPorMedico(uid, this.#db, fecha);
@@ -102,7 +131,12 @@ export default class DiagnosticosHelper {
 
     /**
      * @param {Array<String>} usuarios Lista de UIDs de todos los usuarios.
-     * @returns {Object} Resultado de la operación en la clave `success` y un posible
+     * @returns {Object} Resultado de la operación con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
+     * contrario es null.
+     * - "data" (Array<Diagnostico>) - Contiene un array con las instancias de la clase Diagnostico 
+     * si la operación fue exitosa, de lo contrario es null.
      */
     async #cargarTodosDiagnosticos(usuarios) {
         const { success, data, error } = await verDiagnosticos(usuarios, this.#db);
@@ -116,8 +150,10 @@ export default class DiagnosticosHelper {
 
     /**
      * @param {Array<String>} ids IDs de los diagnósticos a eliminar.
-     * @returns {Object} Resultado de la operación en la clave `success` y un posible 
-     * error en la clave `error`.
+     * @returns {Object} Resultado de la operación con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
+     * contrario es null.
      */
     async eliminarDiagnosticos(ids) {
         let error = null;
@@ -142,8 +178,10 @@ export default class DiagnosticosHelper {
 
     /**
      * @param {String} id ID del diagnóstico a eliminar.
-     * @returns {Promise<Object>} Resultado de la operación en la clave `success` y un posible 
-     * error en la clave `error`.
+     * @returns {Promise<Object>} Resultado de la operación con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
+     * contrario es null.
      */
     async #eliminarDiagnostico(id) {
         const { id, uid } = this.#obtenerIdentificador(id);
