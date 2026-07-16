@@ -88,16 +88,8 @@ export default class Diagnostico {
      * @returns {Diagnostico} Una instancia de la clase Diagnostico creada a partir de un objeto JSON.
      */
     static fromJson(json) {
-        const { id, //string
-            usuario, //string
-            paciente, //string
-            otraEnfermedad, //string
-            fecha, //timeStamp de Firebase
-            probabilidad, // numero
-            explicacion, // Arreglo de JSON [{ campo: string, contribucion: number }]
-            diagnosticoModelo, // booleano
-            diagnosticoMedico, // booleano
-            comorbilidades // Arreglo de strings
+        const { id, usuario, paciente, otraEnfermedad, fecha, probabilidad,
+            explicacion, diagnosticoModelo, diagnosticoMedico, comorbilidades
         } = json;
         const sintomasBinarios = {};
         const sintomasNumericos = {};

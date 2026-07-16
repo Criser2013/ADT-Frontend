@@ -1,9 +1,10 @@
 import {
-    cambiarDiagnostico, verDiagnostico,
+    cambiarDiagnostico, eliminarDiagnostico, verDiagnostico,
     verDiagnosticos, verDiagnosticosPorMedico
 } from "../services/Firestore";
 import { Diagnostico, ExplicacionLime } from "../models";
 import { peticionApi } from "../services/Api";
+
 
 /**
  * Clase que ayuda a manejar los diagnósticos, incluyendo la comunicación con la API y la base de datos.
@@ -72,7 +73,7 @@ export default class DiagnosticosHelper {
     }
 
     /**
-     * @param {String} id ID del diagnóstico.
+     * @param {String} idInstancia ID del diagnóstico.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
@@ -80,9 +81,9 @@ export default class DiagnosticosHelper {
      * - "data" (Diagnostico) - Contiene la instancia de la clase Diagnostico si la operación fue 
      * exitosa, de lo contrario es null.
      */
-    async cargarDiagnostico(id) {
-        const { id, uid } = this.#obtenerIdentificador(id);
-        const { success, data, error } = await verDiagnostico(id, uid, this.#db)
+    async cargarDiagnostico(idInstancia) {
+        const { id, uid } = await this.#obtenerIdentificador(idInstancia);
+        const { success, data, error } = await verDiagnostico(id, uid, this.#db);
         if (success) {
             return { success, data: Diagnostico.fromJson(data) };
         } else {
@@ -157,34 +158,34 @@ export default class DiagnosticosHelper {
      */
     async eliminarDiagnosticos(ids) {
         let error = null;
-        let res = true;
+        let success = true;
         const pets = [];
 
         ids.forEach((id) => {
-            const pet = eliminarDiagnostico(id, uid, firestore);
-            peticiones.push(pet);
+            const pet = this.#eliminarDiagnostico(id);
+            pets.push(pet);
         });
 
-        for (const pet of peticiones) {
+        for (const pet of pets) {
             const res = await pet;
-            res &&= res.success;
+            success &&= res.success;
             if (!res) {
                 error = res.error;
             }
         }
 
-        return { success: res, error };
+        return { success, error };
     }
 
     /**
-     * @param {String} id ID del diagnóstico a eliminar.
+     * @param {String} idInstancia ID del diagnóstico a eliminar.
      * @returns {Promise<Object>} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
      * contrario es null.
      */
-    async #eliminarDiagnostico(id) {
-        const { id, uid } = this.#obtenerIdentificador(id);
+    async #eliminarDiagnostico(idInstancia) {
+        const { id, uid } = this.#obtenerIdentificador(idInstancia);
         return await eliminarDiagnostico(id, uid, this.#db);
     }
 
@@ -198,10 +199,10 @@ export default class DiagnosticosHelper {
 
     /**
      * @param {String} id ID del diagnóstico que combina ID del documento y UID del usuario.
-     * @returns {Object} Un objeto con las propiedades `id` y `usuario`.
+     * @returns {Object} Un objeto con las propiedades `id` y `uid`.
      */
     #obtenerIdentificador(id) {
         const partes = id.split(/^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-        return { id: partes[0], usuario: partes[1] };
+        return { id: partes[0], uid: partes[1] };
     }
 }
