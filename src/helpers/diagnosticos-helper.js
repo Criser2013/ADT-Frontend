@@ -18,10 +18,12 @@ export default class DiagnosticosHelper {
     /**
      * @param {String} token Access token de Firebase para la autenticación con la API.
      * @param {import("firebase/firestore").Firestore} firestore Instancia de Firestore.
+     * @param {String} idioma Código de idioma para la internacionalización.
      */
-    constructor(token, firestore) {
+    constructor(token, firestore, idioma) {
         this.#token = token;
         this.#db = firestore;
+        this.idioma = idioma;
     }
 
     set token(token) {
@@ -37,17 +39,16 @@ export default class DiagnosticosHelper {
 
     /**
      * @param {Diagnostico} diagnostico Instancia de la clase Diagnostico.
-     * @param {String} idioma Código del idioma en el que se desea recibir la respuesta.
      * @param {String} txtErrorPredet Texto de error predeterminado en caso de fallo.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
-    async diagnosticar(diagnostico, idioma, txtErrorPredet) {
+    async diagnosticar(diagnostico, txtErrorPredet) {
         const controlador = new AbortController();
         this.#peticiones.push(controlador);
         const { success, data, error } = await peticionApi("diagnosticar", "POST", {},
-            diagnostico.toJsonApi(), this.#token, idioma, txtErrorPredet, controlador
+            diagnostico.toJsonApi(), this.#token, this.idioma, txtErrorPredet, controlador
         );
         this.#peticiones.pop();
 
@@ -162,16 +163,19 @@ export default class DiagnosticosHelper {
         const pets = [];
 
         ids.forEach((id) => {
-            const pet = this.#eliminarDiagnostico(id);
-            pets.push(pet);
+            pets.push(this.#eliminarDiagnostico(id));
         });
 
-        for (const pet of pets) {
+        pets.forEach(async (pet) => {
             const res = await pet;
             success &&= res.success;
             if (!res.success) {
                 error = res.error;
             }
+        });
+
+        if (success) {
+            return await this.cargarDiagnosticos({ usuarios: [] }, true);
         }
 
         return { success, error };
