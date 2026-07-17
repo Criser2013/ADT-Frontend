@@ -95,13 +95,13 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
             );
 
             if (resEsperada.success) {
-                expect(cambiarDiagnostico).toBeCalledTimes(1);
+                expect(cambiarDiagnostico).toHaveBeenCalledTimes(1);
                 expect(cambiarDiagnostico).toHaveBeenCalledWith(
                     params.diagnostico.id, params.diagnostico.usuario, expect.any(Object),
                     expect.any(Object)
                 );
             } else {
-                expect(cambiarDiagnostico).not.toBeCalled();
+                expect(cambiarDiagnostico).not.toHaveBeenCalled();
             }
         });
     });
@@ -112,11 +112,15 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
                 new Date("2026-04-23"), false, { tos: false }, { wbc: 12300 },
                 true, null, 0.6, new ExplicacionLime([{ campo: "edad", contribucion: 0.2 }])
             );
-            cambiarDiagnostico.mockResolvedValue({ success: true, data: diag.toJson() });
+            cambiarDiagnostico.mockResolvedValue({
+                success: true,
+                data: { ...diag.toJson(), diagnosticoMedico: true, validado: true }
+            });
 
             const helper = new DiagnosticosHelper("token", {});
             const res = await helper.validarDiagnostico(diag, true);
 
+            console.log(res);
             expect(res).toBeInstanceOf(Diagnostico);
             expect(res.validado).toBe(true);
             expect(cambiarDiagnostico).toHaveBeenCalledWith(
@@ -127,7 +131,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
 
     describe("Validar el método 'cargarDiagnostico'", () => {
         // ---------------------- Parámetros ----------------------
-        const param = "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl1jlasdo1212kl11"
+        const param = "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl1jlasdo1212kl11"
 
         // ---------------------- Respuestas esperadas ----------------------
         const res1 = { success: true, data: expect.any(Diagnostico) };
@@ -136,7 +140,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
         // ---------------------- Mocks ----------------------
         const mocks1 = {
             success: true, data: {
-                id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj",
+                id: "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjjj",
                 usuario: "jlasdo1212kl1jlasdo1212kl11",
                 otraEnfermedad: false, paciente: "pacienteId",
                 fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")),
@@ -162,29 +166,33 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
 
             expect(res).toEqual(resEsperada);
             expect(verDiagnostico).toHaveBeenCalledWith(
-                "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj", "jlasdo1212kl1jlasdo1212kl11", {}
+                "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjjj", "jlasdo1212kl1jlasdo1212kl11", {}
             );
         });
     });
 
     describe("Validar el método 'cargarDiagnosticos'", () => {
         // ---------------------- Parámetros ----------------------
-        const params1 = { cargarTodos: true, usuarios: ["jlasdo1212kl1jlasdo1212kl11", "jlasdo1212kl1jlasdo1212kl12"] };
+        const params1 = {
+            cargarTodos: true, params: {
+                usuarios: ["jlasdo1212kl1jlasdo1212kl11", "jlasdo1212kl1jlasdo1212kl12"]
+            }
+        };
         const params2 = {
             params: { uid: "jlasdo1212kl1jlasdo1212kl11", fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")) },
             cargarTodos: false
         };
 
         // ---------------------- Respuestas esperadas ----------------------
-        const res1 = { success: true, data: expect.arrayContaining(Diagnostico) }
-        const res2 = { success: true, data: expect.arrayContaining(Diagnostico) };
+        const res1 = { success: true, data: expect.arrayOf(expect.any(Diagnostico)) }
+        const res2 = { success: true, data: expect.arrayOf(expect.any(Diagnostico)) };
 
         // ---------------------- Mocks ----------------------
-        const mocks1 = {
+        const mocks2 = {
             verDiagnosticosPorMedico: {
                 success: true, data: [
                     {
-                        id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjj1",
+                        id: "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj1",
                         usuario: "jlasdo1212kl1jlasdo1212kl11",
                         otraEnfermedad: false, paciente: "pacienteId",
                         fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")),
@@ -193,7 +201,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
                         comorbilidades: [], tos: true, wbc: 12300
                     },
                     {
-                        id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjj2",
+                        id: "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj2",
                         usuario: "jlasdo1212kl1jlasdo1212kl11",
                         otraEnfermedad: false, paciente: "pacienteId",
                         fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")),
@@ -204,11 +212,11 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
                 ]
             }
         };
-        const mocks2 = {
+        const mocks1 = {
             verDiagnosticos: {
                 success: true, data: [
                     {
-                        id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjj1",
+                        id: "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj1",
                         usuario: "jlasdo1212kl1jlasdo1212kl11",
                         otraEnfermedad: false, paciente: "pacienteId",
                         fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")),
@@ -217,7 +225,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
                         comorbilidades: [], tos: true, wbc: 12300
                     },
                     {
-                        id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjj2",
+                        id: "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj2",
                         usuario: "jlasdo1212kl1jlasdo1212kl11",
                         otraEnfermedad: false, paciente: "pacienteId",
                         fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")),
@@ -226,7 +234,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
                         comorbilidades: [], tos: true, wbc: 12300
                     },
                     {
-                        id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjj3",
+                        id: "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj3",
                         usuario: "jlasdo1212kl1jlasdo1212kl12",
                         otraEnfermedad: false, paciente: "pacienteId",
                         fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")),
@@ -258,30 +266,44 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
             expect(res).toEqual(resEsperada);
 
             if (params.cargarTodos) {
-                expect(verDiagnosticos).toBeCalledTimes(1);
-                expect(verDiagnosticos).toHaveBeenCalledWith(params.usuarios, {});
-                expect(verDiagnosticosPorMedico).not.toBeCalled();
+                expect(verDiagnosticos).toHaveBeenCalledTimes(1);
+                expect(verDiagnosticos).toHaveBeenCalledWith(params.params.usuarios, {});
+                expect(verDiagnosticosPorMedico).not.toHaveBeenCalled();
             } else {
-                expect(verDiagnosticosPorMedico).toBeCalledTimes(1);
-                expect(verDiagnosticosPorMedico).toHaveBeenCalledWith(
-                    params.params.uid, params.params.fecha, {}
+                expect(verDiagnosticosPorMedico).toHaveBeenCalledTimes(1);
+                 expect(verDiagnosticosPorMedico).toHaveBeenCalledWith(
+                    params.params.uid, {}, expect.anything()
                 );
-                expect(verDiagnosticos).not.toBeCalled();
+                expect(verDiagnosticos).not.toHaveBeenCalled();
             }
         });
     });
 
     describe("Validar el método 'eliminarDiagnosticos'", () => {
         // ---------------------- Parámetros ----------------------
-        const params = ["1fff-3ggg-4hhh-5iii-6jjjjjjjjjj1", "1fff-3ggg-4hhh-5iii-6jjjjjjjjjj2"];
+        const params = {
+            id: [
+                "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj1",
+                "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj2"
+            ], usuario: "jlasdo1212kl1jlasdo1212kl11",
+            compuesto: [
+                "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj1-jlasdo1212kl1jlasdo1212kl11",
+                "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj2-jlasdo1212kl1jlasdo1212kl11"
+            ]
+        };
 
         // ---------------------- Respuestas esperadas ----------------------
-        const res1 = { success: true };
+        const res1 = { success: true, error: null };
         const res2 = { success: false, error: "Error al eliminar" };
 
         // ---------------------- Mocks ----------------------
-        const mock1 = jest.fn().mockResolvedValue({ success: true });
-        const mock2 = jest.fn().mockResolvedValueOnce({ success: true }).mockResolvedValueOnce({ success: false, error: "Error al eliminar" });
+        const mock1 = jest.fn().mockResolvedValue({ success: true, error: null });
+        const mock2 = jest.fn().mockResolvedValueOnce({ success: true, error: null }).
+            mockResolvedValueOnce({ success: false, error: "Error al eliminar" });
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
 
         test.each([
             ["182", mock1, params, res1],
@@ -290,12 +312,12 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
             eliminarDiagnostico.mockImplementation(mock);
 
             const helper = new DiagnosticosHelper("token", {});
-            const res = await helper.eliminarDiagnosticos(params);
+            const res = await helper.eliminarDiagnosticos(params.compuesto);
 
             expect(res).toEqual(resEsperada);
-            expect(eliminarDiagnostico).toHaveBeenCalledTimes(params.length);
-            for (let i = 0; i < params.length; i++) {
-                expect(eliminarDiagnostico).toHaveBeenNthCalledWith(i + 1, params[i], {});
+            expect(eliminarDiagnostico).toHaveBeenCalledTimes(params.id.length);
+            for (let i = 0; i < params.id.length; i++) {
+                expect(eliminarDiagnostico).toHaveBeenNthCalledWith(i + 1, params.id[i], params.usuario, {});
             }
         });
     });

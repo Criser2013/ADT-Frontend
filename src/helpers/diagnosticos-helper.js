@@ -169,7 +169,7 @@ export default class DiagnosticosHelper {
         for (const pet of pets) {
             const res = await pet;
             success &&= res.success;
-            if (!res) {
+            if (!res.success) {
                 error = res.error;
             }
         }
@@ -202,7 +202,8 @@ export default class DiagnosticosHelper {
      * @returns {Object} Un objeto con las propiedades `id` y `uid`.
      */
     #obtenerIdentificador(id) {
-        const partes = id.split(/^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-        return { id: partes[0], uid: partes[1] };
+        const idDiagnostico = id.substring(0, 36);
+        const uid = id.substring(37);
+        return { id: idDiagnostico, uid: uid };
     }
 }

@@ -92,7 +92,7 @@ describe("Validar la funcion 'guardarCredsOAuth", () => {
 
         const res = guardarCredsOAuth(params);
 
-        expect(AES.encrypt).toBeCalledTimes(1);
+        expect(AES.encrypt).toHaveBeenCalledTimes(1);
         expect(AES.encrypt).toHaveBeenCalledWith(JSON.stringify(params), AES_KEY);
         expect(sessionStorage.setItem).toHaveBeenCalledTimes(1);
         expect(sessionStorage.setItem).toHaveBeenCalledWith("session-tokens", "encryptedData")
