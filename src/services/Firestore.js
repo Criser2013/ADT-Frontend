@@ -1,4 +1,6 @@
-import { collection, doc, getDoc, getDocs, setDoc, where, query, deleteDoc } from "firebase/firestore";
+import {
+    collection, doc, getDoc, getDocs, setDoc, where, query, deleteDoc, collectionGroup
+} from "firebase/firestore";
 
 /**
  * Edita el contenido de un documento. Sino existe lo crea.
@@ -43,20 +45,19 @@ export async function verDiagnostico(id, uid, db) {
 
 /**
  * Carga todos los diagnósticos de la base de datos y obtiene su información.
- * @param {Array<String>} usuarios Array con los UID de los médicos.
  * @param {object} db Instancia de Firestore.
  * @returns {Object} Resultado el resultado de la operación en la clave "data" y un booleano en la clave "success" indicando si la operación fue exitosa o no.
  */
-export async function verDiagnosticos(usuarios, db) {
+export async function verDiagnosticos(db) {
     try {
         const diagnosticos = [];
-        for (const i of usuarios) {
-            const consulta = collection(db, `usuarios/${i}/diagnosticos`);
-            const datos = await getDocs(consulta);
-            datos.forEach((doc) => {
-                diagnosticos.push({ id: `${doc.id}-${i}`, usuario: i, ...doc.data() });
-            });
-        }
+        const consulta = collectionGroup(db, "diagnosticos");
+        const datos = await getDocs(consulta);
+
+        datos.forEach((doc) => {
+            const uid = doc.ref.path.split("/")[1];
+            diagnosticos.push({ id: `${doc.id}-${uid}`, usuario: uid, ...doc.data() });
+        });
 
         return { success: true, data: diagnosticos };
     } catch (error) {
@@ -82,7 +83,7 @@ export async function verDiagnosticosPorMedico(uid, db, fecha = null) {
 
         const diagnosticos = [];
         datos.forEach((doc) => {
-            diagnosticos.push({  id: `${doc.id}-${uid}`, usuario: uid, ...doc.data() });
+            diagnosticos.push({ id: `${doc.id}-${uid}`, usuario: uid, ...doc.data() });
         });
 
         return { success: true, data: diagnosticos };

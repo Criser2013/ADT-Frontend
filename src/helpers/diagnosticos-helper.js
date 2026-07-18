@@ -93,18 +93,18 @@ export default class DiagnosticosHelper {
     }
 
     /**
+     * @param {Boolean} cargarTodos Indica si se quieren cargar todos los diagnósticos.
      * @param {Object} params Parámetros para la consulta. En el caso de cargar todos los diagnósticos, 
-     * se debe pasar un objeto con la propiedad `usuarios` que contenga un array con los UIDs de los 
-     * médicos. En el caso de cargar los diagnósticos de un médico, se debe pasar un objeto con las claves:
+     * no es necesario pasar ningún parámetro. En el caso de cargar los diagnósticos de un médico, 
+     * se debe pasar un objeto con las claves:
      * - uid (String): UID del médico
      * - fecha (Timestamp): Fecha a partir de la cual se quieren ver los diagnósticos. Si no se 
      * proporciona, se obtendrán todos los diagnósticos del médico.
-     * @param {Boolean} cargarTodos Indica si se quieren cargar todos los diagnósticos.
      * @returns {Object} Resultado de la operación.
      */
-    async cargarDiagnosticos(params, cargarTodos = false) {
+    async cargarDiagnosticos(cargarTodos, params) {
         if (cargarTodos) {
-            return await this.#cargarTodosDiagnosticos(params.usuarios);
+            return await this.#cargarTodosDiagnosticos();
         } else {
             return await this.#cargarDiagnosticosUsuario(params.uid, params.fecha);
         }
@@ -132,7 +132,6 @@ export default class DiagnosticosHelper {
     }
 
     /**
-     * @param {Array<String>} usuarios Lista de UIDs de todos los usuarios.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
@@ -140,8 +139,8 @@ export default class DiagnosticosHelper {
      * - "data" (Array<Diagnostico>) - Contiene un array con las instancias de la clase Diagnostico 
      * si la operación fue exitosa, de lo contrario es null.
      */
-    async #cargarTodosDiagnosticos(usuarios) {
-        const { success, data, error } = await verDiagnosticos(usuarios, this.#db);
+    async #cargarTodosDiagnosticos() {
+        const { success, data, error } = await verDiagnosticos(this.#db);
         if (success) {
             this.#diagnosticos = data.map((d) => Diagnostico.fromJson(d));
             return { success, data: this.#diagnosticos };
