@@ -6,7 +6,6 @@ import { peticionApi } from "../services/Api";
  */
 export default class UsuariosHelper {
     #token = "";
-    #usuarios = [];
 
     /**
      * Instancia de la clase UsuariosHelper para manejar operaciones sobre usuarios.
@@ -17,13 +16,6 @@ export default class UsuariosHelper {
     constructor(token, idioma) {
         this.#token = token;
         this.idioma = idioma;
-    }
-
-    /**
-     * @param {String} token Access token de Firebase para la autenticación con la API.
-     */
-    set token(token) {
-        this.#token = token;
     }
 
     /**
@@ -57,8 +49,7 @@ export default class UsuariosHelper {
             "errCargarUsuarios"
         );
         if (success) {
-            this.#usuarios = data;
-            return { success: true, data: this.#usuarios };
+            return { success: true, data: data };
         } else {
             return { success: false, error };
         }
@@ -82,13 +73,14 @@ export default class UsuariosHelper {
             pets.push(this.#desactivarUsuario(usuario));
         });
 
-        pets.forEach(async (pet) => {
+
+        for (const pet of pets) {
             const res = await pet;
             success &&= res.success;
             if (!res.success) {
                 error = res.error;
             }
-        });
+        };
 
         if (success) {
             return await this.cargarUsuarios();

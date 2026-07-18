@@ -312,4 +312,3 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
         });
     });
 });
-// 174

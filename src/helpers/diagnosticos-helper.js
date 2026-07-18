@@ -25,13 +25,6 @@ export default class DiagnosticosHelper {
     }
 
     /**
-     * @param {String} token Access token de Firebase para la autenticación con la API.
-     */
-    set token(token) {
-        this.#token = token;
-    }
-
-    /**
      * @param {String} idInstancia ID del diagnóstico.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
