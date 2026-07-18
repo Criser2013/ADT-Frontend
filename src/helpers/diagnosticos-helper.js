@@ -13,7 +13,6 @@ export default class DiagnosticosHelper {
     #token = "";
     #db = null;
     #diagnosticos = [];
-    #peticiones = [];
 
     /**
      * @param {String} token Access token de Firebase para la autenticación con la API.
@@ -28,49 +27,6 @@ export default class DiagnosticosHelper {
 
     set token(token) {
         this.#token = token;
-    }
-
-    cancelarPeticiones() {
-        for (const peticion of this.#peticiones) {
-            peticion.abort();
-        }
-        this.#peticiones = [];
-    }
-
-    /**
-     * @param {Diagnostico} diagnostico Instancia de la clase Diagnostico.
-     * @param {String} txtErrorPredet Texto de error predeterminado en caso de fallo.
-     * @returns {Object} Resultado de la operación con las claves:
-     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
-     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
-     */
-    async diagnosticar(diagnostico, txtErrorPredet) {
-        const controlador = new AbortController();
-        this.#peticiones.push(controlador);
-        const { success, data, error } = await peticionApi("diagnosticar", "POST", {},
-            diagnostico.toJsonApi(), this.#token, this.idioma, txtErrorPredet, controlador
-        );
-        this.#peticiones.pop();
-
-        if (success) {
-            diagnostico.diagnosticoModelo = data.prediccion;
-            diagnostico.probabilidad = data.probabilidad;
-            diagnostico.explicacion = new ExplicacionLime(data.lime);
-            return await this.#guardarDiagnostico(diagnostico);
-        }
-
-        return { success, error };
-    }
-
-    /**
-     * @param {Diagnostico} instancia Diagnóstico a validar.
-     * @param {Boolean} diagnosticoMedico Diagnóstico de TEP dado por el médico.
-     * @returns {Diagnostico} Una instancia de la clase Diagnostico creada a partir del guardado.
-     */
-    async validarDiagnostico(instancia, diagnosticoMedico) {
-        instancia.validar(diagnosticoMedico);
-        const res = await this.#guardarDiagnostico(instancia);
-        return Diagnostico.fromJson(res.data);
     }
 
     /**
@@ -102,12 +58,76 @@ export default class DiagnosticosHelper {
      * proporciona, se obtendrán todos los diagnósticos del médico.
      * @returns {Object} Resultado de la operación.
      */
-    async cargarDiagnosticos(cargarTodos, params) {
+    async cargarDiagnosticos(cargarTodos, params = null) {
         if (cargarTodos) {
             return await this.#cargarTodosDiagnosticos();
         } else {
             return await this.#cargarDiagnosticosUsuario(params.uid, params.fecha);
         }
+    }
+
+    /**
+     * @param {Array<String>} ids IDs de los diagnósticos a eliminar.
+     * @returns {Object} Resultado de la operación con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
+     * contrario es null.
+     */
+    async eliminarDiagnosticos(ids) {
+        let error = null;
+        let success = true;
+        const pets = [];
+
+        ids.forEach((id) => {
+            pets.push(this.#eliminarDiagnostico(id));
+        });
+
+        for (const pet of pets) {
+            const res = await pet;
+            success &&= res.success;
+            if (!res.success) {
+                error = res.error;
+            }
+        };
+
+        if (success) {
+            return await this.cargarDiagnosticos(true);
+        }
+
+        return { success, error };
+    }
+
+    /**
+     * @param {Diagnostico} diagnostico Instancia de la clase Diagnostico.
+     * @param {String} txtErrorPredet Texto de error predeterminado en caso de fallo.
+     * @returns {Object} Resultado de la operación con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
+     */
+    async diagnosticar(diagnostico, txtErrorPredet) {
+        const { success, data, error } = await peticionApi("diagnosticar", "POST", {},
+            diagnostico.toJsonApi(), this.#token, this.idioma, txtErrorPredet
+        );
+
+        if (success) {
+            diagnostico.diagnosticoModelo = data.prediccion;
+            diagnostico.probabilidad = data.probabilidad;
+            diagnostico.explicacion = new ExplicacionLime(data.lime);
+            return await this.#guardarDiagnostico(diagnostico);
+        } else {
+            return { success, error };
+        }
+    }
+
+    /**
+     * @param {Diagnostico} instancia Diagnóstico a validar.
+     * @param {Boolean} diagnosticoMedico Diagnóstico de TEP dado por el médico.
+     * @returns {Diagnostico} Una instancia de la clase Diagnostico creada a partir del guardado.
+     */
+    async validarDiagnostico(instancia, diagnosticoMedico) {
+        instancia.validar(diagnosticoMedico);
+        const res = await this.#guardarDiagnostico(instancia);
+        return Diagnostico.fromJson(res.data);
     }
 
     /**
@@ -147,37 +167,6 @@ export default class DiagnosticosHelper {
         } else {
             return { success, error };
         }
-    }
-
-    /**
-     * @param {Array<String>} ids IDs de los diagnósticos a eliminar.
-     * @returns {Object} Resultado de la operación con las claves:
-     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
-     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
-     * contrario es null.
-     */
-    async eliminarDiagnosticos(ids) {
-        let error = null;
-        let success = true;
-        const pets = [];
-
-        ids.forEach((id) => {
-            pets.push(this.#eliminarDiagnostico(id));
-        });
-
-        pets.forEach(async (pet) => {
-            const res = await pet;
-            success &&= res.success;
-            if (!res.success) {
-                error = res.error;
-            }
-        });
-
-        if (success) {
-            return await this.cargarDiagnosticos({ usuarios: [] }, true);
-        }
-
-        return { success, error };
     }
 
     /**

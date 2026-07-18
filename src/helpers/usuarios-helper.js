@@ -16,7 +16,7 @@ export default class UsuariosHelper {
      */
     constructor(token, idioma) {
         this.#token = token;
-        this.idioma = idioma
+        this.idioma = idioma;
     }
 
     /**
@@ -48,7 +48,7 @@ export default class UsuariosHelper {
         const { success, data, error } = await peticionApi(
             "admin/usuarios", "GET", {}, null, this.#token, this.idioma,
             "errCargarUsuarios"
-        )
+        );
         if (success) {
             this.#usuarios = data;
             return { success: true, data: this.#usuarios };

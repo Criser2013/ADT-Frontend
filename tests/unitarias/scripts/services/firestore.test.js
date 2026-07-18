@@ -2,6 +2,7 @@ import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 
 jest.unstable_mockModule("firebase/firestore", () => ({
     collection: jest.fn(),
+    collectionGroup: jest.fn(),
     doc: jest.fn(),
     getDoc: jest.fn(),
     getDocs: jest.fn(),
@@ -102,16 +103,12 @@ describe("Validar la función 'verDiagnostico'", () => {
 
 describe("Validar la función 'verDiagnosticos'", () => {
     // ----------------- Parámetros -----------------
-    const params1 = {
-        usuarios: ["jlasdo1212kl11", "jlasdo1212kl12"],
-        db: { dbname: "testDB", authentication: "testAuth" }
-    };
+    const params1 = { dbname: "testDB", authentication: "testAuth" };
 
     // ----------------- Resultado esperado -----------------
     const res1 = {
         success: true,
         data: [
-            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", usuario: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
             { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", usuario: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
         ]
     };
@@ -120,7 +117,11 @@ describe("Validar la función 'verDiagnosticos'", () => {
     // ----------------- Mocks -----------------
     const mock1 = () => ({
         forEach: (callback) => {
-            callback({ id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", data: () => res1.data[0] });
+            callback({
+                id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj",
+                ref: { path: "usuarios/jlasdo1212kl11/diagnosticos/1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj" },
+                data: () => res1.data[0]
+            });
         }
     });
     const mock2 = () => { throw new Error("Error al obtener los diagnósticos."); };
@@ -133,22 +134,15 @@ describe("Validar la función 'verDiagnosticos'", () => {
         ["95", mock1, params1, res1],
         ["96", mock2, params1, res2]
     ])("CP - %s", async (idPrueba, mock, params, resEsperado) => {
-        const { usuarios, db } = params;
-
-        firestore.collection.mockImplementation((x, y) => y);
+        firestore.collectionGroup.mockImplementation((x, y) => y);
         firestore.getDocs.mockImplementation(mock);
 
-        const res = await verDiagnosticos(usuarios, db);
+        const res = await verDiagnosticos(params);
         expect(res).toEqual(resEsperado);
-        expect(firestore.collection).toHaveBeenCalledWith(db, `usuarios/${usuarios[0]}/diagnosticos`);
-        expect(firestore.collection).toHaveBeenCalledTimes(res.success ? 2 : 1);
-        expect(firestore.getDocs).toHaveBeenCalledWith(`usuarios/${usuarios[0]}/diagnosticos`);
-        expect(firestore.getDocs).toHaveBeenCalledTimes(res.success ? 2 : 1);
-
-        if (res.success) {
-            expect(firestore.getDocs).toHaveBeenCalledWith(`usuarios/${usuarios[1]}/diagnosticos`);
-            expect(firestore.collection).toHaveBeenCalledWith(db, `usuarios/${usuarios[1]}/diagnosticos`);
-        }
+        expect(firestore.collectionGroup).toHaveBeenCalledWith(params, "diagnosticos");
+        expect(firestore.collectionGroup).toHaveBeenCalledTimes(1);
+        expect(firestore.getDocs).toHaveBeenCalledWith("diagnosticos");
+        expect(firestore.getDocs).toHaveBeenCalledTimes(1);
     });
 });
 

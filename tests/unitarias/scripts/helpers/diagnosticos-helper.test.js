@@ -26,30 +26,12 @@ const Diagnostico = (await import("../../../../src/models/Diagnostico")).default
 const DiagnosticosHelper = (await import("../../../../src/helpers/diagnosticos-helper")).default;
 
 describe("Validar los métodos de la clase DiagnosticosHelper", () => {
-    describe("Validar el método 'cancelarPeticiones'", () => {
-        test("CP - 174", () => {
-            peticionApi.mockImplementation(() => new Promise(() => { }));
-            const spy = jest.spyOn(AbortController.prototype, "abort");
-            const helper = new DiagnosticosHelper("token", {});
-
-            const diag = new Diagnostico("id", "medicoId", "pacienteId", [],
-                new Date("2026-04-23"), false, { tos: false }, { wbc: 12300 }
-            );
-
-            const res = helper.diagnosticar(diag, "es", "Error al diagnosticar");
-            helper.cancelarPeticiones();
-
-            expect(spy).toHaveBeenCalledTimes(1);
-            expect(res).resolves.toEqual({ success: false, error: expect.any(Error), cancelled: true });
-        });
-    });
-
     describe("Validar el método 'diagnosticar'", () => {
         // ---------------------- Parámetros ----------------------
         const params = {
             diagnostico: new Diagnostico("id", "medicoId", "pacienteId", [],
                 new Date("2026-04-23"), false, { tos: false }, { wbc: 12300 }),
-            idioma: "es", txtErrorPredet: "Error al diagnosticar"
+            txtErrorPredet: "Error al diagnosticar"
         };
 
         // ---------------------- Respuestas esperadas ----------------------
@@ -83,15 +65,15 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
                 cambiarDiagnostico.mockResolvedValue(mocks.cambiarDiagnostico);
             }
 
-            const helper = new DiagnosticosHelper("token", {});
+            const helper = new DiagnosticosHelper("token", {}, "es");
             const res = await helper.diagnosticar(
-                params.diagnostico, params.idioma, params.txtErrorPredet
+                params.diagnostico, params.txtErrorPredet
             );
 
             expect(res).toEqual(resEsperada);
             expect(peticionApi).toHaveBeenCalledWith(
-                "diagnosticar", "POST", {}, expect.any(Object), "token", params.idioma,
-                params.txtErrorPredet, expect.any(AbortController)
+                "diagnosticar", "POST", {}, expect.any(Object), "token", "es",
+                params.txtErrorPredet
             );
 
             if (resEsperada.success) {
@@ -117,7 +99,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
                 data: { ...diag.toJson(), diagnosticoMedico: true, validado: true }
             });
 
-            const helper = new DiagnosticosHelper("token", {});
+            const helper = new DiagnosticosHelper("token", {}, "es");
             const res = await helper.validarDiagnostico(diag, true);
 
             console.log(res);
@@ -161,7 +143,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
         ])("CP - %s", async (idPrueba, mocks, params, resEsperada) => {
             verDiagnostico.mockResolvedValue(mocks);
 
-            const helper = new DiagnosticosHelper("token", {});
+            const helper = new DiagnosticosHelper("token", {}, "es");
             const res = await helper.cargarDiagnostico(params);
 
             expect(res).toEqual(resEsperada);
@@ -260,18 +242,18 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
                 verDiagnosticos.mockResolvedValue(mocks.verDiagnosticos);
             }
 
-            const helper = new DiagnosticosHelper("token", {});
-            const res = await helper.cargarDiagnosticos(params.params, params.cargarTodos);
+            const helper = new DiagnosticosHelper("token", {}, "es");
+            const res = await helper.cargarDiagnosticos(params.cargarTodos, params.params);
 
             expect(res).toEqual(resEsperada);
 
             if (params.cargarTodos) {
                 expect(verDiagnosticos).toHaveBeenCalledTimes(1);
-                expect(verDiagnosticos).toHaveBeenCalledWith(params.params.usuarios, {});
+                expect(verDiagnosticos).toHaveBeenCalledWith({});
                 expect(verDiagnosticosPorMedico).not.toHaveBeenCalled();
             } else {
                 expect(verDiagnosticosPorMedico).toHaveBeenCalledTimes(1);
-                 expect(verDiagnosticosPorMedico).toHaveBeenCalledWith(
+                expect(verDiagnosticosPorMedico).toHaveBeenCalledWith(
                     params.params.uid, {}, expect.anything()
                 );
                 expect(verDiagnosticos).not.toHaveBeenCalled();
@@ -293,12 +275,12 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
         };
 
         // ---------------------- Respuestas esperadas ----------------------
-        const res1 = { success: true, error: null };
+        const res1 = { success: true, data: [] };
         const res2 = { success: false, error: "Error al eliminar" };
 
         // ---------------------- Mocks ----------------------
-        const mock1 = jest.fn().mockResolvedValue({ success: true, error: null });
-        const mock2 = jest.fn().mockResolvedValueOnce({ success: true, error: null }).
+        const mock1 = jest.fn().mockResolvedValue({ success: true });
+        const mock2 = jest.fn().mockResolvedValueOnce({ success: true }).
             mockResolvedValueOnce({ success: false, error: "Error al eliminar" });
 
         beforeEach(() => {
@@ -310,8 +292,9 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
             ["183", mock2, params, res2]
         ])("CP - %s", async (idPrueba, mock, params, resEsperada) => {
             eliminarDiagnostico.mockImplementation(mock);
+            verDiagnosticos.mockResolvedValue({ success: true, data: [] });
 
-            const helper = new DiagnosticosHelper("token", {});
+            const helper = new DiagnosticosHelper("token", {}, "es");
             const res = await helper.eliminarDiagnosticos(params.compuesto);
 
             expect(res).toEqual(resEsperada);
@@ -319,6 +302,14 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
             for (let i = 0; i < params.id.length; i++) {
                 expect(eliminarDiagnostico).toHaveBeenNthCalledWith(i + 1, params.id[i], params.usuario, {});
             }
+
+            if (resEsperada.success) {
+                expect(verDiagnosticos).toHaveBeenCalledTimes(1);
+                expect(verDiagnosticos).toHaveBeenCalledWith({});
+            } else {
+                expect(verDiagnosticos).not.toHaveBeenCalled();
+            }
         });
     });
 });
+// 174

@@ -166,14 +166,11 @@ export default class DriveHelper {
      */
     async #crearArchivo(nombre, esCarpeta = false, idPadre = "",
         mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
-        const controlador = new AbortController();
         const mime = esCarpeta ? "application/vnd.google-apps.folder" : mimeType;
         const params = {
             name: nombre, parents: esCarpeta ? [] : [idPadre], mimeType: mime
         };
-        this.#peticiones.push(controlador);
-        const { success, data, error } = await crearArchivo(this.#token, params, esCarpeta, controlador);
-        this.#peticiones.pop();
+        const { success, data, error } = await crearArchivo(this.#token, params, esCarpeta);
 
         return { success, data, error };
     };
@@ -205,10 +202,7 @@ export default class DriveHelper {
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
     async #descargarArchivo(idArchivo) {
-        const controlador = new AbortController();
-        this.#peticiones.push(controlador);
-        const { success, data, error } = await descargarArchivo(this.#token, idArchivo, controlador);
-        this.#peticiones.pop();
+        const { success, data, error } = await descargarArchivo(this.#token, idArchivo);
         if (success) {
             return this.#leerArchivo(data);
         }
@@ -269,10 +263,7 @@ export default class DriveHelper {
     async #subirArchivo(idArchivo, contenido, mimeType = "application/octet-stream") {
         let reintentos = 5;
         while (reintentos >= 0) {
-            const controlador = new AbortController();
-            this.#peticiones.push(controlador);
-            const { success } = await subirArchivo(this.#token, idArchivo, contenido, mimeType, controlador);
-            this.#peticiones.pop();
+            const { success } = await subirArchivo(this.#token, idArchivo, contenido, mimeType);
             if (success) {
                 return { success };
             }
