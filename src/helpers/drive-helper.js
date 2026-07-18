@@ -14,10 +14,6 @@ export default class DriveHelper {
         this.#token = token;
     };
 
-    get pacientes() {
-        return this.#archivo.pacientes;
-    };
-
     set token(token) {
         this.#token = token;
     };
@@ -65,11 +61,18 @@ export default class DriveHelper {
      * atributo "pacientes". En caso de no existir el archivo, se crea uno nuevo y vacío.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "data" (Array<Paciente>) - Contiene un array con las instancias de la clase Paciente si la operación fue exitosa, 
+     * de lo contrario es null.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      * - "cancelled" (Boolean) - Indica si la operación fue cancelada por el usuario.
      */
     async descargarArchivoPacientes() {
-        return await this.#actualizarEstado();
+        const { success, error, cancelled } = await this.#actualizarEstado();
+        if (success) {
+            return { success, data: this.#archivo.pacientes};
+        } else {
+            return { success, error, cancelled };
+        }
     };
 
     /**

@@ -37,15 +37,16 @@ export default function usePacientes() {
      * @returns {Promise<Object>} Objeto con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa.
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
+     * - "cancelled" (Boolean) - Indica si la operación fue cancelada por el usuario.
      */
     const cargarDatos = useCallback(async () => {
-        const res = await datosHelper.descargarArchivoPacientes();
-        if (!res.success) {
+        const { success, error, data, cancelled }  = await datosHelper.descargarArchivoPacientes();
+        if (!success) {
             setDatos([]);
         } else {
-            setDatos(datosHelper.pacientes);
+            setDatos(data);
         }
-        return res;
+        return { success, error, cancelled };
     }, [datosHelper, setDatos]);
 
     /**

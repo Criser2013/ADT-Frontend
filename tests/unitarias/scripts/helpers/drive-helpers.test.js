@@ -138,12 +138,12 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
     });
 
     describe("Validar el método 'descargarArchivoPacientes'", () => {
-        beforeAll(() => {
+        beforeEach(() => {
             jest.clearAllMocks();
         });
 
         test("CP - 155", async () => {
-            const resEsperada = { success: true };
+            const resEsperada = { success: true, data: [] };
             const mocks = {
                 buscarArchivo: [{ success: true, data: { files: [{ id: "carpetaId" }] } }, { success: true, data: { files: [{ id: "archivoId" }] } }],
                 descargarArchivo: { success: true, data: new Uint8Array([1, 2, 3]) },

@@ -12,7 +12,6 @@ import { peticionApi } from "../services/Api";
 export default class DiagnosticosHelper {
     #token = "";
     #db = null;
-    #diagnosticos = [];
 
     /**
      * @param {String} token Access token de Firebase para la autenticación con la API.
@@ -25,6 +24,9 @@ export default class DiagnosticosHelper {
         this.idioma = idioma;
     }
 
+    /**
+     * @param {String} token Access token de Firebase para la autenticación con la API.
+     */
     set token(token) {
         this.#token = token;
     }
@@ -56,7 +58,11 @@ export default class DiagnosticosHelper {
      * - uid (String): UID del médico
      * - fecha (Timestamp): Fecha a partir de la cual se quieren ver los diagnósticos. Si no se 
      * proporciona, se obtendrán todos los diagnósticos del médico.
-     * @returns {Object} Resultado de la operación.
+     * @returns {Object} Resultado de la operación con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
+     * contrario es null.
+     * - "data" (Array<Diagnostico>) - Resultado de la operación si fue exitosa.
      */
     async cargarDiagnosticos(cargarTodos, params = null) {
         if (cargarTodos) {
@@ -70,6 +76,8 @@ export default class DiagnosticosHelper {
      * @param {Array<String>} ids IDs de los diagnósticos a eliminar.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "data" (Array<Diagnostico>) - Contiene un array con las instancias de la clase Diagnostico 
+     * si la operación fue exitosa, de lo contrario es null.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
      * contrario es null.
      */
@@ -144,8 +152,7 @@ export default class DiagnosticosHelper {
         const { success, data, error } = await verDiagnosticosPorMedico(uid, this.#db, fecha);
 
         if (success) {
-            this.#diagnosticos = data.map((d) => Diagnostico.fromJson(d));
-            return { success, data: this.#diagnosticos };
+            return { success, data: data.map((d) => Diagnostico.fromJson(d)) };
         } else {
             return { success, error };
         }
@@ -162,8 +169,7 @@ export default class DiagnosticosHelper {
     async #cargarTodosDiagnosticos() {
         const { success, data, error } = await verDiagnosticos(this.#db);
         if (success) {
-            this.#diagnosticos = data.map((d) => Diagnostico.fromJson(d));
-            return { success, data: this.#diagnosticos };
+            return { success, data: data.map((d) => Diagnostico.fromJson(d)) };
         } else {
             return { success, error };
         }

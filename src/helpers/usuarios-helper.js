@@ -20,6 +20,13 @@ export default class UsuariosHelper {
     }
 
     /**
+     * @param {String} token Access token de Firebase para la autenticación con la API.
+     */
+    set token(token) {
+        this.#token = token;
+    }
+
+    /**
      * @param {String} id UID del usuario a cargar.
      * @returns {Object} Objeto con las claves:
      * - success (Boolean) - Indica si la operación fue exitosa.
