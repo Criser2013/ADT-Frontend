@@ -88,16 +88,8 @@ export default class Diagnostico {
      * @returns {Diagnostico} Una instancia de la clase Diagnostico creada a partir de un objeto JSON.
      */
     static fromJson(json) {
-        const { id, //string
-            usuario, //string
-            paciente, //string
-            otraEnfermedad, //string
-            fecha, //timeStamp de Firebase
-            probabilidad, // numero
-            explicacion, // Arreglo de JSON [{ campo: string, contribucion: number }]
-            diagnosticoModelo, // booleano
-            diagnosticoMedico, // booleano
-            comorbilidades // Arreglo de strings
+        const { id, usuario, paciente, otraEnfermedad, fecha, probabilidad,
+            explicacion, diagnosticoModelo, diagnosticoMedico, comorbilidades
         } = json;
         const sintomasBinarios = {};
         const sintomasNumericos = {};
@@ -119,14 +111,12 @@ export default class Diagnostico {
 
     toJson() {
         return {
-            id: this.id,
             otraEnfermedad: this.otraEnfermedad,
             fecha: Timestamp.fromDate(this.fecha),
             paciente: this.paciente,
             diagnosticoModelo: this.diagnosticoModelo,
             diagnosticoMedico: this.diagnosticoMedico,
             probabilidad: this.probabilidad,
-            usuario: this.usuario,
             explicacion: this.explicacion?.toJson(),
             comorbilidades: this.comorbilidades,
             ...this.sintomasBinarios,
@@ -166,11 +156,7 @@ export default class Diagnostico {
     }
 
     /**
-     * @param {Number} diagnosticoMedico Diagnóstico de TEP dado por el médico. 
-     * Toma los mismos valores que el diagnóstico del modelo:
-     * - 0: Negativo
-     * - 1: Positivo
-     * - 2: No determinado
+     * @param {Boolean} diagnosticoMedico Diagnóstico de TEP dado por el médico. 
      */
     validar(diagnosticoMedico) {
         if (this.validado) {

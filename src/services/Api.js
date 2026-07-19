@@ -1,5 +1,6 @@
 import { API_URL } from "../constants";
 
+
 /**
  * Función para realizar peticiones fácilmente al backend.
  * @param {String} ruta Ruta del API a consultar.
@@ -10,7 +11,11 @@ import { API_URL } from "../constants";
  * @param {String} idioma Idioma actual de la aplicación (opcional).
  * @param {String} txtError Mensaje de error a mostrar en caso de fallo (opcional).
  * @param {AbortController} controlador Controlador para abortar la petición si es necesario (opcional).
- * @returns {JSON} Resultado de la petición con formato { success: Boolean, data: JSON, error: String }
+ * @returns {Object} Objeto con las claves:
+ * - success (Boolean) - Indicador de éxito de la operación.
+ * - data - (Object) - Contiene la respuesta del servidor si la operación fue exitosa.
+ * - cancelled (Boolean) - Indicador de si la petición fue cancelada.
+ * - error  (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
  */
 export async function peticionApi(ruta, metodo, parametros = {}, cuerpo = null, token = null, idioma = "es", txtError = "", controlador = null) {
     try {
@@ -43,7 +48,7 @@ export async function peticionApi(ruta, metodo, parametros = {}, cuerpo = null, 
         }
 
         return resultado;
-    } catch {
-        return { success: false, error: txtError };
+    } catch (error) {
+        return { success: false, error: txtError, cancelled: error.name == "AbortError" };
     }
 };

@@ -96,7 +96,10 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
             expect(res).toEqual(resEsperada);
 
             expect(driveService.buscarArchivo).toHaveBeenCalledTimes(1);
-            expect(driveService.buscarArchivo).toHaveBeenCalledWith("token", `name='${DRIVE_FOLDER_NAME}' and trashed=false and mimeType='application/vnd.google-apps.folder'`, expect.any(AbortController));
+            expect(driveService.buscarArchivo).toHaveBeenCalledWith(
+                "token", `name='${DRIVE_FOLDER_NAME}' and trashed=false and mimeType='application/vnd.google-apps.folder'`,
+                expect.any(AbortController)
+            );
 
             if (Array.isArray(mocks.crearArchivo) && resEsperada.success) {
                 expect(driveService.crearArchivo).toHaveBeenCalledTimes(2);
@@ -104,19 +107,19 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
                     name: DRIVE_FOLDER_NAME,
                     mimeType: "application/vnd.google-apps.folder",
                     parents: []
-                }, true, expect.any(AbortController));
+                }, true);
                 expect(driveService.crearArchivo).toHaveBeenLastCalledWith("token", {
                     name: "nombreArchivo",
                     mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     parents: ["carpetaId"]
-                }, false, expect.any(AbortController));
+                }, false);
             } else if (resEsperada.success) {
                 expect(driveService.crearArchivo).toHaveBeenCalledTimes(1);
                 expect(driveService.crearArchivo).toHaveBeenCalledWith("token", {
                     name: "nombreArchivo",
                     mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     parents: ["carpetaId"]
-                }, false, expect.any(AbortController));
+                }, false);
             }
 
 
@@ -124,7 +127,9 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
                 expect(xlsxFiles.crearArchivoXlsx).toHaveBeenCalledTimes(1);
                 expect(xlsxFiles.crearArchivoXlsx).toHaveBeenCalledWith("datos", "xlsx", "Datos");
                 expect(driveService.subirArchivo).toHaveBeenCalledTimes(1);
-                expect(driveService.subirArchivo).toHaveBeenCalledWith("token", "archivoId", [], "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", expect.any(AbortController));
+                expect(driveService.subirArchivo).toHaveBeenCalledWith(
+                    "token", "archivoId", [], "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                );
             } else {
                 expect(xlsxFiles.crearArchivoXlsx).not.toHaveBeenCalled();
                 expect(driveService.subirArchivo).not.toHaveBeenCalled();
@@ -133,12 +138,12 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
     });
 
     describe("Validar el método 'descargarArchivoPacientes'", () => {
-        beforeAll(() => {
+        beforeEach(() => {
             jest.clearAllMocks();
         });
 
         test("CP - 155", async () => {
-            const resEsperada = { success: true };
+            const resEsperada = { success: true, data: [] };
             const mocks = {
                 buscarArchivo: [{ success: true, data: { files: [{ id: "carpetaId" }] } }, { success: true, data: { files: [{ id: "archivoId" }] } }],
                 descargarArchivo: { success: true, data: new Uint8Array([1, 2, 3]) },
@@ -154,10 +159,15 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
             expect(res).toEqual(resEsperada);
 
             expect(driveService.buscarArchivo).toHaveBeenCalledTimes(2);
-            expect(driveService.buscarArchivo).toHaveBeenNthCalledWith(1, "token", `name='${DRIVE_FOLDER_NAME}' and trashed=false and mimeType='application/vnd.google-apps.folder'`, expect.any(AbortController));
-            expect(driveService.buscarArchivo).toHaveBeenNthCalledWith(2, "token", `name='${DRIVE_FILENAME}' and trashed=false and mimeType!='application/vnd.google-apps.folder' and '${mocks.buscarArchivo[0].data.files[0].id}' in parents`, expect.any(AbortController));
+            expect(driveService.buscarArchivo).toHaveBeenNthCalledWith(
+                1, "token", `name='${DRIVE_FOLDER_NAME}' and trashed=false and mimeType='application/vnd.google-apps.folder'`,
+                expect.any(AbortController)
+            );
+            expect(driveService.buscarArchivo).toHaveBeenNthCalledWith(2, "token", `name='${DRIVE_FILENAME}' and trashed=false and mimeType!='application/vnd.google-apps.folder' and '${mocks.buscarArchivo[0].data.files[0].id}' in parents`,
+                expect.any(AbortController)
+            );
             expect(driveService.descargarArchivo).toHaveBeenCalledTimes(1);
-            expect(driveService.descargarArchivo).toHaveBeenCalledWith("token", "archivoId", expect.any(AbortController));
+            expect(driveService.descargarArchivo).toHaveBeenCalledWith("token", "archivoId");
             expect(xlsxFiles.leerArchivoXlsx).toHaveBeenCalledTimes(1);
             expect(xlsxFiles.leerArchivoXlsx).toHaveBeenCalledWith(new Uint8Array([1, 2, 3]), "Datos", "errLeerArchivo");
         });
@@ -265,7 +275,7 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
 
             if (resEsperada.success && mocks.archivoPacientes) {
                 expect(driveService.descargarArchivo).toHaveBeenCalledTimes(1);
-                expect(driveService.descargarArchivo).toHaveBeenCalledWith("token", "archivoId", expect.any(AbortController));
+                expect(driveService.descargarArchivo).toHaveBeenCalledWith("token", "archivoId");
                 expect(xlsxFiles.leerArchivoXlsx).toHaveBeenCalledTimes(1);
                 expect(xlsxFiles.leerArchivoXlsx).toHaveBeenCalledWith(new Uint8Array([1, 2, 3]), "Datos", "errLeerArchivo");
             }
@@ -275,7 +285,7 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
 
             if (resEsperada.success && params.tipo != "ver") {
                 expect(driveService.subirArchivo).toHaveBeenCalledTimes(1);
-                expect(driveService.subirArchivo).toHaveBeenCalledWith("token", "archivoId", expect.any(Uint8Array), "application/octet-stream", expect.any(AbortController));
+                expect(driveService.subirArchivo).toHaveBeenCalledWith("token", "archivoId", expect.any(Uint8Array), "application/octet-stream");
                 expect(xlsxFiles.crearArchivoXlsx).toHaveBeenCalledTimes(1);
                 expect(xlsxFiles.crearArchivoXlsx).toHaveBeenCalledWith(expect.any(Array), "xlsx", "Datos");
             } else if ((resEsperada.success && params.tipo == "ver") || !resEsperada.success) {

@@ -92,7 +92,7 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
 
             expect(() => {
                 archivo.anadirPaciente(paciente3);
-            }).toThrowError(`El paciente con cédula ${paciente3.cedula} ya existe`);
+            }).toThrow(`El paciente con cédula ${paciente3.cedula} ya existe`);
             expect(archivo.pacientes.length).toBe(2);
         });
     });
@@ -127,7 +127,7 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
             const archivo = new ArchivoPacientes([paciente1, paciente2]);
             expect(() => {
                 archivo.modificarPaciente("id3", pacienteModificado);
-            }).toThrowError(`El paciente con id id3 no existe`);
+            }).toThrow(`El paciente con id id3 no existe`);
 
             expect(archivo.pacientes.length).toBe(2);
             expect(archivo.pacientes[1]).toEqual(paciente2);
@@ -143,7 +143,7 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
 
             expect(() => {
                 archivo.modificarPaciente("id1", pacienteModificado);
-            }).toThrowError(`El paciente con cédula 0987654321 ya existe`);
+            }).toThrow(`El paciente con cédula 0987654321 ya existe`);
 
             expect(archivo.pacientes.length).toBe(2);
             expect(archivo.pacientes[0]).toEqual(paciente1);
@@ -179,7 +179,7 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
             const archivo = new ArchivoPacientes([paciente1]);
             expect(() => {
                 archivo.eliminarPacientes("id2");
-            }).toThrowError(`El paciente con id id2 no existe`);
+            }).toThrow(`El paciente con id id2 no existe`);
         });
     });
 
@@ -205,7 +205,7 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
             const archivo = new ArchivoPacientes([paciente1]);
             expect(() => {
                 archivo.verPaciente("id2");
-            }).toThrowError(`El paciente con id id2 no existe`);
+            }).toThrow(`El paciente con id id2 no existe`);
         });
     });
 });

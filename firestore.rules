@@ -7,9 +7,9 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
     
-    // Verifica que un administrador pueda ver todos los archivos
+    // Verifi ca que un administrador pueda ver todos los archivos
     function verArchivosAdmin() {
-      return request.auth != null && request.auth.admin;
+      return request.auth != null && request.auth.token.admin;
     }
     
     // Obtiene los datos de un diagnostico
@@ -20,14 +20,18 @@ service cloud.firestore {
     // Validar que solo pueda actualizar el campo "validacion" del diagnostico
     function validarDatosDiagnostico(database, userId, diagnosticoId, datos) {
     	let datosGuard = verDiagnostico(database,userId, diagnosticoId);
-     	let diferencia = datosGuard.diff(datos).affectedKeys().hasOnly(["validado"]);
+     	let diferencia = datosGuard.diff(datos).affectedKeys().hasOnly(["diagnosticoMedico"]);
       
-    	return (datos.validado == 1 || datos.validado == 0) && diferencia;
+    	return datos.diagnosticoMedico.isBoolean() && diferencia;
     }
     
     // Verifica que un usuario solo pueda crear y cambiar el contenido de sus propuios diagnósticos
     function crearDiagnosticoPropio(userId) {
-    	return ((request.auth != null) && (request.auth.uid == userId) && (request.resource.data.validado == 2));
+    	return (request.auth != null) && (request.auth.uid == userId);
+    }
+    
+    match /{path=**}/diagnosticos/{diagnosticoId} {
+      allow read: if verArchivosAdmin();
     }
   
     match /usuarios/{userId} {

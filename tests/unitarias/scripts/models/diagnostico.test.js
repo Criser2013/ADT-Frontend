@@ -107,13 +107,12 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
                 "1", "1", "1", comorbilidades, Date("2026-04-23"), true, sintomasBinarios, sintomasNumericos
             );
             const resEsperada = {
-                id: "1", otraEnfermedad: true, 
+                otraEnfermedad: true, 
                 fecha: expect.any(Object),
                 paciente: "1",
                 diagnosticoModelo: null,
                 diagnosticoMedico: null,
                 probabilidad: null,
-                usuario: "1",
                 explicacion: undefined,
                 comorbilidades: ["Hipertensión arterial", "Enfermedad hematológica"],
                 ...sintomasBinarios,

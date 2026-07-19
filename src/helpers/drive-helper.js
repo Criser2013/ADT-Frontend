@@ -14,10 +14,6 @@ export default class DriveHelper {
         this.#token = token;
     };
 
-    get pacientes() {
-        return this.#archivo.pacientes;
-    };
-
     set token(token) {
         this.#token = token;
     };
@@ -65,11 +61,18 @@ export default class DriveHelper {
      * atributo "pacientes". En caso de no existir el archivo, se crea uno nuevo y vacío.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "data" (Array<Paciente>) - Contiene un array con las instancias de la clase Paciente si la operación fue exitosa, 
+     * de lo contrario es null.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      * - "cancelled" (Boolean) - Indica si la operación fue cancelada por el usuario.
      */
     async descargarArchivoPacientes() {
-        return await this.#actualizarEstado();
+        const { success, error, cancelled } = await this.#actualizarEstado();
+        if (success) {
+            return { success, data: this.#archivo.pacientes};
+        } else {
+            return { success, error, cancelled };
+        }
     };
 
     /**
@@ -166,14 +169,11 @@ export default class DriveHelper {
      */
     async #crearArchivo(nombre, esCarpeta = false, idPadre = "",
         mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
-        const controlador = new AbortController();
         const mime = esCarpeta ? "application/vnd.google-apps.folder" : mimeType;
         const params = {
             name: nombre, parents: esCarpeta ? [] : [idPadre], mimeType: mime
         };
-        this.#peticiones.push(controlador);
-        const { success, data, error } = await crearArchivo(this.#token, params, esCarpeta, controlador);
-        this.#peticiones.pop();
+        const { success, data, error } = await crearArchivo(this.#token, params, esCarpeta);
 
         return { success, data, error };
     };
@@ -205,10 +205,7 @@ export default class DriveHelper {
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
     async #descargarArchivo(idArchivo) {
-        const controlador = new AbortController();
-        this.#peticiones.push(controlador);
-        const { success, data, error } = await descargarArchivo(this.#token, idArchivo, controlador);
-        this.#peticiones.pop();
+        const { success, data, error } = await descargarArchivo(this.#token, idArchivo);
         if (success) {
             return this.#leerArchivo(data);
         }
@@ -269,10 +266,7 @@ export default class DriveHelper {
     async #subirArchivo(idArchivo, contenido, mimeType = "application/octet-stream") {
         let reintentos = 5;
         while (reintentos >= 0) {
-            const controlador = new AbortController();
-            this.#peticiones.push(controlador);
-            const { success } = await subirArchivo(this.#token, idArchivo, contenido, mimeType, controlador);
-            this.#peticiones.pop();
+            const { success } = await subirArchivo(this.#token, idArchivo, contenido, mimeType);
             if (success) {
                 return { success };
             }

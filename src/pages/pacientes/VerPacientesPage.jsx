@@ -1,10 +1,10 @@
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
-import Datatable from "../../components/datatable";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { Button, Grid, Box, CircularProgress, Tooltip, IconButton } from "@mui/material";
 import { ChipSexo } from "../../components/tabs/Chips";
+import { Datatable } from "../../components/datatable";
 import { MenuLayout, PantallaCarga } from "../../components/layout";
 import { ModalDoble, ModalSimple } from "../../components/modals";
 import { TabHeader } from "../../components/layout";

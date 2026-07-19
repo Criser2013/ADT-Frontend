@@ -2,6 +2,7 @@ import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 
 jest.unstable_mockModule("firebase/firestore", () => ({
     collection: jest.fn(),
+    collectionGroup: jest.fn(),
     doc: jest.fn(),
     getDoc: jest.fn(),
     getDocs: jest.fn(),
@@ -24,8 +25,8 @@ describe("Validar la función 'cambiarDiagnostico'", () => {
     };
 
     // ----------------- Resultado esperado -----------------
-    const res1 = { success: true, data: params1.json, error: null };
-    const res2 = { success: false, data: null, error: new Error("Error al cambiar el diagnóstico.") };
+    const res1 = { success: true, data: params1.json  };
+    const res2 = { success: false, error: new Error("Error al cambiar el diagnóstico.") };
 
     // ----------------- Mocks -----------------
     const mock1 = () => params1.json;
@@ -65,11 +66,11 @@ describe("Validar la función 'verDiagnostico'", () => {
     // ----------------- Resultado esperado -----------------
     const res1 = {
         success: true,
-        data: { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj", medico: "jlasdo1212kl1jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
-        error: null
+        data: { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj", usuario: "jlasdo1212kl1jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
+        
     };
-    const res2 = { success: false, data: null, error: "El diagnóstico no existe." };
-    const res3 = { success: false, data: null, error: new Error("Error al obtener el diagnóstico.") };
+    const res2 = { success: false, error: "El diagnóstico no existe." };
+    const res3 = { success: false, error: new Error("Error al obtener el diagnóstico.") };
 
     // ----------------- Mocks -----------------
     const mock1 = () => ({ exists: () => true, data: () => res1.data, id: params1.id });
@@ -102,25 +103,25 @@ describe("Validar la función 'verDiagnostico'", () => {
 
 describe("Validar la función 'verDiagnosticos'", () => {
     // ----------------- Parámetros -----------------
-    const params1 = {
-        usuarios: ["jlasdo1212kl1jlasdo1212kl11", "jlasdo1212kl1jlasdo1212kl12"],
-        db: { dbname: "testDB", authentication: "testAuth" }
-    };
+    const params1 = { dbname: "testDB", authentication: "testAuth" };
 
     // ----------------- Resultado esperado -----------------
     const res1 = {
-        success: true, error: null,
+        success: true,
         data: [
-            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", medico: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
-            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", medico: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
+            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", usuario: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
         ]
     };
-    const res2 = { success: false, data: null, error: new Error("Error al obtener los diagnósticos.") };
+    const res2 = { success: false, error: new Error("Error al obtener los diagnósticos.") };
 
     // ----------------- Mocks -----------------
     const mock1 = () => ({
         forEach: (callback) => {
-            callback({ id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", data: () => res1.data[0] });
+            callback({
+                id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj",
+                ref: { path: "usuarios/jlasdo1212kl11/diagnosticos/1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj" },
+                data: () => res1.data[0]
+            });
         }
     });
     const mock2 = () => { throw new Error("Error al obtener los diagnósticos."); };
@@ -133,49 +134,42 @@ describe("Validar la función 'verDiagnosticos'", () => {
         ["95", mock1, params1, res1],
         ["96", mock2, params1, res2]
     ])("CP - %s", async (idPrueba, mock, params, resEsperado) => {
-        const { usuarios, db } = params;
-
-        firestore.collection.mockImplementation((x, y) => y);
+        firestore.collectionGroup.mockImplementation((x, y) => y);
         firestore.getDocs.mockImplementation(mock);
 
-        const res = await verDiagnosticos(usuarios, db);
+        const res = await verDiagnosticos(params);
         expect(res).toEqual(resEsperado);
-        expect(firestore.collection).toHaveBeenCalledWith(db, `usuarios/${usuarios[0]}/diagnosticos`);
-        expect(firestore.collection).toHaveBeenCalledTimes(res.success ? 2 : 1);
-        expect(firestore.getDocs).toHaveBeenCalledWith(`usuarios/${usuarios[0]}/diagnosticos`);
-        expect(firestore.getDocs).toHaveBeenCalledTimes(res.success ? 2 : 1);
-
-        if (res.success) {
-            expect(firestore.getDocs).toHaveBeenCalledWith(`usuarios/${usuarios[1]}/diagnosticos`);
-            expect(firestore.collection).toHaveBeenCalledWith(db, `usuarios/${usuarios[1]}/diagnosticos`);
-        }
+        expect(firestore.collectionGroup).toHaveBeenCalledWith(params, "diagnosticos");
+        expect(firestore.collectionGroup).toHaveBeenCalledTimes(1);
+        expect(firestore.getDocs).toHaveBeenCalledWith("diagnosticos");
+        expect(firestore.getDocs).toHaveBeenCalledTimes(1);
     });
 });
 
 describe("Validar la función 'verDiagnosticosPorMedico'", () => {
     // ----------------- Parámetros -----------------
     const params1 = {
-        uid: "jlasdo1212kl1jlasdo1212kl11",
+        uid: "jlasdo1212kl11",
         db: { dbname: "testDB", authentication: "testAuth" },
         fecha: null
     };
     const params2 = {
-        uid: "jlasdo1212kl1jlasdo1212kl11",
+        uid: "jlasdo1212kl11",
         db: { dbname: "testDB", authentication: "testAuth" },
         fecha: new Date("2024-01-01")
     };
 
     // ----------------- Resultado esperado -----------------
     const res1 = {
-        success: true, error: null, data: [
-            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", medico: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
-            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjja-jlasdo1212kl11", medico: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjl" }
+        success: true, data: [
+            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", usuario: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" },
+            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjja-jlasdo1212kl11", usuario: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjl" }
         ]
     };
-    const res2 = { success: false, data: null, error: new Error("Error al obtener los diagnósticos del médico.") };
+    const res2 = { success: false, error: new Error("Error al obtener los diagnósticos del médico.") };
     const res3 = {
-        success: true, error: null, data: [
-            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", medico: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" }
+        success: true, data: [
+            { id: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl11", usuario: "jlasdo1212kl11", tep: 0, paciente: "1fff-3ggg-4hhh-5iii-6jjjjjjjjjjk" }
         ]
     };
 
@@ -234,8 +228,8 @@ describe("Validar la función 'eliminarDiagnostico'", () => {
     };
 
     // ----------------- Resultado esperado -----------------
-    const res1 = { success: true, data: null, error: null };
-    const res2 = { success: false, data: null, error: new Error("Error al eliminar el diagnóstico.") };
+    const res1 = { success: true };
+    const res2 = { success: false, error: new Error("Error al eliminar el diagnóstico.") };
 
     // ----------------- Mocks -----------------
     const mock1 = () => Promise.resolve(true);

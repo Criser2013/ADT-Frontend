@@ -1,4 +1,6 @@
-import { collection, doc, getDoc, getDocs, setDoc, where, query, deleteDoc } from "firebase/firestore";
+import {
+    collection, doc, getDoc, getDocs, setDoc, where, query, deleteDoc, collectionGroup
+} from "firebase/firestore";
 
 /**
  * Edita el contenido de un documento. Sino existe lo crea.
@@ -13,9 +15,9 @@ export async function cambiarDiagnostico(id, uid, json, db) {
         const docRef = doc(db, `usuarios/${uid}/diagnosticos/${id}`);
         const datos = await setDoc(docRef, json);
 
-        return { success: true, data: datos, error: null };
+        return { success: true, data: datos };
     } catch (error) {
-        return { success: false, data: null, error: error };
+        return { success: false, error: error };
     }
 };
 
@@ -32,36 +34,34 @@ export async function verDiagnostico(id, uid, db) {
         const datos = await getDoc(docRef);
 
         if (!datos.exists()) {
-            return { success: false, data: null, error: "El diagnóstico no existe." };
+            return { success: false, error: "El diagnóstico no existe." };
         }
 
-        return { success: true, data: { id: datos.id, medico: uid, ...datos.data() }, error: null };
+        return { success: true, data: { id: `${datos.id}-${uid}`, usuario: uid, ...datos.data() } };
     } catch (error) {
-        return { success: false, data: null, error: error };
+        return { success: false, error: error };
     }
 };
 
 /**
  * Carga todos los diagnósticos de la base de datos y obtiene su información.
- * @param {Array<String>} usuarios Array con los UID de los médicos.
  * @param {object} db Instancia de Firestore.
  * @returns {Object} Resultado el resultado de la operación en la clave "data" y un booleano en la clave "success" indicando si la operación fue exitosa o no.
  */
-export async function verDiagnosticos(usuarios, db) {
+export async function verDiagnosticos(db) {
     try {
         const diagnosticos = [];
-        for (const i of usuarios) {
-            const consulta = collection(db, `usuarios/${i}/diagnosticos`);
-            const datos = await getDocs(consulta);
-            datos.forEach((doc) => {
-                const medico = doc.id.split(/^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-                diagnosticos.push({ id: doc.id, medico: medico[1], ...doc.data() });
-            });
-        }
+        const consulta = collectionGroup(db, "diagnosticos");
+        const datos = await getDocs(consulta);
 
-        return { success: true, data: diagnosticos, error: null };
+        datos.forEach((doc) => {
+            const uid = doc.ref.path.split("/")[1];
+            diagnosticos.push({ id: `${doc.id}-${uid}`, usuario: uid, ...doc.data() });
+        });
+
+        return { success: true, data: diagnosticos };
     } catch (error) {
-        return { success: false, data: null, error: error };
+        return { success: false, error: error };
     }
 };
 
@@ -83,13 +83,12 @@ export async function verDiagnosticosPorMedico(uid, db, fecha = null) {
 
         const diagnosticos = [];
         datos.forEach((doc) => {
-            const medico = doc.id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-            diagnosticos.push({ id: doc.id, medico: medico[1], ...doc.data() });
+            diagnosticos.push({ id: `${doc.id}-${uid}`, usuario: uid, ...doc.data() });
         });
 
-        return { success: true, data: diagnosticos, error: null };
+        return { success: true, data: diagnosticos };
     } catch (error) {
-        return { success: false, data: null, error: error };
+        return { success: false, error: error };
     }
 };
 
@@ -106,8 +105,8 @@ export async function eliminarDiagnostico(id, uid, db) {
             doc(db, `usuarios/${uid}/diagnosticos/${id}`)
         );
 
-        return { success: true, data: null, error: null };
+        return { success: true };
     } catch (error) {
-        return { success: false, data: null, error: error };
+        return { success: false, error: error };
     }
 };
