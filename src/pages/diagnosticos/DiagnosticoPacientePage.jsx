@@ -22,11 +22,11 @@ export default function DiagnosticoPacientePage() {
     const cargarPacientes = useCallback(async () => {
         const { success, error } = await cargarDatos();
         if (!success) {
-            setModal({ mostrar: true, texto: t(error) });
+            setModal({ mostrar: true, texto: error });
         }
-    }, [cargarDatos, setModal, t]);
+    }, [cargarDatos, setModal]);
 
-    const cerrarModal = () => {
+    function cerrarModal() {
         setModal({ mostrar: false, texto: "" });
     };
 
@@ -50,9 +50,9 @@ export default function DiagnosticoPacientePage() {
                 pestanas={listadoPestanas}
                 manejadorRecarga={cargarPacientes} />
             <ModalSimple
-                mostrar={modal}
-                titulo={t("titError")}
-                texto={modal.texto}
+                mostrar={modal.mostrar}
+                titulo={t("tituloErr")}
+                texto={t(modal.texto)}
                 txtBtn={t("txtBtnCerrar")}
                 manejadorBtn={cerrarModal}
                 iconoBtn={<CloseIcon />} />

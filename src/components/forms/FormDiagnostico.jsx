@@ -18,7 +18,7 @@ import { ModalSimple } from "../modals";
 import { PantallaCarga, TabHeader } from "../layout";
 import { SelectChip } from "../selects";
 import { useAuth, useDiagnosticos } from "../../hooks";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { v6 } from "uuid";
@@ -38,6 +38,7 @@ const valoresPredet = {
     frecuencia_cardiaca: "", saturacion_de_la_sangre: "", plt: "", hb: "", wbc: "",
     comorbilidades: []
 };
+const numColumnas = { xs: 1, md: 2, lg: 3 };
 
 
 /**
@@ -45,13 +46,12 @@ const valoresPredet = {
  * @param {String} titulo Título del encabezado.
  * @param {Boolean} esDiagPacientes Indica si el formulario es para diagnosticar pacientes.
  * @param {Array<Paciente>} pacientes Lista de pacientes registrados.
- * @param {Object} mapeoPacientes Diccionario cuyas claves son los UID de los pacientes.
  * @param {Array<Object>} pestanas Lista de pestañas con objetos de la forma { texto: String, url: String }.
  * @param {Function} manejadorRecarga Función para ejecutar la carga de las instancias de pacientes.
  * @returns {JSX.Element}
  */
 export default function FormDiagnostico({
-    titulo, esDiagPacientes = false, pacientes = [], mapeoPacientes = {},
+    titulo, esDiagPacientes = false, pacientes = [],
     pestanas, manejadorRecarga = null
 }) {
     const navigate = useNavigate();
@@ -60,12 +60,13 @@ export default function FormDiagnostico({
     const { usuario } = useAuth();
     const [cargando, setCargando] = useState(esDiagPacientes);
     const [cargandoBtn, setCargandoBtn] = useState(false);
-    const [desactivarBtn, setDesactivarBtn] = useState(true);
+    const [captchaAceptado, setCaptchaAceptado] = useState(false);
     const [modal, setModal] = useState({ mostrar: false, texto: "" });
     const { getValues, setValue, control, handleSubmit, reset, watch, formState: { errors } } = useForm({
         defaultValues: valoresPredet, mode: "onBlur"
     });
-    const otraEnfermedad = watch("otraEnfermedad");
+    const listaPacientes = useMemo(() => [valoresPredet.paciente, ...pacientes], [pacientes]);
+    const camposSintomas = useMemo(() => CAMPOS_BIN.filter((x) => !["sexo", "otra_enfermedad"].includes(x)), []);
     const camposExamenes = [
         { nombre: "plt", label: t("txtCampoPLT") },
         { nombre: "hb", label: t("txtCampoHB") },
@@ -74,10 +75,11 @@ export default function FormDiagnostico({
     const camposSignosVitales = [
         { nombre: "presion_sistolica", label: `${t("txtCampoPresionSist")} (mmHg)` },
         { nombre: "presion_diastolica", label: `${t("txtCampoPresionDiast")} (mmHg)` },
-        { nombre: "frecuencia_respiratoria", label: `${t("txtCampoFrecuenciaRespiratoria")}` },
-        { nombre: "frecuencia_cardiaca", label: `${t("txtCampoFrecuenciaCardiaca")}` },
-        { nombre: "saturacion_de_la_sangre", label: `${t("txtCampoSaturacionSangre")}` }
+        { nombre: "frecuencia_respiratoria", label: `${t("txtCampoFrecRes")}` },
+        { nombre: "frecuencia_cardiaca", label: `${t("txtCampoFrecCard")}` },
+        { nombre: "saturacion_de_la_sangre", label: `${t("txtCampoSO2")}` }
     ];
+    const otraEnfermedad = watch("otra_enfermedad");
 
     useEffect(() => {
         if (esDiagPacientes && pacientes) {
@@ -86,24 +88,23 @@ export default function FormDiagnostico({
     }, [esDiagPacientes, pacientes, setCargando]);
 
     function cerrarModal() {
-        setModal((x) => ({ ...x, mostrar: false }));
+        setModal({ ...modal, mostrar: false });
     };
 
     function manejadorBtnVaciar() {
         reset(valoresPredet);
-        setDesactivarBtn(true);
+        setCaptchaAceptado(false);
     };
 
     /**
      * @param {Event} e Evento de cambio del select de pacientes.
      */
     const manejadorCambioPaciente = (e) => {
-        const idSeleccionado = e.target.value.id;
-        const paciente = mapeoPacientes[idSeleccionado];
+        const paciente = e.target.value;
 
-        if (idSeleccionado != "null") {
+        if (paciente.id != "null") {
             setValue("sexo", paciente.sexo);
-            setValue("edad", paciente.edad);
+            setValue("edad", paciente.edad.toString());
             setValue("otra_enfermedad", paciente.otraEnfermedad);
             setValue("comorbilidades", paciente.comorbilidades);
         } else {
@@ -172,8 +173,8 @@ export default function FormDiagnostico({
                         titulo={titulo}
                         pestanas={pestanas}
                         activarBtnAtras={false} />
-                    <Grid container columns={{ xs: 1, sm: 2, md: 3 }} spacing={2} sx={{ marginTop: "3vh" }}>
-                        <Grid size={{ xs: 1, sm: 2, md: 3 }}>
+                    <Grid container columns={numColumnas} spacing={2} sx={{ marginTop: "3vh" }}>
+                        <Grid size={numColumnas}>
                             <Typography variant="h6" fontWeight="bold">
                                 {t("titDatosPersonales")}
                             </Typography>
@@ -194,13 +195,13 @@ export default function FormDiagnostico({
                                                 fullWidth
                                                 label={t("txtPaciente")}
                                                 {...field}
-                                                value={field.value.id}
+                                                value={field.value}
                                                 onChange={manejadorCambioPaciente}
                                                 error={errors.paciente}
                                                 helperText={errors.paciente?.message} >
-                                                {pacientes.map((x) => (
+                                                {listaPacientes.map((x) => (
                                                     <MenuItem key={x.id} value={x}>
-                                                        {x.nombre}
+                                                        {t(x.nombre)}
                                                     </MenuItem>
                                                 ))}
                                             </TextField>)} />
@@ -256,20 +257,20 @@ export default function FormDiagnostico({
                                 )}
                             />
                         </Grid>
-                        <Grid size={{ xs: 1, sm: 2, md: 3 }}>
+                        <Grid size={numColumnas}>
                             <Typography variant="h6" fontWeight="bold">
                                 {t("titSintomasClinicos")}
                             </Typography>
                         </Grid>
                         <Grid
                             container
-                            size={{ xs: 1, sm: 2, md: 3 }}
-                            columns={{ xs: 1, sm: 2, md: 3 }}
+                            size={numColumnas}
+                            columns={numColumnas}
                             columnSpacing={0}
                             rowSpacing={0}
                             rowGap={0}
                             columnGap={0} >
-                            {CAMPOS_BIN.map((x) => (
+                            {camposSintomas.map((x) => (
                                 <Grid size={1} key={x}>
                                     <Controller
                                         name={x}
@@ -284,13 +285,13 @@ export default function FormDiagnostico({
                                 </Grid>
                             ))}
                         </Grid>
-                        <Grid size={{ xs: 1, sm: 2, md: 3 }}>
+                        <Grid size={numColumnas}>
                             <Typography variant="h6" fontWeight="bold">
                                 {t("titSignosVitales")}
                             </Typography>
                         </Grid>
                         {camposSignosVitales.map((campo) => (
-                            <Grid size={1}>
+                            <Grid size={1} key={campo.nombre}>
                                 <Controller
                                     name={campo.nombre}
                                     control={control}
@@ -308,14 +309,14 @@ export default function FormDiagnostico({
                                     )} />
                             </Grid>
                         ))}
-                        <Grid size={{ xs: 1, sm: 2, md: 3 }}>
+                        <Grid size={numColumnas}>
                             <Typography variant="h6" fontWeight="bold">
                                 {t("titExamenes")}
                             </Typography>
                         </Grid>
-                        <Grid size={1}>
+                        <Grid size={{ xs: 1, sm:2, md: 3 }} container columns={numColumnas} spacing={2}>
                             {camposExamenes.map((campo) => (
-                                <Grid size={1}>
+                                <Grid key={campo.nombre} size={1}>
                                     <Controller
                                         name={campo.nombre}
                                         control={control}
@@ -333,12 +334,12 @@ export default function FormDiagnostico({
                                         )} />
                                 </Grid>
                             ))}
-                            <Grid size={{ xs: 1, sm: 2, md: 3 }}>
+                            <Grid size={numColumnas}>
                                 <Typography variant="h6" fontWeight="bold">
                                     {t("titComor")}
                                 </Typography>
                             </Grid>
-                            <Grid size={{ xs: 1, sm: 2, md: 3 }}>
+                            <Grid size={numColumnas}>
                                 <Controller
                                     name="otra_enfermedad"
                                     control={control}
@@ -351,7 +352,7 @@ export default function FormDiagnostico({
                                     )} />
                             </Grid>
                             {otraEnfermedad ? (
-                                <Grid size={{ xs: 1, sm: 2, md: 3 }}>
+                                <Grid size={numColumnas}>
                                     <Controller
                                         name="comorbilidades"
                                         control={control}
@@ -371,12 +372,12 @@ export default function FormDiagnostico({
                                     />
                                 </Grid>
                             ) : null}
-                            <Grid size={{ xs: 1, sm: 2, md: 3 }} display="flex" justifyContent="center">
+                            <Grid size={numColumnas} display="flex" justifyContent="center">
                                 <Captcha
                                     setCarga={setCargandoBtn}
-                                    setCaptchaAceptado={setDesactivarBtn} />
+                                    setCaptchaAceptado={setCaptchaAceptado} />
                             </Grid>
-                            <Grid display="flex" justifyContent="center" size={{ xs: 1, sm: 2, md: 3 }}>
+                            <Grid display="flex" justifyContent="center" size={numColumnas}>
                                 <Stack direction="row" spacing={2}>
                                     <Tooltip title={t("txtAyudaBtnVaciar")}>
                                         <Button
@@ -397,7 +398,7 @@ export default function FormDiagnostico({
                                                 variant="contained"
                                                 onClick={handleSubmit(manejadorGuardado)}
                                                 loading={cargandoBtn}
-                                                disabled={desactivarBtn}
+                                                disabled={!captchaAceptado}
                                                 loadingPosition="end"
                                                 sx={{
                                                     textTransform: "none"
@@ -413,7 +414,7 @@ export default function FormDiagnostico({
                 </>)}
             <ModalSimple
                 mostrar={modal.mostrar}
-                titulo={t("titError")}
+                titulo={t("titulo0Err")}
                 texto={modal.texto}
                 txtBtn={t("txtBtnCerrar")}
                 manejadorBtnModal={cerrarModal}
