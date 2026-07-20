@@ -100,14 +100,13 @@ export default class DiagnosticosHelper {
 
     /**
      * @param {Diagnostico} diagnostico Instancia de la clase Diagnostico.
-     * @param {String} txtErrorPredet Texto de error predeterminado en caso de fallo.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
-    async diagnosticar(diagnostico, txtErrorPredet) {
+    async diagnosticar(diagnostico) {
         const { success, data, error } = await peticionApi("diagnosticar", "POST", {},
-            diagnostico.toJsonApi(), this.#token, this.idioma, txtErrorPredet
+            diagnostico.toJsonApi(), this.#token, this.idioma, "errDiagnosticar"
         );
 
         if (success) {
@@ -123,12 +122,19 @@ export default class DiagnosticosHelper {
     /**
      * @param {Diagnostico} instancia Diagnóstico a validar.
      * @param {Boolean} diagnosticoMedico Diagnóstico de TEP dado por el médico.
-     * @returns {Diagnostico} Una instancia de la clase Diagnostico creada a partir del guardado.
+     * @returns {Object} Resultado de la operación con las claves:
+     * - "success" (Boolean) - Indica si la operación fue exitosa o no.
+     * - "data" (Diagnostico) - Contiene la instancia de la clase Diagnostico si la operación fue exitosa, de lo contrario es null.
+     * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
     async validarDiagnostico(instancia, diagnosticoMedico) {
         instancia.validar(diagnosticoMedico);
-        const res = await this.#guardarDiagnostico(instancia);
-        return Diagnostico.fromJson(res.data);
+        const { success, data, error }= await this.#guardarDiagnostico(instancia);
+        if (success) {
+            return { success, data: Diagnostico.fromJson(data) };
+        } else {
+            return { success, error };
+        }
     }
 
     /**
