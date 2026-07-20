@@ -28,11 +28,10 @@ const DiagnosticosHelper = (await import("../../../../src/helpers/diagnosticos-h
 describe("Validar los métodos de la clase DiagnosticosHelper", () => {
     describe("Validar el método 'diagnosticar'", () => {
         // ---------------------- Parámetros ----------------------
-        const params = {
-            diagnostico: new Diagnostico("id", "medicoId", "pacienteId", [],
-                new Date("2026-04-23"), false, { tos: false }, { wbc: 12300 }),
-            txtErrorPredet: "Error al diagnosticar"
-        };
+        const params = new Diagnostico(
+            "id", "medicoId", "pacienteId", [], new Date("2026-04-23"),
+            false, { tos: false }, { wbc: 12300 }
+        );
 
         // ---------------------- Respuestas esperadas ----------------------
         const res1 = { success: true };
@@ -67,20 +66,18 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
 
             const helper = new DiagnosticosHelper("token", {}, "es");
             const res = await helper.diagnosticar(
-                params.diagnostico, params.txtErrorPredet
+                params
             );
 
             expect(res).toEqual(resEsperada);
             expect(peticionApi).toHaveBeenCalledWith(
-                "diagnosticar", "POST", {}, expect.any(Object), "token", "es",
-                params.txtErrorPredet
+                "diagnosticar", "POST", {}, expect.any(Object), "token", "es", "errDiagnosticar"
             );
 
             if (resEsperada.success) {
                 expect(cambiarDiagnostico).toHaveBeenCalledTimes(1);
                 expect(cambiarDiagnostico).toHaveBeenCalledWith(
-                    params.diagnostico.id, params.diagnostico.usuario, expect.any(Object),
-                    expect.any(Object)
+                    params.id, params.usuario, expect.any(Object), expect.any(Object)
                 );
             } else {
                 expect(cambiarDiagnostico).not.toHaveBeenCalled();
@@ -89,25 +86,48 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
     });
 
     describe("Validar el método 'validarDiagnostico'", () => {
-        test("CP - 177", async () => {
-            const diag = new Diagnostico("id", "medicoId", "pacienteId", [],
-                new Date("2026-04-23"), false, { tos: false }, { wbc: 12300 },
-                true, null, 0.6, new ExplicacionLime([{ campo: "edad", contribucion: 0.2 }])
-            );
-            cambiarDiagnostico.mockResolvedValue({
-                success: true,
-                data: { ...diag.toJson(), diagnosticoMedico: true, validado: true }
-            });
+        // ---------------------- Parámetros ----------------------
+        const param1 = new Diagnostico("id", "medicoId", "pacienteId", [],
+            new Date("2026-04-23"), false, { tos: false }, { wbc: 12300 },
+            true, null, 0.6, new ExplicacionLime([{ campo: "edad", contribucion: 0.2 }])
+        );
+        const param2 = new Diagnostico("id2", "medicoId2", "pacienteId2", [],
+            new Date("2026-04-23"), false, { tos: false }, { wbc: 12300 },
+            true, null, 0.6, new ExplicacionLime([{ campo: "edad", contribucion: 0.2 }])
+        );
+
+        // ---------------------- Respuestas esperadas ----------------------
+        const res1 = { success: true, data: expect.any(Diagnostico) };
+        const res2 = { success: false, error: "Error al validar" };
+
+        // ---------------------- Mocks ----------------------
+        const mock1 = {
+            success: true,
+            data: { ...param1.toJson(), diagnosticoMedico: true, validado: true }
+        };
+        const mock2 = { success: false, error: "Error al validar" };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        test.each([
+            ["177", mock1, param1, res1],
+            ["191", mock2, param2, res2]
+        ])("CP - %s", async (idPrueba, mock, params, resEsperada) => {
+            cambiarDiagnostico.mockResolvedValue(mock);
 
             const helper = new DiagnosticosHelper("token", {}, "es");
-            const res = await helper.validarDiagnostico(diag, true);
+            const res = await helper.validarDiagnostico(params, true);
 
-            console.log(res);
-            expect(res).toBeInstanceOf(Diagnostico);
-            expect(res.validado).toBe(true);
+            expect(res).toEqual(resEsperada);
             expect(cambiarDiagnostico).toHaveBeenCalledWith(
-                diag.id, diag.usuario, expect.any(Object), expect.any(Object)
+                params.id, params.usuario, expect.any(Object), expect.any(Object)
             );
+
+            if (resEsperada.success) {
+                expect(res.data.validado).toEqual(true);
+            }
         });
     });
 
