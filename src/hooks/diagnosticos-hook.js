@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useState } from 'react';
 import { useAppConfig } from "./appConfig-hook";
 import { useAuth } from "./auth-hook";
+import { useCallback, useMemo, useState } from 'react';
 import { useIdioma } from "./idioma-hook";
 import { DiagnosticosHelper } from "../helpers";
 
@@ -52,7 +52,7 @@ export default function useDiagnosticos() {
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
      */
     const generarDiagnostico = useCallback(async (diagnostico) => {
-        return await helper.diagnosticar(diagnostico, "errorDiagnostico");
+        return await helper.diagnosticar(diagnostico);
     }, [helper]);
 
     /**

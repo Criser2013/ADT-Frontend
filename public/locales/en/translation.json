@@ -314,5 +314,6 @@
     "errRegistrarUsuario": "Something was wrong trying to register the user. Please try again.",
     "txtAyudaBtnBuscar": "Search",
     "txtBtnReiniciar": "Reset",
-    "txtAyudaBtnReiniciar": "Reset the form with the current patient data."
+    "txtAyudaBtnReiniciar": "Reset the form with the current patient data.",
+    "errDiagnosticar": "Something went wrong while generating the diagnosis. Please try again later."
 }

@@ -314,5 +314,6 @@
     "errRegistrarUsuario": "Se ha producido un error al registrar el usuario. Por favor, inténtalo de nuevo más tarde.",
     "txtAyudaBtnBuscar": "Buscar",
     "txtBtnReiniciar": "Reiniciar",
-    "txtAyudaBtnReiniciar": "Reinicia el formulario colocando los datos actuales del paciente."
+    "txtAyudaBtnReiniciar": "Reinicia el formulario colocando los datos actuales del paciente.",
+    "errDiagnosticar": "Se ha producido un error al generar el diagnóstico. Por favor, inténtalo de nuevo más tarde."
 }

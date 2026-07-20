@@ -100,14 +100,13 @@ export default class DiagnosticosHelper {
 
     /**
      * @param {Diagnostico} diagnostico Instancia de la clase Diagnostico.
-     * @param {String} txtErrorPredet Texto de error predeterminado en caso de fallo.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
-    async diagnosticar(diagnostico, txtErrorPredet) {
+    async diagnosticar(diagnostico) {
         const { success, data, error } = await peticionApi("diagnosticar", "POST", {},
-            diagnostico.toJsonApi(), this.#token, this.idioma, txtErrorPredet
+            diagnostico.toJsonApi(), this.#token, this.idioma, "errDiagnosticar"
         );
 
         if (success) {
