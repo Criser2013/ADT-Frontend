@@ -1,36 +1,31 @@
-import {
-    Grid, Button, Typography, TextField, Stack, Tooltip, Box,
-    CircularProgress, MenuItem, IconButton
-} from "@mui/material";
-import { useEffect, useState } from "react";
-
-import { CAMPOS_BIN, CAMPOS_DECIMALES, CAMPOS_ENTEROS, COMORBILIDADES, SEXOS } from "../../constants";
 import CloseIcon from "@mui/icons-material/Close";
 import ClearIcon from '@mui/icons-material/Clear';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import {
+    Grid, Button, Typography, TextField, Stack, Tooltip,
+    MenuItem, IconButton
+} from "@mui/material";
+import {
+    CAMPOS_BIN, CAMPOS_DECIMALES, CAMPOS_ENTEROS,
+    COMORBILIDADES, SEXOS
+} from "../../constants";
+import { Captcha } from "../captcha";
+import { Check } from "../tabs";
+import { Controller, useForm } from "react-hook-form";
+import { Diagnostico, Paciente } from "../../models";
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
+import { ModalSimple } from "../modals";
+import { PantallaCarga, TabHeader } from "../layout";
+import { SelectChip } from "../selects";
+import { useAuth, useDiagnosticos } from "../../hooks";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
+import { v6 } from "uuid";
 import { validarFloatPos, validarNumero } from "../../utils/Validadores";
 
-
-import { useNavigate } from "react-router";
-import { v6 } from "uuid";
-import { Timestamp } from "firebase/firestore";
-import TabHeader from "../layout/TabHeader";
-import ReCAPTCHA from "react-google-recaptcha";
-import { useForm, Controller } from "react-hook-form";
-import RefreshIcon from '@mui/icons-material/Refresh';
-import { useTranslation } from "react-i18next";
-
-import { Check } from "../tabs";
-import { SelectChip } from "../selects";
-import { PantallaCarga } from "../layout";
-import { Captcha } from "../captcha";
-import { useAuth, useDiagnosticos } from "../../hooks";
-import { Diagnostico, Paciente } from "../../models";
-import { ModalSimple } from "../modals";
-
-
 const valoresPredet = {
-    paciente: new Paciente(null, null, "txtSelectPaciente", 2, null, null, null, false),
+    paciente: new Paciente("null", null, "txtSelectPaciente", 2, null, null, null, false),
     id: v6(),
     sexo: 2, fumador: false, bebedor: false, tos: false, fiebre: false,
     crepitaciones: false, dolor_toracico: false, malignidad: false,
@@ -44,38 +39,96 @@ const valoresPredet = {
     comorbilidades: []
 };
 
+
 /**
  * Formulario para realizar un diagnostico de TEP.
- * @param {Array} listadoPestanas - Lista de pestañas para el encabezado.
- * @param {Array} tituloHeader - Título del encabezado.
- * @param {Array} pacientes - Lista de pacientes registrados.
- * @param {function} manejadorRecarga - Función para manejar la recarga de datos.
- * @param {Boolean} esDiagPacientes - Indica si el formulario es para diagnosticar pacientes.
+ * @param {String} titulo Título del encabezado.
+ * @param {Boolean} esDiagPacientes Indica si el formulario es para diagnosticar pacientes.
+ * @param {Array<Paciente>} pacientes Lista de pacientes registrados.
+ * @param {Object} mapeoPacientes Diccionario cuyas claves son los UID de los pacientes.
+ * @param {Array<Object>} pestanas Lista de pestañas con objetos de la forma { texto: String, url: String }.
+ * @param {Function} manejadorRecarga Función para ejecutar la carga de las instancias de pacientes.
  * @returns {JSX.Element}
  */
-export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacientes = [], esDiagPacientes = false, manejadorRecarga = null }) {
-
-    const { usuario } = useAuth();
-    const { generarDiagnostico } = useDiagnosticos();
-
-    const { t } = useTranslation();
+export default function FormDiagnostico({
+    titulo, esDiagPacientes = false, pacientes = [], mapeoPacientes = {},
+    pestanas, manejadorRecarga = null
+}) {
     const navigate = useNavigate();
-    const [desactivarBtn, setDesactivarBtn] = useState(true);
-    const [cargando, setCargando] = useState(true);
-    const [modal, setModal] = useState({ mostrar: false, titulo: "", mensaje: "" });
+    const { generarDiagnostico } = useDiagnosticos();
+    const { t } = useTranslation();
+    const { usuario } = useAuth();
+    const [cargando, setCargando] = useState(esDiagPacientes);
     const [cargandoBtn, setCargandoBtn] = useState(false);
+    const [desactivarBtn, setDesactivarBtn] = useState(true);
+    const [modal, setModal] = useState({ mostrar: false, texto: "" });
     const { getValues, setValue, control, handleSubmit, reset, watch, formState: { errors } } = useForm({
         defaultValues: valoresPredet, mode: "onBlur"
     });
     const otraEnfermedad = watch("otraEnfermedad");
+    const camposExamenes = [
+        { nombre: "plt", label: t("txtCampoPLT") },
+        { nombre: "hb", label: t("txtCampoHB") },
+        { nombre: "wbc", label: t("txtCampoWBC") }
+    ];
+    const camposSignosVitales = [
+        { nombre: "presion_sistolica", label: `${t("txtCampoPresionSist")} (mmHg)` },
+        { nombre: "presion_diastolica", label: `${t("txtCampoPresionDiast")} (mmHg)` },
+        { nombre: "frecuencia_respiratoria", label: `${t("txtCampoFrecuenciaRespiratoria")}` },
+        { nombre: "frecuencia_cardiaca", label: `${t("txtCampoFrecuenciaCardiaca")}` },
+        { nombre: "saturacion_de_la_sangre", label: `${t("txtCampoSaturacionSangre")}` }
+    ];
 
-    // Quita la pantalla de carga inicial cuando se tienen los datos de los pacientes.
     useEffect(() => {
-        if (esDiagPacientes && (pacientes != null)) {
+        if (esDiagPacientes && pacientes) {
             setCargando(false);
         }
-    }, [esDiagPacientes, pacientes]);
+    }, [esDiagPacientes, pacientes, setCargando]);
 
+    function cerrarModal() {
+        setModal((x) => ({ ...x, mostrar: false }));
+    };
+
+    function manejadorBtnVaciar() {
+        reset(valoresPredet);
+        setDesactivarBtn(true);
+    };
+
+    /**
+     * @param {Event} e Evento de cambio del select de pacientes.
+     */
+    const manejadorCambioPaciente = (e) => {
+        const idSeleccionado = e.target.value.id;
+        const paciente = mapeoPacientes[idSeleccionado];
+
+        if (idSeleccionado != "null") {
+            setValue("sexo", paciente.sexo);
+            setValue("edad", paciente.edad);
+            setValue("otra_enfermedad", paciente.otraEnfermedad);
+            setValue("comorbilidades", paciente.comorbilidades);
+        } else {
+            setValue("sexo", 2);
+            setValue("edad", "");
+            setValue("otra_enfermedad", false);
+            setValue("comorbilidades", []);
+        }
+
+        setValue("paciente", paciente);
+    };
+
+    async function manejadorBtnRecargar() {
+        setCargando(true);
+        const idPaciente = getValues("paciente").id;
+
+        if (idPaciente) {
+            setValue("paciente", valoresPredet.paciente);
+            setValue("sexo", 2);
+            setValue("edad", "");
+            setValue("otra_enfermedad", false);
+            setValue("comorbilidades", []);
+        }
+        await manejadorRecarga();
+    };
 
     /**
      * @param {Object} datos Contenido del formulario de diagnóstico.
@@ -107,50 +160,6 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             setModal({ mostrar: true, texto: t("errGuardarDiag", { error: error }) });
             setCargando(false);
         }
-    }
-
-    function manejadorBtnVaciar() {
-        reset(valoresPredet);
-        setDesactivarBtn(true);
-    }
-
-    /**
-     * @param {Event} e Evento de cambio del select de pacientes.
-     */
-    const manejadorCambioPaciente = (e) => {
-        const paciente = pacientes.find((x) => x.id == e.target.value);
-
-        if (e.target.value != -1) {
-            setValue("sexo", paciente.sexo);
-            setValue("edad", paciente.edad);
-            setValue("otra_enfermedad", paciente.otraEnfermedad);
-            setValue("comorbilidades", paciente.comorbilidades);
-        } else {
-            setValue("sexo", 2);
-            setValue("edad", "");
-            setValue("otra_enfermedad", false);
-            setValue("comorbilidades", []);
-        }
-
-        setValue("paciente", paciente);
-    };
-
-    async function manejadorBtnRecargar() {
-        setCargando(true);
-        const idPaciente = getValues("paciente").id;
-
-        if (idPaciente) {
-            setValue("paciente", valoresPredet.paciente);
-            setValue("sexo", 2);
-            setValue("edad", "");
-            setValue("otra_enfermedad", false);
-            setValue("comorbilidades", []);
-        }
-        await manejadorRecarga();
-    };
-
-    function cerrarModal() {
-        setModal((x) => ({ ...x, mostrar: false }));
     };
 
     return (
@@ -160,8 +169,8 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
             ) : (
                 <>
                     <TabHeader
-                        titulo={tituloHeader}
-                        pestanas={listadoPestanas}
+                        titulo={titulo}
+                        pestanas={pestanas}
                         activarBtnAtras={false} />
                     <Grid container columns={{ xs: 1, sm: 2, md: 3 }} spacing={2} sx={{ marginTop: "3vh" }}>
                         <Grid size={{ xs: 1, sm: 2, md: 3 }}>
@@ -177,18 +186,18 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         control={control}
                                         rules={{
                                             required: t("errValidarPaciente"),
-                                            validate: (x) => x.id != -1 || t("errValidarPaciente")
+                                            validate: (x) => x.id != "null" || t("errValidarPaciente")
                                         }}
                                         render={({ field }) => (
                                             <TextField
                                                 select
+                                                fullWidth
                                                 label={t("txtPaciente")}
                                                 {...field}
                                                 value={field.value.id}
                                                 onChange={manejadorCambioPaciente}
-                                                error={!!errors.paciente}
-                                                helperText={errors.paciente?.message}
-                                                fullWidth>
+                                                error={errors.paciente}
+                                                helperText={errors.paciente?.message} >
                                                 {pacientes.map((x) => (
                                                     <MenuItem key={x.id} value={x}>
                                                         {x.nombre}
@@ -216,7 +225,7 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                         select
                                         label={t("txtCampoSexo")}
                                         {...field}
-                                        error={!!errors.sexo}
+                                        error={errors.sexo}
                                         helperText={errors.sexo?.message}
                                         disabled={esDiagPacientes}
                                         fullWidth>
@@ -240,11 +249,10 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                     <TextField
                                         label={t("txtCampoEdad")}
                                         {...field}
-                                        error={!!errors.edad}
+                                        error={errors.edad}
                                         disabled={esDiagPacientes}
                                         helperText={errors.edad?.message}
-                                        fullWidth
-                                    />
+                                        fullWidth />
                                 )}
                             />
                         </Grid>
@@ -253,7 +261,14 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 {t("titSintomasClinicos")}
                             </Typography>
                         </Grid>
-                        <Grid container size={{ xs: 1, sm: 2, md: 3 }} columns={{ xs: 1, sm: 2, md: 3 }} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
+                        <Grid
+                            container
+                            size={{ xs: 1, sm: 2, md: 3 }}
+                            columns={{ xs: 1, sm: 2, md: 3 }}
+                            columnSpacing={0}
+                            rowSpacing={0}
+                            rowGap={0}
+                            columnGap={0} >
                             {CAMPOS_BIN.map((x) => (
                                 <Grid size={1} key={x}>
                                     <Controller
@@ -274,219 +289,125 @@ export default function FormDiagnostico({ listadoPestanas, tituloHeader, pacient
                                 {t("titSignosVitales")}
                             </Typography>
                         </Grid>
-                        <Grid size={1}>
-                            <Controller
-                                name="presion_sistolica"
-                                control={control}
-                                rules={{
-                                    required: t("errCampoObligatorio"),
-                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
-                                }}
-                                render={({ field }) => (
-                                    <TextField
-                                        label={`${t("txtCampoPresionSist")} (mmHg)`}
-                                        {...field}
-                                        error={errors.presion_sistolica}
-                                        helperText={errors.presion_sistolica?.message}
-                                        fullWidth
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        <Grid size={1}>
-                            <Controller
-                                name="presion_diastolica"
-                                control={control}
-                                rules={{
-                                    required: t("errCampoObligatorio"),
-                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
-                                }}
-                                render={({ field }) => (
-                                    <TextField
-                                        label={`${t("txtCampoPresionDiast")} (mmHg)`}
-                                        {...field}
-                                        error={errors.presion_diastolica}
-                                        helperText={errors.presion_diastolica?.message}
-                                        fullWidth />
-                                )}
-                            />
-                        </Grid>
-                        <Grid size={1}>
-                            <Controller
-                                name="frecuencia_respiratoria"
-                                control={control}
-                                rules={{
-                                    required: t("errCampoObligatorio"),
-                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
-                                }}
-                                render={({ field }) => (
-                                    <TextField
-                                        label={t("txtCampoFrecRes")}
-                                        {...field}
-                                        error={errors.frecuencia_respiratoria}
-                                        helperText={errors.frecuencia_respiratoria?.message}
-                                        fullWidth />
-                                )}
-                            />
-                        </Grid>
-                        <Grid size={1}>
-                            <Controller
-                                name="frecuencia_cardiaca"
-                                control={control}
-                                rules={{
-                                    required: t("errCampoObligatorio"),
-                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
-                                }}
-                                render={({ field }) => (
-                                    <TextField
-                                        label={t("txtCampoFrecCard")}
-                                        {...field}
-                                        error={errors.frecuencia_cardiaca}
-                                        helperText={errors.frecuencia_cardiaca?.message}
-                                        fullWidth />)} />
-                        </Grid>
-                        <Grid size={1}>
-                            <Controller
-                                name="saturacion_de_la_sangre"
-                                control={control}
-                                rules={{
-                                    required: t("errCampoObligatorio"),
-                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
-                                }}
-                                render={({ field }) => (
-                                    <TextField
-                                        label={t("txtCampoSO2")}
-                                        {...field}
-                                        error={errors.saturacion_de_la_sangre}
-                                        helperText={errors.saturacion_de_la_sangre?.message}
-                                        fullWidth />)} />
-                        </Grid>
+                        {camposSignosVitales.map((campo) => (
+                            <Grid size={1}>
+                                <Controller
+                                    name={campo.nombre}
+                                    control={control}
+                                    rules={{
+                                        required: t("errCampoObligatorio"),
+                                        validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
+                                    }}
+                                    render={({ field }) => (
+                                        <TextField
+                                            label={campo.label}
+                                            {...field}
+                                            error={errors[campo.nombre]}
+                                            helperText={errors[campo.nombre]?.message}
+                                            fullWidth />
+                                    )} />
+                            </Grid>
+                        ))}
                         <Grid size={{ xs: 1, sm: 2, md: 3 }}>
                             <Typography variant="h6" fontWeight="bold">
                                 {t("titExamenes")}
                             </Typography>
                         </Grid>
                         <Grid size={1}>
-                            <Controller
-                                name="plt"
-                                control={control}
-                                rules={{
-                                    required: t("errCampoObligatorio"),
-                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
-                                }}
-                                render={({ field }) => (
-                                    <TextField
-                                        label={t("txtCampoPLT")}
-                                        {...field}
-                                        error={errors.plt}
-                                        helperText={errors.plt?.message}
-                                        fullWidth />)} />
-                        </Grid>
-                        <Grid size={1}>
-                            <Controller
-                                name="hb"
-                                control={control}
-                                rules={{
-                                    required: t("errCampoObligatorio"),
-                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
-                                }}
-                                render={({ field }) => (
-                                    <TextField
-                                        label={t("txtCampoHB")}
-                                        {...field}
-                                        error={errors.hb}
-                                        helperText={errors.hb?.message}
-                                        fullWidth />)} />
-                        </Grid>
-                        <Grid size={1}>
-                            <Controller
-                                name="wbc"
-                                control={control}
-                                rules={{
-                                    required: t("errCampoObligatorio"),
-                                    validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
-                                }}
-                                render={({ field }) => (
-                                    <TextField
-                                        label={t("txtCampoWBC")}
-                                        {...field}
-                                        error={errors.wbc}
-                                        helperText={errors.wbc?.message}
-                                        fullWidth />)} />
-                        </Grid>
-                        <Grid size={{ xs: 1, sm: 2, md: 3 }}>
-                            <Typography variant="h6" fontWeight="bold">
-                                {t("titComor")}
-                            </Typography>
-                        </Grid>
-                        <Grid size={{ xs: 1, sm: 2, md: 3 }}>
-                            <Controller
-                                name="otra_enfermedad"
-                                control={control}
-                                render={({ field }) => (
-                                    <Check
-                                        marcado={field.value}
-                                        desactivar={esDiagPacientes}
-                                        manejadorCambios={field.onChange}
-                                        etiqueta={t("txtOtraEnfermedad")} />
-                                )} />
-                        </Grid>
-                        {otraEnfermedad ? (
+                            {camposExamenes.map((campo) => (
+                                <Grid size={1}>
+                                    <Controller
+                                        name={campo.nombre}
+                                        control={control}
+                                        rules={{
+                                            required: t("errCampoObligatorio"),
+                                            validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
+                                        }}
+                                        render={({ field }) => (
+                                            <TextField
+                                                label={campo.label}
+                                                {...field}
+                                                error={errors[campo.nombre]}
+                                                helperText={errors[campo.nombre]?.message}
+                                                fullWidth />
+                                        )} />
+                                </Grid>
+                            ))}
+                            <Grid size={{ xs: 1, sm: 2, md: 3 }}>
+                                <Typography variant="h6" fontWeight="bold">
+                                    {t("titComor")}
+                                </Typography>
+                            </Grid>
                             <Grid size={{ xs: 1, sm: 2, md: 3 }}>
                                 <Controller
-                                    name="comorbilidades"
+                                    name="otra_enfermedad"
                                     control={control}
-                                    rules={{
-                                        required: otraEnfermedad ? t("errComor") : false,
-                                    }}
                                     render={({ field }) => (
-                                        <SelectChip
-                                            valores={field.value}
-                                            listaValores={COMORBILIDADES}
-                                            etiqueta={t("txtComorbilidades")}
+                                        <Check
+                                            marcado={field.value}
+                                            desactivar={esDiagPacientes}
                                             manejadorCambios={field.onChange}
-                                            error={errors.comorbilidades}
-                                            txtError={errors.comorbilidades?.message}
-                                            desactivar={esDiagPacientes} />
-                                    )}
-                                />
+                                            etiqueta={t("txtOtraEnfermedad")} />
+                                    )} />
                             </Grid>
-                        ) : null}
-                        <Grid size={{ xs: 1, sm: 2, md: 3 }} display="flex" justifyContent="center">
-                            <Captcha
-                                setCarga={setCargandoBtn}
-                                setCaptchaAceptado={setDesactivarBtn} />
-                        </Grid>
-                        <Grid display="flex" justifyContent="center" size={{ xs: 1, sm: 2, md: 3 }}>
-                            <Stack direction="row" spacing={2}>
-                                <Tooltip title={t("txtAyudaBtnVaciar")}>
-                                    <Button
-                                        startIcon={<ClearIcon />}
-                                        variant="contained"
-                                        onClick={manejadorBtnVaciar}
-                                        sx={{
-                                            textTransform: "none"
-                                        }}>
-                                        <b>{t("txtBtnVaciar")}</b>
-                                    </Button>
-                                </Tooltip>
-                                <Tooltip title={t("txtAyudaBtnDiagnosticar")}>
-                                    <span>
+                            {otraEnfermedad ? (
+                                <Grid size={{ xs: 1, sm: 2, md: 3 }}>
+                                    <Controller
+                                        name="comorbilidades"
+                                        control={control}
+                                        rules={{
+                                            required: otraEnfermedad ? t("errComor") : false,
+                                        }}
+                                        render={({ field }) => (
+                                            <SelectChip
+                                                valores={field.value}
+                                                listaValores={COMORBILIDADES}
+                                                etiqueta={t("txtComorbilidades")}
+                                                manejadorCambios={field.onChange}
+                                                error={errors.comorbilidades}
+                                                txtError={errors.comorbilidades?.message}
+                                                desactivar={esDiagPacientes} />
+                                        )}
+                                    />
+                                </Grid>
+                            ) : null}
+                            <Grid size={{ xs: 1, sm: 2, md: 3 }} display="flex" justifyContent="center">
+                                <Captcha
+                                    setCarga={setCargandoBtn}
+                                    setCaptchaAceptado={setDesactivarBtn} />
+                            </Grid>
+                            <Grid display="flex" justifyContent="center" size={{ xs: 1, sm: 2, md: 3 }}>
+                                <Stack direction="row" spacing={2}>
+                                    <Tooltip title={t("txtAyudaBtnVaciar")}>
                                         <Button
-                                            startIcon={<DiagnosticoIcono />}
+                                            startIcon={<ClearIcon />}
                                             variant="contained"
-                                            onClick={handleSubmit(manejadorGuardado)}
-                                            loading={cargandoBtn}
-                                            disabled={desactivarBtn}
-                                            loadingPosition="end"
+                                            onClick={manejadorBtnVaciar}
                                             sx={{
-                                                textTransform: "none"
+                                                textTransform: "none",
+                                                textDecoration: "bold"
                                             }}>
-                                            <b>{t("txtBtnDiagnosticar")}</b>
+                                            <b>{t("txtBtnVaciar")}</b>
                                         </Button>
-                                    </span>
-                                </Tooltip>
-                            </Stack>
+                                    </Tooltip>
+                                    <Tooltip title={t("txtAyudaBtnDiagnosticar")}>
+                                        <span>
+                                            <Button
+                                                startIcon={<DiagnosticoIcono />}
+                                                variant="contained"
+                                                onClick={handleSubmit(manejadorGuardado)}
+                                                loading={cargandoBtn}
+                                                disabled={desactivarBtn}
+                                                loadingPosition="end"
+                                                sx={{
+                                                    textTransform: "none"
+                                                }}>
+                                                <b>{t("txtBtnDiagnosticar")}</b>
+                                            </Button>
+                                        </span>
+                                    </Tooltip>
+                                </Stack>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </>)}

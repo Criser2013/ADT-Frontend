@@ -6,6 +6,7 @@ import { useCallback, useMemo, useState } from "react";
  * Hook para realizar operaciones relacionadas con los pacientes.
  * @returns {Object} Objeto con las claves:
  * - "pacientes" (Array<Paciente>): Lista de pacientes.
+ * - "mapeoPacientes" (Object): Objeto que mapea los IDs de pacientes a sus datos.
  * - "cargarDatos" (Function): Función para cargar los datos de los pacientes.
  * - "eliminarPacientes" (Function): Función para eliminar pacientes por sus IDs.
  * - "verPaciente" (Function): Función para ver los datos de un paciente por su ID.
@@ -18,6 +19,13 @@ export default function usePacientes() {
     const { datosHelper } = useAuth();
     const [datos, setDatos] = useState([]);
     const helperListo = useMemo(() => datosHelper !== null, [datosHelper]);
+    const mapeoPacientes = useMemo(() => {
+        const mapeo = {};
+        datos.forEach(paciente => {
+            mapeo[paciente.id] = paciente;
+        });
+        return mapeo;
+    }, [datos]);
 
     /**
      * @param {Paciente} paciente Objeto Paciente a añadir.
@@ -86,8 +94,9 @@ export default function usePacientes() {
 
     const value = useMemo(() => ({
         pacientes: datos, cargarDatos, eliminarPacientes, verPaciente, 
-        cancelarPeticiones, helperListo, anadirPaciente, editarPaciente
-    }), [datos, cargarDatos, eliminarPacientes, verPaciente,
+        cancelarPeticiones, helperListo, anadirPaciente, editarPaciente,
+        mapeoPacientes
+    }), [datos, cargarDatos, eliminarPacientes, verPaciente, mapeoPacientes,
         cancelarPeticiones, helperListo, anadirPaciente, editarPaciente]);
     return value;
 };

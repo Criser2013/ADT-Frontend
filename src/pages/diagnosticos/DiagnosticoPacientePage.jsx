@@ -12,8 +12,8 @@ import { useTranslation } from "react-i18next";
  * @returns {JSX.Element}
  */
 export default function DiagnosticoPacientePage() {
+    const { cargarDatos, helperListo, mapeoPacientes, pacientes } = usePacientes();
     const { t } = useTranslation();
-    const { pacientes, cargarDatos, helperListo } = usePacientes();
     const [modal, setModal] = useState({ mostrar: false, texto: "" });
     const listadoPestanas = [{
         texto: t("txtDiagnosticoPaciente"), url: "/diagnostico-paciente"
@@ -43,11 +43,12 @@ export default function DiagnosticoPacientePage() {
     return (
         <MenuLayout>
             <FormDiagnostico
-                tituloHeader={t("titDiagnosticoPaciente")}
-                listadoPestanas={listadoPestanas}
+                titulo={t("titDiagnosticoPaciente")}
+                esDiagPacientes={true}
                 pacientes={pacientes}
-                manejadorRecarga={cargarPacientes}
-                esDiagPacientes={true} />
+                mapeoPacientes={mapeoPacientes}
+                pestanas={listadoPestanas}
+                manejadorRecarga={cargarPacientes} />
             <ModalSimple
                 mostrar={modal}
                 titulo={t("titError")}
