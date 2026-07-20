@@ -1,12 +1,12 @@
 
 import { FormPaciente } from "../../components/forms";
 import { MenuLayout } from "../../components/layout";
+import { Paciente } from "../../models";;
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePacientes } from "../../hooks";
 import { useTranslation } from "react-i18next";
 import { validarId } from "../../utils/Validadores";
-import { Paciente } from "../../models";
 
 
 /**

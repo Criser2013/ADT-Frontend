@@ -98,7 +98,10 @@ export default function useDiagnosticos() {
     const value = useMemo(() => ({
         diagnosticos, eliminarDiagnosticos, generarDiagnostico, validarDiagnostico,
         verDiagnostico, verDiagnosticos, helperListo
-    }), [diagnosticos]);
+    }), [
+        diagnosticos, eliminarDiagnosticos, generarDiagnostico, 
+        validarDiagnostico, verDiagnostico, verDiagnosticos, helperListo
+    ]);
 
     return value;
 };

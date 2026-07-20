@@ -1,3 +1,4 @@
+import FormDiagnostico from "./FormDiagnostico";
 import FormPaciente from "./FormPaciente";
 
-export { FormPaciente };
+export { FormDiagnostico, FormPaciente };
