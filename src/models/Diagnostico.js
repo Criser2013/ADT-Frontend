@@ -95,11 +95,11 @@ export default class Diagnostico {
         const sintomasNumericos = {};
 
         for (const i of CAMPOS_BIN) {
-            sintomasBinarios[i] = json[i]; // ya es booleano
+            sintomasBinarios[i] = json[i];
         }
 
         for (const i of CAMPOS_NUM) {
-            sintomasNumericos[i] = json[i]; // ya vienen convertidos a numero
+            sintomasNumericos[i] = json[i];
         }
 
         return new Diagnostico(

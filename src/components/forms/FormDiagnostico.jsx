@@ -2,8 +2,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ClearIcon from '@mui/icons-material/Clear';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import {
-    Grid, Button, Typography, TextField, Stack, Tooltip,
-    MenuItem, IconButton
+    Grid, Button, Typography, TextField, Tooltip, MenuItem, IconButton
 } from "@mui/material";
 import {
     CAMPOS_BIN, CAMPOS_DECIMALES, CAMPOS_ENTEROS,
@@ -30,7 +29,7 @@ const valoresPredet = {
     sexo: 2, fumador: false, bebedor: false, tos: false, fiebre: false,
     crepitaciones: false, dolor_toracico: false, malignidad: false,
     hemoptisis: false, disnea: false, sibilancias: false,
-    derrame: false, TEVP_TVP_previo: false, edema_de_m_inferiores: false,
+    derrame: false, TEP_TVP_previo: false, edema_de_m_inferiores: false,
     sintomas_disautonomicos: false,
     inmovilidad_de_m_inferiores: false, viaje_prolongado: false, proc_quirurgico_traumatismo: false,
     otra_enfermedad: false, soplos: false,
@@ -119,6 +118,7 @@ export default function FormDiagnostico({
 
     async function manejadorBtnRecargar() {
         setCargando(true);
+        setCaptchaAceptado(false);
         const idPaciente = getValues("paciente").id;
 
         if (idPaciente) {
@@ -140,7 +140,9 @@ export default function FormDiagnostico({
         const numericos = {};
 
         for (const i of CAMPOS_BIN) {
-            binarios[i] = datos[i];
+            if (i != "otra_enfermedad") {
+                binarios[i] = datos[i];
+            }
         }
         for (const i of CAMPOS_DECIMALES) {
             numericos[i] = parseFloat(datos[i].replace(",", "."));
@@ -151,7 +153,7 @@ export default function FormDiagnostico({
 
         const inst = new Diagnostico(
             datos.id, usuario.uid, esDiagPacientes ? datos.paciente.id : null,
-            datos.comorbilidades, new Date(), datos.otraEnfermedad, binarios, numericos
+            datos.comorbilidades, new Date(), datos.otra_enfermedad, binarios, numericos
         );
         const { success, data, error } = await generarDiagnostico(inst);
 
@@ -159,6 +161,7 @@ export default function FormDiagnostico({
             navigate(`/diagnosticos/${inst.id}`, { state: Diagnostico.fromJson(data) });
         } else {
             setModal({ mostrar: true, texto: t("errGuardarDiag", { error: error }) });
+            setCaptchaAceptado(false);
             setCargando(false);
         }
     };
@@ -180,8 +183,8 @@ export default function FormDiagnostico({
                             </Typography>
                         </Grid>
                         {esDiagPacientes ? (
-                            <Grid size={1}>
-                                <Stack direction="row" spacing={0.5} alignItems="center">
+                            <Grid container size={1} columns={12} columnGap={2}>
+                                <Grid size={11}>
                                     <Controller
                                         name="paciente"
                                         control={control}
@@ -205,12 +208,14 @@ export default function FormDiagnostico({
                                                     </MenuItem>
                                                 ))}
                                             </TextField>)} />
+                                </Grid>
+                                <Grid size={1} display="flex" justifyContent="center" alignItems="center">
                                     <Tooltip title={t("txtBtnRecargarPacientes")}>
                                         <IconButton onClick={manejadorBtnRecargar}>
                                             <RefreshIcon fontSize="medium" />
                                         </IconButton>
                                     </Tooltip>
-                                </Stack>
+                                </Grid>
                             </Grid>
                         ) : null}
                         <Grid size={1}>
@@ -314,7 +319,7 @@ export default function FormDiagnostico({
                                 {t("titExamenes")}
                             </Typography>
                         </Grid>
-                        <Grid size={{ xs: 1, sm:2, md: 3 }} container columns={numColumnas} spacing={2}>
+                        <Grid size={{ xs: 1, sm: 2, md: 3 }} container columns={numColumnas} spacing={2}>
                             {camposExamenes.map((campo) => (
                                 <Grid key={campo.nombre} size={1}>
                                     <Controller
@@ -377,47 +382,45 @@ export default function FormDiagnostico({
                                     setCarga={setCargandoBtn}
                                     setCaptchaAceptado={setCaptchaAceptado} />
                             </Grid>
-                            <Grid display="flex" justifyContent="center" size={numColumnas}>
-                                <Stack direction="row" spacing={2}>
-                                    <Tooltip title={t("txtAyudaBtnVaciar")}>
+                            <Grid display="flex" justifyContent="center" size={numColumnas} columnGap={1}>
+                                <Tooltip title={t("txtAyudaBtnVaciar")}>
+                                    <Button
+                                        startIcon={<ClearIcon />}
+                                        variant="contained"
+                                        onClick={manejadorBtnVaciar}
+                                        sx={{
+                                            textTransform: "none",
+                                            textDecoration: "bold"
+                                        }}>
+                                        <b>{t("txtBtnVaciar")}</b>
+                                    </Button>
+                                </Tooltip>
+                                <Tooltip title={t("txtAyudaBtnDiagnosticar")}>
+                                    <span>
                                         <Button
-                                            startIcon={<ClearIcon />}
+                                            startIcon={<DiagnosticoIcono />}
                                             variant="contained"
-                                            onClick={manejadorBtnVaciar}
+                                            onClick={handleSubmit(manejadorGuardado)}
+                                            loading={cargandoBtn}
+                                            disabled={!captchaAceptado}
+                                            loadingPosition="end"
                                             sx={{
-                                                textTransform: "none",
-                                                textDecoration: "bold"
+                                                textTransform: "none"
                                             }}>
-                                            <b>{t("txtBtnVaciar")}</b>
+                                            <b>{t("txtBtnDiagnosticar")}</b>
                                         </Button>
-                                    </Tooltip>
-                                    <Tooltip title={t("txtAyudaBtnDiagnosticar")}>
-                                        <span>
-                                            <Button
-                                                startIcon={<DiagnosticoIcono />}
-                                                variant="contained"
-                                                onClick={handleSubmit(manejadorGuardado)}
-                                                loading={cargandoBtn}
-                                                disabled={!captchaAceptado}
-                                                loadingPosition="end"
-                                                sx={{
-                                                    textTransform: "none"
-                                                }}>
-                                                <b>{t("txtBtnDiagnosticar")}</b>
-                                            </Button>
-                                        </span>
-                                    </Tooltip>
-                                </Stack>
+                                    </span>
+                                </Tooltip>
                             </Grid>
                         </Grid>
                     </Grid>
                 </>)}
             <ModalSimple
                 mostrar={modal.mostrar}
-                titulo={t("titulo0Err")}
+                titulo={t("tituloErr")}
                 texto={modal.texto}
                 txtBtn={t("txtBtnCerrar")}
-                manejadorBtnModal={cerrarModal}
+                manejadorBtn={cerrarModal}
                 iconoBtn={<CloseIcon />} />
         </>
     );
