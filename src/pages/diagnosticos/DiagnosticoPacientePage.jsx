@@ -1,111 +1,61 @@
-import { useEffect, useState, useMemo } from "react";
-import MenuLayout from "../../components/layout/MenuLayout";
-import FormDiagnostico from "../../components/forms/FormDiagnostico";
-import { useAuth } from "../../contexts/AuthContext";
-import { useDrive } from "../../contexts/DriveContext";
-import ModalSimple from "../../components/modals/ModalSimple";
 import CloseIcon from "@mui/icons-material/Close";
+import { FormDiagnostico } from "../../components/forms";
+import { MenuLayout } from "../../components/layout";
+import { ModalSimple } from "../../components/modals";
+import { useCallback, useEffect, useState } from "react";
+import { usePacientes } from "../../hooks";
 import { useTranslation } from "react-i18next";
-import { useNavegacion } from "../../hooks/Navegacion";
-import { AES, enc } from "crypto-js";
-import { AES_KEY } from "../../../constants";
+
 
 /**
  * Página para realizar un diagnóstico de TEP al paciente.
  * @returns {JSX.Element}
  */
 export default function DiagnosticoPacientePage() {
-    const { autenticado, usuario } = useAuth();
-    const drive = useDrive();
-    const { idioma } = useNavegacion();
+    const { cargarDatos, helperListo, mapeoPacientes, pacientes } = usePacientes();
     const { t } = useTranslation();
-    const [datos, setDatos] = useState(null);
-    const [modal, setModal] = useState(false);
-    const listadoPestanas = useMemo(() => [{
+    const [modal, setModal] = useState({ mostrar: false, texto: "" });
+    const listadoPestanas = [{
         texto: t("txtDiagnosticoPaciente"), url: "/diagnostico-paciente"
-    }], [idioma]);
+    }];
 
-    /**
-     * Carga el token de sesión y comienza a descargar el archivo de pacientes.
-     */
-    useEffect(() => {
-        const token = sessionStorage.getItem("session-tokens");
-        if (autenticado && token) {
-            const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
-            drive.setToken(tokens.accessToken);
-        } else if (usuario?.tokenDrive) {
-            drive.setToken(usuario.tokenDrive);
+    const cargarPacientes = useCallback(async () => {
+        const { success, error } = await cargarDatos();
+        if (!success) {
+            setModal({ mostrar: true, texto: error });
         }
-    }, [autenticado, usuario]);
+    }, [cargarDatos, setModal]);
 
+    function cerrarModal() {
+        setModal({ mostrar: false, texto: "" });
+    };
 
-    /**
-     * Actualizando los datos de los pacientes cuando son descargados.
-     */
     useEffect(() => {
-        const texto = t("txtSelectPaciente");
-        if (drive.datos != null && drive.datos.length > 0) {
-            const aux = drive.datos.map((x) => ({ ...x }));
-
-            aux.unshift({ id: -1, nombre: texto });
-            setDatos(aux);
-        } else if (drive.datos != null) {
-            setDatos([{ id: -1, nombre: texto }]);
+        if (helperListo) {
+            cargarPacientes();
         }
-    }, [drive.datos]);
-
-    /**
-     * Carga de datos inicial
-     */
-    useEffect(() => {
-        const descargar = sessionStorage.getItem("descargando-drive");
-
-        if (drive.token != null && (descargar == null || descargar == "false")) {
-            sessionStorage.setItem("descargando-drive", "true");
-            cargarDatosPacientes();
-        }
-    }, [drive.token]);
+    }, [helperListo, cargarPacientes]);
 
     useEffect(() => {
         document.title = t("titDiagnosticoPaciente");
-    }, [idioma]);
-
-    /**
-     * Manejador de carga de datos de los pacientes.
-     * @param {function} callback - Función a ejecutar antes de cargar los datos.
-     * @param {function} pantallaCarga - Función para controlar la pantalla de carga.
-     */
-    const cargarDatosPacientes = async (callback = null, pantallaCarga = null) => {
-        if (callback != null) {
-            callback();
-        }
-
-        const res = await drive.cargarDatos();
-        if (!res.success) {
-            setModal(true);
-        }
-
-        if (pantallaCarga != null) {
-            pantallaCarga(false);
-        }
-    };
+    }, [t]);
 
     return (
         <MenuLayout>
             <FormDiagnostico
-                tituloHeader={t("titDiagnosticoPaciente")}
-                listadoPestanas={listadoPestanas}
-                pacientes={datos}
-                manejadorRecarga={cargarDatosPacientes}
-                esDiagPacientes={true} />
+                titulo={t("titDiagnosticoPaciente")}
+                esDiagPacientes={true}
+                pacientes={pacientes}
+                mapeoPacientes={mapeoPacientes}
+                pestanas={listadoPestanas}
+                manejadorRecarga={cargarPacientes} />
             <ModalSimple
-                abrir={modal}
-                titulo={t("titError")}
-                iconoBtn={<CloseIcon />}
-                mensaje={t("errCargarDatosPaciente")}
+                mostrar={modal.mostrar}
+                titulo={t("tituloErr")}
+                texto={t(modal.texto)}
                 txtBtn={t("txtBtnCerrar")}
-                manejadorBtnModal={() => setModal(false)}
-            />
+                manejadorBtn={cerrarModal}
+                iconoBtn={<CloseIcon />} />
         </MenuLayout>
     );
 };

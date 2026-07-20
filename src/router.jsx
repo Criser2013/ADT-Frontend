@@ -4,7 +4,7 @@ import {
     AnadirPacientePage, EditarPacientePage,
     VerPacientesPage, VerPacientePage
 } from "./pages/pacientes";
-//import { VerDiagnosticosPage } from "./pages/diagnosticos";
+import { DiagnosticoPacientePage } from "./pages/diagnosticos";
 /*
 import VerPacientePage from "./pages/pacientes/VerPacientePage";
 import DiagnosticoAnonimoPage from "./pages/diagnosticos/DiagnosticoAnonimoPage";
@@ -28,6 +28,7 @@ export default function Router() {
                 <Route path="/pacientes/:id" element={<VerPacientePage />} />
                 <Route path="/pacientes/añadir" element={<AnadirPacientePage />} />
                 <Route path="/pacientes/:id/editar" element={<EditarPacientePage />} />
+                <Route path="/diagnosticos/paciente" element={<DiagnosticoPacientePage />} />
                 {/*<Route path="/diagnosticos" element={<VerDiagnosticosPage />} />
                 {<Route path="/diagnostico-anonimo" element={<DiagnosticoAnonimoPage />} />
                 <Route path="/usuarios" element={<VerUsuariosPage />} />

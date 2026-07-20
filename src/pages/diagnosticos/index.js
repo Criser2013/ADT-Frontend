@@ -1,3 +1,4 @@
-import VerDiagnosticosPage from './VerDiagnosticosPage';
+import DiagnosticoPacientePage from './DiagnosticoPacientePage';
+//import VerDiagnosticosPage from './VerDiagnosticosPage';
 
-export { VerDiagnosticosPage };
+export { DiagnosticoPacientePage };

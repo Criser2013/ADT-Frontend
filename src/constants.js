@@ -11,11 +11,6 @@ export const SEXOS = [
     { texto: "txtMasculino", val: 0 },
     { texto: "txtFemenino", val: 1 }
 ];
-export const SINTOMAS = ["fumador", "bebedor", "tos", "fiebre", "edema_de_m_inferiores",
-    "inmovilidad_de_m_inferiores", "proc_quirurgico_traumatismo", "sintomas_disautonomicos", "viaje_prolongado",
-    "disnea", "sibilancias", "crepitaciones", "derrame", "malignidad",
-    "hemoptisis", "dolor_toracico", "TEP_TVP_previo", "soplos"
-];
 export const DIAGNOSTICOS = [
     { valor: 2, texto: "txtSelecDiagnostico" },
     { valor: 0, texto: "txtNegativo" },
@@ -33,10 +28,6 @@ export const CAMPOS_ENTEROS = ["edad","presion_sistolica", "presion_diastolica",
     "frecuencia_cardiaca"
 ];
 export const CAMPOS_NUM = [...CAMPOS_DECIMALES, ...CAMPOS_ENTEROS];
-export const CAMPOS_COMORBILIDADES = ["hematologica", "vascular", "pulmonar", "renal", "cardiaca",
-    "enfermedad_coronaria", "endocrina", "gastrointestinal", "urologica", "neurologica",
-    "trombofilia", "vih", "diabetes_mellitus", "hepatopatia_cronica", "hipertension_arterial"
-];
 export const COMORBILIDADES = ["Enfermedad vascular", "Trombofilia", "Enfermedad renal", "Enfermedad pulmonar",
     "Diabetes Mellitus", "Hipertensión arterial", "Hepatopatía crónica", "Enfermedad hematológica", "VIH", "Enfermedad cardíaca",
     "Enfermedad coronaria", "Enfermedad endocrina", "Enfermedad gastrointestinal", "Enfermedad urológica", "Enfermedad neurológica",

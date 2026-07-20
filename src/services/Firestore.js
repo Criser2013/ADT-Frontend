@@ -13,9 +13,9 @@ import {
 export async function cambiarDiagnostico(id, uid, json, db) {
     try {
         const docRef = doc(db, `usuarios/${uid}/diagnosticos/${id}`);
-        const datos = await setDoc(docRef, json);
+        await setDoc(docRef, json);
 
-        return { success: true, data: datos };
+        return { success: true, data: json };
     } catch (error) {
         return { success: false, error: error };
     }

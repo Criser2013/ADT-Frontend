@@ -1,8 +1,8 @@
+import useIdioma from "./idioma-hook";
+import { DiagnosticosHelper } from "../helpers";
 import { useAppConfig } from "./appConfig-hook";
 import { useAuth } from "./auth-hook";
 import { useCallback, useMemo, useState } from 'react';
-import { useIdioma } from "./idioma-hook";
-import { DiagnosticosHelper } from "../helpers";
 
 
 /**
@@ -15,6 +15,7 @@ import { DiagnosticosHelper } from "../helpers";
  * - "validarDiagnostico" (Function): Función para validar un diagnóstico.
  * - "verDiagnostico" (Function): Función para ver los datos de un diagnóstico por su ID.
  * - "verDiagnosticos" (Function): Función para ver los diagnósticos, filtrando por usuario y fecha.
+ * - "mapeoDiagnosticos" (Object): Objeto que mapea los IDs de los diagnósticos a sus instancias correspondientes.
  */
 export default function useDiagnosticos() {
     const { autenticado, usuario } = useAuth();
@@ -27,6 +28,13 @@ export default function useDiagnosticos() {
         }
         return null;
     }, [firestore, usuario, autenticado, idioma]);
+    const mapeoDiagnosticos = useMemo(() => {
+        const map = {};
+        for (const d of diagnosticos) {
+            map[d.id] = d;
+        }
+        return map;
+    }, [diagnosticos]);
     const helperListo = useMemo(() => helper !== null, [helper]);
 
     /**
@@ -97,8 +105,11 @@ export default function useDiagnosticos() {
 
     const value = useMemo(() => ({
         diagnosticos, eliminarDiagnosticos, generarDiagnostico, validarDiagnostico,
-        verDiagnostico, verDiagnosticos, helperListo
-    }), [diagnosticos]);
+        verDiagnostico, verDiagnosticos, helperListo, mapeoDiagnosticos
+    }), [
+        diagnosticos, eliminarDiagnosticos, generarDiagnostico, mapeoDiagnosticos,
+        validarDiagnostico, verDiagnostico, verDiagnosticos, helperListo
+    ]);
 
     return value;
 };

@@ -29,7 +29,7 @@ export default function Sidebar() {
     const urlUsuarios = [
         { txt: t("titMenu"), icono: <HomeIcon />, ruta: "/menu" },
         { txt: t("txtPacientes"), icono: <ListPacienteIcono />, ruta: "/pacientes" },
-        { txt: t("titDiagnosticoPaciente"), icono: <DiagnosticoIcono />, ruta: "/diagnostico-paciente" },
+        { txt: t("titDiagnosticoPaciente"), icono: <DiagnosticoIcono />, ruta: "/diagnosticos/paciente" },
         { txt: t("titDiagnosticoAnonimo"), icono: <DiagAnonimoIcono />, ruta: "/diagnostico-anonimo" },
         { txt: t("txtHistorialDiagnosticos"), icono: <HistDiagnosticoIcono />, ruta: "/diagnosticos" },
     ];
