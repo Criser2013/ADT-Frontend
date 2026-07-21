@@ -2,13 +2,9 @@ import {
     Box, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
     Button, Popover, IconButton
 } from "@mui/material";
-import { useDrive } from "../../contexts/DriveContext";
-import { useAuth } from "../../contexts/AuthContext";
-import { useNavegacion } from "../../hooks/Navegacion";
 import { useEffect, useState, useMemo, useCallback } from "react";
-import TabHeader from "../../components/layout/TabHeader";
-import MenuLayout from "../../components/layout/MenuLayout";
-import { useLocation, useNavigate, useSearchParams } from "react-router";
+
+import { useLocation, useNavigate, useParams } from "react-router";
 import { validarId } from "../../utils/Validadores";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import CloseIcon from "@mui/icons-material/Close";
@@ -16,37 +12,44 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import ModalDoble from "../../components/modals/ModalDoble";
-import { cambiarDiagnostico, eliminarDiagnostico, verDiagnostico } from "../../firestore/diagnosticos-collection";
 import { oneHotDecoderOtraEnfermedad, detTxtDiagnostico, procLime } from "../../utils/TratarDatos";
 import { COMORBILIDADES, DIAGNOSTICOS } from "../../../constants";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import Check from "../../components/tabs/Check";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import FormSeleccionar from "../../components/forms/FormSeleccionar";
-import { AES_KEY, SINTOMAS } from "../../../constants";
+import { SINTOMAS } from "../../../constants";
 import ContComorbilidades from "../../components/diagnosticos/ContComorbilidades";
-import { peticionApi } from "../../services/Api";
+
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
 import ContLime from "../../components/diagnosticos/ContLime";
 import { useTranslation } from "react-i18next";
-import { AES, enc } from "crypto-js";
+import { useAuth, useDiagnosticos, usePacientes, useUsuarios } from "../../hooks";
+import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
+import { Paciente } from "../../models";
 
 /**
  * Página para ver los datos de un diagnóstico.
  * @returns {JSX.Element}
  */
 export default function VerDiagnosticoPage() {
-    const { autenticado, usuario } = useAuth();
-    const drive = useDrive();
-    const { t } = useTranslation();
-    const { firestore } = useCredenciales();
-    const navegacion = useNavegacion();
-    const navigate = useNavigate();
     const location = useLocation();
-    const [params] = useSearchParams();
+    const navigate = useNavigate();
+    const { autenticado, usuario } = useAuth();
+    const { eliminarDiagnosticos, verDiagnostico, validarDiagnostico,
+        helperListo: diagnosticosListo } = useDiagnosticos();
+    const { id } = useParams();
+    const { t } = useTranslation();
+    const { verPaciente, token, helperListo: pacientesListo } = usePacientes();
+    const { verUsuario, helperListo: usuariosListo } = useUsuarios();
+
+
     const [cargando, setCargando] = useState(true);
+    const [diagnostico, setDiagnostico] = useState(null);
+    const [persona, setPersona] = useState(null);
+
     const [mostrarBtnSecundario, setMostrarBtnSecundario] = useState(true);
-    const [archivoDescargado, setArchivoDescargado] = useState(false);
+
     const [modoEliminar, setModoEliminar] = useState(false);
     const [popOver, setPopOver] = useState(null);
     const open = Boolean(popOver);
@@ -54,250 +57,145 @@ export default function VerDiagnosticoPage() {
     const [modal, setModal] = useState({
         mostrar: false, mensaje: "", titulo: "", txtBtn: t("txtBtnValidar"), icono: null
     });
-    const [datos, setDatos] = useState({
-        personales: {
-            id: "", fumador: 0, wbc: "", viajeProlongado: 0,
-            validado: 2, fecha: dayjs().format(t("formatoFechaPequeno")),
-            sexo: 0, tos: 0, tepPrevio: 0, soplos: 0,
-            so2: 0, sibilancias: 0, probabilidad: 0, presionSis: "",
-            presionDias: "", plaquetas: "", otraEnfermedad: 0,
-            medico: "", malignidad: 0, inmovilidad: 0, hemoptisis: 0,
-            hemoglobina: "", frecRes: "", frecCard: "", fiebre: 0,
-            edema: 0, edad: "", dolorToracico: 0, disnea: 0,
-            disautonomicos: 0, diagnostico: 0, derrame: 0, crepitaciones: 0,
-            cirugiaReciente: 0, bebedor: 0
-        },
-        comorbilidades: [], lime: null
-    });
-    const [persona, setPersona] = useState({
-        id: "", nombre: ""
-    });
-    const admin = useMemo(() => usuario?.rolVisible, [usuario.rolVisible]);
-    const [errorDiagnostico, setErrorDiagnostico] = useState(false);
-    const [diagnostico, setDiagnostico] = useState(datos.personales.validado);
-    const [diagOriginal, setDiagOriginal] = useState({});
-    const numCols = useMemo(() => {
-        const exp = (navegacion.dispositivoMovil && navegacion.orientacion == "vertical") || (!navegacion.dispositivoMovil && (navegacion.ancho < 500));
-        return exp ? 12 : 4;
-    }, [navegacion.dispositivoMovil, navegacion.ancho, navegacion.orientacion]);
+
+
+    const numCols = { xs: 12, md: 4 };
     const camposPersonales = useMemo(() => {
         const campos = [
-            { titulo: "ID", valor: datos.personales.id },
+            { titulo: "ID", valor: diagnostico.personales.id },
             { titulo: admin ? t("txtMedico") : t("txtPaciente"), valor: persona.nombre },
-            { titulo: t("txtCampoSexo"), valor: datos.personales.sexo == 0 ? t("txtMasculino") : t("txtFemenino") },
-            { titulo: t("txtCampoEdad"), valor: `${datos.personales.edad} ${t("txtSufijoEdad")}` },
-            { titulo: t("txtCampoFechaDiag"), valor: datos.personales.fecha },
-            { titulo: t("txtCampoDiagModelo"), valor: detTxtDiagnostico(datos.personales.diagnostico, navegacion.idioma) },
-            { titulo: t("txtCampoProbabilidad"), valor: `${(datos.personales.probabilidad * 100).toFixed(2)}%` },
-            { titulo: t("txtCampoDiagMedico"), valor: detTxtDiagnostico(datos.personales.validado, navegacion.idioma) },
+            { titulo: t("txtCampoSexo"), valor: diagnostico.personales.sexo == 0 ? t("txtMasculino") : t("txtFemenino") },
+            { titulo: t("txtCampoEdad"), valor: `${diagnostico.personales.edad} ${t("txtSufijoEdad")}` },
+            { titulo: t("txtCampoFechaDiag"), valor: diagnostico.personales.fecha },
+            { titulo: t("txtCampoDiagModelo"), valor: detTxtDiagnostico(diagnostico.personales.diagnostico, navegacion.idioma) },
+            { titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico.personales.probabilidad * 100).toFixed(2)}%` },
+            { titulo: t("txtCampoDiagMedico"), valor: detTxtDiagnostico(diagnostico.personales.validado, navegacion.idioma) },
         ];
 
         return campos;
-    }, [admin, datos, persona.nombre, navegacion.idioma]);
+    }, [admin, diagnostico, persona.nombre, navegacion.idioma]);
     const camposVitales = useMemo(() => [
-        { titulo: t("txtCampoPresionSist"), valor: `${datos.personales.presionSis} mmHg.` },
-        { titulo: t("txtCampoPresionDiast"), valor: `${datos.personales.presionDias} mmHg.` },
-        { titulo: t("txtCampoFrecCard"), valor: `${datos.personales.frecCard} lpm.` },
-        { titulo: t("txtCampoFrecRes"), valor: `${datos.personales.frecRes} rpm.` },
-        { titulo: t("txtCampoSO2"), valor: `${datos.personales.so2} %` },
-    ], [datos.personales, navegacion.idioma]);
+        { titulo: t("txtCampoPresionSist"), valor: `${diagnostico.personales.presionSis} mmHg.` },
+        { titulo: t("txtCampoPresionDiast"), valor: `${diagnostico.personales.presionDias} mmHg.` },
+        { titulo: t("txtCampoFrecCard"), valor: `${diagnostico.personales.frecCard} lpm.` },
+        { titulo: t("txtCampoFrecRes"), valor: `${diagnostico.personales.frecRes} rpm.` },
+        { titulo: t("txtCampoSO2"), valor: `${diagnostico.personales.so2} %` },
+    ], [diagnostico.personales, navegacion.idioma]);
     const camposExamenes = useMemo(() => [
-        { titulo: t("txtCampoPLT"), valor: `${datos.personales.plaquetas} /µL.` },
-        { titulo: t("txtCampoHB"), valor: `${datos.personales.hemoglobina} g/dL.` },
-        { titulo: t("txtCampoWBC"), valor: `${datos.personales.wbc} /µL.` },
-    ], [datos.personales, navegacion.idioma]);
-    const listadoPestanas = useMemo(() => {
-        let tit1 = t("txtHistorialDiagnosticos");
-        let tit2 = `${t("txtDiagnostico")}-${persona.nombre}-${datos.personales.fecha}`;
+        { titulo: t("txtCampoPLT"), valor: `${diagnostico.personales.plaquetas} /µL.` },
+        { titulo: t("txtCampoHB"), valor: `${diagnostico.personales.hemoglobina} g/dL.` },
+        { titulo: t("txtCampoWBC"), valor: `${diagnostico.personales.wbc} /µL.` },
+    ], [diagnostico.personales, navegacion.idioma]);
 
-        if (admin) {
-            tit1 = t("txtDatosRecolectados");
-            tit2 = `${t("txtDiagnostico")} — ${datos.personales.id}`;
-        }
-
-        return [
-            { texto: tit1, url: "/diagnosticos" },
-            { texto: tit2, url: `/diagnosticos/ver-diagnostico${location.search}` }
-        ];
-    }, [persona, datos, location.search, admin, navegacion.idioma]);
-    const titulo = useMemo(() => {
-        if (admin) {
-            return persona.nombre != "" ? `${t("txtDiagnostico")} — ${datos.personales.id}` : t("titDiagnostico");
-        } else {
-            return persona.nombre != "" ? `${t("txtDiagnostico")} — ${persona.nombre}` : t("titVerDiagnostico");
-        }
-    }, [admin, persona.nombre, datos.personales.id, navegacion.idioma]);
-    const id = useMemo(() => params.get("id"), [params]);
-
-    /**
-     * Carga el token de sesión y comienza a descargar el archivo de pacientes.
-     */
-    useEffect(() => {
-        const token = sessionStorage.getItem("session-tokens");
-        if (autenticado && token) {
-            const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
-            drive.setToken(tokens.accessToken);
-        } else if (usuario?.tokenDrive) {
-            drive.setToken(usuario.tokenDrive);
-        }
-    }, [autenticado, usuario]);
-
-    /**
-     * Quita la pantalla de carga cuando se haya descargado el archivo de pacientes.
-     */
-    useEffect(() => {
-        const exp = (!admin || persona.nombre == "");
-        if (admin != null && firestore != null && exp) {
-            cargarDatosDiagnostico(usuario?.tokenFirebase);
-        }
-    }, [drive.descargando, usuario?.tokenFirebase, admin, persona, firestore]);
+    const listadoPestanas = [
+        { texto: usuario?.rol ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
+        { texto: `${t("txtDiagnostico")} — ${id}`, url: `/diagnosticos/${id}` }
+    ];
 
     /**
      * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
      */
     useEffect(() => {
         if (navegacion.recargarPagina) {
-            setArchivoDescargado(false);
             setCargando(true);
-            setPersona({ id: "", nombre: "" });
+            setPersona(null);
             navegacion.setRecargarPagina(false);
         }
     }, [navegacion.recargarPagina]);
 
-    /**
-     * Coloca el título de la página.
-     */
     useEffect(() => {
+        let titulo = "";
+        if (usuario?.rol) {
+            titulo = diagnostico ? `${t("txtDiagnostico")} — ${diagnostico?.id}` : t("titDiagnostico");
+        } else {
+            titulo = persona ? `${t("txtDiagnostico")} — ${persona.nombre}` : t("titVerDiagnostico");
+        }
         document.title = titulo;
+    }, [usuario, persona, diagnostico, t]);
+
+    useEffect(() => {
         const exp = /-\w{28}$/;
-        const validacion = validarId(id.replace(exp, "")) && exp.test(id);
-        const res = (id != null && id != undefined) ? validacion : false;
+        const res = validarId(id.replace(exp, "")) && exp.test(id);
 
         if (!res) {
-            navigate("/diagnosticos", { replace: true });
+            navigate("/diagnosticos");
         }
-    }, [titulo, id]);
+    }, [id, navigate]);
+
 
     /**
-     * Una vez se carguen los datos de los pacientes, se cargan los datos del paciente.
+     * @param {String} id ID del diagnóstico a cargar.
      */
-    useEffect(() => {
-        const datos = sessionStorage.getItem("paciente");
-        if (drive.datos != null && archivoDescargado) {
-            cargarPaciente(datos);
-        }
-    }, [drive.datos, archivoDescargado]);
-
-    useEffect(() => {
-        if ((persona.nombre.length > 0) && (datos.personales.id.length > 0)) {
-            setCargando(false);
-        }
-    }, [datos, persona]);
-
-    /**
-     * Carga los datos del diagnóstico.
-     */
-    const cargarDatosDiagnostico = async (token) => {
-        const uid = id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-        const datos = await verDiagnostico(id, uid[1], firestore);
-        if (datos.success && datos.data != []) {
-            setDiagOriginal({ ...datos.data });
-
-            if (!admin && datos.data.medico != usuario?.uid) {
-                volverPestanaAnterior();
-                return;
-            }
-
-            if (admin) {
-                await cargarDatosMedico(token, datos.data.medico);
-            } else {
-                sessionStorage.setItem("paciente", datos.data.paciente);
-            }
-
-            preprocesarDiag(datos.data);
-        } else if (firestore != null && !datos.success) {
-            volverPestanaAnterior();
-        }
-    };
-
-    useEffect(() => {
-        if (drive.token != null && !admin) {
-            cargarDatosPacientes();
-        }
-    }, [drive.token, admin]);
-
-    /**
-     * Carga los datos de los pacientes.
-     */
-    const cargarDatosPacientes = async () => {
-        const descargar = sessionStorage.getItem("descargando-drive");
-
-        if (descargar == null || descargar == "false") {
-            sessionStorage.setItem("descargando-drive", "true");
-            let res = await drive.cargarDatos();
-
-            if (!res.success) {
-                setMostrarBtnSecundario(false);
-                setModal({
-                    mostrar: true, mensaje: res.error, icono: <CloseIcon />,
-                    titulo: t("errTitCargarDatosPacientes"),
-                });
-                return;
-            }
-
-            setArchivoDescargado(true);
-        }
-
-    };
-
-    /**
-     * Carga los datos del paciente asociado al diagnóstico.
-     * @param {String} id - ID del paciente.
-     */
-    const cargarPaciente = (id) => {
-        if (id == "Anónimo") {
-            setPersona({ id: "Anónimo", nombre: t("txtAnonimo") });
-            sessionStorage.setItem("descargando-drive", "false");
+    const cargarDiagnostico = useCallback(async (id) => {
+        const cache = location.state?.diagnostico;
+        if (cache) {
+            replaceState({ ...location.state, diagnostico: null }, '');
+            setDiagnostico(cache);
             return;
         }
 
-        const res = drive.cargarDatosPaciente(id);
-        const nombre = !admin ? t("txtPaciente") : t("txtUsuario");
-        if (res.success) {
-            setPersona({ ...res.data.personales });
+        const { success, data } = await verDiagnostico(id);
+        if (success) {
+            setDiagnostico(data);
         } else {
-            setPersona({ id: id, nombre: `${nombre} ${t("txtEliminado")}` });
+            navigate("/diagnosticos");
         }
-        sessionStorage.setItem("descargando-drive", "false");
-    };
+    }, [verDiagnostico, setDiagnostico]);
 
     /**
-     * Carga el nombre del médico que realizó el diagnóstico.
-     * @param {String} uid - UID del médico.
-     * @returns {String|null}
+     * @param {String} id  UID del paciente.
+     * @param {Boolean} esAnonimo Indica si el paciente es anónimo o no.
      */
-    const cargarDatosMedico = async (token, uid) => {
-        uid = encodeURIComponent(uid);
-        const res = await peticionApi(
-            `admin/usuarios/${uid}`, "GET", {}, null, token, navegacion.idioma,
-            t("errCargarDatosUsuarios")
-        );
-        let persona = { nombre: "N/A" };
-
-        if (!res.success && res.data == null) {
-            setMostrarBtnSecundario(false);
-            setModal({
-                mostrar: true, titulo: t("tituloErr"), icono: <CloseIcon />,
-                mensaje: t("errCargarDatosMedico")
-            });
-        } else if (!res.success) {
-            persona = { nombre: res.data.correo };
-        } else {
-            persona = { nombre: res.success ? res.data.nombre : res.data.correo };
+    const cargarPaciente = useCallback(async (id, esAnonimo = false) => {
+        if (esAnonimo) {
+            setPersona(
+                new Paciente("null", null, t("txtAnonimo"), 2, null, null, null, false, [])
+            );
+            return;
         }
-        sessionStorage.setItem("descargando-drive", "false");
-        setPersona((x) => ({ ...x, ...persona }));
-    };
+
+        const res = await verPaciente(id);
+        //const nombre = !admin ? t("txtPaciente") : t("txtUsuario");
+        if (res instanceof Paciente) {
+            setPersona(res);
+        } else {
+            setModalError({ mostrar: true, texto: "errCargarDatosPaciente" });
+        }
+    }, [setPersona, navigate, verPaciente]);
+
+     /**
+     * @param {String} uid UID del usuario.
+     */
+    const cargarUsuario =  useCallback(async (uid) => {
+        const { success, data, error } = await verUsuario(uid);
+        if (success) {
+            setPersona(data);
+        } else {
+            setModalError({ mostrar: true, texto: "errCargarDatosMedico" });
+        }
+    }, [setPersona, verUsuario]);
+
+    useEffect(() => {
+        if (usuario?.rol && usuariosListo) {
+            const uid = id.substring(37);
+            cargarUsuario(uid);
+        }
+    }, [usuario, usuariosListo, cargarUsuario, id]);
+
+    useEffect(() => {
+        if (diagnostico && pacientesListo) {
+            const uid = diagnostico.paciente;
+            cargarPaciente(uid, Boolean(uid));
+        }
+    }, [diagnostico, pacientesListo, cargarPaciente]);
+
+    useEffect(() => {
+        if (diagnosticosListo) {
+            const uid = id.substring(0, 36);
+            cargarDiagnostico(uid);
+        }
+    }, [diagnosticosListo, cargarDiagnostico, id]);
+
 
     /**
      * Separa los datos del diagnóstico en comorbilidades y otros datos.
@@ -318,22 +216,11 @@ export default function VerDiagnosticoPage() {
         }
 
         aux.fecha = dayjs(datos.fecha.toDate()).format(t("formatoFechaCompleta"));
-        setDatos({
+        setDiagnostico({
             personales: aux, comorbilidades: res, lime: (datos.lime != undefined ? lime : null)
         });
     };
 
-    /**
-     * Vuelve a la pestaña anterior cuando el diagnóstico no existe o el usuario no tiene permisos para verlo.
-     * Se requiere el timeout porque sino hay condiciones de carrera con el sessionStorage y navigate.
-     */
-    const volverPestanaAnterior = () => {
-        setTimeout(() => {
-            sessionStorage.removeItem("paciente");
-            sessionStorage.setItem("descargando-drive", "false");
-            navigate("/diagnosticos", { replace: true });
-        }, 100);
-    };
 
     /**
      * Determina el tamaño del elemento dentro de la malla.
@@ -403,7 +290,7 @@ export default function VerDiagnosticoPage() {
 
         if (res.success) {
             window.history.replaceState({}, '');
-            setDatos((x) => {
+            setDiagnostico((x) => {
                 x.personales.validado = diagnostico;
                 return { ...x };
             });
@@ -492,7 +379,7 @@ export default function VerDiagnosticoPage() {
      * @returns JSX.Element
      */
     const BtnValidar = () => {
-        return ((datos.personales.validado == 2 && !admin) ? (
+        return ((diagnostico.personales.validado == 2 && !admin) ? (
             <Tooltip title={t("txtAyudaBtnValidar")}>
                 <Fab onClick={manejadorBtnEditar}
                     color="primary"
@@ -502,23 +389,6 @@ export default function VerDiagnosticoPage() {
                     <b>{t("txtBtnValidar")}</b>
                 </Fab>
             </Tooltip>) : null);
-    };
-
-    /**
-     * Check para mostrar los síntomas clínicos del diagnóstico.
-     * @param {JSON} instancia - Datos del síntoma. 
-     * @returns {JSX.Element}
-     */
-    const CheckSintoma = ({ instancia }) => {
-        return (
-            <Grid size={numCols}>
-                <Check
-                    nombre={instancia}
-                    etiqueta={t(instancia)}
-                    desactivado={true}
-                    activado={datos.personales[instancia]}
-                    manejadorCambios={null} />
-            </Grid>);
     };
 
     /**
@@ -541,13 +411,11 @@ export default function VerDiagnosticoPage() {
         <>
             <MenuLayout>
                 {cargando ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
-                        <CircularProgress />
-                    </Box>
+                    <PantallaCarga />
                 ) : (
                     <>
                         <TabHeader
-                            urlPredet="/diagnosticos"
+                            activarBtnAtras
                             titulo={t("titDiagnostico")}
                             pestanas={listadoPestanas}
                             tooltip={t("txtVolverAtrasDiagnosticos")} />
@@ -598,7 +466,7 @@ export default function VerDiagnosticoPage() {
                                 <Divider />
                             </Grid>
                             <Grid size={12} paddingTop="3vh">
-                                <ContLime datos={datos.lime} />
+                                <ContLime datos={diagnostico.lime} />
                             </Grid>
                             <Grid size={12} paddingTop="3vh">
                                 <Divider />
@@ -610,7 +478,14 @@ export default function VerDiagnosticoPage() {
                             </Grid>
                             <Grid container size={12} columns={12} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
                                 {SINTOMAS.map((x) => (
-                                    <CheckSintoma instancia={x} key={x} />
+                                    <Grid size={numCols} key={x}>
+                                        <Check
+                                            nombre={instancia}
+                                            etiqueta={t(instancia)}
+                                            desactivado={true}
+                                            activado={diagnostico.personales[instancia]}
+                                            manejadorCambios={null} />
+                                    </Grid>
                                 ))}
                             </Grid>
                             <Grid size={12} paddingTop="3vh">
@@ -643,9 +518,9 @@ export default function VerDiagnosticoPage() {
                                     {t("titComor")}
                                 </Typography>
                             </Grid>
-                            {(datos.comorbilidades.length > 0) ? (
+                            {(diagnostico.comorbilidades.length > 0) ? (
                                 <Grid size={12}>
-                                    <ContComorbilidades comorbilidades={datos.comorbilidades} />
+                                    <ContComorbilidades comorbilidades={diagnostico.comorbilidades} />
                                 </Grid>
                             ) : (
                                 <Grid size={5}>

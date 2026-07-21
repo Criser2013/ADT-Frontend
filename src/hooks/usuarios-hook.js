@@ -57,6 +57,7 @@ export default function useUsuarios() {
      * @param {String} id UID del usuario a cargar.
      * @returns {Promise<Object>} Objeto con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa.
+     * - "data" (Usuario) - Contiene los datos del usuario si la operación fue exitosa.
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
      */
     const verUsuario = useCallback(async (id) => {

@@ -4,9 +4,8 @@ import {
     AnadirPacientePage, EditarPacientePage,
     VerPacientesPage, VerPacientePage
 } from "./pages/pacientes";
-import { DiagnosticoAnonimoPage, DiagnosticoPacientePage } from "./pages/diagnosticos";
+import { DiagnosticoAnonimoPage, DiagnosticoPacientePage, VerDiagnosticoPage } from "./pages/diagnosticos";
 /*
-import VerPacientePage from "./pages/pacientes/VerPacientePage";
 import VerDiagnosticoPage from "./pages/diagnosticos/VerDiagnosticoPage";
 import VerUsuariosPage from "./pages/usuarios/VerUsuariosPage";*/
 import { MenuPage, Page404 } from "./pages/utils";
@@ -26,6 +25,7 @@ export default function Router() {
                 <Route path="/pacientes/:id" element={<VerPacientePage />} />
                 <Route path="/pacientes/añadir" element={<AnadirPacientePage />} />
                 <Route path="/pacientes/:id/editar" element={<EditarPacientePage />} />
+                <Route path="/diagnosticos/:id" element={<VerDiagnosticoPage />} />
                 <Route path="/diagnosticos/paciente" element={<DiagnosticoPacientePage />} />
                 <Route path="/diagnosticos/anonimo" element={<DiagnosticoAnonimoPage />} />
                 {/*<Route path="/diagnosticos" element={<VerDiagnosticosPage />} />
@@ -33,11 +33,6 @@ export default function Router() {
                 <Route path="/menu" element={
                     <DriveProvider>
                         <MenuPage />
-                    </DriveProvider>
-                } />
-                <Route path="/diagnosticos/ver-diagnostico" element={
-                    <DriveProvider>
-                        <VerDiagnosticoPage />
                     </DriveProvider>
                 } />
                 */}
