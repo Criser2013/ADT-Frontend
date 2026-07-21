@@ -12,11 +12,11 @@ import { useTranslation } from "react-i18next";
  * @returns {JSX.Element}
  */
 export default function DiagnosticoPacientePage() {
-    const { cargarDatos, helperListo, mapeoPacientes, pacientes } = usePacientes();
+    const { cargarDatos, helperListo, pacientes } = usePacientes();
     const { t } = useTranslation();
     const [modal, setModal] = useState({ mostrar: false, texto: "" });
     const listadoPestanas = [{
-        texto: t("txtDiagnosticoPaciente"), url: "/diagnostico-paciente"
+        texto: t("txtDiagnosticoPaciente"), url: "/diagnosticos/paciente"
     }];
 
     const cargarPacientes = useCallback(async () => {
@@ -46,7 +46,6 @@ export default function DiagnosticoPacientePage() {
                 titulo={t("titDiagnosticoPaciente")}
                 esDiagPacientes={true}
                 pacientes={pacientes}
-                mapeoPacientes={mapeoPacientes}
                 pestanas={listadoPestanas}
                 manejadorRecarga={cargarPacientes} />
             <ModalSimple

@@ -1,8 +1,8 @@
-import { useEffect, useMemo } from "react";
-import FormDiagnostico from "../../components/forms/FormDiagnostico";
-import MenuLayout from "../../components/layout/MenuLayout";
-import { useNavegacion } from "../../hooks/Navegacion";
+import { FormDiagnostico } from "../../components/forms";
+import { MenuLayout } from "../../components/layout";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+
 
 /**
  * Página de diagnóstico anónimo.
@@ -10,23 +10,20 @@ import { useTranslation } from "react-i18next";
  */
 export default function DiagnosticoAnonimoPage() {
     const { t } = useTranslation();
-    const { idioma } = useNavegacion();
-    const listadoPestanas = useMemo(() => [{
-        texto: t("titDiagnosticoAnonimo"), url: "/diagnostico-anonimo"
-    }], [idioma]);
+    const listadoPestanas = [{
+        texto: t("titDiagnosticoAnonimo"), url: "/diagnosticos/anonimo"
+    }];
 
-    /**
-     * Título de la página.
-     */
     useEffect(() => {
         document.title = t("titDiagnosticoAnonimo");
-    }, [idioma]);
+    }, [t]);
 
     return (
         <MenuLayout>
             <FormDiagnostico 
-                listadoPestanas={listadoPestanas}
-                tituloHeader={t("titDiagnosticoAnonimo")} />
+                titulo={t("titDiagnosticoAnonimo")}
+                esDiagPacientes={false}
+                pestanas={listadoPestanas} />
         </MenuLayout>
     );
 }; 
