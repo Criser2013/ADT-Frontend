@@ -55,9 +55,11 @@ export default function VerDiagnosticoPage() {
     const [popOver, setPopOver] = useState(null);
     const open = Boolean(popOver);
     const elem = open ? "simple-popover" : undefined;
-    const [modal, setModal] = useState({
+    const [modalEliminacion, setModalEliminacion] = useState({
         mostrar: false, mensaje: "", titulo: "", txtBtn: t("txtBtnValidar"), icono: null
     });
+    const [modalValidacion, setModalValidacion] = useState({
+        mostrar: false, texto: "", txtBtn: t("txtBtnValidar"), icono: null });
 
 
     const numCols = { xs: 12, md: 4 };
@@ -242,14 +244,11 @@ export default function VerDiagnosticoPage() {
         }
     };
 
-    /**
-     * Manejador del botón de editar paciente.
-     */
-    const manejadorBtnEditar = () => {
+    function manejadorBtnEditar() {
         setDiagnostico(2);
         setMostrarBtnSecundario(true);
         setErrorDiagnostico(false);
-        setModal({
+        setModalEliminacion({
             titulo: t("titValidar"), mensaje: "",
             mostrar: true, txtBtn: t("txtBtnValidar"), icono: <CheckCircleOutlineIcon />
         });
@@ -268,7 +267,7 @@ export default function VerDiagnosticoPage() {
         } else {
             setCargando(false);
             setMostrarBtnSecundario(false);
-            setModal({
+            setModalEliminacion({
                 mostrar: true, titulo: t("tituloErr"), icono: <CloseIcon />,
                 mensaje: t("errEliminarDiagnostico")
             });
@@ -297,7 +296,7 @@ export default function VerDiagnosticoPage() {
             });
         } else {
             setMostrarBtnSecundario(false);
-            setModal({
+            setModalEliminacion({
                 mostrar: true, titulo: t("tituloErr"), txtBtn: t("txtBtnCerrar"), icono: <CloseIcon />,
                 mensaje: t("errValidarDiagnosticoApi")
             });
@@ -305,48 +304,19 @@ export default function VerDiagnosticoPage() {
         setCargando(false);
     };
 
-    /**
-     * Manejador del botón de cerrar el modal.
-     */
-    const manejadorBtnModal = () => {
-        if (!modoEliminar && mostrarBtnSecundario && diagnostico != 2) {
-            validarDiagnostico();
-        } else if (!modoEliminar && mostrarBtnSecundario && diagnostico == 2) {
-            setErrorDiagnostico(true);
-            return;
-        } else if (modoEliminar) {
-            setCargando(true);
-            borrarDiagnostico();
-        }
-
-        setModal({ ...modal, mostrar: false });
-    };
-
-    /**
-     * Manejador del botón de eliminar diagnóstico.
-     */
-    const manejadorBtnEliminar = () => {
-        setModoEliminar(true);
+    function manejadorBtnEliminar() {
         cerrarPopover();
-        setMostrarBtnSecundario(true);
-        setModal({
-            mostrar: true, titulo: t("titAlerta"), txtBtn: t("txtBtnEliminar"), icono: <DeleteIcon />,
-            mensaje: t("txtEliminarDiagnostico")
-        });
+        setModalEliminacion({ texto: t("txtEliminarDiagnostico"), mostrar: true });
     };
 
     /**
-     * Manejador del botón de más opciones.
-     * @param {Event} event 
+     * @param {Event} e 
      */
-    const manejadorBtnMas = (event) => {
-        setPopOver(event.currentTarget);
+    function manejadorBtnOpciones(e) {
+        setPopOver(e.currentTarget);
     };
 
-    /**
-     * Cierra el popover de opciones.
-     */
-    const cerrarPopover = () => {
+    function cerrarPopover() {
         setPopOver(null);
     };
 
@@ -390,7 +360,7 @@ export default function VerDiagnosticoPage() {
                     <b>{t("txtBtnValidar")}</b>
                 </Fab>
             </Tooltip>) : null);
-    };
+    }; 
 
     /**
      * Componente para el cuerpo del modal.
@@ -409,8 +379,16 @@ export default function VerDiagnosticoPage() {
     }, [errorDiagnostico, diagnostico, admin]);
 
     function cerrarModalError() {
-        setModalError({ mostrar: false, texto: "" });
+        setModalError({ ...modalError, mostrar: false });
     };
+
+    function cerrarModalValidacion() {
+        setModalValidacion({ ...modalValidacion, mostrar: false });
+    };
+
+    function cerrarModalEliminacion() {
+        setModalEliminacion({ ...modalEliminacion, mostrar: false });
+    }
 
     return (
         <>
@@ -431,7 +409,7 @@ export default function VerDiagnosticoPage() {
                             {admin ? (
                                 <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                                     <Tooltip title={t("txtAyudaMasOpciones")}>
-                                        <IconButton aria-describedby={elem} onClick={manejadorBtnMas}>
+                                        <IconButton aria-describedby={elem} onClick={manejadorBtnOpciones}>
                                             <MoreVertIcon />
                                         </IconButton>
                                     </Tooltip>
@@ -539,19 +517,27 @@ export default function VerDiagnosticoPage() {
                     </>
                 )}
                 <ModalDoble
-                    abrir={modal.mostrar}
-                    titulo={modal.titulo}
-                    mensaje={modal.mensaje}
-                    iconoBtnPrincipal={modal.icono}
-                    manejadorBtnPrimario={manejadorBtnModal}
-                    manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
-                    mostrarBtnSecundario={mostrarBtnSecundario}
-                    txtBtnSimple={modal.txtBtn}
+                    mostrar={modalEliminacion.mostrar}
+                    titulo={t("titAlerta")}
+                    texto={t("txtEliminarDiagnostico")}
+                    txtBtnPrincipal={t("txtBtnEliminar")}
                     txtBtnSecundario={t("txtBtnCancelar")}
-                    iconoBtnSecundario={<CloseIcon />}
-                    txtBtnSimpleAlt={t("txtBtnCerrar")}>
+                    manejadorBtnPrincipal={manejadorBtnModal}
+                    manejadorBtnSecundario={cerrarModalEliminacion}
+                    iconoBtnPrincipal={<DeleteIcon />}                    
+                    iconoBtnSecundario={<CloseIcon />}>
                     <CuerpoModal />
                 </ModalDoble>
+                <ModalDoble
+                    mostrar={modalValidacion.mostrar}
+                    titulo={t("titValidar")}
+                    texto={modalValidacion.texto}
+                    txtBtnPrincipal={t("txtBtnValidar")}
+                    txtBtnSecundario={t("txtBtnCancelar")}
+                    manejadorBtnPrincipal={manejadorBtnModal}
+                    manejadorBtnSecundario={cerrarModalValidacion}
+                    iconoBtnPrincipal={<CheckCircleOutlineIcon />} 
+                    iconoBtnSecundario={<CloseIcon />} />
                 <ModalSimple
                     mostrar={modalError.mostrar}
                     titulo={t("tituloErr")}
