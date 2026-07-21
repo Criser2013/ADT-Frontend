@@ -1,0 +1,62 @@
+import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+import { ModalDoble } from "../modals";
+
+const valoresDiagnostico = [
+    { valor: 2, texto: "txtSelecDiagnostico" },
+    { valor: false, texto: "txtNegativo" },
+    { valor: true, texto: "txtPositivo" }
+];
+
+
+/**
+ * Formulario para validar un diagnóstico de TEP.
+ * @param {Boolean} mostrar Indicador para mostrar u ocultar el formulario.
+ * @param {Function} manejadorBtn Función a ejecutar al presionar el botón de validar.
+ * @param {Function} manejadorCierre Función a ejecutar al presionar el botón de cancelar.
+ * @returns {JSX.Element}
+ */
+export default function FormValidacion({ mostrar = false, manejadorBtn, manejadorCierre }) {
+    const { control, handleSubmit, formState: { errors } } = useForm();
+    const { t } = useTranslation();
+
+    return (
+        <ModalDoble
+            mostrar={mostrar}
+            titulo={t("titValidar")}
+            txtBtnPrincipal={t("txtBtnValidar")}
+            txtBtnSecundario={t("txtBtnCancelar")}
+            manejadorBtnPrincipal={handleSubmit(manejadorBtn)}
+            manejadorBtnSecundario={manejadorCierre}
+            iconoBtnPrincipal={<CheckCircleOutlineIcon />}
+            iconoBtnSecundario={<CloseIcon />} >
+            <Stack orientation="column" spacing={2} width="100%">
+                <Typography variant="body1">
+                    {t("txtValidarDiagnostico")}
+                </Typography>
+                <Controller
+                    name="diagnosticoMedico"
+                    control={control}
+                    rules={{ 
+                        required: t("errCampoRequerido"),
+                        validate: (value) => value != 2 || t("errValidarDiagnostico")
+                     }}
+                    render={({ field }) => (
+                        <TextField
+                            select
+                            {...field}
+                            error={errors.diagnosticoMedico}
+                            helperText={errors.diagnosticoMedico?.message}
+                            fullWidth>
+                            {valoresDiagnostico.map((x) => {
+                                return (
+                                    <MenuItem key={x.valor} value={x.valor}>
+                                        {t(x.texto)}
+                                    </MenuItem>
+                                );
+                            })}
+                        </TextField>)} />
+            </Stack>
+        </ModalDoble>
+    );
+};

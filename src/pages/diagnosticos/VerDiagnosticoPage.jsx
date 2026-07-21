@@ -11,10 +11,10 @@ import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
-    Box, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
+    Box, CircularProgress, Grid, Typography, Divider, Stack, Tooltip,
     Button, Popover, IconButton
 } from "@mui/material";
-import { Check } from "../../components/tabs";
+import { BtnFlotante, Check } from "../../components/tabs";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
 import { ContComorbilidades, ContLime } from "../../components/diagnosticos";
 import { FormSeleccionar } from "../../components/forms";
@@ -170,7 +170,7 @@ export default function VerDiagnosticoPage() {
      * @param {String} uid UID del usuario.
      */
     const cargarUsuario =  useCallback(async (uid) => {
-        const { success, data, error } = await verUsuario(uid);
+        const { success, data } = await verUsuario(uid);
         if (success) {
             setPersona(data);
         } else {
@@ -245,61 +245,23 @@ export default function VerDiagnosticoPage() {
     };
 
     function manejadorBtnEditar() {
-        setDiagnostico(2);
-        setMostrarBtnSecundario(true);
-        setErrorDiagnostico(false);
-        setModalEliminacion({
-            titulo: t("titValidar"), mensaje: "",
-            mostrar: true, txtBtn: t("txtBtnValidar"), icono: <CheckCircleOutlineIcon />
-        });
+        setModalValidacion({ ...modalValidacion, mostrar: true });
     };
 
     /**
-     * Realiza la petición para eliminar el diagnóstico del paciente.
+     * @param {Object} datos Objeto con la propiedad "diagnosticoMedico" que contiene el diagnóstico 
+     * pronósticado por el médico.
      */
-    const borrarDiagnostico = async () => {
-        const uid = id.split(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}-/);
-        const res = await eliminarDiagnostico(id, uid[1], firestore);
-
-        if (res.success) {
-            navegacion.paginaAnterior.current = "/diagnosticos";
-            navigate("/diagnosticos", { replace: true });
-        } else {
-            setCargando(false);
-            setMostrarBtnSecundario(false);
-            setModalEliminacion({
-                mostrar: true, titulo: t("tituloErr"), icono: <CloseIcon />,
-                mensaje: t("errEliminarDiagnostico")
-            });
-        }
-    };
-
-    /**
-     * Valida el diagnóstico del paciente.
-     */
-    const validarDiagnostico = async () => {
+    async function manejadorBtnValidar(datos) {
+        setModalValidacion({ ...modalValidacion, mostrar: false });
         setCargando(true);
-        setErrorDiagnostico(false);
-        const { id, medico } = diagOriginal;
-        const aux = { ...diagOriginal };
 
-        delete aux.id;
-        delete aux.medico;
+        const { success, data, error } = await validarDiagnostico(diagnostico, datos.diagnosticoMedico);
 
-        const res = await cambiarDiagnostico(id, medico, { ...aux, validado: diagnostico }, firestore);
-
-        if (res.success) {
-            window.history.replaceState({}, '');
-            setDiagnostico((x) => {
-                x.personales.validado = diagnostico;
-                return { ...x };
-            });
+        if (success) {
+            setDiagnostico(data);
         } else {
-            setMostrarBtnSecundario(false);
-            setModalEliminacion({
-                mostrar: true, titulo: t("tituloErr"), txtBtn: t("txtBtnCerrar"), icono: <CloseIcon />,
-                mensaje: t("errValidarDiagnosticoApi")
-            });
+            setModalError({ mostrar: true, texto: t(error) });
         }
         setCargando(false);
     };
@@ -307,6 +269,15 @@ export default function VerDiagnosticoPage() {
     function manejadorBtnEliminar() {
         cerrarPopover();
         setModalEliminacion({ texto: t("txtEliminarDiagnostico"), mostrar: true });
+    };
+
+    async function manejadorBtnBorrar() {
+        const { success, error } = await eliminarDiagnosticos(id);
+        if (success) {
+            navigate("/diagnosticos");
+        } else {
+            setModalError({ mostrar: true, texto: error });
+        }
     };
 
     /**
@@ -345,39 +316,6 @@ export default function VerDiagnosticoPage() {
         );
     };
 
-    /**
-     * Botón para validar el diagnóstico del paciente.
-     * @returns JSX.Element
-     */
-    const BtnValidar = () => {
-        return ((diagnostico.personales.validado == 2 && !admin) ? (
-            <Tooltip title={t("txtAyudaBtnValidar")}>
-                <Fab onClick={manejadorBtnEditar}
-                    color="primary"
-                    variant="extended"
-                    sx={{ textTransform: "none", display: "flex", position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
-                    <CheckCircleOutlineIcon sx={{ mr: 1 }} />
-                    <b>{t("txtBtnValidar")}</b>
-                </Fab>
-            </Tooltip>) : null);
-    }; 
-
-    /**
-     * Componente para el cuerpo del modal.
-     * @returns {JSX.Element}
-     */
-    const CuerpoModal = useCallback(() => {
-        return (!admin ? (
-            <FormSeleccionar
-                onChange={setDiagnostico}
-                texto={t("txtValidarDiagnostico")}
-                error={errorDiagnostico}
-                txtError={t("errValidarDiagnostico")}
-                valor={diagnostico}
-                valores={DIAGNOSTICOS} />) : null
-        );
-    }, [errorDiagnostico, diagnostico, admin]);
-
     function cerrarModalError() {
         setModalError({ ...modalError, mostrar: false });
     };
@@ -388,7 +326,7 @@ export default function VerDiagnosticoPage() {
 
     function cerrarModalEliminacion() {
         setModalEliminacion({ ...modalEliminacion, mostrar: false });
-    }
+    };
 
     return (
         <>
@@ -513,30 +451,28 @@ export default function VerDiagnosticoPage() {
                                 </Grid>
                             )}
                         </Grid>
-                        <BtnValidar />
+                        {(diagnostico?.validado && !usuario?.rol) ? (
+                            <BtnFlotante
+                                txtBtn={t("txtBtnValidar")}
+                                txtAyudaBtn={t("txtAyudaBtnValidar")}
+                                manejadorBtn={manejadorBtnEditar}
+                                icono={<CheckCircleOutlineIcon />} />
+                        ) : null}
                     </>
                 )}
+                <FormValidacion
+                    mostrar={modalValidacion.mostrar}
+                    manejadorBtn={manejadorBtnValidar}
+                    manejadorCierre={cerrarModalValidacion} />
                 <ModalDoble
                     mostrar={modalEliminacion.mostrar}
                     titulo={t("titAlerta")}
                     texto={t("txtEliminarDiagnostico")}
                     txtBtnPrincipal={t("txtBtnEliminar")}
                     txtBtnSecundario={t("txtBtnCancelar")}
-                    manejadorBtnPrincipal={manejadorBtnModal}
+                    manejadorBtnPrincipal={manejadorBtnBorrar}
                     manejadorBtnSecundario={cerrarModalEliminacion}
                     iconoBtnPrincipal={<DeleteIcon />}                    
-                    iconoBtnSecundario={<CloseIcon />}>
-                    <CuerpoModal />
-                </ModalDoble>
-                <ModalDoble
-                    mostrar={modalValidacion.mostrar}
-                    titulo={t("titValidar")}
-                    texto={modalValidacion.texto}
-                    txtBtnPrincipal={t("txtBtnValidar")}
-                    txtBtnSecundario={t("txtBtnCancelar")}
-                    manejadorBtnPrincipal={manejadorBtnModal}
-                    manejadorBtnSecundario={cerrarModalValidacion}
-                    iconoBtnPrincipal={<CheckCircleOutlineIcon />} 
                     iconoBtnSecundario={<CloseIcon />} />
                 <ModalSimple
                     mostrar={modalError.mostrar}

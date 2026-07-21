@@ -11,11 +11,6 @@ export const SEXOS = [
     { texto: "txtMasculino", val: 0 },
     { texto: "txtFemenino", val: 1 }
 ];
-export const DIAGNOSTICOS = [
-    { valor: 2, texto: "txtSelecDiagnostico" },
-    { valor: 0, texto: "txtNegativo" },
-    { valor: 1, texto: "txtPositivo" }
-];
 export const URL_CONDICIONES = import.meta.env.VITE_URL_CONDICIONES || "https://google.com";
 export const CAMPOS_BIN = [
     "sexo", "fumador", "bebedor", "tos", "fiebre", "crepitaciones",

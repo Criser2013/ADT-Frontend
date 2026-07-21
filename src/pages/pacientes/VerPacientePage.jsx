@@ -3,14 +3,14 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
-    Grid, Typography, Divider, Stack, Fab, Tooltip,
+    Grid, Typography, Divider, Stack, Tooltip,
     Button, Popover, IconButton
 } from "@mui/material";
 import { ChipSexo } from "../../components/tabs/Chips";
 import { ContComorbilidades } from "../../components/diagnosticos";
 import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
 import { ModalSimple, ModalDoble } from "../../components/modals";
-import { PopOver } from "../../components/tabs";
+import { BtnFlotante, PopOver } from "../../components/tabs";
 import { useCallback, useEffect, useState } from "react";
 import { usePacientes } from "../../hooks";
 import { useNavigate, useParams } from "react-router";
@@ -204,22 +204,11 @@ export default function VerPacientePage() {
                             </Grid>
                         )}
                     </Grid>
-                    <Tooltip title={t("txtAyudaBtnEditarPaciente")}>
-                        <Fab onClick={manejadorBtnEditar}
-                            color="primary"
-                            variant="extended"
-                            sx={{
-                                textTransform: "none",
-                                display: "flex",
-                                position: "fixed",
-                                bottom: 20,
-                                right: 20,
-                                zIndex: 1000
-                            }} >
-                            <EditIcon sx={{ mr: 1 }} />
-                            <b>{t("txtBtnEditar")}</b>
-                        </Fab>
-                    </Tooltip>
+                    <BtnFlotante
+                        txtBtn={t("txtBtnEditar")}
+                        txtAyudaBtn={t("txtAyudaBtnEditarPaciente")}
+                        manejadorBtn={manejadorBtnEditar}
+                        icono={<EditIcon />} />
                 </>
             )}
             <ModalDoble
