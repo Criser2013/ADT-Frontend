@@ -14,17 +14,20 @@ import { useTranslation } from "react-i18next";
 export default function DiagnosticoPacientePage() {
     const { cargarDatos, helperListo, pacientes } = usePacientes();
     const { t } = useTranslation();
+    const [datosCargados, setDatosCargados] = useState(false);
     const [modal, setModal] = useState({ mostrar: false, texto: "" });
     const listadoPestanas = [{
         texto: t("txtDiagnosticoPaciente"), url: "/diagnosticos/paciente"
     }];
 
     const cargarPacientes = useCallback(async () => {
+        setDatosCargados(false);
         const { success, error } = await cargarDatos();
         if (!success) {
             setModal({ mostrar: true, texto: error });
         }
-    }, [cargarDatos, setModal]);
+        setDatosCargados(true);
+    }, [cargarDatos, setModal, setDatosCargados]);
 
     function cerrarModal() {
         setModal({ mostrar: false, texto: "" });
@@ -47,7 +50,8 @@ export default function DiagnosticoPacientePage() {
                 esDiagPacientes={true}
                 pacientes={pacientes}
                 pestanas={listadoPestanas}
-                manejadorRecarga={cargarPacientes} />
+                manejadorRecarga={cargarPacientes}
+                indicadorDatosCargados={datosCargados} />
             <ModalSimple
                 mostrar={modal.mostrar}
                 titulo={t("tituloErr")}

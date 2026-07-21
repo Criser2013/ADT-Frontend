@@ -47,11 +47,12 @@ const numColumnas = { xs: 1, md: 2, lg: 3 };
  * @param {Array<Paciente>} pacientes Lista de pacientes registrados.
  * @param {Array<Object>} pestanas Lista de pestañas con objetos de la forma { texto: String, url: String }.
  * @param {Function} manejadorRecarga Función para ejecutar la carga de las instancias de pacientes.
+ * @param {Boolean} indicadorDatosCargados Indica si los datos de pacientes han sido cargados.
  * @returns {JSX.Element}
  */
 export default function FormDiagnostico({
     titulo, esDiagPacientes = false, pacientes = [],
-    pestanas, manejadorRecarga = null
+    pestanas, manejadorRecarga = null, indicadorDatosCargados = false
 }) {
     const navigate = useNavigate();
     const { generarDiagnostico } = useDiagnosticos();
@@ -81,10 +82,10 @@ export default function FormDiagnostico({
     const otraEnfermedad = watch("otra_enfermedad");
 
     useEffect(() => {
-        if (esDiagPacientes && pacientes) {
+        if (esDiagPacientes && indicadorDatosCargados) {
             setCargando(false);
         }
-    }, [esDiagPacientes, pacientes, setCargando]);
+    }, [esDiagPacientes, indicadorDatosCargados, setCargando]);
 
     function cerrarModal() {
         setModal({ ...modal, mostrar: false });
@@ -121,7 +122,7 @@ export default function FormDiagnostico({
         setCaptchaAceptado(false);
         const idPaciente = getValues("paciente").id;
 
-        if (idPaciente) {
+        if (idPaciente != "null") {
             setValue("paciente", valoresPredet.paciente);
             setValue("sexo", 2);
             setValue("edad", "");
@@ -160,7 +161,7 @@ export default function FormDiagnostico({
         if (success) {
             navigate(`/diagnosticos/${inst.id}`, { state: Diagnostico.fromJson(data) });
         } else {
-            setModal({ mostrar: true, texto: t("errGuardarDiag", { error: error }) });
+            setModal({ mostrar: true, texto: t("errGuardarDiag", { error: t(error) }) });
             setCaptchaAceptado(false);
             setCargando(false);
         }
