@@ -1,32 +1,32 @@
+
+
+import { oneHotDecoderOtraEnfermedad, detTxtDiagnostico, procLime } from "../../utils/TratarDatos";
+import { COMORBILIDADES, DIAGNOSTICOS } from "../../../constants";
+
+import { SINTOMAS } from "../../../constants";
+
+
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CloseIcon from "@mui/icons-material/Close";
+import DeleteIcon from "@mui/icons-material/Delete";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
     Box, CircularProgress, Grid, Typography, Divider, Stack, Fab, Tooltip,
     Button, Popover, IconButton
 } from "@mui/material";
-import { useEffect, useState, useMemo, useCallback } from "react";
-
-import { useLocation, useNavigate, useParams } from "react-router";
-import { validarId } from "../../utils/Validadores";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import CloseIcon from "@mui/icons-material/Close";
-import DeleteIcon from "@mui/icons-material/Delete";
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import ModalDoble from "../../components/modals/ModalDoble";
-import { oneHotDecoderOtraEnfermedad, detTxtDiagnostico, procLime } from "../../utils/TratarDatos";
-import { COMORBILIDADES, DIAGNOSTICOS } from "../../../constants";
-import { useCredenciales } from "../../contexts/CredencialesContext";
-import Check from "../../components/tabs/Check";
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import FormSeleccionar from "../../components/forms/FormSeleccionar";
-import { SINTOMAS } from "../../../constants";
-import ContComorbilidades from "../../components/diagnosticos/ContComorbilidades";
-
+import { Check } from "../../components/tabs";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
-import ContLime from "../../components/diagnosticos/ContLime";
-import { useTranslation } from "react-i18next";
-import { useAuth, useDiagnosticos, usePacientes, useUsuarios } from "../../hooks";
+import { ContComorbilidades, ContLime } from "../../components/diagnosticos";
+import { FormSeleccionar } from "../../components/forms";
 import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
+import { ModalError, ModalSimple } from "../../components/modals";
 import { Paciente } from "../../models";
+import { useAuth, useDiagnosticos, usePacientes, useUsuarios } from "../../hooks";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router";
+import { useTranslation } from "react-i18next";
+import { validarId } from "../../utils/Validadores";
+
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -47,6 +47,7 @@ export default function VerDiagnosticoPage() {
     const [cargando, setCargando] = useState(true);
     const [diagnostico, setDiagnostico] = useState(null);
     const [persona, setPersona] = useState(null);
+    const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
 
     const [mostrarBtnSecundario, setMostrarBtnSecundario] = useState(true);
 
@@ -129,7 +130,7 @@ export default function VerDiagnosticoPage() {
     const cargarDiagnostico = useCallback(async (id) => {
         const cache = location.state?.diagnostico;
         if (cache) {
-            replaceState({ ...location.state, diagnostico: null }, '');
+            history.replaceState({ ...location.state, diagnostico: null }, "");
             setDiagnostico(cache);
             return;
         }
@@ -407,6 +408,10 @@ export default function VerDiagnosticoPage() {
         );
     }, [errorDiagnostico, diagnostico, admin]);
 
+    function cerrarModalError() {
+        setModalError({ mostrar: false, texto: "" });
+    };
+
     return (
         <>
             <MenuLayout>
@@ -547,6 +552,13 @@ export default function VerDiagnosticoPage() {
                     txtBtnSimpleAlt={t("txtBtnCerrar")}>
                     <CuerpoModal />
                 </ModalDoble>
+                <ModalSimple
+                    mostrar={modalError.mostrar}
+                    titulo={t("tituloErr")}
+                    texto={t(modalError.texto)}
+                    txtBtn={t("txtBtnCerrar")}
+                    manejadorBtn={cerrarModalError}
+                    iconoBtn={<CloseIcon />} />
             </MenuLayout>
         </>
     );

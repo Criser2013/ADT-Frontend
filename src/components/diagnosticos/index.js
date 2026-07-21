@@ -1,3 +1,4 @@
 import ContComorbilidades from "./ContComorbilidades";
+import ContLime from "./ContLime";
 
-export { ContComorbilidades };
+export { ContComorbilidades, ContLime };
