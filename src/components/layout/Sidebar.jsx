@@ -30,7 +30,7 @@ export default function Sidebar() {
         { txt: t("titMenu"), icono: <HomeIcon />, ruta: "/menu" },
         { txt: t("txtPacientes"), icono: <ListPacienteIcono />, ruta: "/pacientes" },
         { txt: t("titDiagnosticoPaciente"), icono: <DiagnosticoIcono />, ruta: "/diagnosticos/paciente" },
-        { txt: t("titDiagnosticoAnonimo"), icono: <DiagAnonimoIcono />, ruta: "/diagnostico-anonimo" },
+        { txt: t("titDiagnosticoAnonimo"), icono: <DiagAnonimoIcono />, ruta: "/diagnosticos/anonimo" },
         { txt: t("txtHistorialDiagnosticos"), icono: <HistDiagnosticoIcono />, ruta: "/diagnosticos" },
     ];
     const urlAdmin = [

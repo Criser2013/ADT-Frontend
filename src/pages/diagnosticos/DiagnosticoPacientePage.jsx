@@ -12,19 +12,22 @@ import { useTranslation } from "react-i18next";
  * @returns {JSX.Element}
  */
 export default function DiagnosticoPacientePage() {
-    const { cargarDatos, helperListo, mapeoPacientes, pacientes } = usePacientes();
+    const { cargarDatos, helperListo, pacientes } = usePacientes();
     const { t } = useTranslation();
+    const [datosCargados, setDatosCargados] = useState(false);
     const [modal, setModal] = useState({ mostrar: false, texto: "" });
     const listadoPestanas = [{
-        texto: t("txtDiagnosticoPaciente"), url: "/diagnostico-paciente"
+        texto: t("txtDiagnosticoPaciente"), url: "/diagnosticos/paciente"
     }];
 
     const cargarPacientes = useCallback(async () => {
+        setDatosCargados(false);
         const { success, error } = await cargarDatos();
         if (!success) {
             setModal({ mostrar: true, texto: error });
         }
-    }, [cargarDatos, setModal]);
+        setDatosCargados(true);
+    }, [cargarDatos, setModal, setDatosCargados]);
 
     function cerrarModal() {
         setModal({ mostrar: false, texto: "" });
@@ -46,9 +49,9 @@ export default function DiagnosticoPacientePage() {
                 titulo={t("titDiagnosticoPaciente")}
                 esDiagPacientes={true}
                 pacientes={pacientes}
-                mapeoPacientes={mapeoPacientes}
                 pestanas={listadoPestanas}
-                manejadorRecarga={cargarPacientes} />
+                manejadorRecarga={cargarPacientes}
+                indicadorDatosCargados={datosCargados} />
             <ModalSimple
                 mostrar={modal.mostrar}
                 titulo={t("tituloErr")}
