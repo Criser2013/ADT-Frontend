@@ -15,7 +15,7 @@ export function ChipRol({ rol }) {
 
 /**
  * Chip para mostrar el sexo del paciente.
- * @param {Boolean} Sexo Sexo del paciente. 
+ * @param {Number} Sexo Sexo del paciente. 
  * @returns {JSX.Element}
  */
 export function ChipSexo({ sexo }) {

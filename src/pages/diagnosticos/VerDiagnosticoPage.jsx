@@ -1,6 +1,6 @@
 
 
-import { detTxtDiagnostico, procLime } from "../../utils/TratarDatos";
+import { procLime } from "../../utils/TratarDatos";
 import { COMORBILIDADES, CAMPOS_BIN } from "../../../constants";
 
 
@@ -52,27 +52,27 @@ export default function VerDiagnosticoPage() {
 
     const numCols = { xs: 12, md: 4 };
     const camposPersonales = useMemo(() => [
-            { titulo: "ID", valor: diagnostico.personales.id },
-            { titulo: usuario?.rol ? t("txtMedico") : t("txtPaciente"), valor: persona?.nombre },
-            { titulo: t("txtCampoSexo"), valor: diagnostico?.sexo, componente: ChipSexo },
-            { titulo: t("txtCampoEdad"), valor: `${diagnostico?.edad} ${t("txtSufijoEdad")}` },
-            { titulo: t("txtCampoFechaDiag"), valor: diagnostico?.fechaFormateada },
-            { titulo: t("txtCampoDiagModelo"), valor: diagnostico?.diagnosticoModelo, componente: ChipDiagnostico },
-            { titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico?.probabilidad * 100).toFixed(2)}%` },
-            { titulo: t("txtCampoDiagMedico"), valor: diagnostico?.diagnosticoMedico, componente: ChipValidado },
-        ], [usuario, diagnostico, persona, t]);
+        { id: "id", titulo: "ID", valor: diagnostico.personales.id },
+        { id: "nombre", titulo: usuario?.rol ? t("txtMedico") : t("txtPaciente"), valor: persona?.nombre },
+        { id: "sexo", titulo: t("txtCampoSexo"), valor: diagnostico?.sintomasBinarios?.sexo, componente: <ChipSexo sexo={diagnostico?.sexo} /> },
+        { id: "edad", titulo: t("txtCampoEdad"), valor: `${diagnostico?.edad} ${t("txtSufijoEdad")}` },
+        { id: "fecha", titulo: t("txtCampoFechaDiag"), valor: diagnostico?.fechaFormateada },
+        { id: "diagnosticoModelo", titulo: t("txtCampoDiagModelo"), valor: diagnostico?.diagnosticoModelo, componente: <ChipDiagnostico valor={diagnostico?.diagnosticoModelo} /> },
+        { id: "probabilidad", titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico?.probabilidad * 100).toFixed(2)}%` },
+        { id: "diagnosticoMedico", titulo: t("txtCampoDiagMedico"), valor: diagnostico?.diagnosticoMedico, componente: <ChipValidado valor={diagnostico?.diagnosticoMedico} /> },
+    ], [usuario, diagnostico, persona, t]);
     const camposSintomas = useMemo(() => CAMPOS_BIN.filter((x) => !["sexo", "otra_enfermedad"].includes(x)), []);
     const camposVitales = useMemo(() => [
-        { titulo: t("txtCampoPresionSist"), valor: `${diagnostico?.sintomasNumericos?.presion_sistolica} mmHg.` },
-        { titulo: t("txtCampoPresionDiast"), valor: `${diagnostico?.sintomasNumericos?.presion_diastolica} mmHg.` },
-        { titulo: t("txtCampoFrecCard"), valor: `${diagnostico?.sintomasNumericos?.frecuencia_cardiaca} lpm.` },
-        { titulo: t("txtCampoFrecRes"), valor: `${diagnostico?.sintomasNumericos?.frecuencia_respiratoria} rpm.` },
-        { titulo: t("txtCampoSO2"), valor: `${diagnostico?.sintomasNumericos?.saturacion_de_la_sangre} %` },
+        { id: "presionSistolica", titulo: t("txtCampoPresionSist"), valor: `${diagnostico?.sintomasNumericos?.presion_sistolica} mmHg.` },
+        { id: "presionDiastolica", titulo: t("txtCampoPresionDiast"), valor: `${diagnostico?.sintomasNumericos?.presion_diastolica} mmHg.` },
+        { id: "frecuenciaCardiaca", titulo: t("txtCampoFrecCard"), valor: `${diagnostico?.sintomasNumericos?.frecuencia_cardiaca} lpm.` },
+        { id: "frecuenciaRespiratoria", titulo: t("txtCampoFrecRes"), valor: `${diagnostico?.sintomasNumericos?.frecuencia_respiratoria} rpm.` },
+        { id: "saturacionDeLaSangre", titulo: t("txtCampoSO2"), valor: `${diagnostico?.sintomasNumericos?.saturacion_de_la_sangre} %` },
     ], [diagnostico, t]);
     const camposExamenes = useMemo(() => [
-        { titulo: t("txtCampoPLT"), valor: `${diagnostico?.sintomasNumericos?.plt} /µL.` },
-        { titulo: t("txtCampoHB"), valor: `${diagnostico?.personales?.hb} g/dL.` },
-        { titulo: t("txtCampoWBC"), valor: `${diagnostico?.personales?.wbc} /µL.` },
+        { id: "plt", titulo: t("txtCampoPLT"), valor: `${diagnostico?.sintomasNumericos?.plt} /µL.` },
+        { id: "hb", titulo: t("txtCampoHB"), valor: `${diagnostico?.personales?.hb} g/dL.` },
+        { id: "wbc", titulo: t("txtCampoWBC"), valor: `${diagnostico?.personales?.wbc} /µL.` },
     ], [diagnostico, t]);
 
     const listadoPestanas = [
@@ -188,25 +188,6 @@ export default function VerDiagnosticoPage() {
         setModalValidacion(false);
     };
 
-    /**
-     * Determina el tamaño del elemento dentro de la malla.
-     * Si se visualiza desde un dispositivo movil en orientación horizontal y el menú o en escritorio,
-     * se ajusta el contenido a 2 columnas, en caso contrario se deja en 1 columna.
-     * @param {Int} indice 
-     * @returns {Int}
-     */
-    const detVisualizacion = (indice) => {
-        const { orientacion, mostrarMenu, dispositivoMovil, ancho } = navegacion;
-        if (dispositivoMovil && (orientacion == "vertical" || (orientacion == "horizontal" && mostrarMenu))) {
-            return 12;
-        } else if (!dispositivoMovil && ancho < 600) {
-            return 12;
-        }
-        else {
-            return indice % 2 == 0 ? 7 : 5;
-        }
-    };
-
     async function manejadorBtnBorrar() {
         const { success, error } = await eliminarDiagnosticos(id);
         if (success) {
@@ -295,9 +276,16 @@ export default function VerDiagnosticoPage() {
                                     {t("titDatosPersonales")}
                                 </Typography>
                             </Grid>
-                            {camposPersonales.map((campo, index) => (
-                                <CamposTexto key={index} campo={campo} indice={index} />
-                            ))}
+                            <Grid size={12}>
+                                {camposPersonales.map(({ id, titulo, valor, componente }) => (
+                                    <CampoTexto
+                                        key={id}
+                                        tamano={numCols}
+                                        titulo={titulo}
+                                        valor={valor}
+                                        componente={componente} />
+                                ))}
+                            </Grid>
                             <Grid size={12} paddingTop="3vh">
                                 <Divider />
                             </Grid>
@@ -331,9 +319,16 @@ export default function VerDiagnosticoPage() {
                                     {t("titSignosVitales")}
                                 </Typography>
                             </Grid>
-                            {camposVitales.map((campo, index) => (
-                                <CamposTexto key={index} campo={campo} indice={index} />
-                            ))}
+                            <Grid size={12}>
+                                {camposVitales.map(({ id, titulo, valor, componente }) => (
+                                    <CampoTexto
+                                        key={id}
+                                        tamano={numCols}
+                                        titulo={titulo}
+                                        valor={valor}
+                                        componente={componente} />
+                                ))}
+                            </Grid>
                             <Grid size={12} paddingTop="3vh">
                                 <Divider />
                             </Grid>
@@ -342,10 +337,16 @@ export default function VerDiagnosticoPage() {
                                     {t("titExamenes")}
                                 </Typography>
                             </Grid>
-                            {camposExamenes.map((campo, index) => (
-                                <CamposTexto key={index} campo={campo} indice={index} />
-                            ))}
-                            <Grid size={12} paddingTop="3vh">
+                            <Grid size={12}>
+                                {camposExamenes.map(({ id, titulo, valor, componente }) => (
+                                    <CampoTexto
+                                        key={id}
+                                        tamano={numCols}
+                                        titulo={titulo}
+                                        valor={valor}
+                                        componente={componente} />
+                                ))}
+                            </Grid>                            <Grid size={12} paddingTop="3vh">
                                 <Divider />
                             </Grid>
                             <Grid size={12}>
@@ -365,7 +366,7 @@ export default function VerDiagnosticoPage() {
                                 </Grid>
                             )}
                         </Grid>
-                        {(diagnostico?.validado && !usuario?.rol) ? (
+                        {(!usuario?.rol && diagnostico?.validado) ? (
                             <BtnFlotante
                                 txtBtn={t("txtBtnValidar")}
                                 txtAyudaBtn={t("txtAyudaBtnValidar")}

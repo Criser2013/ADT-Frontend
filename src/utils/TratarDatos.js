@@ -300,24 +300,6 @@ export function procEdad(valor) {
 };
 
 /**
- * Determina el texto del diagnóstico según su valor.
- * @param {Integer} diagnostico 
- * @returns {String}
- */
-export function detTxtDiagnostico(diagnostico, idioma = "es") {
-    idioma;
-    const txt = { "txtNegativo": "Negativo", "txtPositivo": "Positivo", "txtNoValidado": "No Validado" }; //textos[idioma].translation;
-    switch (diagnostico) {
-        case 0:
-            return txt.txtNegativo;
-        case 1:
-            return txt.txtPositivo;
-        default:
-            return txt.txtNoValidado;
-    }
-};
-
-/**
  * Transforma una instancia de la base de datos al formato de campos de Excel.
  * @param {JSON} instancia - Instancia de diagnóstico.
  * @param {Boolean} esAdmin - Indica si el usuario es administrador.

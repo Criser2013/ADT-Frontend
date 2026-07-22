@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals';
-import { detTxtDiagnostico, evaluarIntervalo, nombresCampos, oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, quitarDatosPersonales, procLime } from "../../../../src/utils/TratarDatos";
+import { evaluarIntervalo, nombresCampos, oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, quitarDatosPersonales, procLime } from "../../../../src/utils/TratarDatos";
 
 describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
     test("CP - 15", () => {
@@ -109,23 +109,6 @@ describe("Validar la función 'procBool'", () => {
     test("CP - 66", () => {
         const res = procBool(false);
         expect(res).toBe(0);
-    });
-});
-
-describe("Validar la función 'detTxtDiagnostico'", () => {
-    test.skip("CP - 76", () => {
-        const res = detTxtDiagnostico(0);
-        expect(res).toEqual("Negativo");
-    });
-
-    test.skip("CP - 77", () => {
-        const res = detTxtDiagnostico(1);
-        expect(res).toEqual("Positivo");
-    });
-
-    test.skip("CP - 78", () => {
-        const res = detTxtDiagnostico(2);
-        expect(res).toEqual("No validado");
     });
 });
 
