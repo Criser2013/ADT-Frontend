@@ -4,8 +4,8 @@ import { Grid, Typography } from "@mui/material";
  * Componente para mostrar un campo númerico o de texto dentro de un grid.
  * @param {Number} tamano Tamaño del grid (1-12).
  * @param {String} titulo Título del campo.
- * @param {String} valor Valor del campo.
- * @param {JSX.Element} componente Componente opcional para mostrar el valor.
+ * @param {String|null} valor Valor del campo. Es opcional si se pasa un componente.
+ * @param {JSX.Element|null} componente Componente opcional para mostrar el valor.
  * @returns {JSX.Element}
  */
 export default function CampoTexto({ tamano, titulo, valor, componente = null }) {

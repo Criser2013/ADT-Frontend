@@ -1,7 +1,6 @@
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
     Box, CircularProgress, Grid, Typography, Divider, Stack, Tooltip,
     Button, IconButton
@@ -43,33 +42,44 @@ export default function VerDiagnosticoPage() {
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
     const [modalEliminacion, setModalEliminacion] = useState(false);
     const [modalValidacion, setModalValidacion] = useState(false);
+
+
     const camposPersonales = useMemo(() => [
         { id: "id", titulo: "ID", valor: diagnostico.personales.id },
         { id: "nombre", titulo: usuario?.rol ? t("txtMedico") : t("txtPaciente"), valor: persona?.nombre },
-        { id: "sexo", titulo: t("txtCampoSexo"), valor: diagnostico?.sintomasBinarios?.sexo, componente: <ChipSexo sexo={diagnostico?.sexo} /> },
+        { id: "sexo", titulo: t("txtCampoSexo"), componente: <ChipSexo sexo={diagnostico?.sintomasBinarios.sexo} />},
         { id: "edad", titulo: t("txtCampoEdad"), valor: `${diagnostico?.edad} ${t("txtSufijoEdad")}` },
         { id: "fecha", titulo: t("txtCampoFechaDiag"), valor: diagnostico?.fechaFormateada },
-        { id: "diagnosticoModelo", titulo: t("txtCampoDiagModelo"), valor: diagnostico?.diagnosticoModelo, componente: <ChipDiagnostico valor={diagnostico?.diagnosticoModelo} /> },
+        { id: "diagnosticoModelo", titulo: t("txtCampoDiagModelo"), componente: <ChipDiagnostico valor={diagnostico?.diagnosticoModelo} /> },
         { id: "probabilidad", titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico?.probabilidad * 100).toFixed(2)}%` },
-        { id: "diagnosticoMedico", titulo: t("txtCampoDiagMedico"), valor: diagnostico?.diagnosticoMedico, componente: <ChipValidado valor={diagnostico?.diagnosticoMedico} /> },
+        { id: "diagnosticoMedico", titulo: t("txtCampoDiagMedico"), componente: <ChipValidado valor={diagnostico?.diagnosticoMedico} /> },
     ], [usuario, diagnostico, persona, t]);
     const camposSintomas = useMemo(() => CAMPOS_BIN.filter((x) => !["sexo", "otra_enfermedad"].includes(x)), []);
     const camposVitales = useMemo(() => [
-        { id: "presionSistolica", titulo: t("txtCampoPresionSist"), valor: `${diagnostico?.sintomasNumericos?.presion_sistolica} mmHg.` },
-        { id: "presionDiastolica", titulo: t("txtCampoPresionDiast"), valor: `${diagnostico?.sintomasNumericos?.presion_diastolica} mmHg.` },
-        { id: "frecuenciaCardiaca", titulo: t("txtCampoFrecCard"), valor: `${diagnostico?.sintomasNumericos?.frecuencia_cardiaca} lpm.` },
-        { id: "frecuenciaRespiratoria", titulo: t("txtCampoFrecRes"), valor: `${diagnostico?.sintomasNumericos?.frecuencia_respiratoria} rpm.` },
-        { id: "saturacionDeLaSangre", titulo: t("txtCampoSO2"), valor: `${diagnostico?.sintomasNumericos?.saturacion_de_la_sangre} %` },
+        { id: "presionSistolica", titulo: t("txtCampoPresionSist"), valor: `${diagnostico?.sintomasNumericos.presion_sistolica} mmHg.` },
+        { id: "presionDiastolica", titulo: t("txtCampoPresionDiast"), valor: `${diagnostico?.sintomasNumericos.presion_diastolica} mmHg.` },
+        { id: "frecuenciaCardiaca", titulo: t("txtCampoFrecCard"), valor: `${diagnostico?.sintomasNumericos.frecuencia_cardiaca} lpm.` },
+        { id: "frecuenciaRespiratoria", titulo: t("txtCampoFrecRes"), valor: `${diagnostico?.sintomasNumericos.frecuencia_respiratoria} rpm.` },
+        { id: "saturacionDeLaSangre", titulo: t("txtCampoSO2"), valor: `${diagnostico?.sintomasNumericos.saturacion_de_la_sangre} %` },
     ], [diagnostico, t]);
     const camposExamenes = useMemo(() => [
-        { id: "plt", titulo: t("txtCampoPLT"), valor: `${diagnostico?.sintomasNumericos?.plt} /µL.` },
-        { id: "hb", titulo: t("txtCampoHB"), valor: `${diagnostico?.personales?.hb} g/dL.` },
-        { id: "wbc", titulo: t("txtCampoWBC"), valor: `${diagnostico?.personales?.wbc} /µL.` },
+        { id: "plt", titulo: t("txtCampoPLT"), valor: `${diagnostico?.sintomasNumericos.plt} /µL.` },
+        { id: "hb", titulo: t("txtCampoHB"), valor: `${diagnostico?.personales.hb} g/dL.` },
+        { id: "wbc", titulo: t("txtCampoWBC"), valor: `${diagnostico?.personales.wbc} /µL.` },
     ], [diagnostico, t]);
     const listadoPestanas = [
         { texto: usuario?.rol ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
         { texto: `${t("txtDiagnostico")} — ${id}`, url: `/diagnosticos/${id}` }
     ];
+
+    useEffect(() => {
+        const exp = /-\w{28}$/;
+        const res = validarId(id.replace(exp, "")) && exp.test(id);
+
+        if (!res) {
+            navigate("/diagnosticos");
+        }
+    }, [id, navigate]);
 
     useEffect(() => {
         let titulo = "";
@@ -80,15 +90,6 @@ export default function VerDiagnosticoPage() {
         }
         document.title = titulo;
     }, [usuario, persona, diagnostico, t]);
-
-    useEffect(() => {
-        const exp = /-\w{28}$/;
-        const res = validarId(id.replace(exp, "")) && exp.test(id);
-
-        if (!res) {
-            navigate("/diagnosticos");
-        }
-    }, [id, navigate]);
 
     /**
      * @param {String} id ID del diagnóstico a cargar.
@@ -115,20 +116,18 @@ export default function VerDiagnosticoPage() {
      */
     const cargarPaciente = useCallback(async (id, esAnonimo = false) => {
         if (esAnonimo) {
-            setPersona(
-                new Paciente("null", null, t("txtAnonimo"), 2, null, null, null, false, [])
-            );
+            const nombre = `${usuario?.rol ? t("txtMedico") : t("txtPaciente")} ${t("txtAnonimo")}`;
+            setPersona(new Paciente("null", null, nombre, 2, null, null, null, false, []));
             return;
         }
 
         const res = await verPaciente(id);
-        //const nombre = !admin ? t("txtPaciente") : t("txtUsuario");
         if (res instanceof Paciente) {
             setPersona(res);
         } else {
             setModalError({ mostrar: true, texto: "errCargarDatosPaciente" });
         }
-    }, [setPersona, verPaciente, t]);
+    }, [setPersona, usuario, verPaciente, t]);
 
     /**
     * @param {String} uid UID del usuario.
@@ -160,6 +159,7 @@ export default function VerDiagnosticoPage() {
             navigate("/diagnosticos");
         } else {
             setModalError({ mostrar: true, texto: error });
+            setCargando(false);
         }
     };
 
@@ -167,15 +167,13 @@ export default function VerDiagnosticoPage() {
         setModalEliminacion(true);
     };
 
-
     /**
-     * @param {Object} datos Objeto con la propiedad "diagnosticoMedico" que contiene el diagnóstico 
-     * pronósticado por el médico.
+     * @param {Object} diagnosticoMedico Diagnóstico TEP confirmado por el médico.
      */
-    async function manejadorBtnValidar(datos) {
+    async function manejadorBtnValidar({ diagnosticoMedico }) {
         cerrarModalValidacion();
         setCargando(true);
-        const { success, data, error } = await validarDiagnostico(diagnostico, datos.diagnosticoMedico);
+        const { success, data, error } = await validarDiagnostico(diagnostico, diagnosticoMedico);
         if (success) {
             setDiagnostico(data);
         } else {
@@ -196,11 +194,11 @@ export default function VerDiagnosticoPage() {
     }, [usuario, usuariosListo, cargarUsuario, id]);
 
     useEffect(() => {
-        if (diagnostico && pacientesListo) {
+        if (!usuario?.rol && diagnostico && pacientesListo) {
             const uid = diagnostico.paciente;
             cargarPaciente(uid, Boolean(uid));
         }
-    }, [diagnostico, pacientesListo, cargarPaciente]);
+    }, [diagnostico, usuario, pacientesListo, cargarPaciente]);
 
     useEffect(() => {
         if (diagnosticosListo) {
@@ -208,6 +206,14 @@ export default function VerDiagnosticoPage() {
             cargarDiagnostico(uid);
         }
     }, [diagnosticosListo, cargarDiagnostico, id]);
+
+    useEffect(() => {
+        setCargando(true);
+    }, [usuario.modoUsuario]);
+
+    useEffect(() => {
+        setCargando(!(diagnostico && persona));
+    }, [persona, diagnostico]);
 
     return (
         <>
@@ -242,21 +248,19 @@ export default function VerDiagnosticoPage() {
                                     {t("titDatosPersonales")}
                                 </Typography>
                             </Grid>
-                            <Grid size={12}>
-                                {camposPersonales.map(({ id, titulo, valor, componente }) => (
-                                    <CampoTexto
-                                        key={id}
-                                        tamano={numCols}
-                                        titulo={titulo}
-                                        valor={valor}
-                                        componente={componente} />
-                                ))}
-                            </Grid>
+                            {camposPersonales.map(({ id, titulo, valor, componente }) => (
+                                <CampoTexto
+                                    key={id}
+                                    tamano={numCols}
+                                    titulo={titulo}
+                                    valor={valor}
+                                    componente={componente} />
+                            ))}
                             <Grid size={12} paddingTop="3vh">
                                 <Divider />
                             </Grid>
                             <Grid size={12} paddingTop="3vh">
-                                <ContLime datos={diagnostico.lime} />
+                                <ContLime diagnostico={diagnostico} />
                             </Grid>
                             <Grid size={12} paddingTop="3vh">
                                 <Divider />
@@ -285,16 +289,14 @@ export default function VerDiagnosticoPage() {
                                     {t("titSignosVitales")}
                                 </Typography>
                             </Grid>
-                            <Grid size={12}>
-                                {camposVitales.map(({ id, titulo, valor, componente }) => (
-                                    <CampoTexto
-                                        key={id}
-                                        tamano={numCols}
-                                        titulo={titulo}
-                                        valor={valor}
-                                        componente={componente} />
-                                ))}
-                            </Grid>
+                            {camposVitales.map(({ id, titulo, valor, componente }) => (
+                                <CampoTexto
+                                    key={id}
+                                    tamano={numCols}
+                                    titulo={titulo}
+                                    valor={valor}
+                                    componente={componente} />
+                            ))}
                             <Grid size={12} paddingTop="3vh">
                                 <Divider />
                             </Grid>
@@ -303,16 +305,15 @@ export default function VerDiagnosticoPage() {
                                     {t("titExamenes")}
                                 </Typography>
                             </Grid>
-                            <Grid size={12}>
-                                {camposExamenes.map(({ id, titulo, valor, componente }) => (
-                                    <CampoTexto
-                                        key={id}
-                                        tamano={numCols}
-                                        titulo={titulo}
-                                        valor={valor}
-                                        componente={componente} />
-                                ))}
-                            </Grid>                            <Grid size={12} paddingTop="3vh">
+                            {camposExamenes.map(({ id, titulo, valor, componente }) => (
+                                <CampoTexto
+                                    key={id}
+                                    tamano={numCols}
+                                    titulo={titulo}
+                                    valor={valor}
+                                    componente={componente} />
+                            ))}
+                            <Grid size={12} paddingTop="3vh">
                                 <Divider />
                             </Grid>
                             <Grid size={12}>

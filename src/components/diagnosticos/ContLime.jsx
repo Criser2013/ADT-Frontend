@@ -1,5 +1,5 @@
-import { GraficoBarras } from "../charts";
 import { Box, Grid, Typography } from "@mui/material";
+import { GraficoBarras } from "../charts";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
