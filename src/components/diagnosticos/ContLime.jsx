@@ -1,6 +1,5 @@
+import { GraficoBarras } from "../charts";
 import { Box, Grid, Typography } from "@mui/material";
-import GraficoBarras from "../charts/GraficoBarras";
-import { useNavegacion } from "../../hooks/Navegacion";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,46 +8,23 @@ import { useTranslation } from "react-i18next";
  * @param {Diagnostico} diagnostico Instancia de diagnóstico con el atributo "explicacion" definido.
  * @returns {JSX.Element}
  */
-export default function ContLime({ diagnostico, varianteTits = "h5", negritaTit = false }) {
+export default function ContLime({ diagnostico }) {
     const { t } = useTranslation();
-
-    const ancho = useMemo(() => {
-        const { dispositivoMovil, ancho } = navegacion;
-        return dispositivoMovil || (!dispositivoMovil && ancho <= 700) ? "98vw" : "65vw";
-    }, [navegacion]);
-    const alto = useMemo(() => {
-        const { dispositivoMovil, alto } = navegacion;
-        return dispositivoMovil || (!dispositivoMovil && alto <= 700) ? "100vh" : "65vh";
-    }, [navegacion]);
-
-
-
-    const tamGrafico = useMemo(() => {
-        if (responsivo) {
-            return { altura: undefined, anchura: undefined };
-        } else {
-            return { altura: 350, anchura:  "400%" };
-        }
-    }, [responsivo]);
-
     const datosGrafico = useMemo(() => {
         const { campos, datosPositivos, datosNegativos } = diagnostico.explicacion.datosGrafico;
-        let txtPositivo = diagnostico?.diagnosticoModelo ? t("txtDiagnosticoPositivo") : t("txtDiagnosticoNegativo");
-        let txtNegativo = diagnostico?.diagnosticoModelo ? t("txtDiagnosticoNegativo") : t("txtDiagnosticoPositivo");
-        let colorPositivo = "";
-        let colorNegativo = "";
-
-        const camposTraducidos = [];
-        for (const campo of campos) {
-            const aux = campo.split(/=|<=|=>|<|>/).map((x) => x.trim());
-            camposTraducidos.push(campo.replace(aux[0], t(aux[0])));
-        }
-        datos.labels = camposTraducidos;
-
-        colorPositivo = diagnostico?.diagnosticoModelo ? "rgba(44,120,56, 2)" : "rgba(237, 108, 2, 255)";
-        colorNegativo = diagnostico?.diagnosticoModelo ? "rgba(237, 108, 2, 255)" : "rgba(44,120,56, 2)";
-
-        const datos = {
+        const camposTraducidos = campos.map((campo) => {
+            const [sintoma, _] = campo.split(/=|<=|=>|<|>/).map((x) => x.trim());
+            return campo.replace(sintoma, t(sintoma));
+        });
+        const txtPositivo = diagnostico?.diagnosticoModelo ? t("txtDiagnosticoPositivo") :
+            t("txtDiagnosticoNegativo");
+        const txtNegativo = diagnostico?.diagnosticoModelo ? t("txtDiagnosticoNegativo") :
+            t("txtDiagnosticoPositivo");
+        const colorPositivo = diagnostico?.diagnosticoModelo ? "rgba(44,120,56, 2)" :
+            "rgba(237, 108, 2, 255)";
+        const colorNegativo = diagnostico?.diagnosticoModelo ? "rgba(237, 108, 2, 255)" :
+            "rgba(44,120,56, 2)";
+        return {
             labels: camposTraducidos,
             datasets: [
                 {
@@ -63,27 +39,28 @@ export default function ContLime({ diagnostico, varianteTits = "h5", negritaTit 
                 }
             ]
         };
-        return datos;
     }, [diagnostico, t]);
 
     return (
-        <Grid container columns={12}>
-            <Grid size={12}>
-                <Typography variant={varianteTits} paddingBottom="2vh" fontWeight={negritaTit ? "bold" : "normal"}>
+        <Grid container columns={1}>
+            <Grid size={1}>
+                <Typography variant="h5" paddingBottom="2vh">
                     {t("titExplicacion")}
                 </Typography>
             </Grid>
-            <Grid size={12}>
+            <Grid size={1}>
                 <Typography>
                     {t("txtExplicacion")}
                 </Typography>
             </Grid>
-            <Grid display="flex" size={12} justifyContent="center">
-                <Box display="flex" maxHeight={alto} width={ancho} justifyContent="center" alignItems="center">
+            <Grid display="flex" size={1} justifyContent="center">
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    maxHeight={{ xs: "65vh", md: "100vh" }}
+                    width={{ xs: "98vw", md: "65vw" }} >
                     <GraficoBarras
-                        responsive
-                        altura={tamGrafico.altura}
-                        anchura={tamGrafico.anchura}
                         datos={datosGrafico}
                         modoActualizacion="resize"
                         titulo={t("titLime")} />
