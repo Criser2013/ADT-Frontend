@@ -61,9 +61,9 @@ export default function ContLime({ diagnostico }) {
                     maxHeight={{ xs: "65vh", md: "100vh" }}
                     width={{ xs: "98vw", md: "65vw" }} >
                     <GraficoBarras
+                        titulo={t("titLime")}
                         datos={datosGrafico}
-                        modoActualizacion="resize"
-                        titulo={t("titLime")} />
+                        modoActualizacion="resize" />
                 </Box>
             </Grid>
         </Grid>

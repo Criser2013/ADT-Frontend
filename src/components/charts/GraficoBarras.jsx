@@ -1,8 +1,9 @@
 import { Bar } from "react-chartjs-2";
 import {
     Chart as ChartJS, CategoryScale, LinearScale, BarElement,
-    Title, Tooltip, Legend, useTheme, useMediaQuery
+    Title, Tooltip, Legend
 } from 'chart.js';
+import { useMediaQuery, useTheme } from "@mui/material";
 import { useMemo } from "react";
 import { useTema } from "../../hooks/";
 
@@ -26,20 +27,14 @@ ChartJS.register(
  * }
  * ````
  * @param {String} modoActualizacion Modo de actualización del gráfico (default, "none", "resize", etc).
- * @param {Number|undefined} alto Alto del gráfico (opcional). El valor `undefined` indica que el 
- * alto se ajusta automáticamente al contenedor.
- * @param {Number|undefined} ancho Ancho del gráfico (opcional). El valor `undefined` indica que 
- * el ancho se ajusta automáticamente al contenedor.
  * @returns {JSX.Element}
  */
-export default function GraficoBarras({
-    titulo, datos, modoActualizacion = "default", alto = undefined, ancho = undefined
-}) {
-    const { tema } = useTema();
+export default function GraficoBarras({ titulo, datos, modoActualizacion = "default" }) {
     const theme = useTheme();
     const md = useMediaQuery(theme.breakpoints.up('md'));
     const lg = useMediaQuery(theme.breakpoints.up('lg'));
     const xl = useMediaQuery(theme.breakpoints.up('xl'));
+    const { tema } = useTema();
     const tamLeyenda = useMemo(() => {
         if (xl) return 18;
         if (lg) return 16;
@@ -88,12 +83,9 @@ export default function GraficoBarras({
             }
         };
     }, [titulo, tema, tamLeyenda, tamTitulo]);
-
     return (
         <Bar
-            redraw
-            height={alto}
-            width={ancho}
+            redraw={true}
             data={datos}
             updateMode={modoActualizacion}
             options={opciones} />
