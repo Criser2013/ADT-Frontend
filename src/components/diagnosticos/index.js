@@ -1,4 +1,5 @@
+import CampoTexto from "./CampoTexto";
 import ContComorbilidades from "./ContComorbilidades";
 import ContLime from "./ContLime";
 
-export { ContComorbilidades, ContLime };
+export { CampoTexto, ContComorbilidades, ContLime };

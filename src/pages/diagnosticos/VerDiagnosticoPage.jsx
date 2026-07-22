@@ -13,8 +13,8 @@ import {
     Button, IconButton
 } from "@mui/material";
 import { BtnFlotante, Check } from "../../components/tabs";
+import { CampoTexto, ContComorbilidades, ContLime } from "../../components/diagnosticos";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
-import { ContComorbilidades, ContLime } from "../../components/diagnosticos";
 import { FormSeleccionar } from "../../components/forms";
 import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
 import { ModalError, ModalSimple } from "../../components/modals";
@@ -51,48 +51,34 @@ export default function VerDiagnosticoPage() {
 
 
     const numCols = { xs: 12, md: 4 };
-    const camposPersonales = useMemo(() => {
-        const campos = [
+    const camposPersonales = useMemo(() => [
             { titulo: "ID", valor: diagnostico.personales.id },
-            { titulo: admin ? t("txtMedico") : t("txtPaciente"), valor: persona.nombre },
-            { titulo: t("txtCampoSexo"), valor: diagnostico.personales.sexo == 0 ? t("txtMasculino") : t("txtFemenino") },
-            { titulo: t("txtCampoEdad"), valor: `${diagnostico.personales.edad} ${t("txtSufijoEdad")}` },
-            { titulo: t("txtCampoFechaDiag"), valor: diagnostico.personales.fecha },
-            { titulo: t("txtCampoDiagModelo"), valor: detTxtDiagnostico(diagnostico.personales.diagnostico, navegacion.idioma) },
-            { titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico.personales.probabilidad * 100).toFixed(2)}%` },
-            { titulo: t("txtCampoDiagMedico"), valor: detTxtDiagnostico(diagnostico.personales.validado, navegacion.idioma) },
-        ];
-
-        return campos;
-    }, [admin, diagnostico, persona.nombre, navegacion.idioma]);
+            { titulo: usuario?.rol ? t("txtMedico") : t("txtPaciente"), valor: persona?.nombre },
+            { titulo: t("txtCampoSexo"), valor: diagnostico?.sexo, componente: ChipSexo },
+            { titulo: t("txtCampoEdad"), valor: `${diagnostico?.edad} ${t("txtSufijoEdad")}` },
+            { titulo: t("txtCampoFechaDiag"), valor: diagnostico?.fechaFormateada },
+            { titulo: t("txtCampoDiagModelo"), valor: diagnostico?.diagnosticoModelo, componente: ChipDiagnostico },
+            { titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico?.probabilidad * 100).toFixed(2)}%` },
+            { titulo: t("txtCampoDiagMedico"), valor: diagnostico?.diagnosticoMedico, componente: ChipValidado },
+        ], [usuario, diagnostico, persona, t]);
+    const camposSintomas = useMemo(() => CAMPOS_BIN.filter((x) => !["sexo", "otra_enfermedad"].includes(x)), []);
     const camposVitales = useMemo(() => [
-        { titulo: t("txtCampoPresionSist"), valor: `${diagnostico.personales.presionSis} mmHg.` },
-        { titulo: t("txtCampoPresionDiast"), valor: `${diagnostico.personales.presionDias} mmHg.` },
-        { titulo: t("txtCampoFrecCard"), valor: `${diagnostico.personales.frecCard} lpm.` },
-        { titulo: t("txtCampoFrecRes"), valor: `${diagnostico.personales.frecRes} rpm.` },
-        { titulo: t("txtCampoSO2"), valor: `${diagnostico.personales.so2} %` },
-    ], [diagnostico.personales, navegacion.idioma]);
+        { titulo: t("txtCampoPresionSist"), valor: `${diagnostico?.sintomasNumericos?.presion_sistolica} mmHg.` },
+        { titulo: t("txtCampoPresionDiast"), valor: `${diagnostico?.sintomasNumericos?.presion_diastolica} mmHg.` },
+        { titulo: t("txtCampoFrecCard"), valor: `${diagnostico?.sintomasNumericos?.frecuencia_cardiaca} lpm.` },
+        { titulo: t("txtCampoFrecRes"), valor: `${diagnostico?.sintomasNumericos?.frecuencia_respiratoria} rpm.` },
+        { titulo: t("txtCampoSO2"), valor: `${diagnostico?.sintomasNumericos?.saturacion_de_la_sangre} %` },
+    ], [diagnostico, t]);
     const camposExamenes = useMemo(() => [
-        { titulo: t("txtCampoPLT"), valor: `${diagnostico.personales.plaquetas} /µL.` },
-        { titulo: t("txtCampoHB"), valor: `${diagnostico.personales.hemoglobina} g/dL.` },
-        { titulo: t("txtCampoWBC"), valor: `${diagnostico.personales.wbc} /µL.` },
-    ], [diagnostico.personales, navegacion.idioma]);
+        { titulo: t("txtCampoPLT"), valor: `${diagnostico?.sintomasNumericos?.plt} /µL.` },
+        { titulo: t("txtCampoHB"), valor: `${diagnostico?.personales?.hb} g/dL.` },
+        { titulo: t("txtCampoWBC"), valor: `${diagnostico?.personales?.wbc} /µL.` },
+    ], [diagnostico, t]);
 
     const listadoPestanas = [
         { texto: usuario?.rol ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
         { texto: `${t("txtDiagnostico")} — ${id}`, url: `/diagnosticos/${id}` }
     ];
-
-    /**
-     * Cuando el admin cambia el modo usuario se fuerza a recargar la página.
-     */
-    /*useEffect(() => {
-        if (navegacion.recargarPagina) {
-            setCargando(true);
-            setPersona(null);
-            navegacion.setRecargarPagina(false);
-        }
-    }, [navegacion.recargarPagina]);*/
 
     useEffect(() => {
         let titulo = "";
@@ -255,31 +241,6 @@ export default function VerDiagnosticoPage() {
         setModalValidacion(true);
     };
 
-    /**
-     * Componente para mostrar los campos de texto.
-     * @param {JSON} campos - Datos del campo.
-     * @param {Int} indice - Índice del campo.
-     * @returns {JSX.Element}
-     */
-    const CamposTexto = ({ campo, indice }) => {
-        return (
-            <Grid size={detVisualizacion(indice)}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography variant="body1">
-                        <b>{campo.titulo}: </b>
-                    </Typography>
-                    {(campo.titulo == t("txtCampoSexo")) ? <ChipSexo sexo={campo.valor} /> : null}
-                    {(campo.titulo == t("txtCampoDiagModelo")) ? <ChipDiagnostico diagnostico={campo.valor} /> : null}
-                    {(campo.titulo == t("txtCampoDiagMedico")) ? <ChipValidado validado={campo.valor} /> : null}
-                    {(campo.titulo != t("txtCampoSexo") && campo.titulo != t("txtCampoDiagModelo") && campo.titulo != t("txtCampoDiagMedico")) ? (
-                        <Typography variant="body1">
-                            {campo.valor}
-                        </Typography>) : null}
-                </Stack>
-            </Grid>
-        );
-    };
-
     useEffect(() => {
         if (usuario?.rol && usuariosListo) {
             const uid = id.substring(37);
@@ -352,7 +313,7 @@ export default function VerDiagnosticoPage() {
                                 </Typography>
                             </Grid>
                             <Grid container size={12} columns={12} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
-                                {SINTOMAS.map((x) => (
+                                {camposSintomas.map((x) => (
                                     <Grid size={numCols} key={x}>
                                         <Check
                                             desactivar
