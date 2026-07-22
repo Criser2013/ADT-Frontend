@@ -6,12 +6,12 @@ import { useTranslation } from "react-i18next";
 
 /**
  * Componente que muestra un gráfico de barras LIME de la instancia.
- * @param {JSON} datos - Datos a mostrar en el gráfico. Debe seguir la forma de los gráficos.
+ * @param {Diagnostico} diagnostico Instancia de diagnóstico con el atributo "explicacion" definido.
  * @returns {JSX.Element}
  */
-export default function ContLime({ datos, varianteTits = "h5", negritaTit = false }) {
-    const navegacion = useNavegacion();
+export default function ContLime({ diagnostico, varianteTits = "h5", negritaTit = false }) {
     const { t } = useTranslation();
+
     const ancho = useMemo(() => {
         const { dispositivoMovil, ancho } = navegacion;
         return dispositivoMovil || (!dispositivoMovil && ancho <= 700) ? "98vw" : "65vw";
@@ -20,10 +20,9 @@ export default function ContLime({ datos, varianteTits = "h5", negritaTit = fals
         const { dispositivoMovil, alto } = navegacion;
         return dispositivoMovil || (!dispositivoMovil && alto <= 700) ? "100vh" : "65vh";
     }, [navegacion]);
-    const responsivo = useMemo(() => {
-        const { dispositivoMovil, orientacion } = navegacion;
-        return (dispositivoMovil && orientacion == "horizontal") || !dispositivoMovil;
-    }, [navegacion]);
+
+
+
     const tamGrafico = useMemo(() => {
         if (responsivo) {
             return { altura: undefined, anchura: undefined };
@@ -31,20 +30,41 @@ export default function ContLime({ datos, varianteTits = "h5", negritaTit = fals
             return { altura: 350, anchura:  "400%" };
         }
     }, [responsivo]);
+
     const datosGrafico = useMemo(() => {
-        const aux = [];
-        for (const i of datos.labels) {
-            const auxi = i.split(/=|<=|=>|<|>/).map((x) => x.trim());
-            aux.push(i.replace(auxi[0], t(auxi[0])));
-        }
-        datos.labels = aux;
+        const { campos, datosPositivos, datosNegativos } = diagnostico.explicacion.datosGrafico;
+        let txtPositivo = diagnostico?.diagnosticoModelo ? t("txtDiagnosticoPositivo") : t("txtDiagnosticoNegativo");
+        let txtNegativo = diagnostico?.diagnosticoModelo ? t("txtDiagnosticoNegativo") : t("txtDiagnosticoPositivo");
+        let colorPositivo = "";
+        let colorNegativo = "";
 
-        for (let i = 0; i < 2; i++) {
-            datos.datasets[i].label = t(datos.datasets[i].label);
+        const camposTraducidos = [];
+        for (const campo of campos) {
+            const aux = campo.split(/=|<=|=>|<|>/).map((x) => x.trim());
+            camposTraducidos.push(campo.replace(aux[0], t(aux[0])));
         }
+        datos.labels = camposTraducidos;
 
+        colorPositivo = diagnostico?.diagnosticoModelo ? "rgba(44,120,56, 2)" : "rgba(237, 108, 2, 255)";
+        colorNegativo = diagnostico?.diagnosticoModelo ? "rgba(237, 108, 2, 255)" : "rgba(44,120,56, 2)";
+
+        const datos = {
+            labels: camposTraducidos,
+            datasets: [
+                {
+                    label: txtPositivo,
+                    data: datosPositivos,
+                    backgroundColor: colorPositivo,
+                },
+                {
+                    label: txtNegativo,
+                    data: datosNegativos,
+                    backgroundColor: colorNegativo,
+                }
+            ]
+        };
         return datos;
-    }, [datos, navegacion.idioma]);
+    }, [diagnostico, t]);
 
     return (
         <Grid container columns={12}>
@@ -61,7 +81,7 @@ export default function ContLime({ datos, varianteTits = "h5", negritaTit = fals
             <Grid display="flex" size={12} justifyContent="center">
                 <Box display="flex" maxHeight={alto} width={ancho} justifyContent="center" alignItems="center">
                     <GraficoBarras
-                        responsive={responsivo}
+                        responsive
                         altura={tamGrafico.altura}
                         anchura={tamGrafico.anchura}
                         datos={datosGrafico}

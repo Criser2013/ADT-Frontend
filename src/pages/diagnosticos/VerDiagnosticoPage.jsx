@@ -1,9 +1,3 @@
-
-
-import { procLime } from "../../utils/TratarDatos";
-import { COMORBILIDADES, CAMPOS_BIN } from "../../../constants";
-
-
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -13,6 +7,7 @@ import {
     Button, IconButton
 } from "@mui/material";
 import { BtnFlotante, Check } from "../../components/tabs";
+import { CAMPOS_BIN, COMORBILIDADES } from "../../../constants";
 import { CampoTexto, ContComorbilidades, ContLime } from "../../components/diagnosticos";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
 import { FormSeleccionar } from "../../components/forms";
@@ -24,6 +19,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { validarId } from "../../utils/Validadores";
+
+const numCols = { xs: 12, md: 4 };
 
 
 /**
@@ -40,17 +37,12 @@ export default function VerDiagnosticoPage() {
     const { t } = useTranslation();
     const { verPaciente, helperListo: pacientesListo } = usePacientes();
     const { verUsuario, helperListo: usuariosListo } = useUsuarios();
-
-
     const [cargando, setCargando] = useState(true);
     const [diagnostico, setDiagnostico] = useState(null);
     const [persona, setPersona] = useState(null);
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
     const [modalEliminacion, setModalEliminacion] = useState(false);
     const [modalValidacion, setModalValidacion] = useState(false);
-
-
-    const numCols = { xs: 12, md: 4 };
     const camposPersonales = useMemo(() => [
         { id: "id", titulo: "ID", valor: diagnostico.personales.id },
         { id: "nombre", titulo: usuario?.rol ? t("txtMedico") : t("txtPaciente"), valor: persona?.nombre },
@@ -74,7 +66,6 @@ export default function VerDiagnosticoPage() {
         { id: "hb", titulo: t("txtCampoHB"), valor: `${diagnostico?.personales?.hb} g/dL.` },
         { id: "wbc", titulo: t("txtCampoWBC"), valor: `${diagnostico?.personales?.wbc} /µL.` },
     ], [diagnostico, t]);
-
     const listadoPestanas = [
         { texto: usuario?.rol ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
         { texto: `${t("txtDiagnostico")} — ${id}`, url: `/diagnosticos/${id}` }
@@ -98,31 +89,6 @@ export default function VerDiagnosticoPage() {
             navigate("/diagnosticos");
         }
     }, [id, navigate]);
-
-
-    /**
-     * Separa los datos del diagnóstico en comorbilidades y otros datos.
-     * @param {JSON} datos - Datos del diagnóstico.
-     */
-    /*const preprocesarDiag = (datos) => {
-        const aux = { ...datos, lime: datos.lime.map((x) => x) };
-        const lime = procLime(aux, aux.diagnostico);
-        const res = oneHotDecoderOtraEnfermedad(aux);
-
-        for (const i of COMORBILIDADES) {
-            delete aux[i];
-        }
-        dayjs.extend(customParseFormat);
-
-        if (!admin) {
-            aux.id = aux.id.replace(/-\w{28}$/, "");
-        }
-
-        aux.fecha = dayjs(datos.fecha.toDate()).format(t("formatoFechaCompleta"));
-        setDiagnostico({
-            personales: aux, comorbilidades: res, lime: (datos.lime != undefined ? lime : null)
-        });
-    };*/
 
     /**
      * @param {String} id ID del diagnóstico a cargar.
