@@ -2,6 +2,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
 import DeleteIcon from "@mui/icons-material/Delete";
+import i18n from "../../i18n";
 import {
     Box, CircularProgress, Grid, Typography, Divider, Stack, Tooltip,
     Button, IconButton
@@ -21,6 +22,15 @@ import { useTranslation } from "react-i18next";
 import { validarId } from "../../utils/Validadores";
 
 const numCols = { xs: 12, lg: 6, xl: 4 };
+const pacienteAnonimo = new Paciente(
+    "null", null, `${i18n.t("txtPaciente")} ${i18n.t("txtAnonimo")}`, 2, null, null, null, false, []
+);
+const usuarioEliminado = new Usuario(
+    "null", null, `${i18n.t("txtUsuario")} ${i18n.t("txtEliminado")}`, false, false, null, null
+);
+const pacienteEliminado = new Paciente(
+    "null", null,  `${i18n.t("txtPaciente")} ${i18n.t("txtEliminado")}`, 2, null, null, null, false, []
+);
 
 
 /**
@@ -71,19 +81,17 @@ export default function VerDiagnosticoPage() {
     ];
 
     useEffect(() => {
-        const exp = /-\w{28}$/;
-        const res = validarId(id.replace(exp, "")) && exp.test(id);
+        const expIdUsuario = /-\w{28}$/;
+        const res = validarId(id.replace(expIdUsuario, "")) && expIdUsuario.test(id);
         if (!res) {
             navigate("/diagnosticos");
         }
     }, [id, navigate]);
 
     useEffect(() => {
-        let titulo = "";
-        if (usuario?.rolVisible) {
-            titulo = diagnostico ? `${t("txtDiagnostico")} — ${diagnostico?.id}` : t("titDiagnostico");
-        } else {
-            titulo = persona ? `${t("txtDiagnostico")} — ${persona.nombre}` : t("titVerDiagnostico");
+        let titulo = usuario?.rolVisible ? t("titDiagnostico") : t("titVerDiagnostico");
+        if (diagnostico && persona) {
+            titulo = `${t("txtDiagnostico")} — ${persona.nombre} - ${diagnostico?.fecha.toLocaleString()}`;
         }
         document.title = titulo;
     }, [usuario, persona, diagnostico, t]);
@@ -106,23 +114,17 @@ export default function VerDiagnosticoPage() {
      */
     const cargarPaciente = useCallback(async (id, esAnonimo = false) => {
         if (esAnonimo) {
-            const nombre = `${t("txtPaciente")} ${t("txtAnonimo")}`;
-            setPersona(new Paciente("null", null, nombre, 2, null, null, null, false, []));
+            setPersona(pacienteAnonimo);
             return;
         }
         const { success, data, error } = await verPaciente(id);
         if (success) {
             setPersona(data);
         } else {
-            setPersona(
-                new Paciente(
-                    "null", null, `${t("txtPaciente")} ${t("txtEliminado")}`, 2,
-                    null, null, null, false, []
-                )
-            );
+            setPersona(pacienteEliminado);
             setModalError({ mostrar: true, texto: error });
         }
-    }, [setPersona, verPaciente, t]);
+    }, [setPersona, verPaciente]);
 
     /**
     * @param {String} uid UID del usuario.
@@ -132,15 +134,10 @@ export default function VerDiagnosticoPage() {
         if (success) {
             setPersona(data);
         } else {
-            setPersona(
-                new Usuario(
-                    "null", null, `${t("txtUsuario")} ${t("txtEliminado")}`,
-                    false, false, null, null
-                )
-            );
+            setPersona(usuarioEliminado);
             setModalError({ mostrar: true, texto: error });
         }
-    }, [setPersona, verUsuario, t]);
+    }, [setPersona, verUsuario]);
 
     function cerrarModalEliminacion() {
         setModalEliminacion(false);

@@ -1,6 +1,7 @@
+import dayjs from "dayjs";
 import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-
+import "dayjs/locale/es";
 
 export const idiomaEspanol = "es";
 export const idiomaIngles = "en";
@@ -20,6 +21,7 @@ export default function useIdioma() {
      */
     const cambiarIdioma = useCallback((idioma) => {
         i18n.changeLanguage(idioma);
+        dayjs.locale(idioma);
     }, [i18n]);
 
     const value = useMemo(() => ({

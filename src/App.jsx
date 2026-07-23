@@ -1,5 +1,3 @@
-
-import dayjs from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
 import LogoutIcon from "@mui/icons-material/Logout";
 import Router from "./router";
@@ -25,13 +23,6 @@ export default function App() {
     const [modalDoble, setModalDoble] = useState({
         mostrar: false, mensaje: "", titulo: "", txtBtn: "", icono: null
     });
-
-    useEffect(() => {
-        import("dayjs/locale/es").then(() => {
-            const idioma = localStorage.getItem("i18nextLng");
-            dayjs.locale(idioma ? idioma : "es");
-        });
-    }, []);
 
     useEffect(() => {
         if (requiereRefresco) {
