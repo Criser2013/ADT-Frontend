@@ -83,10 +83,10 @@ export default function usePacientes() {
 
     /**
      * @param {String} id ID del paciente a ver.
-     * @returns {Promise<Object>|Paciente} En caso de error es un Objeto con las claves:
+     * @returns {Promise<Object>} En caso de error es un Objeto con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa.
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
-     * En caso de éxito es el objeto Paciente correspondiente al ID proporcionado.
+     * - "data" (Paciente) - Objeto Paciente correspondiente al ID proporcionado en caso de éxito.
      */
     const verPaciente = useCallback(async (id) => {
         return await datosHelper.operacionSobreArchivo("ver", { id });

@@ -1,6 +1,9 @@
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CloseIcon from "@mui/icons-material/Close";
 import { Controller, useForm } from "react-hook-form";
-import { useTranslation } from "react-i18next";
+import { MenuItem , Stack, Typography, TextField} from "@mui/material";
 import { ModalDoble } from "../modals";
+import { useTranslation } from "react-i18next";
 
 const valoresDiagnostico = [
     { valor: 2, texto: "txtSelecDiagnostico" },

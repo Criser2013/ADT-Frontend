@@ -132,7 +132,7 @@ export default function VerPacientePage() {
                         <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                             <Tooltip title={t("txtAyudaEliminarPaciente")}>
                                 <IconButton color="error" onClick={manejadorBtnEliminar}>
-                                    <DeletetIcon />
+                                    <DeleteIcon />
                                 </IconButton>
                             </Tooltip>
                         </Grid>

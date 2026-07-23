@@ -1,25 +1,26 @@
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CloseIcon from "@mui/icons-material/Close";
+import dayjs from "dayjs";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
     Box, CircularProgress, Grid, Typography, Divider, Stack, Tooltip,
     Button, IconButton
 } from "@mui/material";
 import { BtnFlotante, Check } from "../../components/tabs";
-import { CAMPOS_BIN, COMORBILIDADES } from "../../../constants";
+import { CAMPOS_BIN, COMORBILIDADES } from "../../constants";
 import { CampoTexto, ContComorbilidades, ContLime } from "../../components/diagnosticos";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
-import { FormSeleccionar } from "../../components/forms";
+import { FormValidacion } from "../../components/forms";
 import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
-import { ModalError, ModalSimple } from "../../components/modals";
-import { Paciente } from "../../models";
+import { ModalDoble, ModalSimple } from "../../components/modals";
+import { Paciente, Usuario } from "../../models";
 import { useAuth, useDiagnosticos, usePacientes, useUsuarios } from "../../hooks";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { validarId } from "../../utils/Validadores";
 
-const numCols = { xs: 12, md: 4 };
+const numCols = { xs: 12, lg: 6, xl: 4 };
 
 
 /**
@@ -45,11 +46,11 @@ export default function VerDiagnosticoPage() {
 
 
     const camposPersonales = useMemo(() => [
-        { id: "id", titulo: "ID", valor: diagnostico.personales.id },
-        { id: "nombre", titulo: usuario?.rol ? t("txtMedico") : t("txtPaciente"), valor: persona?.nombre },
-        { id: "sexo", titulo: t("txtCampoSexo"), componente: <ChipSexo sexo={diagnostico?.sintomasBinarios.sexo} />},
-        { id: "edad", titulo: t("txtCampoEdad"), valor: `${diagnostico?.edad} ${t("txtSufijoEdad")}` },
-        { id: "fecha", titulo: t("txtCampoFechaDiag"), valor: diagnostico?.fechaFormateada },
+        { id: "id", titulo: "ID", valor: diagnostico?.id },
+        { id: "nombre", titulo: usuario?.rolVisible ? t("txtMedico") : t("txtPaciente"), valor: persona?.nombre },
+        { id: "sexo", titulo: t("txtCampoSexo"), componente: <ChipSexo sexo={diagnostico?.sintomasBinarios.sexo} /> },
+        { id: "edad", titulo: t("txtCampoEdad"), valor: `${diagnostico?.sintomasNumericos.edad} ${t("txtSufijoEdad")}` },
+        { id: "fecha", titulo: t("txtCampoFechaDiag"), valor: dayjs(diagnostico?.fecha).format(t("formatoFechaCompleta")) },
         { id: "diagnosticoModelo", titulo: t("txtCampoDiagModelo"), componente: <ChipDiagnostico valor={diagnostico?.diagnosticoModelo} /> },
         { id: "probabilidad", titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico?.probabilidad * 100).toFixed(2)}%` },
         { id: "diagnosticoMedico", titulo: t("txtCampoDiagMedico"), componente: <ChipValidado valor={diagnostico?.diagnosticoMedico} /> },
@@ -64,18 +65,17 @@ export default function VerDiagnosticoPage() {
     ], [diagnostico, t]);
     const camposExamenes = useMemo(() => [
         { id: "plt", titulo: t("txtCampoPLT"), valor: `${diagnostico?.sintomasNumericos.plt} /µL.` },
-        { id: "hb", titulo: t("txtCampoHB"), valor: `${diagnostico?.personales.hb} g/dL.` },
-        { id: "wbc", titulo: t("txtCampoWBC"), valor: `${diagnostico?.personales.wbc} /µL.` },
+        { id: "hb", titulo: t("txtCampoHB"), valor: `${diagnostico?.sintomasNumericos.hb} g/dL.` },
+        { id: "wbc", titulo: t("txtCampoWBC"), valor: `${diagnostico?.sintomasNumericos.wbc} /µL.` },
     ], [diagnostico, t]);
     const listadoPestanas = [
-        { texto: usuario?.rol ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
+        { texto: usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
         { texto: `${t("txtDiagnostico")} — ${id}`, url: `/diagnosticos/${id}` }
     ];
 
     useEffect(() => {
         const exp = /-\w{28}$/;
         const res = validarId(id.replace(exp, "")) && exp.test(id);
-
         if (!res) {
             navigate("/diagnosticos");
         }
@@ -83,7 +83,7 @@ export default function VerDiagnosticoPage() {
 
     useEffect(() => {
         let titulo = "";
-        if (usuario?.rol) {
+        if (usuario?.rolVisible) {
             titulo = diagnostico ? `${t("txtDiagnostico")} — ${diagnostico?.id}` : t("titDiagnostico");
         } else {
             titulo = persona ? `${t("txtDiagnostico")} — ${persona.nombre}` : t("titVerDiagnostico");
@@ -116,16 +116,22 @@ export default function VerDiagnosticoPage() {
      */
     const cargarPaciente = useCallback(async (id, esAnonimo = false) => {
         if (esAnonimo) {
-            const nombre = `${usuario?.rol ? t("txtMedico") : t("txtPaciente")} ${t("txtAnonimo")}`;
+            const nombre = `${usuario?.rolVisible ? t("txtMedico") : t("txtPaciente")} ${t("txtAnonimo")}`;
             setPersona(new Paciente("null", null, nombre, 2, null, null, null, false, []));
             return;
         }
 
-        const res = await verPaciente(id);
-        if (res instanceof Paciente) {
-            setPersona(res);
+        const { success, data, error } = await verPaciente(id);
+        if (success) {
+            setPersona(data);
         } else {
-            setModalError({ mostrar: true, texto: "errCargarDatosPaciente" });
+            setPersona(
+                new Paciente(
+                    "null", null, `${t("txtPaciente")} ${t("txtEliminado")}`, 2,
+                    null, null, null, false, []
+                )
+            );
+            setModalError({ mostrar: true, texto: error });
         }
     }, [setPersona, usuario, verPaciente, t]);
 
@@ -137,9 +143,15 @@ export default function VerDiagnosticoPage() {
         if (success) {
             setPersona(data);
         } else {
+            setPersona(
+                new Usuario(
+                    "null", null, `${t("txtMedico")} ${t("txtEliminado")}`,
+                    false, false, null, null
+                )
+            );
             setModalError({ mostrar: true, texto: "errCargarDatosMedico" });
         }
-    }, [setPersona, verUsuario]);
+    }, [setPersona, verUsuario, t]);
 
     function cerrarModalEliminacion() {
         setModalEliminacion(false);
@@ -187,29 +199,28 @@ export default function VerDiagnosticoPage() {
     };
 
     useEffect(() => {
-        if (usuario?.rol && usuariosListo) {
+        if (usuario?.rolVisible && usuariosListo) {
             const uid = id.substring(37);
             cargarUsuario(uid);
         }
     }, [usuario, usuariosListo, cargarUsuario, id]);
 
     useEffect(() => {
-        if (!usuario?.rol && diagnostico && pacientesListo) {
+        if (!usuario?.rolVisible && diagnostico && pacientesListo) {
             const uid = diagnostico.paciente;
-            cargarPaciente(uid, Boolean(uid));
+            cargarPaciente(uid, !uid);
         }
     }, [diagnostico, usuario, pacientesListo, cargarPaciente]);
 
     useEffect(() => {
         if (diagnosticosListo) {
-            const uid = id.substring(0, 36);
-            cargarDiagnostico(uid);
+            cargarDiagnostico(id);
         }
     }, [diagnosticosListo, cargarDiagnostico, id]);
 
     useEffect(() => {
         setCargando(true);
-    }, [usuario.modoUsuario]);
+    }, [usuario?.modoUsuario]);
 
     useEffect(() => {
         setCargando(!(diagnostico && persona));
@@ -231,15 +242,11 @@ export default function VerDiagnosticoPage() {
                             columns={12}
                             spacing={1}
                             marginTop="3vh">
-                            {usuario?.rol ? (
+                            {usuario?.rolVisible ? (
                                 <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                                     <Tooltip title={t("txtAyudaEliminarDiagnostico")}>
-                                        <IconButton
-                                            color="error"
-                                            startIcon={<DeleteIcon />}
-                                            onClick={manejadorBtnEliminar}
-                                            sx={{ textTransform: "none", padding: 2 }} >
-                                            {t("txtBtnEliminar")}
+                                        <IconButton color="error" onClick={manejadorBtnEliminar}>
+                                            <DeleteIcon />
                                         </IconButton>
                                     </Tooltip>
                                 </Grid>) : null}
@@ -248,13 +255,13 @@ export default function VerDiagnosticoPage() {
                                     {t("titDatosPersonales")}
                                 </Typography>
                             </Grid>
-                            {camposPersonales.map(({ id, titulo, valor, componente }) => (
+                            {camposPersonales.map((X) => (
                                 <CampoTexto
-                                    key={id}
+                                    key={X.id}
                                     tamano={numCols}
-                                    titulo={titulo}
-                                    valor={valor}
-                                    componente={componente} />
+                                    titulo={X.titulo}
+                                    valor={X?.valor}
+                                    componente={X?.componente} />
                             ))}
                             <Grid size={12} paddingTop="3vh">
                                 <Divider />
@@ -289,13 +296,13 @@ export default function VerDiagnosticoPage() {
                                     {t("titSignosVitales")}
                                 </Typography>
                             </Grid>
-                            {camposVitales.map(({ id, titulo, valor, componente }) => (
+                            {camposVitales.map((x) => (
                                 <CampoTexto
-                                    key={id}
+                                    key={x.id}
                                     tamano={numCols}
-                                    titulo={titulo}
-                                    valor={valor}
-                                    componente={componente} />
+                                    titulo={x.titulo}
+                                    valor={x?.valor}
+                                    componente={x?.componente} />
                             ))}
                             <Grid size={12} paddingTop="3vh">
                                 <Divider />
@@ -305,13 +312,13 @@ export default function VerDiagnosticoPage() {
                                     {t("titExamenes")}
                                 </Typography>
                             </Grid>
-                            {camposExamenes.map(({ id, titulo, valor, componente }) => (
+                            {camposExamenes.map((x) => (
                                 <CampoTexto
-                                    key={id}
+                                    key={x.id}
                                     tamano={numCols}
-                                    titulo={titulo}
-                                    valor={valor}
-                                    componente={componente} />
+                                    titulo={x.titulo}
+                                    valor={x?.valor}
+                                    componente={x?.componente} />
                             ))}
                             <Grid size={12} paddingTop="3vh">
                                 <Divider />
@@ -333,7 +340,7 @@ export default function VerDiagnosticoPage() {
                                 </Grid>
                             )}
                         </Grid>
-                        {(!usuario?.rol && diagnostico?.validado) ? (
+                        {!(usuario?.rolVisible && diagnostico?.validado) ? (
                             <BtnFlotante
                                 txtBtn={t("txtBtnValidar")}
                                 txtAyudaBtn={t("txtAyudaBtnValidar")}

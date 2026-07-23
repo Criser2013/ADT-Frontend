@@ -185,7 +185,7 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
         const res2 = { success: true };
         const res3 = { success: false, error: "errPacienteDuplicado" };
         const res4 = { success: false, error: "errPacienteInexistente" };
-        const res5 = new Paciente("1", "1234567890", "Juan Pérez", 0, "01-01-1990", "0987654321", "01-01-2023", 0, ["Hipertensión arterial"]);
+        const res5 = { success: true, data: new Paciente("1", "1234567890", "Juan Pérez", 0, "01-01-1990", "0987654321", "01-01-2023", 0, ["Hipertensión arterial"]) };
 
         // -------------------- Mocks ---------------------
         const mocks1 = {
@@ -222,7 +222,7 @@ describe("Pruebas para la clase 'DriveHelper'", () => {
             leerArchivoXlsx: { success: true, data: [] },
             crearArchivoXlsx: { success: true, data: new Uint8Array([1, 2, 3]) },
             subirArchivo: () => Promise.resolve({ success: true }),
-            archivoPacientes: { metodo: "verPaciente", implementacion: jest.fn(() => { return new Paciente("1", "1234567890", "Juan Pérez", 0, "01-01-1990", "0987654321", "01-01-2023", 0, ["Hipertensión arterial"]) }) }
+            archivoPacientes: { metodo: "verPaciente", implementacion: jest.fn(() => ({ success: true, data: new Paciente("1", "1234567890", "Juan Pérez", 0, "01-01-1990", "0987654321", "01-01-2023", 0, ["Hipertensión arterial"]) })) }
         };
         const mocks6 = {
             buscarArchivo: [{ success: true, data: { files: [{ id: "carpetaId" }] } }, { success: true, data: { files: [{ id: "archivoId" }] } }],

@@ -198,7 +198,7 @@ describe("Pruebas para la clase ArchivoPacientes", () => {
         test("CP - 149", () => {
             const archivo = new ArchivoPacientes([paciente1, paciente2]);
             const paciente = archivo.verPaciente("id2");
-            expect(paciente).toEqual(paciente2);
+            expect(paciente).toEqual({success: true, data: paciente2});
         });
 
         test("CP - 150", () => {

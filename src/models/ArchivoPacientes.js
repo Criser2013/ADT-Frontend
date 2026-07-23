@@ -97,13 +97,15 @@ export default class ArchivoPacientes {
 
     /**
      * @param {String} id ID del paciente a consultar
-     * @returns {Paciente} Instancia de la clase Paciente con el ID proporcionado
+     * @returns {Object} Objeto con las claves:
+     * - "success" (Boolean): Indica si la operación fue exitosa.
+     * - "data" (Paciente): Instancia de la clase Paciente con los datos del paciente consultado.
      * @throws {Error} Si el paciente no existe
      */
     verPaciente(id) {
         const res = this.#verSiExistePaciente(id);
         if (res) {
-            return this.#pacientes.find(p => p.id === id);
+            return { success: true, data: this.#pacientes.find(p => p.id === id) };
         } else {
             throw new Error(`El paciente con id ${id} no existe`);
         }

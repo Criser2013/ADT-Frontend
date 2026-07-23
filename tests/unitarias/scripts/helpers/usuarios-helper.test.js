@@ -1,4 +1,5 @@
 import { jest, expect, describe, beforeEach, test } from "@jest/globals";
+import { Usuario } from "../../../../src/models";
 
 jest.unstable_mockModule("../../../../src/services/Api", () => ({
     peticionApi: jest.fn()
@@ -13,7 +14,11 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
         const param = "174"
 
         // ---------------------- Respuestas esperadas ----------------------
-        const res1 = { success: true, data: { id: "174", nombre: "Usuario de prueba" } };
+        const res1 = {
+            success: true, data: new Usuario(
+                "174", "correo@correo.com", "Usuario de prueba", true, true, "01/01/2023 12:00", "01/01/2023 12:00"
+            )
+        };
         const res2 = { success: false, error: "Error al cargar el usuario" };
 
         beforeEach(() => {
@@ -38,7 +43,12 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
 
     describe("Validar el método 'cargarUsuarios'", () => {
         // ---------------------- Respuestas esperadas ----------------------
-        const res1 = { success: true, data: [{ id: "174", nombre: "Usuario de prueba" }] };
+        const res1 = {
+            success: true, data: [
+                new Usuario(
+                    "174", "correo@correo.com", "Usuario de prueba", true, true, "01/01/2023 12:00", "01/01/2023 12:00"
+                )]
+        };
         const res2 = { success: false, error: "Error al cargar los usuarios" };
 
         beforeEach(() => {
@@ -88,11 +98,11 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
             const res = await helper.eliminarUsuarios(params);
 
             expect(res).toEqual(resEsperada);
-            for (let  i = 1; i < params.length; i++) {
+            for (let i = 1; i < params.length; i++) {
                 expect(peticionApi).toHaveBeenCalledWith(
                     `admin/usuarios/${params[i].id}`, "PATCH", {}, {
-                        desactivar: true, eliminado: true, administrador: params[i].rol
-                    }, "token", "es", ""
+                    desactivar: true, eliminado: true, administrador: params[i].rol
+                }, "token", "es", ""
                 );
             }
             expect(peticionApi).toHaveBeenCalledTimes(params.length + (resEsperada.success ? 1 : 0));
@@ -104,7 +114,12 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
         const param = { id: "174", rol: true, desactivar: true };
 
         // ---------------------- Respuestas esperadas ----------------------
-        const res1 = { success: true, data: [{ id: "174", rol: true, desactivado: true }] };
+        const res1 = {
+            success: true, data: [
+                new Usuario(
+                    "174", "correo@correo.com", "Usuario de prueba", true, true, "01/01/2023 12:00", "01/01/2023 12:00"
+                )]
+        };
         const res2 = { success: false, error: "Error al modificar el usuario" };
 
         beforeEach(() => {
@@ -122,8 +137,8 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
             expect(res).toEqual(resEsperada);
             expect(peticionApi).toHaveBeenCalledWith(
                 `admin/usuarios/${params.id}`, "PATCH", {}, {
-                    administrador: params.rol, desactivar: params.desactivar, eliminado: false
-                }, "token", "es", ""
+                administrador: params.rol, desactivar: params.desactivar, eliminado: false
+            }, "token", "es", ""
             );
         });
     });

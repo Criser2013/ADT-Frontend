@@ -17,7 +17,7 @@ export default function CampoTexto({ tamano, titulo, valor, componente = null })
                 </Typography>
             </Grid>
             <Grid size={4}>
-                {componente ? {componente} : (
+                {componente ? componente : (
                     <Typography variant="body1">
                         {valor}
                     </Typography>)}

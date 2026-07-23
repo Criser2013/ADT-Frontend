@@ -17,8 +17,8 @@ export default class Usuario {
      * @param {String} nombre Nombre del usuario.
      * @param {Boolean} esAdmin Indicador de si el usuario es administrador.
      * @param {Boolean} estado Estado del usuario.
-     * @param {Date} fechaRegistro Fecha de registro del usuario.
-     * @param {Date} fechaUltimoAcceso Fecha del último acceso del usuario.
+     * @param {String} fechaRegistro Fecha de registro del usuario en el formato: "DD/MM/YYYY HH:mm ".
+     * @param {String} fechaUltimoAcceso Fecha del último acceso del usuario.
      */
     constructor(uid, correo, nombre, esAdmin, estado, fechaRegistro, fechaUltimoAcceso) {
         this.#uid = uid;

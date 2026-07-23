@@ -1,6 +1,6 @@
+import { ArchivoPacientes}  from "../models";
 import { buscarArchivo, crearArchivo, descargarArchivo, subirArchivo } from '../services/Drive';
 import { crearArchivoXlsx, leerArchivoXlsx } from "../utils/XlsxFiles";
-import ArchivoPacientes from "../models/ArchivoPacientes";
 import { DRIVE_FILENAME, DRIVE_FOLDER_NAME } from "../constants";
 
 export default class DriveHelper {
@@ -86,6 +86,7 @@ export default class DriveHelper {
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
+     * - "data" (Object) - Contiene los datos del paciente consultado si la operación fue "ver" y fue exitosa, de lo contrario es null.
      */
     async operacionSobreArchivo(tipo, parametros) {
         try {
@@ -104,7 +105,7 @@ export default class DriveHelper {
                     this.#archivo.eliminarPacientes(parametros.idPacientes, parametros.varios);
                     break;
                 case "ver":
-                    return await this.#archivo.verPaciente(parametros.id);
+                    return this.#archivo.verPaciente(parametros.id);
             }
             return await this.#actualizarArchivo();
         } catch (error) {
