@@ -10,22 +10,22 @@ jest.unstable_mockModule("firebase/firestore", () => ({
 const firebase = await import("firebase/firestore");
 const { Diagnostico, ExplicacionLime } = await import("../../../../src/models");
 
-describe("Validar los métodos de la clase 'Diagnostico'", () => {
-    const sintomasBinarios = {
-        fumador: false, bebedor: false, tos: false, fiebre: false,
-        crepitaciones: false, dolor_toracico: true, malignidad: false, hemoptisis: false,
-        disnea: true, sibilancias: false, derrame: false, TEP_TVP_previo: false,
-        edema_de_m_inferiores: false, sintomas_disautonomicos: false,
-        inmovilidad_de_m_inferiores: false, viaje_prolongado: false,
-        proc_quirurgico_traumatismo: false, soplos: false
-    };
-    const sintomasNumericos = {
-        saturacion_de_la_sangre: 80, plt: 211100, hb: 13.8, wbc: 12300, edad: 60,
-        presion_sistolica: 129, presion_diastolica: 93, frecuencia_respiratoria: 26,
-        frecuencia_cardiaca: 128
-    };
-    const comorbilidades = ["Diabetes Mellitus", "Hipertensión arterial"];
+const sintomasBinarios = {
+    fumador: false, bebedor: false, tos: false, fiebre: false,
+    crepitaciones: false, dolor_toracico: true, malignidad: false, hemoptisis: false,
+    disnea: true, sibilancias: false, derrame: false, TEP_TVP_previo: false,
+    edema_de_m_inferiores: false, sintomas_disautonomicos: false,
+    inmovilidad_de_m_inferiores: false, viaje_prolongado: false,
+    proc_quirurgico_traumatismo: false, soplos: false
+};
+const sintomasNumericos = {
+    saturacion_de_la_sangre: 80, plt: 211100, hb: 13.8, wbc: 12300, edad: 60,
+    presion_sistolica: 129, presion_diastolica: 93, frecuencia_respiratoria: 26,
+    frecuencia_cardiaca: 128
+};
+const comorbilidades = ["Diabetes Mellitus", "Hipertensión arterial"];
 
+describe("Validar los métodos de la clase 'Diagnostico'", () => {
     describe("Validar el setter 'comorbilidades'", () => {
         test("CP - 166", () => {
             const diag = new Diagnostico(
@@ -104,11 +104,11 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
         test("CP - 169", () => {
             const comorbilidades = ["Enfermedad hematológica", "Hipertensión arterial"];
             const inst = new Diagnostico(
-                "1", "1", "1", comorbilidades, Date("2026-04-23"), 0,true, sintomasBinarios, sintomasNumericos
+                "1", "1", "1", comorbilidades, Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos
             );
             const resEsperada = {
                 sexo: 0,
-                otraEnfermedad: true, 
+                otraEnfermedad: true,
                 fecha: expect.any(Object),
                 paciente: "1",
                 diagnosticoModelo: null,
@@ -179,5 +179,19 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
 
             expect(inst.fechaFormateada).toEqual("23-04-2026");
         });
-    })
+    });
+
+    describe("Validar el método 'deepClone'", () => {
+        test("CP - 191", () => {
+            const original = new Diagnostico(
+                "1", "1", "1", comorbilidades,
+                new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos,
+                true, false, 0.5, new ExplicacionLime([{ campo: "edad", contribucion: 0.5 }])
+            );
+            const clon = original.deepClone();
+
+            expect(clon).not.toBe(original);
+            expect(clon).toEqual(original);
+        });
+    });
 });

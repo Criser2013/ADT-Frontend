@@ -110,6 +110,15 @@ export default class Diagnostico {
             probabilidad, new ExplicacionLime(explicacion)
         );
     }
+
+    deepClone() {
+        return new Diagnostico(
+            this.id, this.usuario, this.paciente, this.comorbilidades, this.fecha,
+            this.sexo, this.otraEnfermedad, { ...this.sintomasBinarios }, { ...this.sintomasNumericos },
+            this.diagnosticoModelo, this.diagnosticoMedico, this.probabilidad,
+            new ExplicacionLime(this.explicacion.toJson())
+        );
+    }
  
     toJson() {
         return {
