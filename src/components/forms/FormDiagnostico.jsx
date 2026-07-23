@@ -153,10 +153,10 @@ export default function FormDiagnostico({
             datos.id, usuario.uid, esDiagPacientes ? datos.paciente.id : null,
             datos.comorbilidades, new Date(), datos.sexo, datos.otra_enfermedad, binarios, numericos
         );
-        const { success, data, error } = await generarDiagnostico(inst);
+        const { success, error } = await generarDiagnostico(inst);
 
         if (success) {
-            navigate(`/diagnosticos/${inst.id}`, { state: Diagnostico.fromJson(data) });
+            navigate(`/diagnosticos/${inst.id}-${inst.usuario}`);
         } else {
             setModal({ mostrar: true, texto: t("errGuardarDiag", { error: t(error) }) });
             setCaptchaAceptado(false);

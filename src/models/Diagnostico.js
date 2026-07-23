@@ -25,10 +25,10 @@ export default class Diagnostico {
      * @param {Boolean} otraEnfermedad Indicador de si el paciente tiene otra enfermedad.
      * @param {Object} sintomasBinarios Objeto con los síntomas binarios del paciente.
      * @param {Object} sintomasNumericos Objeto con los síntomas numéricos del paciente.
-     * @param {Number|null} probabilidad Probabilidad de TEP según el modelo.
-     * @param {ExplicacionLime|null} explicacion Explicación del modelo de diagnóstico.
      * @param {Boolean|null} diagnosticoModelo Diagnóstico de TEP dado por el modelo.
      * @param {Boolean|null} diagnosticoMedico Diagnóstico de TEP dado por el médico. 
+     * @param {Number|null} probabilidad Probabilidad de TEP según el modelo.
+     * @param {ExplicacionLime|null} explicacion Explicación del modelo de diagnóstico.
      */
     constructor(
         id, usuario, paciente, comorbilidades, fecha, sexo, otraEnfermedad, sintomasBinarios,
@@ -90,10 +90,9 @@ export default class Diagnostico {
      * @returns {Diagnostico} Una instancia de la clase Diagnostico creada a partir de un objeto JSON.
      */
     static fromJson(json) {
-        const { id, usuario, paciente, otraEnfermedad, fecha, probabilidad,
-            explicacion, diagnosticoModelo, diagnosticoMedico, comorbilidades,
-            sexo
-        } = json;
+        const {
+            id, usuario, paciente, otraEnfermedad, fecha, probabilidad, explicacion,
+            diagnosticoModelo, diagnosticoMedico, comorbilidades, sexo } = json;
         const sintomasBinarios = {};
         const sintomasNumericos = {};
 

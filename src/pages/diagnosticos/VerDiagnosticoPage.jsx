@@ -10,13 +10,13 @@ import { BtnFlotante, Check } from "../../components/tabs";
 import { CAMPOS_BIN, COMORBILIDADES } from "../../constants";
 import { CampoTexto, ContComorbilidades, ContLime } from "../../components/diagnosticos";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
+import { Diagnostico, Paciente, Usuario } from "../../models";
 import { FormValidacion } from "../../components/forms";
 import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
 import { ModalDoble, ModalSimple } from "../../components/modals";
-import { Paciente, Usuario } from "../../models";
 import { useAuth, useDiagnosticos, usePacientes, useUsuarios } from "../../hooks";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { validarId } from "../../utils/Validadores";
 
@@ -28,7 +28,6 @@ const numCols = { xs: 12, lg: 6, xl: 4 };
  * @returns {JSX.Element}
  */
 export default function VerDiagnosticoPage() {
-    const location = useLocation();
     const navigate = useNavigate();
     const { usuario } = useAuth();
     const { eliminarDiagnosticos, verDiagnostico, validarDiagnostico,
@@ -43,7 +42,6 @@ export default function VerDiagnosticoPage() {
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
     const [modalEliminacion, setModalEliminacion] = useState(false);
     const [modalValidacion, setModalValidacion] = useState(false);
-
 
     const camposPersonales = useMemo(() => [
         { id: "id", titulo: "ID", valor: diagnostico?.id },
@@ -94,19 +92,13 @@ export default function VerDiagnosticoPage() {
      * @param {String} id ID del diagnóstico a cargar.
      */
     const cargarDiagnostico = useCallback(async (id) => {
-        const cache = location.state?.diagnostico;
-        if (cache) {
-            history.replaceState({ ...location.state, diagnostico: null }, "");
-            setDiagnostico(cache);
-            return;
-        }
         const { success, data } = await verDiagnostico(id);
         if (success) {
             setDiagnostico(data);
         } else {
             navigate("/diagnosticos");
         }
-    }, [verDiagnostico, setDiagnostico, location, navigate]);
+    }, [verDiagnostico, setDiagnostico, navigate]);
 
     /**
      * @param {String} id  UID del paciente.
@@ -142,7 +134,7 @@ export default function VerDiagnosticoPage() {
         } else {
             setPersona(
                 new Usuario(
-                    "null", null, `${t("txtMedico")} ${t("txtEliminado")}`,
+                    "null", null, `${t("txtUsuario")} ${t("txtEliminado")}`,
                     false, false, null, null
                 )
             );
@@ -163,6 +155,8 @@ export default function VerDiagnosticoPage() {
     };
 
     async function manejadorBtnBorrar() {
+        cerrarModalEliminacion();
+        setCargando(true);
         const { success, error } = await eliminarDiagnosticos(id);
         if (success) {
             navigate("/diagnosticos");
@@ -196,18 +190,18 @@ export default function VerDiagnosticoPage() {
     };
 
     useEffect(() => {
-        if (usuario?.rolVisible && usuariosListo) {
+        if (usuario?.rolVisible && !persona && usuariosListo) {
             const uid = id.substring(37);
             cargarUsuario(uid);
         }
-    }, [usuario, usuariosListo, cargarUsuario, id]);
+    }, [usuario?.rolVisible, persona, usuariosListo, cargarUsuario, id]);
 
     useEffect(() => {
-        if (!usuario?.rolVisible && diagnostico && pacientesListo) {
+        if (!usuario?.rolVisible && !persona && diagnostico && pacientesListo) {
             const uid = diagnostico.paciente;
             cargarPaciente(uid, !uid);
         }
-    }, [diagnostico, usuario, pacientesListo, cargarPaciente]);
+    }, [persona, diagnostico, usuario?.rolVisible, pacientesListo, cargarPaciente]);
 
     useEffect(() => {
         if (diagnosticosListo) {

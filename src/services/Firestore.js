@@ -8,14 +8,13 @@ import {
  * @param {String} uid UID del médico que realiza el cambio.
  * @param {Object} json Datos del diagnóstico a modificar o crear.
  * @param {Object} db Instancia de Firestore.
- * @returns {Object} Resultado el resultado de la operación en la clave "data" y un booleano en la clave "success" indicando si la operación fue exitosa o no.
+ * @returns {Object} Resultado booleano en la clave "success" indicando si la operación fue exitosa o no.
  */
 export async function cambiarDiagnostico(id, uid, json, db) {
     try {
         const docRef = doc(db, `usuarios/${uid}/diagnosticos/${id}`);
         await setDoc(docRef, json);
-
-        return { success: true, data: json };
+        return { success: true };
     } catch (error) {
         return { success: false, error: error };
     }
