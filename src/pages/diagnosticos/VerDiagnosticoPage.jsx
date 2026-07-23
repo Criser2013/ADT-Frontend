@@ -2,7 +2,6 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
 import DeleteIcon from "@mui/icons-material/Delete";
-import i18n from "../../i18n";
 import {
     Box, CircularProgress, Grid, Typography, Divider, Stack, Tooltip,
     Button, IconButton
@@ -22,16 +21,18 @@ import { useTranslation } from "react-i18next";
 import { validarId } from "../../utils/Validadores";
 
 const numCols = { xs: 12, lg: 6, xl: 4 };
-const pacienteAnonimo = new Paciente(
-    "null", null, `${i18n.t("txtPaciente")} ${i18n.t("txtAnonimo")}`, 2, null, null, null, false, []
-);
-const usuarioEliminado = new Usuario(
-    "null", null, `${i18n.t("txtUsuario")} ${i18n.t("txtEliminado")}`, false, false, null, null
-);
-const pacienteEliminado = new Paciente(
-    "null", null,  `${i18n.t("txtPaciente")} ${i18n.t("txtEliminado")}`, 2, null, null, null, false, []
-);
 
+function detTextoPersona (rol, nombre) {
+    if (rol && nombre == "null") {
+        return ["txtUsuario", "txtEliminado"];
+    } else if (!rol && nombre == "anonimo") {
+        return ["txtPaciente", "txtAnonimo"];
+    } else if (!rol && nombre == "eliminado") {
+        return ["txtPaciente", "txtEliminado"];
+    } else {
+        return [nombre];
+    }
+};
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -53,16 +54,21 @@ export default function VerDiagnosticoPage() {
     const [modalEliminacion, setModalEliminacion] = useState(false);
     const [modalValidacion, setModalValidacion] = useState(false);
 
-    const camposPersonales = useMemo(() => [
-        { id: "id", titulo: "ID", valor: diagnostico?.id },
-        { id: "nombre", titulo: usuario?.rolVisible ? t("txtMedico") : t("txtPaciente"), valor: persona?.nombre },
-        { id: "sexo", titulo: t("txtCampoSexo"), componente: <ChipSexo valor={diagnostico?.sexo} /> },
-        { id: "edad", titulo: t("txtCampoEdad"), valor: `${diagnostico?.sintomasNumericos.edad} ${t("txtSufijoEdad")}` },
-        { id: "fecha", titulo: t("txtCampoFechaDiag"), valor: dayjs(diagnostico?.fecha).format(t("formatoFechaCompleta")) },
-        { id: "diagnosticoModelo", titulo: t("txtCampoDiagModelo"), componente: <ChipDiagnostico valor={diagnostico?.diagnosticoModelo} /> },
-        { id: "probabilidad", titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico?.probabilidad * 100).toFixed(2)}%` },
-        { id: "diagnosticoMedico", titulo: t("txtCampoDiagMedico"), componente: <ChipValidado valor={diagnostico?.diagnosticoMedico} /> },
-    ], [usuario, diagnostico, persona, t]);
+    const camposPersonales = useMemo(() => {
+        const campoNombre = { id: "nombre", titulo: usuario?.rolVisible ? t("txtMedico") : t("txtPaciente") };
+        const res = detTextoPersona(usuario?.rolVisible, persona?.nombre);
+        campoNombre.valor = res.length == 1 ? res[0] : `${t(res[0])} ${t(res[1])}`;
+
+        return [
+            { id: "id", titulo: "ID", valor: diagnostico?.id }, campoNombre,
+            { id: "sexo", titulo: t("txtCampoSexo"), componente: <ChipSexo valor={diagnostico?.sexo} /> },
+            { id: "edad", titulo: t("txtCampoEdad"), valor: `${diagnostico?.sintomasNumericos.edad} ${t("txtSufijoEdad")}` },
+            { id: "fecha", titulo: t("txtCampoFechaDiag"), valor: dayjs(diagnostico?.fecha).format(t("formatoFechaCompleta")) },
+            { id: "diagnosticoModelo", titulo: t("txtCampoDiagModelo"), componente: <ChipDiagnostico valor={diagnostico?.diagnosticoModelo} /> },
+            { id: "probabilidad", titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico?.probabilidad * 100).toFixed(2)}%` },
+            { id: "diagnosticoMedico", titulo: t("txtCampoDiagMedico"), componente: <ChipValidado valor={diagnostico?.diagnosticoMedico} /> },
+        ];
+    }, [usuario, diagnostico, persona, t]);
     const camposVitales = useMemo(() => [
         { id: "presionSistolica", titulo: t("txtCampoPresionSist"), valor: `${diagnostico?.sintomasNumericos.presion_sistolica} mmHg.` },
         { id: "presionDiastolica", titulo: t("txtCampoPresionDiast"), valor: `${diagnostico?.sintomasNumericos.presion_diastolica} mmHg.` },
@@ -75,10 +81,14 @@ export default function VerDiagnosticoPage() {
         { id: "hb", titulo: t("txtCampoHB"), valor: `${diagnostico?.sintomasNumericos.hb} g/dL.` },
         { id: "wbc", titulo: t("txtCampoWBC"), valor: `${diagnostico?.sintomasNumericos.wbc} /µL.` },
     ], [diagnostico, t]);
-    const listadoPestanas = [
-        { texto: usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
-        { texto: `${ usuario?.rolVisible ? t("txtDiagnostico") : t("txtPaciente")} — ${persona?.nombre} - ${diagnostico?.fecha.toLocaleString()}` }
-    ];
+    const listadoPestanas = useMemo(() => {
+        const res = detTextoPersona(usuario?.rolVisible, persona?.nombre);
+        const nombre = res.length == 1 ? res[0] : `${t(res[0])} ${t(res[1])}`;
+        return [
+            { texto: usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
+            { texto: `${usuario?.rolVisible ? t("txtDiagnostico") : t("txtPaciente")} — ${nombre} - ${diagnostico?.fecha.toLocaleString()}` }
+        ];
+    }, [usuario, persona, diagnostico, t]);
 
     useEffect(() => {
         const expIdUsuario = /-\w{28}$/;
@@ -91,14 +101,13 @@ export default function VerDiagnosticoPage() {
     useEffect(() => {
         let titulo = usuario?.rolVisible ? t("titDiagnostico") : t("titVerDiagnostico");
         if (diagnostico && persona) {
-            titulo = `${t("txtDiagnostico")} — ${persona.nombre} - ${diagnostico?.fecha.toLocaleString()}`;
+            const res = detTextoPersona(usuario?.rolVisible, persona?.nombre);
+            const nombre = res.length == 1 ? res[0] : `${t(res[0])} ${t(res[1])}`;
+            titulo = `${t("txtDiagnostico")} — ${nombre} - ${diagnostico?.fecha.toLocaleString()}`;
         }
         document.title = titulo;
     }, [usuario, persona, diagnostico, t]);
 
-    /**
-     * @param {String} id ID del diagnóstico a cargar.
-     */
     const cargarDiagnostico = useCallback(async (id) => {
         const { success, data } = await verDiagnostico(id);
         if (success) {
@@ -106,7 +115,7 @@ export default function VerDiagnosticoPage() {
         } else {
             navigate("/diagnosticos");
         }
-    }, [verDiagnostico, setDiagnostico, navigate]);
+    }, [navigate, verDiagnostico]);
 
     /**
      * @param {String} id  UID del paciente.
@@ -114,14 +123,22 @@ export default function VerDiagnosticoPage() {
      */
     const cargarPaciente = useCallback(async (id, esAnonimo = false) => {
         if (esAnonimo) {
-            setPersona(pacienteAnonimo);
+            setPersona(
+                new Paciente(
+                    "null", null, "anonimo", 2, null, null, null, false, []
+                )
+            );
             return;
         }
         const { success, data, error } = await verPaciente(id);
         if (success) {
             setPersona(data);
         } else {
-            setPersona(pacienteEliminado);
+            setPersona(
+                new Paciente(
+                    "null", null, "eliminado", 2, null, null, null, false, []
+                )
+            );
             setModalError({ mostrar: true, texto: error });
         }
     }, [setPersona, verPaciente]);
@@ -134,7 +151,11 @@ export default function VerDiagnosticoPage() {
         if (success) {
             setPersona(data);
         } else {
-            setPersona(usuarioEliminado);
+            setPersona(
+                new Usuario(
+                    "null", null, "", false, false, null, null
+                )
+            );
             setModalError({ mostrar: true, texto: error });
         }
     }, [setPersona, verUsuario]);
@@ -201,10 +222,11 @@ export default function VerDiagnosticoPage() {
     }, [diagnostico, usuario?.rolVisible, pacientesListo, cargarPaciente]);
 
     useEffect(() => {
-        if (diagnosticosListo) {
+
+        if (diagnosticosListo && !diagnostico) {
             cargarDiagnostico(id);
         }
-    }, [diagnosticosListo, cargarDiagnostico, id]);
+    }, [diagnosticosListo, diagnostico, cargarDiagnostico, id]);
 
     useEffect(() => {
         setCargando(true);
