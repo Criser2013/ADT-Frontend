@@ -39,20 +39,22 @@ export default function GraficoBarras({ titulo, datos, modoActualizacion = "defa
         if (xl) return 18;
         if (lg) return 16;
         if (md) return 14;
-        return 12;
+        return 10;
     }, [md, lg, xl]);
+
     const tamTitulo = useMemo(() => {
         if (xl) return 28;
         if (lg) return 24;
         if (md) return 20;
-        return 16;
+        return 12;
     }, [md, lg, xl]);
     const opciones = useMemo(() => {
         const colorTitulo = tema == "dark" ? "#ffffff" : "#000000";
         const colorMalla = tema == "dark" ? "#838383ff" : "#d3d3d3bd";
 
         return {
-            responsivo: true,
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'top', labels: {

@@ -53,13 +53,13 @@ export default function ContLime({ diagnostico }) {
                     {t("txtExplicacion")}
                 </Typography>
             </Grid>
-            <Grid display="flex" size={1} justifyContent="center">
+            <Grid size={1} justifyContent="center">
                 <Box
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    maxHeight={{ xs: "65vh", md: "100vh" }}
-                    width={{ xs: "98vw", md: "65vw" }} >
+                    sx={{
+                        width: "100%",
+                        height: { xs: "20rem", sm: "25rem", md: "30rem" },
+                        mx: "auto",
+                    }}>
                     <GraficoBarras
                         titulo={t("titLime")}
                         datos={datosGrafico}

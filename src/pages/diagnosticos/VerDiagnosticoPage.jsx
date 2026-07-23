@@ -29,11 +29,11 @@ const numCols = { xs: 12, lg: 6, xl: 4 };
  */
 export default function VerDiagnosticoPage() {
     const navigate = useNavigate();
-    const { usuario } = useAuth();
     const { eliminarDiagnosticos, verDiagnostico, validarDiagnostico,
         helperListo: diagnosticosListo } = useDiagnosticos();
     const { id } = useParams();
     const { t } = useTranslation();
+    const { usuario } = useAuth();
     const { verPaciente, helperListo: pacientesListo } = usePacientes();
     const { verUsuario, helperListo: usuariosListo } = useUsuarios();
     const [cargando, setCargando] = useState(true);
@@ -67,7 +67,7 @@ export default function VerDiagnosticoPage() {
     ], [diagnostico, t]);
     const listadoPestanas = [
         { texto: usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
-        { texto: `${t("txtDiagnostico")} — ${id}`, url: `/diagnosticos/${id}` }
+        { texto: `${ usuario?.rolVisible ? t("txtDiagnostico") : t("txtPaciente")} — ${persona?.nombre} - ${diagnostico?.fecha.toLocaleString()}` }
     ];
 
     useEffect(() => {
@@ -190,18 +190,18 @@ export default function VerDiagnosticoPage() {
     };
 
     useEffect(() => {
-        if (usuario?.rolVisible && !persona && usuariosListo) {
+        if (usuario?.rolVisible && usuariosListo) {
             const uid = id.substring(37);
             cargarUsuario(uid);
         }
-    }, [usuario?.rolVisible, persona, usuariosListo, cargarUsuario, id]);
+    }, [usuario?.rolVisible, usuariosListo, cargarUsuario, id]);
 
     useEffect(() => {
-        if (!usuario?.rolVisible && !persona && diagnostico && pacientesListo) {
+        if (!usuario?.rolVisible && diagnostico && pacientesListo) {
             const uid = diagnostico.paciente;
             cargarPaciente(uid, !uid);
         }
-    }, [persona, diagnostico, usuario?.rolVisible, pacientesListo, cargarPaciente]);
+    }, [diagnostico, usuario?.rolVisible, pacientesListo, cargarPaciente]);
 
     useEffect(() => {
         if (diagnosticosListo) {
