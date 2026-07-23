@@ -31,7 +31,7 @@ export default function VerPacientesPage() {
     const campos = useMemo(() => [
         { id: "cedula", label: t("txtCedula"), componente: null, ordenable: true },
         { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
-        { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo sexo={x.sexo} />, ordenable: true },
+        { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo valor={x.sexo} />, ordenable: true },
         { id: "edad", label: t("txtCampoEdad"), componente: null, ordenable: true },
         { id: "telefono", label: t("txtTelefono"), componente: null, ordenable: true },
     ], [t]);

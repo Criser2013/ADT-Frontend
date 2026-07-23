@@ -37,7 +37,7 @@ export async function verDiagnostico(id, uid, db) {
             return { success: false, error: "El diagnóstico no existe." };
         }
 
-        return { success: true, data: { id: `${datos.id}-${uid}`, usuario: uid, ...datos.data() } };
+        return { success: true, data: { id: datos.id, usuario: uid, ...datos.data() } };
     } catch (error) {
         return { success: false, error: error };
     }
@@ -56,7 +56,7 @@ export async function verDiagnosticos(db) {
 
         datos.forEach((doc) => {
             const uid = doc.ref.path.split("/")[1];
-            diagnosticos.push({ id: `${doc.id}-${uid}`, usuario: uid, ...doc.data() });
+            diagnosticos.push({ id: doc.id, usuario: uid, ...doc.data() });
         });
 
         return { success: true, data: diagnosticos };
@@ -83,7 +83,7 @@ export async function verDiagnosticosPorMedico(uid, db, fecha = null) {
 
         const diagnosticos = [];
         datos.forEach((doc) => {
-            diagnosticos.push({ id: `${doc.id}-${uid}`, usuario: uid, ...doc.data() });
+            diagnosticos.push({ id: doc.id, usuario: uid, ...doc.data() });
         });
 
         return { success: true, data: diagnosticos };

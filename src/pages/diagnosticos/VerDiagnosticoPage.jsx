@@ -48,14 +48,13 @@ export default function VerDiagnosticoPage() {
     const camposPersonales = useMemo(() => [
         { id: "id", titulo: "ID", valor: diagnostico?.id },
         { id: "nombre", titulo: usuario?.rolVisible ? t("txtMedico") : t("txtPaciente"), valor: persona?.nombre },
-        { id: "sexo", titulo: t("txtCampoSexo"), componente: <ChipSexo sexo={diagnostico?.sintomasBinarios.sexo} /> },
+        { id: "sexo", titulo: t("txtCampoSexo"), componente: <ChipSexo valor={diagnostico?.sexo} /> },
         { id: "edad", titulo: t("txtCampoEdad"), valor: `${diagnostico?.sintomasNumericos.edad} ${t("txtSufijoEdad")}` },
         { id: "fecha", titulo: t("txtCampoFechaDiag"), valor: dayjs(diagnostico?.fecha).format(t("formatoFechaCompleta")) },
         { id: "diagnosticoModelo", titulo: t("txtCampoDiagModelo"), componente: <ChipDiagnostico valor={diagnostico?.diagnosticoModelo} /> },
         { id: "probabilidad", titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico?.probabilidad * 100).toFixed(2)}%` },
         { id: "diagnosticoMedico", titulo: t("txtCampoDiagMedico"), componente: <ChipValidado valor={diagnostico?.diagnosticoMedico} /> },
     ], [usuario, diagnostico, persona, t]);
-    const camposSintomas = useMemo(() => CAMPOS_BIN.filter((x) => !["sexo", "otra_enfermedad"].includes(x)), []);
     const camposVitales = useMemo(() => [
         { id: "presionSistolica", titulo: t("txtCampoPresionSist"), valor: `${diagnostico?.sintomasNumericos.presion_sistolica} mmHg.` },
         { id: "presionDiastolica", titulo: t("txtCampoPresionDiast"), valor: `${diagnostico?.sintomasNumericos.presion_diastolica} mmHg.` },
@@ -101,7 +100,6 @@ export default function VerDiagnosticoPage() {
             setDiagnostico(cache);
             return;
         }
-
         const { success, data } = await verDiagnostico(id);
         if (success) {
             setDiagnostico(data);
@@ -116,11 +114,10 @@ export default function VerDiagnosticoPage() {
      */
     const cargarPaciente = useCallback(async (id, esAnonimo = false) => {
         if (esAnonimo) {
-            const nombre = `${usuario?.rolVisible ? t("txtMedico") : t("txtPaciente")} ${t("txtAnonimo")}`;
+            const nombre = `${t("txtPaciente")} ${t("txtAnonimo")}`;
             setPersona(new Paciente("null", null, nombre, 2, null, null, null, false, []));
             return;
         }
-
         const { success, data, error } = await verPaciente(id);
         if (success) {
             setPersona(data);
@@ -133,13 +130,13 @@ export default function VerDiagnosticoPage() {
             );
             setModalError({ mostrar: true, texto: error });
         }
-    }, [setPersona, usuario, verPaciente, t]);
+    }, [setPersona, verPaciente, t]);
 
     /**
     * @param {String} uid UID del usuario.
     */
     const cargarUsuario = useCallback(async (uid) => {
-        const { success, data } = await verUsuario(uid);
+        const { success, data, error } = await verUsuario(uid);
         if (success) {
             setPersona(data);
         } else {
@@ -149,7 +146,7 @@ export default function VerDiagnosticoPage() {
                     false, false, null, null
                 )
             );
-            setModalError({ mostrar: true, texto: "errCargarDatosMedico" });
+            setModalError({ mostrar: true, texto: error });
         }
     }, [setPersona, verUsuario, t]);
 
@@ -245,7 +242,7 @@ export default function VerDiagnosticoPage() {
                             {usuario?.rolVisible ? (
                                 <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                                     <Tooltip title={t("txtAyudaEliminarDiagnostico")}>
-                                        <IconButton color="error" onClick={manejadorBtnEliminar}>
+                                        <IconButton color="inherit" onClick={manejadorBtnEliminar}>
                                             <DeleteIcon />
                                         </IconButton>
                                     </Tooltip>
@@ -278,7 +275,7 @@ export default function VerDiagnosticoPage() {
                                 </Typography>
                             </Grid>
                             <Grid container size={12} columns={12} columnSpacing={0} rowSpacing={0} rowGap={0} columnGap={0}>
-                                {camposSintomas.map((x) => (
+                                {CAMPOS_BIN.map((x) => (
                                     <Grid size={numCols} key={x}>
                                         <Check
                                             desactivar
@@ -328,19 +325,19 @@ export default function VerDiagnosticoPage() {
                                     {t("titComor")}
                                 </Typography>
                             </Grid>
-                            {diagnostico.otraEnfemedad ? (
+                            {diagnostico?.otraEnfermedad ? (
                                 <Grid size={12}>
-                                    <ContComorbilidades comorbilidades={diagnostico.comorbilidades} />
+                                    <ContComorbilidades comorbilidades={diagnostico?.comorbilidades} />
                                 </Grid>
                             ) : (
-                                <Grid size={5}>
+                                <Grid size={numCols}>
                                     <Typography variant="body1" fontWeight="bold">
                                         {t("txtNoComor")}
                                     </Typography>
                                 </Grid>
                             )}
                         </Grid>
-                        {!(usuario?.rolVisible && diagnostico?.validado) ? (
+                        {(!usuario?.rolVisible && !diagnostico?.validado) ? (
                             <BtnFlotante
                                 txtBtn={t("txtBtnValidar")}
                                 txtAyudaBtn={t("txtAyudaBtnValidar")}
@@ -350,11 +347,11 @@ export default function VerDiagnosticoPage() {
                     </>
                 )}
                 <FormValidacion
-                    mostrar={modalValidacion.mostrar}
+                    mostrar={modalValidacion}
                     manejadorBtn={manejadorBtnValidar}
                     manejadorCierre={cerrarModalValidacion} />
                 <ModalDoble
-                    mostrar={modalEliminacion.mostrar}
+                    mostrar={modalEliminacion}
                     titulo={t("titAlerta")}
                     texto={t("txtEliminarDiagnostico")}
                     txtBtnPrincipal={t("txtBtnEliminar")}

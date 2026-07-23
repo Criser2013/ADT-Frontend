@@ -21,6 +21,7 @@ export default class Diagnostico {
      * @param {String} paciente UID del paciente al que pertenece el diagnóstico.
      * @param {Array<String>} comorbilidades Lista de comorbilidades del paciente.
      * @param {Date} fecha Fecha del diagnóstico.
+     * @param {Number} sexo Indicador de género del paciente.
      * @param {Boolean} otraEnfermedad Indicador de si el paciente tiene otra enfermedad.
      * @param {Object} sintomasBinarios Objeto con los síntomas binarios del paciente.
      * @param {Object} sintomasNumericos Objeto con los síntomas numéricos del paciente.
@@ -30,7 +31,7 @@ export default class Diagnostico {
      * @param {Boolean|null} diagnosticoMedico Diagnóstico de TEP dado por el médico. 
      */
     constructor(
-        id, usuario, paciente, comorbilidades, fecha, otraEnfermedad, sintomasBinarios,
+        id, usuario, paciente, comorbilidades, fecha, sexo, otraEnfermedad, sintomasBinarios,
         sintomasNumericos, diagnosticoModelo = null, diagnosticoMedico = null, probabilidad = null,
         explicacion = null
     ) {
@@ -38,6 +39,7 @@ export default class Diagnostico {
         this.usuario = usuario;
         this.paciente = paciente;
         this.fecha = fecha;
+        this.sexo = sexo;
         this.otraEnfermedad = otraEnfermedad;
         this.comorbilidades = comorbilidades;
         this.sintomasBinarios = sintomasBinarios;
@@ -89,7 +91,8 @@ export default class Diagnostico {
      */
     static fromJson(json) {
         const { id, usuario, paciente, otraEnfermedad, fecha, probabilidad,
-            explicacion, diagnosticoModelo, diagnosticoMedico, comorbilidades
+            explicacion, diagnosticoModelo, diagnosticoMedico, comorbilidades,
+            sexo
         } = json;
         const sintomasBinarios = {};
         const sintomasNumericos = {};
@@ -103,14 +106,15 @@ export default class Diagnostico {
         }
 
         return new Diagnostico(
-            id, usuario, paciente, comorbilidades, fecha.toDate(), otraEnfermedad,
+            id, usuario, paciente, comorbilidades, fecha.toDate(), sexo, otraEnfermedad,
             sintomasBinarios, sintomasNumericos, diagnosticoModelo, diagnosticoMedico,
             probabilidad, new ExplicacionLime(explicacion)
         );
     }
-
+ 
     toJson() {
         return {
+            sexo: this.sexo,
             otraEnfermedad: this.otraEnfermedad,
             fecha: Timestamp.fromDate(this.fecha),
             paciente: this.paciente,
@@ -130,7 +134,7 @@ export default class Diagnostico {
      * API.
      */
     toJsonApi() {
-        const json = {};
+        const json = { sexo: this.sexo, otra_enfermedad: procBool(this.otraEnfermedad) };
         for (const i of CAMPOS_BIN) {
             json[i] = procBool(this.sintomasBinarios[i]);
         }

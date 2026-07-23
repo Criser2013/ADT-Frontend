@@ -142,7 +142,7 @@ export default function VerPacientePage() {
                                     <Typography variant="body1" fontWeight="bold">
                                         {campo.titulo}:
                                     </Typography>
-                                    {(campo.id == "sexo") ? <ChipSexo sexo={campo.valor} /> : (
+                                    {(campo.id == "sexo") ? <ChipSexo valor={campo.valor} /> : (
                                         <Typography variant="body1">
                                             {campo.valor}
                                         </Typography>)}

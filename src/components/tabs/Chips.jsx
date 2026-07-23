@@ -15,15 +15,15 @@ export function ChipRol({ rol }) {
 
 /**
  * Chip para mostrar el sexo del paciente.
- * @param {Number} Sexo Sexo del paciente. 
+ * @param {Number} valor Sexo del paciente. 
  * @returns {JSX.Element}
  */
-export function ChipSexo({ sexo }) {
+export function ChipSexo({ valor }) {
     const { t } = useTranslation();
     return (
         <Chips
-            etiqueta={sexo == 0 ? t("txtMasculino") : t("txtFemenino")}
-            valor={sexo}
+            etiqueta={valor == 0 ? t("txtMasculino") : t("txtFemenino")}
+            valor={valor}
             fnColor={(valor) => (valor == 0 ? "info" : "secondary")} />
     );
 }
@@ -52,9 +52,9 @@ export function ChipValidado({ valor }) {
     const { t } = useTranslation();
     const fnColor = (valor) => {
         let color = "error";
-        if (valor) {
+        if (valor == false) {
             color = "success";
-        } else if (valor == false) {
+        } else if (valor) {
             color = "warning";
         }
         return color;

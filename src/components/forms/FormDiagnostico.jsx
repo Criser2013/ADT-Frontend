@@ -66,7 +66,6 @@ export default function FormDiagnostico({
         defaultValues: valoresPredet, mode: "onBlur"
     });
     const listaPacientes = useMemo(() => [valoresPredet.paciente, ...pacientes], [pacientes]);
-    const camposSintomas = useMemo(() => CAMPOS_BIN.filter((x) => !["sexo", "otra_enfermedad"].includes(x)), []);
     const camposExamenes = [
         { nombre: "plt", label: t("txtCampoPLT") },
         { nombre: "hb", label: t("txtCampoHB") },
@@ -141,9 +140,7 @@ export default function FormDiagnostico({
         const numericos = {};
 
         for (const i of CAMPOS_BIN) {
-            if (i != "otra_enfermedad") {
-                binarios[i] = datos[i];
-            }
+            binarios[i] = datos[i];
         }
         for (const i of CAMPOS_DECIMALES) {
             numericos[i] = parseFloat(datos[i].replace(",", "."));
@@ -154,7 +151,7 @@ export default function FormDiagnostico({
 
         const inst = new Diagnostico(
             datos.id, usuario.uid, esDiagPacientes ? datos.paciente.id : null,
-            datos.comorbilidades, new Date(), datos.otra_enfermedad, binarios, numericos
+            datos.comorbilidades, new Date(), datos.sexo, datos.otra_enfermedad, binarios, numericos
         );
         const { success, data, error } = await generarDiagnostico(inst);
 
@@ -276,7 +273,7 @@ export default function FormDiagnostico({
                             rowSpacing={0}
                             rowGap={0}
                             columnGap={0} >
-                            {camposSintomas.map((x) => (
+                            {CAMPOS_BIN.map((x) => (
                                 <Grid size={1} key={x}>
                                     <Controller
                                         name={x}

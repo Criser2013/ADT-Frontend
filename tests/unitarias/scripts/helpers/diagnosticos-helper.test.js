@@ -30,7 +30,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
         // ---------------------- Parámetros ----------------------
         const params = new Diagnostico(
             "id", "medicoId", "pacienteId", [], new Date("2026-04-23"),
-            false, { tos: false }, { wbc: 12300 }
+            0, false, { tos: false }, { wbc: 12300 }
         );
 
         // ---------------------- Respuestas esperadas ----------------------
@@ -65,9 +65,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
             }
 
             const helper = new DiagnosticosHelper("token", {}, "es");
-            const res = await helper.diagnosticar(
-                params
-            );
+            const res = await helper.diagnosticar(params);
 
             expect(res).toEqual(resEsperada);
             expect(peticionApi).toHaveBeenCalledWith(
@@ -88,11 +86,11 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
     describe("Validar el método 'validarDiagnostico'", () => {
         // ---------------------- Parámetros ----------------------
         const param1 = new Diagnostico("id", "medicoId", "pacienteId", [],
-            new Date("2026-04-23"), false, { tos: false }, { wbc: 12300 },
+            new Date("2026-04-23"), 0, false, { tos: false }, { wbc: 12300 },
             true, null, 0.6, new ExplicacionLime([{ campo: "edad", contribucion: 0.2 }])
         );
         const param2 = new Diagnostico("id2", "medicoId2", "pacienteId2", [],
-            new Date("2026-04-23"), false, { tos: false }, { wbc: 12300 },
+            new Date("2026-04-23"), 0, false, { tos: false }, { wbc: 12300 },
             true, null, 0.6, new ExplicacionLime([{ campo: "edad", contribucion: 0.2 }])
         );
 

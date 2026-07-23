@@ -10,6 +10,7 @@ const valoresDiagnostico = [
     { valor: false, texto: "txtNegativo" },
     { valor: true, texto: "txtPositivo" }
 ];
+const valorPredet = { diagnosticoMedico: 2 };
 
 
 /**
@@ -20,7 +21,7 @@ const valoresDiagnostico = [
  * @returns {JSX.Element}
  */
 export default function FormValidacion({ mostrar = false, manejadorBtn, manejadorCierre }) {
-    const { control, handleSubmit, formState: { errors } } = useForm();
+    const { control, handleSubmit, formState: { errors } } = useForm({ defaultValues: valorPredet });
     const { t } = useTranslation();
 
     return (
@@ -41,7 +42,6 @@ export default function FormValidacion({ mostrar = false, manejadorBtn, manejado
                     name="diagnosticoMedico"
                     control={control}
                     rules={{ 
-                        required: t("errCampoRequerido"),
                         validate: (value) => value != 2 || t("errValidarDiagnostico")
                      }}
                     render={({ field }) => (
@@ -53,7 +53,7 @@ export default function FormValidacion({ mostrar = false, manejadorBtn, manejado
                             fullWidth>
                             {valoresDiagnostico.map((x) => {
                                 return (
-                                    <MenuItem key={x.valor} value={x.valor}>
+                                    <MenuItem key={x.texto} value={x.valor}>
                                         {t(x.texto)}
                                     </MenuItem>
                                 );

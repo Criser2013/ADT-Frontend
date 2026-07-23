@@ -12,12 +12,12 @@ const { Diagnostico, ExplicacionLime } = await import("../../../../src/models");
 
 describe("Validar los métodos de la clase 'Diagnostico'", () => {
     const sintomasBinarios = {
-        sexo: 0, fumador: false, bebedor: false, tos: false, fiebre: false,
+        fumador: false, bebedor: false, tos: false, fiebre: false,
         crepitaciones: false, dolor_toracico: true, malignidad: false, hemoptisis: false,
         disnea: true, sibilancias: false, derrame: false, TEP_TVP_previo: false,
         edema_de_m_inferiores: false, sintomas_disautonomicos: false,
         inmovilidad_de_m_inferiores: false, viaje_prolongado: false,
-        proc_quirurgico_traumatismo: false, otra_enfermedad: false, soplos: false
+        proc_quirurgico_traumatismo: false, soplos: false
     };
     const sintomasNumericos = {
         saturacion_de_la_sangre: 80, plt: 211100, hb: 13.8, wbc: 12300, edad: 60,
@@ -30,7 +30,7 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
         test("CP - 166", () => {
             const diag = new Diagnostico(
                 "1", "1", "1", comorbilidades,
-                new Date("2026-04-23"), true, sintomasBinarios, sintomasNumericos
+                new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos
             );
 
             expect(diag.comorbilidadesCodificadas).toEqual({
@@ -50,14 +50,14 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
     describe("Validar el método 'toJsonApi'", () => {
         test("CP - 73", () => {
             const diag = new Diagnostico(
-                "1", "1", "1", comorbilidades, new Date("2026-04-23"), true, sintomasBinarios, sintomasNumericos
+                "1", "1", "1", comorbilidades, new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos
             );
             const respuesta = {
                 edad: 60, sexo: 0, bebedor: 0, fumador: 0, proc_quirurgico_traumatismo: 0,
                 viaje_prolongado: 0, tos: 0, fiebre: 0, crepitaciones: 0, dolor_toracico: 1,
                 malignidad: 0, hemoptisis: 0, disnea: 1, sibilancias: 0, derrame: 0,
                 TEP_TVP_previo: 0, edema_de_m_inferiores: 0, sintomas_disautonomicos: 0,
-                inmovilidad_de_m_inferiores: 0, otra_enfermedad: 0, soplos: 0,
+                inmovilidad_de_m_inferiores: 0, otra_enfermedad: 1, soplos: 0,
                 presion_sistolica: 129, presion_diastolica: 93, frecuencia_respiratoria: 26,
                 frecuencia_cardiaca: 128, saturacion_de_la_sangre: 80, plt: 211100, hb: 13.8, wbc: 12300,
                 hematologica: 0, vascular: 0, pulmonar: 0, renal: 0, cardiaca: 0, enfermedad_coronaria: 0,
@@ -79,10 +79,10 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
 
         // ---------------------- Mocks -------------------------
         const inst1 = new Diagnostico(
-            "1", "1", "1", comorbilidades, new Date("2026-04-23"), true, sintomasBinarios, sintomasNumericos
+            "1", "1", "1", comorbilidades, new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos
         );
         const inst2 = new Diagnostico(
-            "2", "1", "1", comorbilidades, new Date("2026-04-23"), true, sintomasBinarios, sintomasNumericos,
+            "2", "1", "1", comorbilidades, new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos,
             1, 0, 0.5, new ExplicacionLime({ campo: "edad", contribucion: 0.5 })
         );
 
@@ -104,9 +104,10 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
         test("CP - 169", () => {
             const comorbilidades = ["Enfermedad hematológica", "Hipertensión arterial"];
             const inst = new Diagnostico(
-                "1", "1", "1", comorbilidades, Date("2026-04-23"), true, sintomasBinarios, sintomasNumericos
+                "1", "1", "1", comorbilidades, Date("2026-04-23"), 0,true, sintomasBinarios, sintomasNumericos
             );
             const resEsperada = {
+                sexo: 0,
                 otraEnfermedad: true, 
                 fecha: expect.any(Object),
                 paciente: "1",
@@ -136,7 +137,7 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
                 disnea: true, sibilancias: false, derrame: false, TEP_TVP_previo: false,
                 edema_de_m_inferiores: false, sintomas_disautonomicos: false,
                 inmovilidad_de_m_inferiores: false, viaje_prolongado: false,
-                proc_quirurgico_traumatismo: false, otra_enfermedad: false, soplos: false,
+                proc_quirurgico_traumatismo: false, otraEnfermedad: false, soplos: false,
                 saturacion_de_la_sangre: 80, plt: 211100, hb: 13.8, wbc: 12300, edad: 60,
                 presion_sistolica: 129, presion_diastolica: 93, frecuencia_respiratoria: 26,
                 frecuencia_cardiaca: 128
@@ -147,19 +148,20 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
             expect(res.usuario).toEqual(json.usuario);
             expect(res.paciente).toEqual(json.paciente);
             expect(res.comorbilidades).toEqual(json.comorbilidades);
-            expect(res.fecha).toEqual(json.fecha.toDate());
+            expect(res.sexo).toEqual(json.sexo);
             expect(res.otraEnfermedad).toEqual(json.otraEnfermedad);
+            expect(res.fecha).toEqual(json.fecha.toDate());
             expect(res.diagnosticoModelo).toEqual(json.diagnosticoModelo);
             expect(res.diagnosticoMedico).toEqual(json.diagnosticoMedico);
             expect(res.probabilidad).toEqual(json.probabilidad);
             expect(res.explicacion).toBeInstanceOf(ExplicacionLime);
             expect(res.sintomasBinarios).toEqual({
-                sexo: 0, fumador: false, bebedor: false, tos: false, fiebre: false,
+                fumador: false, bebedor: false, tos: false, fiebre: false,
                 crepitaciones: false, dolor_toracico: true, malignidad: false, hemoptisis: false,
                 disnea: true, sibilancias: false, derrame: false, TEP_TVP_previo: false,
                 edema_de_m_inferiores: false, sintomas_disautonomicos: false,
                 inmovilidad_de_m_inferiores: false, viaje_prolongado: false,
-                proc_quirurgico_traumatismo: false, otra_enfermedad: false, soplos: false
+                proc_quirurgico_traumatismo: false, soplos: false
             });
             expect(res.sintomasNumericos).toEqual({
                 saturacion_de_la_sangre: 80, plt: 211100, hb: 13.8, wbc: 12300, edad: 60,
@@ -172,7 +174,7 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
     describe("Validar el getter 'fechaFormateada'", () => {
         test("CP - 171", () => {
             const inst = new Diagnostico(
-                "1", "1", "1", comorbilidades, new Date("2026-04-23"), true, sintomasBinarios, sintomasNumericos
+                "1", "1", "1", comorbilidades, new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos
             );
 
             expect(inst.fechaFormateada).toEqual("23-04-2026");
