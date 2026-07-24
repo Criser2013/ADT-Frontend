@@ -1,16 +1,15 @@
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
-    Grid, Typography, Divider, Stack, Fab, Tooltip,
-    Button, Popover, IconButton
+    Grid, Typography, Divider, Stack, Tooltip,
+    Button, IconButton
 } from "@mui/material";
 import { ChipSexo } from "../../components/tabs/Chips";
 import { ContComorbilidades } from "../../components/diagnosticos";
 import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
 import { ModalSimple, ModalDoble } from "../../components/modals";
-import { PopOver } from "../../components/tabs";
+import { BtnFlotante, PopOver } from "../../components/tabs";
 import { useCallback, useEffect, useState } from "react";
 import { usePacientes } from "../../hooks";
 import { useNavigate, useParams } from "react-router";
@@ -32,9 +31,6 @@ export default function VerPacientePage() {
     const [modalEliminacion, setModalEliminacion] = useState({
         mostrar: false, texto: "", titulo: ""
     });
-    const [popOver, setPopOver] = useState(null);
-    const mostrarPopOver = Boolean(popOver);
-    const idPopOver = mostrarPopOver ? "simple-popover" : undefined;
     const { verPaciente, eliminarPacientes, helperListo, cancelarPeticiones } = usePacientes();
     const campos = [
         { id: "nombre", titulo: t("txtNombre"), valor: datos?.nombre },
@@ -95,16 +91,8 @@ export default function VerPacientePage() {
     };
 
     async function manejadorBtnModalEliminar() {
-        setPopOver(null);
         cerrarModalEliminacion();
         await eliminarPaciente();
-    };
-
-    /**
-     * @param {Event} e 
-     */
-    function manejadorBtnOpciones(e) {
-        setPopOver(e.currentTarget);
     };
 
     useEffect(() => {
@@ -142,34 +130,11 @@ export default function VerPacientePage() {
                         spacing={1}
                         marginTop="3vh">
                         <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
-                            <Tooltip title={t("txtAyudaMasOpciones")}>
-                                <IconButton
-                                    aria-describedby={idPopOver}
-                                    onClick={manejadorBtnOpciones} >
-                                    <MoreVertIcon />
+                            <Tooltip title={t("txtAyudaEliminarPaciente")}>
+                                <IconButton color="error" onClick={manejadorBtnEliminar}>
+                                    <DeleteIcon />
                                 </IconButton>
                             </Tooltip>
-                            <PopOver
-                                id={idPopOver}
-                                mostrar={mostrarPopOver}
-                                anchorEl={popOver}
-                                anchorOrigin={{
-                                    vertical: "bottom", horizontal: "left",
-                                }}
-                                transformOrigin={{
-                                    vertical: "top", horizontal: "center",
-                                }}
-                                setPopOver={setPopOver}>
-                                <Tooltip title={t("txtAyudaEliminarPaciente")}>
-                                    <Button
-                                        color="error"
-                                        startIcon={<DeleteIcon />}
-                                        onClick={manejadorBtnEliminar}
-                                        sx={{ textTransform: "none", padding: 2 }}>
-                                        {t("txtBtnEliminar")}
-                                    </Button>
-                                </Tooltip>
-                            </PopOver>
                         </Grid>
                         {campos.map((campo) => (
                             <Grid key={campo.id} size={{ xs: 12, md: 6 }}>
@@ -177,7 +142,7 @@ export default function VerPacientePage() {
                                     <Typography variant="body1" fontWeight="bold">
                                         {campo.titulo}:
                                     </Typography>
-                                    {(campo.id == "sexo") ? <ChipSexo sexo={campo.valor} /> : (
+                                    {(campo.id == "sexo") ? <ChipSexo valor={campo.valor} /> : (
                                         <Typography variant="body1">
                                             {campo.valor}
                                         </Typography>)}
@@ -204,22 +169,11 @@ export default function VerPacientePage() {
                             </Grid>
                         )}
                     </Grid>
-                    <Tooltip title={t("txtAyudaBtnEditarPaciente")}>
-                        <Fab onClick={manejadorBtnEditar}
-                            color="primary"
-                            variant="extended"
-                            sx={{
-                                textTransform: "none",
-                                display: "flex",
-                                position: "fixed",
-                                bottom: 20,
-                                right: 20,
-                                zIndex: 1000
-                            }} >
-                            <EditIcon sx={{ mr: 1 }} />
-                            <b>{t("txtBtnEditar")}</b>
-                        </Fab>
-                    </Tooltip>
+                    <BtnFlotante
+                        txtBtn={t("txtBtnEditar")}
+                        txtAyudaBtn={t("txtAyudaBtnEditarPaciente")}
+                        manejadorBtn={manejadorBtnEditar}
+                        icono={<EditIcon />} />
                 </>
             )}
             <ModalDoble

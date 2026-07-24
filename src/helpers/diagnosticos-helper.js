@@ -129,9 +129,9 @@ export default class DiagnosticosHelper {
      */
     async validarDiagnostico(instancia, diagnosticoMedico) {
         instancia.validar(diagnosticoMedico);
-        const { success, data, error }= await this.#guardarDiagnostico(instancia);
+        const { success, error }= await this.#guardarDiagnostico(instancia);
         if (success) {
-            return { success, data: Diagnostico.fromJson(data) };
+            return { success, data: instancia.deepClone() };
         } else {
             return { success, error };
         }

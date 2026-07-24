@@ -8,14 +8,13 @@ import {
  * @param {String} uid UID del médico que realiza el cambio.
  * @param {Object} json Datos del diagnóstico a modificar o crear.
  * @param {Object} db Instancia de Firestore.
- * @returns {Object} Resultado el resultado de la operación en la clave "data" y un booleano en la clave "success" indicando si la operación fue exitosa o no.
+ * @returns {Object} Resultado booleano en la clave "success" indicando si la operación fue exitosa o no.
  */
 export async function cambiarDiagnostico(id, uid, json, db) {
     try {
         const docRef = doc(db, `usuarios/${uid}/diagnosticos/${id}`);
         await setDoc(docRef, json);
-
-        return { success: true, data: json };
+        return { success: true };
     } catch (error) {
         return { success: false, error: error };
     }
@@ -37,7 +36,7 @@ export async function verDiagnostico(id, uid, db) {
             return { success: false, error: "El diagnóstico no existe." };
         }
 
-        return { success: true, data: { id: `${datos.id}-${uid}`, usuario: uid, ...datos.data() } };
+        return { success: true, data: { id: datos.id, usuario: uid, ...datos.data() } };
     } catch (error) {
         return { success: false, error: error };
     }
@@ -56,7 +55,7 @@ export async function verDiagnosticos(db) {
 
         datos.forEach((doc) => {
             const uid = doc.ref.path.split("/")[1];
-            diagnosticos.push({ id: `${doc.id}-${uid}`, usuario: uid, ...doc.data() });
+            diagnosticos.push({ id: doc.id, usuario: uid, ...doc.data() });
         });
 
         return { success: true, data: diagnosticos };
@@ -83,7 +82,7 @@ export async function verDiagnosticosPorMedico(uid, db, fecha = null) {
 
         const diagnosticos = [];
         datos.forEach((doc) => {
-            diagnosticos.push({ id: `${doc.id}-${uid}`, usuario: uid, ...doc.data() });
+            diagnosticos.push({ id: doc.id, usuario: uid, ...doc.data() });
         });
 
         return { success: true, data: diagnosticos };

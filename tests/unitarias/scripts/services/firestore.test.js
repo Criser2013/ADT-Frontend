@@ -25,7 +25,7 @@ describe("Validar la función 'cambiarDiagnostico'", () => {
     };
 
     // ----------------- Resultado esperado -----------------
-    const res1 = { success: true, data: params1.json  };
+    const res1 = { success: true  };
     const res2 = { success: false, error: new Error("Error al cambiar el diagnóstico.") };
 
     // ----------------- Mocks -----------------

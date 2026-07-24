@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals';
-import { detTxtDiagnostico, evaluarIntervalo, nombresCampos, oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, quitarDatosPersonales, procLime } from "../../../../src/utils/TratarDatos";
+import { evaluarIntervalo, nombresCampos, oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, quitarDatosPersonales } from "../../../../src/utils/TratarDatos";
 
 describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
     test("CP - 15", () => {
@@ -112,23 +112,6 @@ describe("Validar la función 'procBool'", () => {
     });
 });
 
-describe("Validar la función 'detTxtDiagnostico'", () => {
-    test.skip("CP - 76", () => {
-        const res = detTxtDiagnostico(0);
-        expect(res).toEqual("Negativo");
-    });
-
-    test.skip("CP - 77", () => {
-        const res = detTxtDiagnostico(1);
-        expect(res).toEqual("Positivo");
-    });
-
-    test.skip("CP - 78", () => {
-        const res = detTxtDiagnostico(2);
-        expect(res).toEqual("No validado");
-    });
-});
-
 describe("Validar que las función 'nombresCampos' retorne correctamente la instancia", () => {
     test.skip("CP - 79", () => {
         const mockFecha = {
@@ -233,45 +216,3 @@ describe("Validar que las función 'nombresCampos' retorne correctamente la inst
         expect(res).toEqual(respuesta);
     });
 });
-
-describe("Validar que la función 'procesarLime' retorne correctamente los parámetros del gráfico", () => {
-    test("CP - 89", () => {
-        const res = procLime({ lime: [{ campo: "VIH", contribucion: 51.85 }, { campo: "Hepatopatía crónica", contribucion: -48.2 }] }, 1, "lime", "rgba(237, 108, 2, 255)", "rgba(44,120,56, 2)");
-
-        expect(res).toEqual({
-            labels: ["Hepatopatía crónica", "VIH"],
-            datasets: [
-                {
-                    label: "Diagnóstico positivo",
-                    data: [0, 51.85],
-                    backgroundColor: "rgba(237, 108, 2, 255)"
-                },
-                {
-                    label: "Diagnóstico negativo",
-                    data: [48.2, 0],
-                    backgroundColor: "rgba(44,120,56, 2)",
-                }
-            ]
-        });
-    });
-
-    test("CP - 90", () => {
-        const res = procLime({ lime: [{ campo: "VIH", contribucion: 51.85 }, { campo: "Hepatopatía crónica", contribucion: -48.2 }] }, 0, "lime", "rgba(237, 108, 2, 255)", "rgba(44,120,56, 2)");
-
-        expect(res).toEqual({
-            labels: ["Hepatopatía crónica", "VIH"],
-            datasets: [
-                {
-                    label: "Diagnóstico negativo",
-                    data: [0, 51.85],
-                    backgroundColor: "rgba(44,120,56, 2)"
-                },
-                {
-                    label: "Diagnóstico positivo",
-                    data: [48.2, 0],
-                    backgroundColor: "rgba(237, 108, 2, 255)",
-                }
-            ]
-        });
-    });
-})

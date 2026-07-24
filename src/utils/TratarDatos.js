@@ -300,24 +300,6 @@ export function procEdad(valor) {
 };
 
 /**
- * Determina el texto del diagnóstico según su valor.
- * @param {Integer} diagnostico 
- * @returns {String}
- */
-export function detTxtDiagnostico(diagnostico, idioma = "es") {
-    idioma;
-    const txt = { "txtNegativo": "Negativo", "txtPositivo": "Positivo", "txtNoValidado": "No Validado" }; //textos[idioma].translation;
-    switch (diagnostico) {
-        case 0:
-            return txt.txtNegativo;
-        case 1:
-            return txt.txtPositivo;
-        default:
-            return txt.txtNoValidado;
-    }
-};
-
-/**
  * Transforma una instancia de la base de datos al formato de campos de Excel.
  * @param {JSON} instancia - Instancia de diagnóstico.
  * @param {Boolean} esAdmin - Indica si el usuario es administrador.
@@ -392,54 +374,4 @@ export function nombresCampos(instancia, esAdmin, preprocesar = false, idioma = 
     }
 
     return datos;
-};
-
-/**
- * Genera el gráfico LIME del diagnóstico ingresado.
- * @param {JSON} datos - Datos a procesar.
- * @param {string} clave - Clave dentro del JSON de datos que contiene los valores LIME.
- * @param {int} diagnostico - Diagnóstico del paciente (0 o 1).
- * @param {string} colorPositivo - Color de los atributos que contribuyen a la clase positiva.
- * @param {string} colorNegativo - Color de los atributos que contribuyen a la clase negativa.
- * @returns {JSON}
- */
-export function procLime(datos, diagnostico, clave = "lime", colorPositivo = "rgba(237, 108, 2, 255)", colorNegativo = "rgba(44,120,56, 2)") {
-    let txtPositivo = "Diagnóstico positivo";
-    let txtNegativo = "Diagnóstico negativo";
-    const aux = { ...datos };
-
-    if (diagnostico == 0) {
-        txtPositivo = "Diagnóstico negativo";
-        txtNegativo = "Diagnóstico positivo";
-        colorNegativo = "rgba(237, 108, 2, 255)";
-        colorPositivo = "rgba(44,120,56, 2)";
-    }
-
-    const lime = {
-        labels: [],
-        datasets: [
-            {
-                label: txtPositivo, data: [],
-                backgroundColor: colorPositivo,
-            },
-            {
-                label: txtNegativo, data: [],
-                backgroundColor: colorNegativo,
-            }
-        ]
-    };
-
-    aux[clave] = aux[clave].sort((x) => x.contribucion);
-    for (const i of aux[clave]) {
-        if (i.contribucion > 0) {
-            lime.datasets[0].data.push(i.contribucion);
-            lime.datasets[1].data.push(0);
-        } else {
-            lime.datasets[1].data.push(Math.abs(i.contribucion));
-            lime.datasets[0].data.push(0);
-        }
-        lime.labels.push(i.campo);
-    };
-
-    return lime;
 };

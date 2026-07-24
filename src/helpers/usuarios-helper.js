@@ -1,4 +1,6 @@
 import { peticionApi } from "../services/Api";
+import { Usuario } from "../models";
+
 
 /**
  * Clase para manejar las operaciones relacionadas con la gestión de usuarios de la 
@@ -31,7 +33,11 @@ export default class UsuariosHelper {
             "errCargarDatosUsuarios"
         );
         if (success) {
-            return { success: true, data };
+            const datosSerializados = new Usuario(
+                data.uid, data.correo, data.nombre, data.administrador, data.estado,
+                data.fecha_registro, data.ultima_conexion
+            );
+            return { success: true, data: datosSerializados };
         } else {
             return { success: false, error };
         }
@@ -49,7 +55,11 @@ export default class UsuariosHelper {
             "errCargarUsuarios"
         );
         if (success) {
-            return { success: true, data: data };
+            const datosSerializados = data.map((usuario) => new Usuario(
+                usuario.uid, usuario.correo, usuario.nombre, usuario.administrador,
+                usuario.estado, usuario.fecha_registro, usuario.ultima_conexion
+            ));
+            return { success: true, data: datosSerializados };
         } else {
             return { success: false, error };
         }
