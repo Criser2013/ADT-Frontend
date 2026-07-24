@@ -1,4 +1,4 @@
-import { ArchivoPacientes}  from "../models";
+import { ArchivoPacientes }  from "../models";
 import { buscarArchivo, crearArchivo, descargarArchivo, subirArchivo } from '../services/Drive';
 import { crearArchivoXlsx, leerArchivoXlsx } from "../utils/XlsxFiles";
 import { DRIVE_FILENAME, DRIVE_FOLDER_NAME } from "../constants";

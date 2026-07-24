@@ -1,4 +1,4 @@
-import Paciente from "./Paciente";
+import Paciente from "./Paciente.js";
 
 /**
  * Clase que representa el archivo que almacena los pacientes registrados en la aplicación. 
