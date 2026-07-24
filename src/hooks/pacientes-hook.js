@@ -1,5 +1,9 @@
+import { Paciente } from "../../models"; 
 import { useAuth } from "./auth-hook";
 import { useCallback, useMemo, useState } from "react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
+import { validarId } from "../../utils/Validadores";
 
 
 /**
@@ -15,7 +19,7 @@ import { useCallback, useMemo, useState } from "react";
  * - "anadirPaciente" (Function): Función para añadir un nuevo paciente.
  * - "editarPaciente" (Function): Función para editar los datos de un paciente existente.
  */
-export default function usePacientes() {
+export function usePacientes() {
     const { datosHelper } = useAuth();
     const [datos, setDatos] = useState([]);
     const helperListo = useMemo(() => datosHelper !== null, [datosHelper]);
@@ -99,4 +103,44 @@ export default function usePacientes() {
     }), [datos, cargarDatos, eliminarPacientes, verPaciente, mapeoPacientes,
         cancelarPeticiones, helperListo, anadirPaciente, editarPaciente]);
     return value;
+};
+
+/**
+ * Hook para obtener los datos de un paciente específico.
+ * @param {String} id UID del paciente a obtener.
+ * @returns {Object} Objeto con las claves:
+ * - "paciente" (Paciente|null): Objeto Paciente correspondiente al ID proporcionado o null si no se encuentra.
+ * - "cargando" (Boolean): Indica si los datos del paciente están siendo cargados.
+ */
+export function usePaciente(id) {
+    const navigate = useNavigate();
+    const { verPaciente, helperListo, cancelarPeticiones } = usePacientes();
+    const [cargando, setCargando] = useState(true);
+    const [paciente, setPaciente] = useState(null);
+
+    useEffect(() => {
+        if (!id || !validarId(id)) {
+            navigate("/pacientes");
+            return;
+        }
+        if (!helperListo) return;
+        let activo = true;
+        async function cargar() {
+            const { success, data, cancelled } = await verPaciente(id);
+            if (!activo) return;
+            if (success) {
+                setPaciente(data);
+                setCargando(false);
+            } else if (!cancelled) {
+                navigate("/pacientes");
+            }
+        }
+        cargar();
+        return () => {
+            activo = false;
+            cancelarPeticiones();
+        };
+    }, [id, helperListo, cancelarPeticiones, navigate, verPaciente]);
+
+    return { paciente, cargando };
 };

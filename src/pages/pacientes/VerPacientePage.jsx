@@ -10,12 +10,11 @@ import { ContComorbilidades } from "../../components/diagnosticos";
 import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
 import { ModalSimple, ModalDoble } from "../../components/modals";
 import { BtnFlotante, PopOver } from "../../components/tabs";
-import { useCallback, useEffect, useState } from "react";
-import { usePacientes } from "../../hooks";
+import { useEffect, useState } from "react";
+import { usePaciente, usePacientes } from "../../hooks";
 import { useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { validarId } from "../../utils/Validadores";
-import { Paciente } from "../../models";
+import { Paciente } from "../../models"; 
 
 /**
  * Página para ver los datos de un paciente.
@@ -25,97 +24,51 @@ export default function VerPacientePage() {
     const navigate = useNavigate();
     const { id } = useParams();
     const { t } = useTranslation();
-    const [cargando, setCargando] = useState(true);
-    const [datos, setDatos] = useState(null);
+    const [transaccionIniciada, setTransaccionIniciada] = useState(true);
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
-    const [modalEliminacion, setModalEliminacion] = useState({
-        mostrar: false, texto: "", titulo: ""
-    });
-    const { verPaciente, eliminarPacientes, helperListo, cancelarPeticiones } = usePacientes();
+    const [modalEliminacion, setModalEliminacion] = useState(false);
+    const { eliminarPacientes } = usePacientes();
+    const { paciente, cargando } = usePaciente(id);
     const campos = [
-        { id: "nombre", titulo: t("txtNombre"), valor: datos?.nombre },
-        { id: "cedula", titulo: t("txtCedula"), valor: datos?.cedula },
+        { id: "nombre", titulo: t("txtNombre"), valor: paciente?.nombre },
+        { id: "cedula", titulo: t("txtCedula"), valor: paciente?.cedula },
         {
             id: "fechaNacimiento", titulo: t("txtFechaNacimiento"),
-            valor: datos?.fechaNacimientoFormateada.format(t("formatoFechaCompletaSinHora"))
+            valor: paciente?.fechaNacimientoFormateada.format(t("formatoFechaCompletaSinHora"))
         },
-        { id: "edad", titulo: t("txtCampoEdad"), valor: `${datos?.edad} ${t("txtSufijoEdad")}` },
-        { id: "telefono", titulo: t("txtTelefono"), valor: datos?.telefono },
-        { id: "sexo", titulo: t("txtCampoSexo"), valor: datos?.sexo }
+        { id: "edad", titulo: t("txtCampoEdad"), valor: `${paciente?.edad} ${t("txtSufijoEdad")}` },
+        { id: "telefono", titulo: t("txtTelefono"), valor: paciente?.telefono },
+        { id: "sexo", titulo: t("txtCampoSexo"), valor: paciente?.sexo }
     ];
     const listadoPestanas = [
         { texto: t("titListaPacientes"), url: "/pacientes" },
-        { texto: `${t("txtPaciente")} — ${datos?.nombre}`, url: `/pacientes/${id}` }
+        { texto: `${t("txtPaciente")} — ${paciente?.nombre}`, url: `/pacientes/${id}` }
     ];
-
-    const cargarPaciente = useCallback(async (id) => {
-        const res = await verPaciente(id);
-        if (res instanceof Paciente) {
-            setDatos(res);
-            setCargando(false);
-        } else {
-            if (!res.cancelled) {
-                navigate("/pacientes");
-            }
-        }
-    }, [setDatos, setCargando, navigate, verPaciente]);
-
-    function cerrarModalEliminacion() {
-        setModalEliminacion({ ...modalEliminacion, mostrar: false });
-    };
-
-    function cerrarModalError() {
-        setModalError({ ...modalError, mostrar: false });
-    };
+    const mostrarPantallaCarga = transaccionIniciada || cargando;
 
     async function eliminarPaciente() {
-        setCargando(true);
-        const { success, error } = await eliminarPacientes(datos.id);
+        setTransaccionIniciada(true);
+        const { success, error } = await eliminarPacientes(paciente.id);
         if (success) {
             navigate("/pacientes");
         } else {
             setModalError({ mostrar: true, texto: t(error) });
-            setCargando(false);
+            setTransaccionIniciada(false);
         }
     };
 
-    function manejadorBtnEditar() {
-        navigate(`/pacientes/${id}/editar`);
-    };
-
-    function manejadorBtnEliminar() {
-        setModalEliminacion({
-            mostrar: true, titulo: t("titAlerta"),
-            texto: t("txtEliminarPaciente")
-        });
-    };
-
     async function manejadorBtnModalEliminar() {
-        cerrarModalEliminacion();
+        setModalEliminacion(false);
         await eliminarPaciente();
     };
 
     useEffect(() => {
-        document.title = datos ? `${t("txtPaciente")} — ${datos?.nombre}` : t("titVerPaciente");
-    }, [t, datos]);
-
-    useEffect(() => {
-        const res = id ? validarId(id) : false;
-        if (!res) {
-            navigate("/pacientes");
-        }
-
-        if (helperListo) {
-            cargarPaciente(id);
-            return () => {
-                cancelarPeticiones();
-            };
-        }
-    }, [id, navigate, cargarPaciente, helperListo, cancelarPeticiones]);
+        document.title = paciente ? `${t("txtPaciente")} — ${paciente?.nombre}` : t("titVerPaciente");
+    }, [t, paciente]);
 
     return (
         <MenuLayout>
-            {cargando ? (
+            {mostrarPantallaCarga ? (
                 <PantallaCarga />
             ) : (
                 <>
@@ -131,7 +84,7 @@ export default function VerPacientePage() {
                         marginTop="3vh">
                         <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                             <Tooltip title={t("txtAyudaEliminarPaciente")}>
-                                <IconButton color="error" onClick={manejadorBtnEliminar}>
+                                <IconButton color="error" onClick={() => setModalEliminacion(true)}>
                                     <DeleteIcon />
                                 </IconButton>
                             </Tooltip>
@@ -157,9 +110,9 @@ export default function VerPacientePage() {
                                 {t("titComor")}
                             </Typography>
                         </Grid>
-                        {datos.otraEnfermedad ? (
+                        {paciente?.otraEnfermedad ? (
                             <Grid size={12}>
-                                <ContComorbilidades comorbilidades={datos.comorbilidades} />
+                                <ContComorbilidades comorbilidades={paciente?.comorbilidades} />
                             </Grid>
                         ) : (
                             <Grid size={12}>
@@ -172,18 +125,18 @@ export default function VerPacientePage() {
                     <BtnFlotante
                         txtBtn={t("txtBtnEditar")}
                         txtAyudaBtn={t("txtAyudaBtnEditarPaciente")}
-                        manejadorBtn={manejadorBtnEditar}
+                        manejadorBtn={() => navigate(`/pacientes/${id}/editar`)}
                         icono={<EditIcon />} />
                 </>
             )}
             <ModalDoble
-                mostrar={modalEliminacion.mostrar}
-                titulo={modalEliminacion.titulo}
-                texto={modalEliminacion.texto}
+                mostrar={modalEliminacion}
+                titulo={t("titAlerta")}
+                texto={t("txtEliminarPaciente")}
                 txtBtnPrincipal={t("txtBtnEliminar")}
                 txtBtnSecundario={t("txtBtnCancelar")}
                 manejadorBtnPrincipal={manejadorBtnModalEliminar}
-                manejadorBtnSecundario={cerrarModalEliminacion}
+                manejadorBtnSecundario={() => setModalEliminacion(false)}
                 iconoBtnPrincipal={<DeleteIcon />}
                 iconoBtnSecundario={<CloseIcon />} />
             <ModalSimple
@@ -191,7 +144,7 @@ export default function VerPacientePage() {
                 titulo={t("tituloErr")}
                 texto={modalError.texto}
                 txtBtn={t("txtBtnCerrar")}
-                manejadorBtn={cerrarModalError}
+                manejadorBtn={() => setModalError((x) => ({ ...x, mostrar: false }))}
                 iconoBtn={<CloseIcon />} />
         </MenuLayout>
     );
