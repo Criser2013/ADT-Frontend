@@ -91,8 +91,6 @@ export default class ArchivoPacientes {
         } else {
             this.#eliminarPaciente(ids);
         }
-
-        this.#pacientes = this.#pacientes.filter(p => !ids.includes(p.id));
     };
 
     /**
@@ -119,6 +117,7 @@ export default class ArchivoPacientes {
         const res = this.#verSiExistePaciente(id);
         if (res) {
             delete this.#claves[id];
+            this.#pacientes = this.#pacientes.filter(p => id != p.id);
         } else {
             throw new Error(`El paciente con id ${id} no existe`);
         }
