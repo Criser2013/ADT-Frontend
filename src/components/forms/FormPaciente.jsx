@@ -116,7 +116,7 @@ export default function FormPaciente({ url, titulo, pestanas, tooltip, paciente 
                 titulo={titulo}
                 pestanas={pestanas}
                 tooltip={tooltip}
-                activarBtnAtras={true} />
+                activarBtnAtras />
             <Grid
                 container
                 columns={2}

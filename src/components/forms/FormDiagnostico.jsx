@@ -65,7 +65,9 @@ export default function FormDiagnostico({
     const { getValues, setValue, control, handleSubmit, reset, watch, formState: { errors } } = useForm({
         defaultValues: valoresPredet, mode: "onBlur"
     });
-    const listaPacientes = useMemo(() => [valoresPredet.paciente, ...pacientes], [pacientes]);
+    const listaPacientes = useMemo(() => 
+            Array.isArray(pacientes) ? [valoresPredet.paciente, ...pacientes] : [valoresPredet.paciente]
+    , [pacientes]);
     const camposExamenes = [
         { nombre: "plt", label: t("txtCampoPLT") },
         { nombre: "hb", label: t("txtCampoHB") },
@@ -129,6 +131,7 @@ export default function FormDiagnostico({
             setValue("comorbilidades", []);
         }
         await manejadorRecarga();
+        setCargando(false);
     };
 
     /**

@@ -35,7 +35,7 @@ export default function EditarPacientePage() {
                 pestanas={listadoPestanas}
                 tooltip={t("txtVolverAtras")}
                 paciente={paciente}
-                esModificar={true} />
+                esModificar />
         </MenuLayout>
     );
 };

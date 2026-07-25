@@ -20,13 +20,13 @@ import { useNavigate } from "react-router";
  */
 export default function VerPacientesPage() {
     const navigate = useNavigate();
+    const { eliminarPacientes } = useOperacionesPacientes();
+    const { error, manejadorCarga, pacientes } = usePacientes();
     const { t } = useTranslation();
-    const [cargando, setCargando] = useState(true);
+    const [cargando, setCargando] = useState(false);
     const [modalEliminacion, setModalEliminacion] = useState(false);
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
     const [pacientesSeleccionados, setPacientesSeleccionados] = useState([]);
-    const { eliminarPacientes } = useOperacionesPacientes();
-    const { manejadorCarga, pacientes, error } = usePacientes();
     const campos = useMemo(() => [
         { id: "cedula", label: t("txtCedula"), componente: null, ordenable: true },
         { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
@@ -43,6 +43,7 @@ export default function VerPacientesPage() {
         setModalError((x) => ({ ...x, mostrar: false }));
         setPacientesSeleccionados([]);
         await manejadorCarga();
+        setCargando(false);
     };
 
     /**

@@ -245,10 +245,8 @@ export default function VerDiagnosticoPage() {
     return (
         <>
             <MenuLayout>
-                {mostrarPantallaCarga ? (
-                    <PantallaCarga />
-                ) : (
-                    <>
+                {mostrarPantallaCarga ? <PantallaCarga /> :
+                    (<>
                         <TabHeader
                             activarBtnAtras
                             titulo={t("titDiagnostico")}
@@ -364,7 +362,7 @@ export default function VerDiagnosticoPage() {
                                 icono={<CheckCircleOutlineIcon />} />
                         ) : null}
                     </>
-                )}
+                    )}
                 <FormValidacion
                     mostrar={modalValidacion}
                     manejadorBtn={manejadorBtnValidar}

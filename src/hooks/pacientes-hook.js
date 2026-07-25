@@ -1,9 +1,9 @@
-import { Paciente } from "../../models";
+import { Paciente } from "../models";
 import { useAuth } from "./auth-hook";
 import { useCallback, useMemo, useState } from "react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { validarId } from "../../utils/Validadores";
+import { validarId } from "../utils/Validadores";
 
 
 /**
@@ -136,7 +136,7 @@ export function usePaciente(id) {
  */
 export function usePacientes() {
     const { cancelarPeticiones, cargarDatos, helperListo } = useOperacionesPacientes();
-    const [pacientes, setPacientes] = useState([]);
+    const [pacientes, setPacientes] = useState(null);
     const [error, setError] = useState(null);
     const mapeoPacientes = useMemo(() => {
         const mapeo = {};

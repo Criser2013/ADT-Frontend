@@ -25,7 +25,7 @@ export default function VerPacientePage() {
     const navigate = useNavigate();
     const { id } = useParams();
     const { t } = useTranslation();
-    const [transaccionIniciada, setTransaccionIniciada] = useState(true);
+    const [transaccionIniciada, setTransaccionIniciada] = useState(false);
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
     const [modalEliminacion, setModalEliminacion] = useState(false);
     const { eliminarPacientes } = useOperacionesPacientes();
@@ -83,7 +83,7 @@ export default function VerPacientePage() {
                         marginTop="3vh">
                         <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                             <Tooltip title={t("txtAyudaEliminarPaciente")}>
-                                <IconButton color="error" onClick={() => setModalEliminacion(true)}>
+                                <IconButton color="inherit" onClick={() => setModalEliminacion(true)}>
                                     <DeleteIcon />
                                 </IconButton>
                             </Tooltip>
