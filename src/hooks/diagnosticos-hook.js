@@ -2,7 +2,8 @@ import useIdioma from "./idioma-hook";
 import { DiagnosticosHelper } from "../helpers";
 import { useAppConfig } from "./appConfig-hook";
 import { useAuth } from "./auth-hook";
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePaciente } from "./pacientes-hook";
 
 
 /**
@@ -17,24 +18,16 @@ import { useCallback, useMemo, useState } from 'react';
  * - "verDiagnosticos" (Function): Función para ver los diagnósticos, filtrando por usuario y fecha.
  * - "mapeoDiagnosticos" (Object): Objeto que mapea los IDs de los diagnósticos a sus instancias correspondientes.
  */
-export default function useDiagnosticos() {
+export default function useOperacionesDiagnosticos() {
     const { autenticado, usuario } = useAuth();
     const { firestore } = useAppConfig();
     const { idioma } = useIdioma();
-    const [diagnosticos, setDiagnosticos] = useState([]);
     const helper = useMemo(() => {
         if (autenticado) {
             return new DiagnosticosHelper(usuario.tokenFirebase, firestore, idioma);
         }
         return null;
     }, [firestore, usuario, autenticado, idioma]);
-    const mapeoDiagnosticos = useMemo(() => {
-        const map = {};
-        for (const d of diagnosticos) {
-            map[d.id] = d;
-        }
-        return map;
-    }, [diagnosticos]);
     const helperListo = useMemo(() => helper !== null, [helper]);
 
     /**
@@ -42,16 +35,13 @@ export default function useDiagnosticos() {
      * se puede pasar la ID como String.
      * @returns {Promise<Object>} Objeto con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa.
+     * - "data" (Array<Diagnostico>|null) - Lista de diagnósticos actualizados, sino retorna null.
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
      */
     const eliminarDiagnosticos = useCallback(async (ids) => {
         const idsArray = Array.isArray(ids) ? ids : [ids];
-        const { success, data, error } = await helper.eliminarDiagnosticos(idsArray);
-        if (success) {
-            setDiagnosticos(data);
-        }
-        return { success, error };
-    }, [helper, setDiagnosticos]);
+        return await helper.eliminarDiagnosticos(idsArray);
+    }, [helper]);
 
     /**
      * @param {Diagnostico} diagnostico Objeto Diagnostico a generar.
@@ -93,23 +83,83 @@ export default function useDiagnosticos() {
      * @param {String|null} fecha Fecha para filtrar los diagnósticos. Si verTodos es true, este parámetro se ignora.
      * @returns {Promise<Object>} Objeto con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa.
+     * - "data" (Array<Diagnostico>|null) - Lista de diagnósticos, sino retorna null.
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
      */
     const verDiagnosticos = useCallback(async (verTodos, uid = null, fecha = null) => {
-        const { success, data, error } = await helper.cargarDiagnosticos(verTodos, { uid, fecha });
-        if (success) {
-            setDiagnosticos(data);
-        }
-        return { success, error };
-    }, [helper, setDiagnosticos]);
+        return await helper.cargarDiagnosticos(verTodos, { uid, fecha });
+    }, [helper]);
 
     const value = useMemo(() => ({
-        diagnosticos, eliminarDiagnosticos, generarDiagnostico, validarDiagnostico,
-        verDiagnostico, verDiagnosticos, helperListo, mapeoDiagnosticos
+        eliminarDiagnosticos, generarDiagnostico, validarDiagnostico,
+        verDiagnostico, verDiagnosticos, helperListo
     }), [
-        diagnosticos, eliminarDiagnosticos, generarDiagnostico, mapeoDiagnosticos,
+        eliminarDiagnosticos, generarDiagnostico,
         validarDiagnostico, verDiagnostico, verDiagnosticos, helperListo
     ]);
 
     return value;
 };
+
+export function useDiagnostico(id, traerInfoPersona = false) {
+    const { usuario, usuariosListo } = useAuth();
+    const { paciente } = usePaciente();
+    const { verUsuario } = useUsuarios();
+    const { verDiagnostico, helperListo: diagnosticosListo } = useOperacionesDiagnosticos();
+    const [diagnostico, setDiagnostico] = useState(null);
+
+    useEffect(() => {
+        async function cargarPaciente(id, esAnonimo = false) {
+            if (esAnonimo) {
+                dispatch({
+                    tipo: "SET_PERSONA", payload: new Paciente(
+                        "null", null, "anonimo", 2, null, null, null, false, []
+                    )
+                });
+                return;
+            }
+            const { success, data, error } = await verPaciente(id);
+            if (success) {
+                dispatch({ tipo: "SET_PERSONA", payload: data });
+            } else {
+                dispatch({
+                    tipo: "SET_PERSONA", payload: new Paciente(
+                        "null", null, "eliminado", 2, null, null, null, false, []
+                    )
+                });
+                dispatch({ tipo: "MOSTRAR_MODAL_ERROR", payload: error });
+            }
+        }
+        if (!usuario?.rolVisible && diagnostico && pacientesListo) {
+            const uid = diagnostico.paciente;
+            cargarPaciente(uid, !uid);
+        }
+    }, [diagnostico, usuario?.rolVisible, pacientesListo, cargarPaciente]);
+
+    useEffect(() => {
+        async function cargarDiagnostico(id) {
+            const { success, data } = await verDiagnostico(id);
+            if (success) {
+                dispatch({ tipo: "SET_DIAGNOSTICO", payload: data });
+            } else {
+                navigate("/diagnosticos");
+            }
+        };
+
+        if (diagnosticosListo && !diagnostico) {
+            cargarDiagnostico(id);
+        }
+    }, [diagnosticosListo, diagnostico, cargarDiagnostico, id]);
+    
+    return { diagnostico };
+};
+
+/*
+const mapeoDiagnosticos = useMemo(() => {
+        const map = {};
+        for (const d of diagnosticos) {
+            map[d.id] = d;
+        }
+        return map;
+    }, [diagnosticos]);
+ */

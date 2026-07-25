@@ -1,22 +1,21 @@
 import useIdioma from "./idioma-hook";
 import { useAuth } from "./auth-hook";
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Usuario } from "../models";
 import { UsuariosHelper } from "../helpers";
 
 
 /**
  * Hook para realizar operaciones relacionadas con los usuarios.
  * @returns {Object} Objeto con las claves:
- * - "usuarios" (Array<Usuario>): Lista de usuarios.
  * - "verUsuario" (Function): Función para ver los datos de un usuario por su UID.
  * - "verUsuarios" (Function): Función para ver la lista de usuarios.
  * - "editarUsuario" (Function): Función para editar los datos de un usuario.
  * - "eliminarUsuarios" (Function): Función para eliminar usuarios.
  */
-export default function useUsuarios() {
+export function useOperacionesUsuarios() {
     const { autenticado, usuario } = useAuth();
     const { idioma } = useIdioma();
-    const [usuarios, setUsuarios] = useState([]);
     const helper = useMemo(() => {
         if (autenticado) {
             return new UsuariosHelper(usuario.tokenFirebase, idioma);
@@ -46,12 +45,8 @@ export default function useUsuarios() {
      */
     const eliminarUsuarios = useCallback(async (ids) => {
         const idsArray = Array.isArray(ids) ? ids : [ids];
-        const { success, data, error } = await helper.eliminarUsuarios(idsArray);
-        if (success) {
-            setUsuarios(data);
-        }
-        return { success, error };
-    }, [helper, setUsuarios]);
+        return await helper.eliminarUsuarios(idsArray);
+    }, [helper]);
 
     /**
      * @param {String} id UID del usuario a cargar.
@@ -67,19 +62,94 @@ export default function useUsuarios() {
     /**
      * @returns {Promise<Object>} Objeto con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa.
+     * - "data" (Array<Usuario>) - Lista de usuarios si la operación fue exitosa.
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
      */
     const verUsuarios = useCallback(async () => {
-        const { success, data, error } = await helper.cargarUsuarios();
-        if (success) {
-            setUsuarios(data);
-        }
-        return { success, error };
-    }, [helper, setUsuarios]);
+        return await helper.cargarUsuarios();
+    }, [helper]);
 
     const value = useMemo(() => ({
-        usuarios, helperListo, verUsuario, verUsuarios, editarUsuario, eliminarUsuarios
-    }), [usuarios, helperListo, verUsuario, verUsuarios, editarUsuario, eliminarUsuarios]);
+        helperListo, verUsuario, verUsuarios, editarUsuario, eliminarUsuarios
+    }), [helperListo, verUsuario, verUsuarios, editarUsuario, eliminarUsuarios]);
 
     return value;
+};
+
+/**
+ * Hook para obtener los datos de un usuario específico por su UID.
+ * @param {String} id UID del usuario a consultar.
+ * @returns {Object} Objeto con las claves:
+ * - "usuario" (Usuario|null) - Contiene los datos del usuario si la operación fue exitosa, sino null.
+ * - "error" (String|null) - Mensaje de error en caso de que la operación falle, sino null.
+ */
+export function useUsuario(id) {
+    const { helperListo, verUsuario } = useOperacionesUsuarios();
+    const { usuario: usuarioAutenticado } = useAuth();
+    const [error, setError] = useState(null);
+    const [usuario, setUsuario] = useState(null);
+
+    useEffect(() => {
+        async function cargarUsuario(uid) {
+            const { success, data, error } = await verUsuario(uid);
+            if (success) {
+                setUsuario(data);
+            } else {
+                setUsuario(
+                    new Usuario(
+                        "null", null, "", false, false, null, null
+                    )
+                );
+                setError(error);
+            }
+        }
+        if (usuarioAutenticado?.rolVisible && helperListo) {
+            const uid = id.substring(37);
+            cargarUsuario(uid);
+        }
+    }, [verUsuario, helperListo, id, usuarioAutenticado?.rolVisible]);
+
+    return { usuario, error };
+};
+
+/**
+ * Hook para cargar los datos de todos los usuarios de la aplicación.
+ * @returns {Object} Objeto con las claves:
+ * - "usuarios" (Array<Usuario>): Lista de usuarios.
+ * - "mapeoUsuarios" (Object): Objeto que mapea los UID de los usuarios a sus datos.
+ * - "error" (String|null): Mensaje de error en caso de que la operación falle, sino null.
+ * - "manejadorCargaUsuarios" (Function): Función para recargar la lista de usuarios.
+ */
+export function useUsuarios() {
+    const { helperListo, verUsuarios} = useOperacionesUsuarios();
+    const { usuario: usuarioAutenticado } = useAuth();
+    const [error, setError] = useState(null);
+    const [usuarios, setUsuarios] = useState(null);
+    const mapeoUsuarios = useMemo(() => {
+        const res = {};
+        if (usuarios) {
+            usuarios.forEach(usuario => {
+                res[usuario.uid] = usuario;
+            });
+        }
+        return res;
+    }, [usuarios]);
+
+    const manejadorCargaUsuarios = useCallback(async () => {
+        const { success, data, error } = await verUsuarios();
+            if (success) {
+                setUsuarios(data);
+            } else {
+                setUsuarios([]);
+                setError(error);
+            }
+    }, [verUsuarios, setUsuarios, setError]);
+
+    useEffect(() => {
+        if (usuarioAutenticado?.rolVisible && helperListo) {
+            manejadorCargaUsuarios();
+        }
+    }, [verUsuarios, helperListo, usuarioAutenticado?.rolVisible, manejadorCargaUsuarios]);
+
+    return { usuarios, mapeoUsuarios, error, manejadorCargaUsuarios };
 };

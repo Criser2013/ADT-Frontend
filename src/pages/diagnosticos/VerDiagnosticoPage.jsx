@@ -15,7 +15,7 @@ import { FormValidacion } from "../../components/forms";
 import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
 import { ModalDoble, ModalSimple } from "../../components/modals";
 import { useAuth, useDiagnosticos, usePacientes, useUsuarios } from "../../hooks";
-import { useCallback, useEffect, useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { validarId } from "../../utils/Validadores";
@@ -142,58 +142,6 @@ export default function VerDiagnosticoPage() {
         document.title = titulo;
     }, [usuario, persona, diagnostico, t]);
 
-    const cargarDiagnostico = useCallback(async (id) => {
-        const { success, data } = await verDiagnostico(id);
-        if (success) {
-            dispatch({ tipo: "SET_DIAGNOSTICO", payload: data });
-        } else {
-            navigate("/diagnosticos");
-        }
-    }, [navigate, verDiagnostico]);
-
-    /**
-     * @param {String} id  UID del paciente.
-     * @param {Boolean} esAnonimo Indica si el paciente es anónimo o no.
-     */
-    const cargarPaciente = useCallback(async (id, esAnonimo = false) => {
-        if (esAnonimo) {
-            dispatch({
-                tipo: "SET_PERSONA", payload: new Paciente(
-                    "null", null, "anonimo", 2, null, null, null, false, []
-                )
-            });
-            return;
-        }
-        const { success, data, error } = await verPaciente(id);
-        if (success) {
-            dispatch({ tipo: "SET_PERSONA", payload: data });
-        } else {
-            dispatch({
-                tipo: "SET_PERSONA", payload: new Paciente(
-                    "null", null, "eliminado", 2, null, null, null, false, []
-                )
-            });
-            dispatch({ tipo: "MOSTRAR_MODAL_ERROR", payload: error });
-        }
-    }, [verPaciente]);
-
-    /**
-    * @param {String} uid UID del usuario.
-    */
-    const cargarUsuario = useCallback(async (uid) => {
-        const { success, data, error } = await verUsuario(uid);
-        if (success) {
-            dispatch({ tipo: "SET_PERSONA", payload: data });
-        } else {
-            dispatch({
-                tipo: "SET_PERSONA", payload: new Usuario(
-                    "null", null, "", false, false, null, null
-                )
-            });
-            dispatch({ tipo: "MOSTRAR_MODAL_ERROR", payload: error });
-        }
-    }, [verUsuario]);
-
     async function manejadorBtnBorrar() {
         dispatch({ tipo: "CERRAR_MODAL_ELIMINACION" });
         dispatch({ tipo: "INICIAR_PROCESADO" });
@@ -220,27 +168,6 @@ export default function VerDiagnosticoPage() {
         }
         dispatch({ tipo: "FINALIZAR_PROCESADO" });
     };
-
-    useEffect(() => {
-        if (usuario?.rolVisible && usuariosListo) {
-            const uid = id.substring(37);
-            cargarUsuario(uid);
-        }
-    }, [usuario?.rolVisible, usuariosListo, cargarUsuario, id]);
-
-    useEffect(() => {
-        if (!usuario?.rolVisible && diagnostico && pacientesListo) {
-            const uid = diagnostico.paciente;
-            cargarPaciente(uid, !uid);
-        }
-    }, [diagnostico, usuario?.rolVisible, pacientesListo, cargarPaciente]);
-
-    useEffect(() => {
-
-        if (diagnosticosListo && !diagnostico) {
-            cargarDiagnostico(id);
-        }
-    }, [diagnosticosListo, diagnostico, cargarDiagnostico, id]);
 
     return (
         <>
