@@ -1,4 +1,4 @@
-import { Paciente } from "../../models"; 
+import { Paciente } from "../../models";
 import { useAuth } from "./auth-hook";
 import { useCallback, useMemo, useState } from "react";
 import { useEffect } from "react";
@@ -9,8 +9,6 @@ import { validarId } from "../../utils/Validadores";
 /**
  * Hook para realizar operaciones relacionadas con los pacientes.
  * @returns {Object} Objeto con las claves:
- * - "pacientes" (Array<Paciente>): Lista de pacientes.
- * - "mapeoPacientes" (Object): Objeto que mapea los IDs de pacientes a sus datos.
  * - "cargarDatos" (Function): Función para cargar los datos de los pacientes.
  * - "eliminarPacientes" (Function): Función para eliminar pacientes por sus IDs.
  * - "verPaciente" (Function): Función para ver los datos de un paciente por su ID.
@@ -19,17 +17,9 @@ import { validarId } from "../../utils/Validadores";
  * - "anadirPaciente" (Function): Función para añadir un nuevo paciente.
  * - "editarPaciente" (Function): Función para editar los datos de un paciente existente.
  */
-export function usePacientes() {
+export function useOperacionesPacientes() {
     const { datosHelper } = useAuth();
-    const [datos, setDatos] = useState([]);
     const helperListo = useMemo(() => datosHelper !== null, [datosHelper]);
-    const mapeoPacientes = useMemo(() => {
-        const mapeo = {};
-        datos.forEach(paciente => {
-            mapeo[paciente.id] = paciente;
-        });
-        return mapeo;
-    }, [datos]);
 
     /**
      * @param {Paciente} paciente Objeto Paciente a añadir.
@@ -49,17 +39,12 @@ export function usePacientes() {
      * @returns {Promise<Object>} Objeto con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa.
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
+     * - "data" (Array<Paciente>) - Lista de pacientes en caso de éxito.
      * - "cancelled" (Boolean) - Indica si la operación fue cancelada por el usuario.
      */
     const cargarDatos = useCallback(async () => {
-        const { success, error, data, cancelled }  = await datosHelper.descargarArchivoPacientes();
-        if (!success) {
-            setDatos([]);
-        } else {
-            setDatos(data);
-        }
-        return { success, error, cancelled };
-    }, [datosHelper, setDatos]);
+        return await datosHelper.descargarArchivoPacientes();
+    }, [datosHelper]);
 
     /**
      * @param {String} id ID del paciente a editar.
@@ -80,7 +65,7 @@ export function usePacientes() {
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
      */
     const eliminarPacientes = useCallback(async (idsPacientes) => {
-        return await datosHelper.operacionSobreArchivo("eliminar", 
+        return await datosHelper.operacionSobreArchivo("eliminar",
             { idPacientes: idsPacientes, varios: Array.isArray(idsPacientes) }
         );
     }, [datosHelper]);
@@ -97,25 +82,21 @@ export function usePacientes() {
     }, [datosHelper]);
 
     const value = useMemo(() => ({
-        pacientes: datos, cargarDatos, eliminarPacientes, verPaciente, 
+        cargarDatos, eliminarPacientes, verPaciente,
         cancelarPeticiones, helperListo, anadirPaciente, editarPaciente,
-        mapeoPacientes
-    }), [datos, cargarDatos, eliminarPacientes, verPaciente, mapeoPacientes,
-        cancelarPeticiones, helperListo, anadirPaciente, editarPaciente]);
+    }), [cargarDatos, eliminarPacientes, verPaciente, cancelarPeticiones,
+        helperListo, anadirPaciente, editarPaciente]);
     return value;
 };
 
 /**
  * Hook para obtener los datos de un paciente específico.
  * @param {String} id UID del paciente a obtener.
- * @returns {Object} Objeto con las claves:
- * - "paciente" (Paciente|null): Objeto Paciente correspondiente al ID proporcionado o null si no se encuentra.
- * - "cargando" (Boolean): Indica si los datos del paciente están siendo cargados.
+ * @returns {Paciente|null} Objeto Paciente correspondiente al ID proporcionado o null si no se encuentra.
  */
 export function usePaciente(id) {
     const navigate = useNavigate();
-    const { verPaciente, helperListo, cancelarPeticiones } = usePacientes();
-    const [cargando, setCargando] = useState(true);
+    const { verPaciente, helperListo, cancelarPeticiones } = useOperacionesPacientes();
     const [paciente, setPaciente] = useState(null);
 
     useEffect(() => {
@@ -130,7 +111,6 @@ export function usePaciente(id) {
             if (!activo) return;
             if (success) {
                 setPaciente(data);
-                setCargando(false);
             } else if (!cancelled) {
                 navigate("/pacientes");
             }
@@ -142,5 +122,54 @@ export function usePaciente(id) {
         };
     }, [id, helperListo, cancelarPeticiones, navigate, verPaciente]);
 
-    return { paciente, cargando };
+    return paciente;
+};
+
+/**
+ * Hook para obtener la lista de pacientes y manejar su estado.
+ * @returns {Object} Objeto con las claves:
+ * - "pacientes" (Array<Paciente>) - Lista de pacientes obtenida del helper.
+ * - "mapeoPacientes" (Object) - Objeto con los pacientes mapeados por su ID.
+ * - "error" (String|null) - Mensaje de error en caso de que la operación falle o null si no hay error.
+ * - "manejadorCarga" (Function) - Función para recargar los datos de los pacientes.
+ * - "cancelarPeticiones" (Function) - Función para cancelar las peticiones en curso.
+ */
+export function usePacientes() {
+    const { cancelarPeticiones, cargarDatos, helperListo } = useOperacionesPacientes();
+    const [pacientes, setPacientes] = useState([]);
+    const [error, setError] = useState(null);
+    const mapeoPacientes = useMemo(() => {
+        const mapeo = {};
+        if (pacientes) {
+            pacientes.forEach(paciente => {
+                mapeo[paciente.id] = paciente;
+            });
+        }
+        return mapeo;
+    }, [pacientes]);
+
+    const manejadorCarga = useCallback(async () => {
+        const { success, error, data, cancelled } = await cargarDatos();
+
+        if (success) {
+            setPacientes(data);
+        } else if (!cancelled) {
+            setError(error);
+            setPacientes([]);
+        }
+    }, [cargarDatos, setError, setPacientes]);
+
+    useEffect(() => {
+        if (helperListo) {
+            manejadorCarga();
+            return () => {
+                cancelarPeticiones();
+            };
+        }
+    }, [helperListo, manejadorCarga, cancelarPeticiones]);
+
+    return {
+        pacientes, mapeoPacientes, error,
+        manejadorCarga, cancelarPeticiones
+     };
 };

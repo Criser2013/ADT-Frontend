@@ -15,7 +15,7 @@ import { Paciente } from "../../models";
 import { PantallaCarga, TabHeader } from "../layout";
 import { SelectChip } from "../selects";
 import { useCallback, useEffect, useState } from "react";
-import { usePacientes } from "../../hooks";
+import { useOperacionesPacientes } from "../../hooks";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { v6 } from "uuid";
@@ -36,7 +36,7 @@ import { validarNombre, validarNumero, validarTelefono } from "../../utils/Valid
  */
 export default function FormPaciente({ url, titulo, pestanas, tooltip, paciente = null, esModificar = false }) {
     const navigate = useNavigate();
-    const { anadirPaciente, editarPaciente } = usePacientes();
+    const { anadirPaciente, editarPaciente } = useOperacionesPacientes();
     const { t } = useTranslation();
     const { setValues, clearErrors, control, handleSubmit, watch, formState: { errors } } = useForm({
         defaultValues: {
@@ -75,10 +75,6 @@ export default function FormPaciente({ url, titulo, pestanas, tooltip, paciente 
             clearErrors();
         }
     }, [setValues, clearErrors]);
-
-    function cerrarModal() {
-        setModal({ ...modal, mostrar: false });
-    };
 
     /**
      * @param {Object} datos Objeto con los datos del paciente a guardar.
@@ -296,7 +292,7 @@ export default function FormPaciente({ url, titulo, pestanas, tooltip, paciente 
                 titulo={t("tituloErr")}
                 texto={modal.texto}
                 txtBtn={t("txtBtnCerrar")}
-                manejadorBtn={cerrarModal}
+                manejadorBtn={() => setModal((x) => ({ ...x, mostrar: false }))}
                 iconoBtn={<CloseIcon />} />
         </>
     );

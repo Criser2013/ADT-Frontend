@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 export default function EditarPacientePage() {
     const { id } = useParams();
     const { t } = useTranslation();
-    const { paciente } = usePaciente(id);
+    const paciente = usePaciente(id);
     const listadoPestanas = [
         { texto: t("titListaPacientes"), url: "/pacientes" },
         { texto: `${t("txtPaciente")} — ${paciente?.nombre}`, url: `/pacientes/${id}` },

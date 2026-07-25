@@ -8,8 +8,8 @@ import { Datatable } from "../../components/datatable";
 import { MenuLayout, PantallaCarga } from "../../components/layout";
 import { ModalDoble, ModalSimple } from "../../components/modals";
 import { TabHeader } from "../../components/layout";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { usePacientes } from "../../hooks";
+import { useEffect, useMemo, useState } from "react";
+import { useOperacionesPacientes, usePacientes } from "../../hooks";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
@@ -22,12 +22,11 @@ export default function VerPacientesPage() {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const [cargando, setCargando] = useState(true);
-    const [modalEliminacion, setModalEliminacion] = useState({
-        mostrar: false, titulo: "", texto: ""
-    });
+    const [modalEliminacion, setModalEliminacion] = useState(false);
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
     const [pacientesSeleccionados, setPacientesSeleccionados] = useState([]);
-    const { cargarDatos, pacientes, eliminarPacientes, helperListo, cancelarPeticiones } = usePacientes();
+    const { eliminarPacientes } = useOperacionesPacientes();
+    const { manejadorCarga, pacientes, error } = usePacientes();
     const campos = useMemo(() => [
         { id: "cedula", label: t("txtCedula"), componente: null, ordenable: true },
         { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
@@ -36,27 +35,14 @@ export default function VerPacientesPage() {
         { id: "telefono", label: t("txtTelefono"), componente: null, ordenable: true },
     ], [t]);
     const listadoPestanas = [{ texto: t("titListaPacientes"), url: "/pacientes" }];
-
-    const manejadorCarga = useCallback(async () => {
-        const { success, error, cancelled } = await cargarDatos();
-        if (!success && !cancelled) {
-            setModalError({ mostrar: true, texto: t(error) });
-        }
-        if (!cancelled) {
-            setCargando(false);
-        }
-    }, [cargarDatos, setModalError, setCargando, t]);
+    const mostrarPantallaCarga = cargando || !pacientes;
 
     async function manejadorBtnRecargar() {
         setCargando(true);
-        setModalEliminacion({...modalEliminacion, mostrar: false });
-        setModalError({...modalError, mostrar: false });
+        setModalEliminacion(false);
+        setModalError((x) => ({ ...x, mostrar: false }));
         setPacientesSeleccionados([]);
         await manejadorCarga();
-    };
-
-    function manejadorBtnAnadir() {
-        navigate("/pacientes/añadir");
     };
 
     /**
@@ -64,21 +50,11 @@ export default function VerPacientesPage() {
      */
     function manejadorBtnEliminar(pacientes) {
         setPacientesSeleccionados(pacientes.map((x) => x.id));
-        setModalEliminacion({
-            mostrar: true, titulo: t("titAlerta"),
-            texto: t("txtEliminarPacientes")
-        });
-    };
-
-    /**
-     * @param {Paciente} paciente Objeto del paciente
-     */
-    function manejadorClicCelda(paciente) {
-        navigate(`/pacientes/${paciente.id}`);
+        setModalEliminacion(true);
     };
 
     async function manejadorBtnModalEliminacion() {
-        cerrarModalEliminacion();
+        setModalEliminacion(false);
         setCargando(true);
         await borrarPacientes(pacientesSeleccionados);
     };
@@ -89,7 +65,7 @@ export default function VerPacientesPage() {
     async function borrarPacientes(idsPacientes) {
         const { success, error } = await eliminarPacientes(idsPacientes);
         if (!success) {
-            setModalError({ mostrar: true, texto: t(error) });
+            setModalError({ mostrar: true, texto: error });
             setCargando(false);
         } else {
             setPacientesSeleccionados([]);
@@ -97,33 +73,20 @@ export default function VerPacientesPage() {
         }
     };
 
-    function cerrarModalEliminacion() {
-        setModalEliminacion({ ...modalEliminacion, mostrar: false });
-    };
-
-    function cerrarModalError() {
-        setModalError({ ...modalError, mostrar: false });
-    };
-
     useEffect(() => {
         document.title = t("titListaPacientes");
     }, [t]);
-
+    
     useEffect(() => {
-        if (helperListo) {
-            manejadorCarga();
-            return () => {
-                cancelarPeticiones();
-            }; 
+        if (error) {
+            setModalError({ mostrar: true, texto: error });
         }
-    }, [helperListo, manejadorCarga, cancelarPeticiones]);
+    }, [error, setModalError]);
 
     return (
         <MenuLayout>
-            {cargando ? (
-                <PantallaCarga />
-            ) : (
-                <>
+            {mostrarPantallaCarga ? <PantallaCarga /> :
+                (<>
                     <TabHeader
                         titulo={t("titListaPacientes")}
                         pestanas={listadoPestanas}
@@ -143,7 +106,7 @@ export default function VerPacientesPage() {
                                 <Button
                                     variant="contained"
                                     color="primary"
-                                    onClick={manejadorBtnAnadir}
+                                    onClick={() => navigate("/pacientes/añadir")}
                                     sx={{ textTransform: "none" }}
                                     startIcon={<AddIcon />}>
                                     <b>{t("txtBtnAnadirPaciente")}</b>
@@ -151,18 +114,18 @@ export default function VerPacientesPage() {
                             </Tooltip>
                         </Grid>
                         <Datatable
+                            activarBusqueda
+                            activarSeleccion
                             datos={pacientes}
                             campos={campos}
                             campoId="id"
                             lblBusqueda={t("txtBusqPaciente")}
                             lblSeleccion={t("txtSufijoPacientesSelecs")}
                             tooltipBtnAccion={t("txtAyudaBtnEliminarPacientes")}
-                            activarBusqueda={true}
-                            activarSeleccion={true}
                             camposBusqueda={["nombre", "cedula", "id"]}
                             campoOrdenInicial="cedula"
                             direccionOrdenInicial="desc"
-                            callbackClicCelda={manejadorClicCelda}
+                            callbackClicCelda={(x) => navigate(`/pacientes/${x.id}`)}
                             callbackBtnAccion={manejadorBtnEliminar}
                             icono={<DeleteIcon />} />
                     </Grid>
@@ -170,18 +133,18 @@ export default function VerPacientesPage() {
             <ModalSimple
                 mostrar={modalError.mostrar}
                 titulo={t("tituloErr")}
-                texto={modalError.texto}
+                texto={t(modalError.texto)}
                 txtBtn={t("txtBtnCerrar")}
-                manejadorBtn={cerrarModalError}
+                manejadorBtn={() => setModalError((x) => ({ ...x, mostrar: false }))}
                 iconoBtn={<CloseIcon />} />
             <ModalDoble
-                mostrar={modalEliminacion.mostrar}
-                titulo={modalEliminacion.titulo}
-                texto={modalEliminacion.texto}
+                mostrar={modalEliminacion}
+                titulo={t("titAlerta")}
+                texto={t("txtEliminarPacientes")}
                 txtBtnPrincipal={t("txtBtnEliminar")}
                 txtBtnSecundario={t("txtBtnCancelar")}
                 manejadorBtnPrincipal={manejadorBtnModalEliminacion}
-                manejadorBtnSecundario={cerrarModalEliminacion}
+                manejadorBtnSecundario={() => setModalEliminacion(false)}
                 iconoBtnPrincipal={<DeleteIcon />}
                 iconoBtnSecundario={<CloseIcon />} />
         </MenuLayout>

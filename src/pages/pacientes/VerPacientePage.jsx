@@ -11,10 +11,11 @@ import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
 import { ModalSimple, ModalDoble } from "../../components/modals";
 import { BtnFlotante, PopOver } from "../../components/tabs";
 import { useEffect, useState } from "react";
-import { usePaciente, usePacientes } from "../../hooks";
+import { usePaciente, useOperacionesPacientes } from "../../hooks";
 import { useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Paciente } from "../../models"; 
+import { Paciente } from "../../models";
+
 
 /**
  * Página para ver los datos de un paciente.
@@ -27,8 +28,8 @@ export default function VerPacientePage() {
     const [transaccionIniciada, setTransaccionIniciada] = useState(true);
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
     const [modalEliminacion, setModalEliminacion] = useState(false);
-    const { eliminarPacientes } = usePacientes();
-    const { paciente, cargando } = usePaciente(id);
+    const { eliminarPacientes } = useOperacionesPacientes();
+    const paciente = usePaciente(id);
     const campos = [
         { id: "nombre", titulo: t("txtNombre"), valor: paciente?.nombre },
         { id: "cedula", titulo: t("txtCedula"), valor: paciente?.cedula },
@@ -44,7 +45,7 @@ export default function VerPacientePage() {
         { texto: t("titListaPacientes"), url: "/pacientes" },
         { texto: `${t("txtPaciente")} — ${paciente?.nombre}`, url: `/pacientes/${id}` }
     ];
-    const mostrarPantallaCarga = transaccionIniciada || cargando;
+    const mostrarPantallaCarga = transaccionIniciada || !paciente;
 
     async function eliminarPaciente() {
         setTransaccionIniciada(true);
@@ -68,10 +69,8 @@ export default function VerPacientePage() {
 
     return (
         <MenuLayout>
-            {mostrarPantallaCarga ? (
-                <PantallaCarga />
-            ) : (
-                <>
+            {mostrarPantallaCarga ? <PantallaCarga /> :
+                (<>
                     <TabHeader
                         url="/pacientes"
                         titulo={t("titDatosPaciente")}
@@ -127,8 +126,7 @@ export default function VerPacientePage() {
                         txtAyudaBtn={t("txtAyudaBtnEditarPaciente")}
                         manejadorBtn={() => navigate(`/pacientes/${id}/editar`)}
                         icono={<EditIcon />} />
-                </>
-            )}
+                </>)}
             <ModalDoble
                 mostrar={modalEliminacion}
                 titulo={t("titAlerta")}
