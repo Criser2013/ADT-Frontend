@@ -1,9 +1,12 @@
 import useIdioma from "./idioma-hook";
+
 import { DiagnosticosHelper } from "../helpers";
 import { useAppConfig } from "./appConfig-hook";
 import { useAuth } from "./auth-hook";
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { usePaciente } from "./pacientes-hook";
+import { useNavigate } from "react-router";
+import { usePaciente, usePacientes } from "./pacientes-hook";
+import { useUsuario, useUsuarios } from "./usuarios-hook";
 
 
 /**
@@ -101,65 +104,138 @@ export default function useOperacionesDiagnosticos() {
     return value;
 };
 
+/**
+ * @param {String} id ID del diagnóstico a consultar.
+ * @param {Boolean} traerInfoPersona Indica si se debe traer la información del paciente y usuario relacionados al diagnóstico.
+ * @returns {Object} Objeto con las claves:
+ * - "diagnostico" (Diagnostico|null) - Instancia de Diagnostico correspondiente al ID proporcionado o null si no se encuentra.
+ * - "paciente" (Paciente|null) - Instancia de Paciente correspondiente al diagnóstico o null si no se encuentra.
+ * - "usuario" (Usuario|null) - Instancia de Usuario correspondiente al diagnóstico o null si no se encuentra.
+ * - "error" (String|null) - Mensaje de error en caso de que la operación falle, sino null.
+ */
 export function useDiagnostico(id, traerInfoPersona = false) {
-    const { usuario, usuariosListo } = useAuth();
-    const { paciente } = usePaciente();
-    const { verUsuario } = useUsuarios();
+    const navigate = useNavigate();
+    const { establecerPaciente, manejadorCargaPaciente, paciente } = usePaciente(id, false);
+    const { manejadorCargaUsuario, usuario } = useUsuario(id, false);
+    const { usuario: usuarioAutenticado, usuariosListo } = useAuth();
     const { verDiagnostico, helperListo: diagnosticosListo } = useOperacionesDiagnosticos();
     const [diagnostico, setDiagnostico] = useState(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        async function cargarPaciente(id, esAnonimo = false) {
+        async function cargarPaciente(esAnonimo) {
             if (esAnonimo) {
-                dispatch({
-                    tipo: "SET_PERSONA", payload: new Paciente(
-                        "null", null, "anonimo", 2, null, null, null, false, []
-                    )
-                });
+                establecerPaciente(esAnonimo);
                 return;
             }
-            const { success, data, error } = await verPaciente(id);
-            if (success) {
-                dispatch({ tipo: "SET_PERSONA", payload: data });
-            } else {
-                dispatch({
-                    tipo: "SET_PERSONA", payload: new Paciente(
-                        "null", null, "eliminado", 2, null, null, null, false, []
-                    )
-                });
-                dispatch({ tipo: "MOSTRAR_MODAL_ERROR", payload: error });
+
+            const { success, error } = await manejadorCargaPaciente();
+            if (!success) {
+                establecerPaciente(false);
+                setError(error);
             }
         }
-        if (!usuario?.rolVisible && diagnostico && pacientesListo) {
-            const uid = diagnostico.paciente;
-            cargarPaciente(uid, !uid);
+
+        if (diagnosticosListo && diagnostico && !usuario?.rolVisible && traerInfoPersona) {
+            const esAnonimo = !diagnostico.paciente;
+            cargarPaciente(esAnonimo);
         }
-    }, [diagnostico, usuario?.rolVisible, pacientesListo, cargarPaciente]);
+    }, [
+        diagnostico, usuario?.rolVisible, establecerPaciente, 
+        manejadorCargaPaciente, traerInfoPersona, diagnosticosListo
+    ]);
 
     useEffect(() => {
-        async function cargarDiagnostico(id) {
-            const { success, data } = await verDiagnostico(id);
-            if (success) {
-                dispatch({ tipo: "SET_DIAGNOSTICO", payload: data });
-            } else {
-                navigate("/diagnosticos");
+        async function cargarUsuario() {
+            const { success, error } = await manejadorCargaUsuario();
+
+            if (!success) {
+                setError(error);
             }
         };
 
+        if (usuariosListo && usuarioAutenticado?.rolVisible && traerInfoPersona) {
+            cargarUsuario();
+        }
+    }, [usuarioAutenticado?.rolVisible, traerInfoPersona, manejadorCargaUsuario, usuariosListo]);
+
+    useEffect(() => {
+        async function cargarDiagnostico(id) {
+            const { success, data, error } = await verDiagnostico(id);
+            if (success) {
+                setDiagnostico(data);
+                setError(null);
+            } else {
+                setError(error);
+            }
+        };
         if (diagnosticosListo && !diagnostico) {
             cargarDiagnostico(id);
         }
-    }, [diagnosticosListo, diagnostico, cargarDiagnostico, id]);
+    }, [diagnosticosListo, diagnostico, navigate, id, verDiagnostico]);
     
-    return { diagnostico };
+    return { diagnostico, paciente, usuario, error };
 };
 
-/*
-const mapeoDiagnosticos = useMemo(() => {
-        const map = {};
-        for (const d of diagnosticos) {
-            map[d.id] = d;
+export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPersona = false) {
+    const { manejadorCargaPacientes, pacientes } = usePacientes(false);
+    const { manejadorCargaUsuarios, usuarios } = useUsuarios(false);
+    const { usuario, usuariosListo } = useAuth();
+    const { verDiagnosticos, helperListo: diagnosticosListo } = useOperacionesDiagnosticos();
+    const [diagnosticos, setDiagnosticos] = useState(null);
+    const [error, setError] = useState(null);
+    const mapeoDiagnosticos = useMemo(() => {
+        const mapeo = {};
+        if (diagnosticos) {
+            for (const d of diagnosticos) {
+                mapeo[d.id] = d;
+            }
         }
-        return map;
+        return mapeo;
     }, [diagnosticos]);
- */
+
+    useEffect(() => {
+        async function cargarPacientes() {
+            const { success, error } = await manejadorCargaPacientes();
+            if (!success) {
+                setError(error);
+            }
+        };
+
+        if (diagnosticosListo && !usuario?.rolVisible && traerInfoPersona) {
+            cargarPacientes();
+        }
+    }, [usuario?.rolVisible, manejadorCargaPacientes, traerInfoPersona, diagnosticosListo]);
+
+    useEffect(() => {
+        async function cargarUsuarios() {
+            const { success, error } = await manejadorCargaUsuarios();
+
+            if (!success) {
+                setError(error);
+            }
+        };
+
+        if (usuariosListo && usuario?.rolVisible && traerInfoPersona) {
+            cargarUsuarios();
+        }
+    }, [usuario?.rolVisible, traerInfoPersona, manejadorCargaUsuarios, usuariosListo]);
+
+    useEffect(() => {
+        async function cargarDiagnosticos(verTodos, uid, fecha) {
+            const { success, data, error } = await verDiagnosticos(verTodos, uid, fecha);
+            if (success) {
+                setDiagnosticos(data);
+                setError(null);
+            } else {
+                setDiagnosticos([]);
+                setError(error);
+            }
+        };
+        if (diagnosticosListo && !diagnosticos) {
+            cargarDiagnosticos(verTodos, uid, fecha);
+        }
+    }, [diagnosticosListo, verDiagnosticos, verTodos, uid, fecha, diagnosticos]);
+    
+    return { diagnosticos, pacientes, usuarios, error, mapeoDiagnosticos };
+};

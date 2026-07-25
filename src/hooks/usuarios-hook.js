@@ -79,48 +79,52 @@ export function useOperacionesUsuarios() {
 /**
  * Hook para obtener los datos de un usuario específico por su UID.
  * @param {String} id UID del usuario a consultar.
+ * @param {Boolean} cargaAutomatica Indicador para activar la carga automática del usuario al montar el componente.
  * @returns {Object} Objeto con las claves:
  * - "usuario" (Usuario|null) - Contiene los datos del usuario si la operación fue exitosa, sino null.
  * - "error" (String|null) - Mensaje de error en caso de que la operación falle, sino null.
  */
-export function useUsuario(id) {
+export function useUsuario(id, cargaAutomatica = true) {
     const { helperListo, verUsuario } = useOperacionesUsuarios();
     const { usuario: usuarioAutenticado } = useAuth();
     const [error, setError] = useState(null);
     const [usuario, setUsuario] = useState(null);
 
-    useEffect(() => {
-        async function cargarUsuario(uid) {
-            const { success, data, error } = await verUsuario(uid);
-            if (success) {
-                setUsuario(data);
-            } else {
-                setUsuario(
-                    new Usuario(
-                        "null", null, "", false, false, null, null
-                    )
-                );
-                setError(error);
-            }
+    const manejadorCargaUsuario = useCallback(async () => {
+        const { success, data, error } = await verUsuario(id);
+        if (success) {
+            setUsuario(data);
+            setError(null);
+        } else {
+            setUsuario(
+                new Usuario(
+                    "null", null, "", false, false, null, null
+                )
+            );
+            setError(error);
         }
-        if (usuarioAutenticado?.rolVisible && helperListo) {
-            const uid = id.substring(37);
-            cargarUsuario(uid);
-        }
-    }, [verUsuario, helperListo, id, usuarioAutenticado?.rolVisible]);
+        return { success, error };
+    }, [verUsuario, setUsuario, setError, id]);
 
-    return { usuario, error };
+    useEffect(() => {
+        if (cargaAutomatica && usuarioAutenticado?.rolVisible && helperListo) {
+            manejadorCargaUsuario();
+        }
+    }, [cargaAutomatica, verUsuario, helperListo, usuarioAutenticado?.rolVisible, manejadorCargaUsuario]);
+
+    return { usuario, error, manejadorCargaUsuario };
 };
 
 /**
  * Hook para cargar los datos de todos los usuarios de la aplicación.
+ * @param {Boolean} cargaAutomatica Indicador para activar la carga automática de los usuarios al montar el componente.
  * @returns {Object} Objeto con las claves:
  * - "usuarios" (Array<Usuario>): Lista de usuarios.
  * - "mapeoUsuarios" (Object): Objeto que mapea los UID de los usuarios a sus datos.
  * - "error" (String|null): Mensaje de error en caso de que la operación falle, sino null.
  * - "manejadorCargaUsuarios" (Function): Función para recargar la lista de usuarios.
  */
-export function useUsuarios() {
+export function useUsuarios(cargaAutomatica = true) {
     const { helperListo, verUsuarios} = useOperacionesUsuarios();
     const { usuario: usuarioAutenticado } = useAuth();
     const [error, setError] = useState(null);
@@ -146,10 +150,10 @@ export function useUsuarios() {
     }, [verUsuarios, setUsuarios, setError]);
 
     useEffect(() => {
-        if (usuarioAutenticado?.rolVisible && helperListo) {
+        if (cargaAutomatica && usuarioAutenticado?.rolVisible && helperListo) {
             manejadorCargaUsuarios();
         }
-    }, [verUsuarios, helperListo, usuarioAutenticado?.rolVisible, manejadorCargaUsuarios]);
+    }, [cargaAutomatica, verUsuarios, helperListo, usuarioAutenticado?.rolVisible, manejadorCargaUsuarios]);
 
     return { usuarios, mapeoUsuarios, error, manejadorCargaUsuarios };
 };

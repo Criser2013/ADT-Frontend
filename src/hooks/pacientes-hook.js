@@ -92,49 +92,58 @@ export function useOperacionesPacientes() {
 /**
  * Hook para obtener los datos de un paciente específico.
  * @param {String} id UID del paciente a obtener.
+ * @param {Boolean} cargaAutomatica Indica si se debe cargar automáticamente el paciente al montar el componente.
  * @returns {Paciente|null} Objeto Paciente correspondiente al ID proporcionado o null si no se encuentra.
  */
-export function usePaciente(id) {
+export function usePaciente(id, cargaAutomatica = true) {
     const navigate = useNavigate();
     const { verPaciente, helperListo, cancelarPeticiones } = useOperacionesPacientes();
+    const [error, setError] = useState(null);
     const [paciente, setPaciente] = useState(null);
 
+    const manejadorCargaPaciente = useCallback(async () => {
+        const { success, data, error, cancelled } = await verPaciente(id);
+        if (success) {
+            setPaciente(data);
+            setError(null);
+        } else if (!cancelled) {
+            setError(error);
+            setPaciente(null);
+        }
+
+        return { success, error };
+    }, [id, verPaciente, setError, setPaciente]);
+
+    const establecerPaciente = useCallback((esAnonimo) => {
+        setPaciente(
+            new Paciente(
+                "null", null, esAnonimo ? "anonimo" : "eliminado", 2, null, null, null, false, []
+            )
+        );
+    }, [setPaciente]);
+
     useEffect(() => {
-        if (!id || !validarId(id)) {
-            navigate("/pacientes");
-            return;
+        if (validarId(id) && helperListo && cargaAutomatica) {
+            manejadorCargaPaciente();
         }
-        if (!helperListo) return;
-        let activo = true;
-        async function cargar() {
-            const { success, data, cancelled } = await verPaciente(id);
-            if (!activo) return;
-            if (success) {
-                setPaciente(data);
-            } else if (!cancelled) {
-                navigate("/pacientes");
-            }
-        }
-        cargar();
         return () => {
-            activo = false;
             cancelarPeticiones();
         };
-    }, [id, helperListo, cancelarPeticiones, navigate, verPaciente]);
+    }, [id, cargaAutomatica, verPaciente, helperListo, cancelarPeticiones, manejadorCargaPaciente, navigate]);
 
-    return paciente;
+    return { error, establecerPaciente, manejadorCargaPaciente, paciente };
 };
 
 /**
  * Hook para obtener la lista de pacientes y manejar su estado.
+ * @param {Boolean} cargaAutomatica Indica si se deben cargar automáticamente los pacientes al montar el componente.
  * @returns {Object} Objeto con las claves:
  * - "pacientes" (Array<Paciente>) - Lista de pacientes obtenida del helper.
  * - "mapeoPacientes" (Object) - Objeto con los pacientes mapeados por su ID.
  * - "error" (String|null) - Mensaje de error en caso de que la operación falle o null si no hay error.
- * - "manejadorCarga" (Function) - Función para recargar los datos de los pacientes.
- * - "cancelarPeticiones" (Function) - Función para cancelar las peticiones en curso.
+ * - "manejadorCargaPacientes" (Function) - Función para recargar los datos de los pacientes.
  */
-export function usePacientes() {
+export function usePacientes(cargaAutomatica = true) {
     const { cancelarPeticiones, cargarDatos, helperListo } = useOperacionesPacientes();
     const [pacientes, setPacientes] = useState(null);
     const [error, setError] = useState(null);
@@ -148,11 +157,11 @@ export function usePacientes() {
         return mapeo;
     }, [pacientes]);
 
-    const manejadorCarga = useCallback(async () => {
+    const manejadorCargaPacientes = useCallback(async () => {
         const { success, error, data, cancelled } = await cargarDatos();
-
         if (success) {
             setPacientes(data);
+            setError(null);
         } else if (!cancelled) {
             setError(error);
             setPacientes([]);
@@ -160,16 +169,15 @@ export function usePacientes() {
     }, [cargarDatos, setError, setPacientes]);
 
     useEffect(() => {
-        if (helperListo) {
-            manejadorCarga();
+        if (helperListo && cargaAutomatica) {
+            manejadorCargaPacientes();
             return () => {
                 cancelarPeticiones();
             };
         }
-    }, [helperListo, manejadorCarga, cancelarPeticiones]);
-
+    }, [cargaAutomatica, helperListo, manejadorCargaPacientes, cancelarPeticiones]);
     return {
         pacientes, mapeoPacientes, error,
-        manejadorCarga, cancelarPeticiones
-     };
+        manejadorCargaPacientes
+    };
 };
