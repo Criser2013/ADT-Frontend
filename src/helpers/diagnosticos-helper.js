@@ -69,8 +69,6 @@ export default class DiagnosticosHelper {
      * @param {Array<String>} ids IDs de los diagnósticos a eliminar.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
-     * - "data" (Array<Diagnostico>) - Contiene un array con las instancias de la clase Diagnostico 
-     * si la operación fue exitosa, de lo contrario es null.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
      * contrario es null.
      */
@@ -90,10 +88,6 @@ export default class DiagnosticosHelper {
                 error = res.error;
             }
         };
-
-        if (success) {
-            return await this.cargarDiagnosticos(true);
-        }
 
         return { success, error };
     }

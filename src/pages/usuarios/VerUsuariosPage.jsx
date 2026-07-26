@@ -654,7 +654,7 @@ export default function VerUsuariosPage() {
                                 campos={campos}
                                 datos={datos}
                                 lblBusq={t("txtBusqUsuario")}
-                                activarBusqueda={true}
+                                activarBusqueda
                                 campoId="uid"
                                 terminoBusqueda={""}
                                 lblSeleccion={t("txtSufijoUsuariosSelecs")}
@@ -665,7 +665,7 @@ export default function VerUsuariosPage() {
                                 icono={<DeleteIcon />}
                                 campoOrdenInicial="nombre"
                                 dirOrden="asc"
-                                cargarInfoToda={true}
+                                cargarInfoToda
                             />
                         </Grid>
                     </Grid>

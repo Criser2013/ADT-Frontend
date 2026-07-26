@@ -76,11 +76,11 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
         const param = [{ id: "174", nombre: "Usuario de prueba", rol: true }, { id: "175", nombre: "Usuario de prueba 2", rol: false }];
 
         // ---------------------- Respuestas esperadas ----------------------
-        const res1 = { success: true, data: [] };
+        const res1 = { success: true, error: null };
         const res2 = { success: false, error: "Error al desactivar el usuario" };
 
         // ---------------------- Mocks ----------------------
-        const mocks1 = [{ success: true }, { success: true }, { success: true, data: [] }];
+        const mocks1 = [{ success: true }, { success: true }];
         const mocks2 = [{ success: true }, { success: false, error: "Error al desactivar el usuario" }];
 
         beforeEach(() => {
@@ -105,7 +105,7 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
                 }, "token", "es", ""
                 );
             }
-            expect(peticionApi).toHaveBeenCalledTimes(params.length + (resEsperada.success ? 1 : 0));
+            expect(peticionApi).toHaveBeenCalledTimes(params.length);
         });
     });
 
@@ -114,12 +114,7 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
         const param = { id: "174", rol: true, desactivar: true };
 
         // ---------------------- Respuestas esperadas ----------------------
-        const res1 = {
-            success: true, data: [
-                new Usuario(
-                    "174", "correo@correo.com", "Usuario de prueba", true, true, "01/01/2023 12:00", "01/01/2023 12:00"
-                )]
-        };
+        const res1 = { success: true };
         const res2 = { success: false, error: "Error al modificar el usuario" };
 
         beforeEach(() => {

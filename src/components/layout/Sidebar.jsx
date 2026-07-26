@@ -45,10 +45,6 @@ export default function Sidebar() {
         setMostrarMenu(escritorio);
     }, [escritorio, setMostrarMenu]);
 
-    function manejadorCerrarMenu() {
-        setMostrarMenu(false);
-    };
-
     /**
      * @param {String} url Ruta a la que se redirige al usuario.
      */
@@ -61,7 +57,7 @@ export default function Sidebar() {
         <Drawer
             variant={escritorio ? "persistent" : "temporary"}
             open={mostrarMenu}
-            onClose={manejadorCerrarMenu}
+            onClose={() => setMostrarMenu(false)}
             sx={{
                 // Se encarga de cerrar el menú en tablets o computadores. No se usa en móviles.
                 display: mostrarMenu, width: 240, flexShrink: 0,

@@ -53,10 +53,6 @@ export default function App() {
         }
     };
 
-    function manejadorBtnCerrar() {
-        setModalSimple((x) => ({ ...x, mostrar: false }));
-    };
-
     async function manejadorBtnCerrarSesion() {
         setModalDoble((x) => ({ ...x, mostrar: false }));
         const res = await cerrarSesion();
@@ -85,7 +81,7 @@ export default function App() {
                 titulo={t("tituloErr")}
                 texto={modalSimple.mensaje}
                 txtBtn={t("txtBtnCerrar")}
-                manejadorBtn={manejadorBtnCerrar}
+                manejadorBtn={() => setModalSimple((x) => ({ ...x, mostrar: false }))}
                 iconoBtn={<CloseIcon />}
             />
         </span>

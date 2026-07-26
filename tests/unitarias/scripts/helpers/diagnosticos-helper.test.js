@@ -293,7 +293,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
         };
 
         // ---------------------- Respuestas esperadas ----------------------
-        const res1 = { success: true, data: [] };
+        const res1 = { success: true, error: null };
         const res2 = { success: false, error: "Error al eliminar" };
 
         // ---------------------- Mocks ----------------------
@@ -319,13 +319,6 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
             expect(eliminarDiagnostico).toHaveBeenCalledTimes(params.id.length);
             for (let i = 0; i < params.id.length; i++) {
                 expect(eliminarDiagnostico).toHaveBeenNthCalledWith(i + 1, params.id[i], params.usuario, {});
-            }
-
-            if (resEsperada.success) {
-                expect(verDiagnosticos).toHaveBeenCalledTimes(1);
-                expect(verDiagnosticos).toHaveBeenCalledWith({});
-            } else {
-                expect(verDiagnosticos).not.toHaveBeenCalled();
             }
         });
     });

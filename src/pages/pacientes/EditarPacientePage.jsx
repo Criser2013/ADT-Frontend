@@ -2,11 +2,10 @@
 import { FormPaciente } from "../../components/forms";
 import { MenuLayout } from "../../components/layout";
 import { Paciente } from "../../models";;
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { usePacientes } from "../../hooks";
+import { usePaciente } from "../../hooks";
 import { useTranslation } from "react-i18next";
-import { validarId } from "../../utils/Validadores";
 
 
 /**
@@ -16,44 +15,24 @@ import { validarId } from "../../utils/Validadores";
 export default function EditarPacientePage() {
     const navigate = useNavigate();
     const { id } = useParams();
+    const { error, paciente } = usePaciente(id);
     const { t } = useTranslation();
-    const [datos, setDatos] = useState(null);
-    const { verPaciente, helperListo, cancelarPeticiones } = usePacientes();
     const listadoPestanas = [
         { texto: t("titListaPacientes"), url: "/pacientes" },
-        { texto: `${t("txtPaciente")} — ${datos?.nombre}`, url: `/pacientes/${id}` },
+        { texto: `${t("txtPaciente")} — ${paciente?.nombre}`, url: `/pacientes/${id}` },
         { texto: t("titEditarPaciente"), url: `/pacientes/${id}/editar` }
     ];
 
-    const cargarPaciente = useCallback(async (id) => {
-        const res = await verPaciente(id);
-        if (res instanceof Paciente) {
-            setDatos(res);
-        } else {
-            if (!res.cancelled) {
-                navigate("/pacientes");
-            }
-        }
-    }, [setDatos, navigate, verPaciente]);
-
     useEffect(() => {
-        document.title = datos ? `${t("titEditarPaciente")} — ${datos?.nombre}`
-            : t("titEditarPaciente");
-    }, [t, datos]);
-
-    useEffect(() => {
-        const res = id ? validarId(id) : false;
-        if (!res) {
+        if (error) {
             navigate("/pacientes");
         }
+    }, [error, navigate]);
 
-        if (helperListo) {
-            cargarPaciente(id);
-            return () => {
-                cancelarPeticiones();
-            };
-        }
-    }, [id, navigate, cargarPaciente, helperListo, cancelarPeticiones]);
+    useEffect(() => {
+        document.title = paciente ? `${t("titEditarPaciente")} — ${paciente?.nombre}`
+            : t("titEditarPaciente");
+    }, [t, paciente]);
 
     return (
         <MenuLayout>
@@ -62,8 +41,8 @@ export default function EditarPacientePage() {
                 titulo={t("titEditarPaciente")}
                 pestanas={listadoPestanas}
                 tooltip={t("txtVolverAtras")}
-                paciente={datos}
-                esModificar={true} />
+                paciente={paciente}
+                esModificar />
         </MenuLayout>
     );
 };

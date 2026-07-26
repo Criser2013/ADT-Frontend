@@ -587,7 +587,7 @@ export default function VerDiagnosticosPage() {
     //                         lblBusqueda={lblBusq}
     //                         lblSeleccion={t("txtSufijoDiagsSelecs")}
     //                         tooltipAccion={t("txtAyudaEliminarDiags")}
-    //                         activarBusqueda={true}
+    //                         activarBusqueda
     //                         activarSeleccion={activarSeleccion}
     //                         camposBusq={camposBusq}
     //                         campoOrdenInicial="fecha"

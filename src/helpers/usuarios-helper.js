@@ -69,8 +69,6 @@ export default class UsuariosHelper {
      * @param {Array<Usuario>} usuarios Lista de usuarios a desactivar. 
      * @returns {Promise<Object>} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
-     * - "data" (Array<Usuario>) - Contiene un array con las instancias de usuarios actualizadas 
-     * si la operación fue exitosa, de lo contrario es null.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
      * contrario es null.
      */
@@ -83,7 +81,6 @@ export default class UsuariosHelper {
             pets.push(this.#desactivarUsuario(usuario));
         });
 
-
         for (const pet of pets) {
             const res = await pet;
             success &&= res.success;
@@ -92,11 +89,7 @@ export default class UsuariosHelper {
             }
         };
 
-        if (success) {
-            return await this.cargarUsuarios();
-        } else {
-            return { success, error };
-        }
+        return { success, error };
     }
 
     /**
@@ -106,20 +99,13 @@ export default class UsuariosHelper {
      * @param {Boolean} desactivar Indicador para desactivar el usuario.
      * @returns {Object} Objeto con las claves:
      * - success (Boolean) - Indica si la operación fue exitosa.
-     * - data (Array<Usuario>) - Contiene los datos de los usuarios actualizados si la operación fue exitosa.
      * - error (String) - Contiene el mensaje de error si la operación no fue exitosa.
      */
     async modificarUsuario(id, rol, desactivar) {
         const cuerpo = { administrador: rol, desactivar: desactivar, eliminado: false };
-        const { success, error } = await await peticionApi(
+        return await await peticionApi(
             `admin/usuarios/${id}`, "PATCH", {}, cuerpo, this.#token, this.idioma, ""
         );
-
-        if (success) {
-            return await this.cargarUsuarios();
-        } else {
-            return { success, error };
-        }
     }
 
     /**

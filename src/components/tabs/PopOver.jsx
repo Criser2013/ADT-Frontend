@@ -22,16 +22,12 @@ export default function PopOver({
     transformOrigin = { vertical: "top", horizontal: "right" }, paperProps = {},
     setPopOver, children
 }) {
-    function cerrarPopOver() {
-        setPopOver(null);
-    };
-
     return (
         <Popover
             id={id}
             open={mostrar}
             anchorEl={anchorEl}
-            onClose={cerrarPopOver}
+            onClose={() => setPopOver(null)}
             anchorOrigin={anchorOrigin}
             transformOrigin={transformOrigin}
             PaperProps={paperProps}>
