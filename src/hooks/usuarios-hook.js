@@ -83,6 +83,7 @@ export function useOperacionesUsuarios() {
  * @returns {Object} Objeto con las claves:
  * - "usuario" (Usuario|null) - Contiene los datos del usuario si la operación fue exitosa, sino null.
  * - "error" (String|null) - Mensaje de error en caso de que la operación falle, sino null.
+ * - "helperListo" (Boolean) - Indica si el helper de usuarios está listo para realizar operaciones.
  * - "manejadorCargaUsuario" (Function) - Función para recargar los datos del usuario.
  */
 export function useUsuario(id, cargaAutomatica = true) {
@@ -99,7 +100,7 @@ export function useUsuario(id, cargaAutomatica = true) {
         } else {
             setUsuario(
                 new Usuario(
-                    "null", null, "", false, false, null, null
+                    "null", null, "null", false, false, null, null
                 )
             );
             setError(error);
@@ -108,7 +109,7 @@ export function useUsuario(id, cargaAutomatica = true) {
     }, [verUsuario, setUsuario, setError, id]);
 
     useEffect(() => {
-        const expIdUsuario = /-\w{28}$/;
+        const expIdUsuario = /\w{28}$/;
         const res = expIdUsuario.test(id);
         if (!res) {
             setError("errIdInvalido");
@@ -118,8 +119,8 @@ export function useUsuario(id, cargaAutomatica = true) {
     }, [id, cargaAutomatica, verUsuario, helperListo, usuarioAutenticado?.rolVisible, manejadorCargaUsuario]);
 
     const value = useMemo(() => ({
-        usuario, error, manejadorCargaUsuario
-    }), [usuario, error, manejadorCargaUsuario]);
+        usuario, error, manejadorCargaUsuario, helperListo
+    }), [usuario, error, manejadorCargaUsuario, helperListo]);
 
     return value;
 };

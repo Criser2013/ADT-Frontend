@@ -124,12 +124,12 @@ export function usePaciente(id, cargaAutomatica = true) {
         const validacion = validarId(id);
         if (validacion && helperListo && cargaAutomatica) {
             manejadorCargaPaciente();
+            return () => {
+                cancelarPeticiones();
+            };
         } else if (!validacion) {
             setError("ID de paciente inválido");
         }
-        return () => {
-            cancelarPeticiones();
-        };
     }, [id, cargaAutomatica, verPaciente, helperListo, cancelarPeticiones, manejadorCargaPaciente]);
 
     const value = useMemo(() => ({

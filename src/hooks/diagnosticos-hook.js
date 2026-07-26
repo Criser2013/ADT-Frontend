@@ -5,7 +5,7 @@ import { useAuth } from "./auth-hook";
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePaciente, usePacientes } from "./pacientes-hook";
 import { useUsuario, useUsuarios } from "./usuarios-hook";
-import { validarId } from "../utils";
+import { validarId } from "../utils/Validadores";
 
 
 /**
@@ -109,15 +109,16 @@ export function useOperacionesDiagnosticos() {
  * - "diagnostico" (Diagnostico|null) - Instancia de Diagnostico correspondiente al ID proporcionado o null si no se encuentra.
  * - "persona" (Paciente|Usuario|null) - Instancia de Paciente o Usuario correspondiente al diagnóstico o null si no se encuentra.
  * - "error" (String|null) - Mensaje de error en caso de que la operación falle, sino null.
+ * - "manejadorCargaDiagnostico" (Function) - Función para recargar los datos del diagnóstico.
  */
 export function useDiagnostico(id, traerInfoPersona = false) {
     const { usuario: usuarioAutenticado } = useAuth();
     const { verDiagnostico, helperListo: diagnosticosListo } = useOperacionesDiagnosticos();
     const [diagnostico, setDiagnostico] = useState(null);
     const [error, setError] = useState(null);
-    const idUsuario = useMemo(() => id.substring(36), [id]);
+    const idUsuario = useMemo(() => id.substring(37), [id]);
     const idPaciente = useMemo(() => {
-        if (!diagnostico) {
+        if (!diagnostico?.paciente) {
             return "11111111-1111-1111-1111-111111111111";
         } else {
             return diagnostico.paciente;
@@ -126,7 +127,17 @@ export function useDiagnostico(id, traerInfoPersona = false) {
     const { establecerPaciente, manejadorCargaPaciente, paciente, error: errorPaciente } = usePaciente(idPaciente, false);
     const { helperListo: usuariosListo, manejadorCargaUsuario, usuario, error: errorUsuario } = useUsuario(idUsuario, false);
     const persona = useMemo(() => usuarioAutenticado?.rolVisible ? usuario : paciente
-    , [paciente, usuario, usuarioAutenticado?.rolVisible]);
+        , [paciente, usuario, usuarioAutenticado?.rolVisible]);
+
+    const manejadorCargaDiagnostico = useCallback(async () => {
+        const { success, data, error } = await verDiagnostico(id);
+        if (success) {
+            setDiagnostico(data);
+            setError(null);
+        } else {
+            setError(error);
+        }
+    }, [id, verDiagnostico]);
 
     useEffect(() => {
         async function cargarPaciente(esAnonimo) {
@@ -140,12 +151,12 @@ export function useDiagnostico(id, traerInfoPersona = false) {
             }
         };
 
-        if (diagnosticosListo && diagnostico && !usuario?.rolVisible && traerInfoPersona) {
+        if (diagnosticosListo && diagnostico && !usuarioAutenticado?.rolVisible && traerInfoPersona) {
             const esAnonimo = !diagnostico.paciente;
             cargarPaciente(esAnonimo);
         }
     }, [
-        diagnostico, usuario?.rolVisible, establecerPaciente, 
+        usuarioAutenticado?.rolVisible, diagnostico, establecerPaciente,
         manejadorCargaPaciente, traerInfoPersona, diagnosticosListo
     ]);
 
@@ -156,24 +167,14 @@ export function useDiagnostico(id, traerInfoPersona = false) {
     }, [usuarioAutenticado?.rolVisible, traerInfoPersona, manejadorCargaUsuario, usuariosListo]);
 
     useEffect(() => {
-        async function cargarDiagnostico(id) {
-            const { success, data, error } = await verDiagnostico(id);
-            if (success) {
-                setDiagnostico(data);
-                setError(null);
-            } else {
-                setError(error);
-            }
-        };
-
         const res = validarId(id.replace(/-\w{28}$/, ""));
         if (!res) {
             setError("errIdInvalido");
             return;
         } else if (res && diagnosticosListo) {
-            cargarDiagnostico(id);
+            manejadorCargaDiagnostico();
         }
-    }, [diagnosticosListo, id, verDiagnostico]);
+    }, [diagnosticosListo, id, manejadorCargaDiagnostico]);
 
     useEffect(() => {
         if (errorPaciente) {
@@ -184,9 +185,9 @@ export function useDiagnostico(id, traerInfoPersona = false) {
     }, [errorPaciente, errorUsuario]);
 
     const value = useMemo(() => ({
-        diagnostico, persona, error
-    }), [diagnostico, persona, error]);
-    
+        diagnostico, persona, error, manejadorCargaDiagnostico
+    }), [diagnostico, persona, error, manejadorCargaDiagnostico]);
+
     return value;
 };
 
@@ -219,7 +220,7 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
         return mapeo;
     }, [diagnosticos]);
     const personas = useMemo(() => usuario?.rolVisible ? usuarios : pacientes
-    , [usuarios, pacientes, usuario?.rolVisible]);
+        , [usuarios, pacientes, usuario?.rolVisible]);
 
     /**
      * @param {String} tipo Tipo de persona a cargar: "paciente" o "usuario".
@@ -238,13 +239,13 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
      */
     const manejadorCargaDiagnosticos = useCallback(async (verTodos, uid, fecha) => {
         const { success, data, error } = await verDiagnosticos(verTodos, uid, fecha);
-            if (success) {
-                setDiagnosticos(data);
-                setError(null);
-            } else {
-                setDiagnosticos([]);
-                setError(error);
-            }
+        if (success) {
+            setDiagnosticos(data);
+            setError(null);
+        } else {
+            setDiagnosticos([]);
+            setError(error);
+        }
     }, [verDiagnosticos]);
 
     useEffect(() => {
@@ -264,6 +265,6 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
             manejadorCargaDiagnosticos(verTodos, uid, fecha);
         }
     }, [diagnosticosListo, verDiagnosticos, verTodos, uid, fecha, diagnosticos, manejadorCargaDiagnosticos]);
-    
+
     return { diagnosticos, personas, error, mapeoDiagnosticos };
 };

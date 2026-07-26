@@ -68,8 +68,8 @@ function detTextoPersona(rol, nombre) {
 export default function VerDiagnosticoPage() {
     const navigate = useNavigate();
     const { eliminarDiagnosticos, validarDiagnostico } = useOperacionesDiagnosticos();
-    const { diagnostico, persona, error } = useDiagnostico(id, true);
     const { id } = useParams();
+    const { diagnostico, persona, error, manejadorCargaDiagnostico } = useDiagnostico(id, true);
     const { t } = useTranslation();
     const { usuario: usuarioAutenticado } = useAuth();
 
@@ -148,9 +148,9 @@ export default function VerDiagnosticoPage() {
     async function manejadorBtnValidar({ diagnosticoMedico }) {
         dispatch({ tipo: "CERRAR_MODAL_VALIDACION" });
         dispatch({ tipo: "INICIAR_PROCESADO" });
-        const { success, data, error } = await validarDiagnostico(diagnostico, diagnosticoMedico);
+        const { success, error } = await validarDiagnostico(diagnostico, diagnosticoMedico);
         if (success) {
-            dispatch({ tipo: "SET_DIAGNOSTICO", payload: data });
+            await manejadorCargaDiagnostico();
         } else {
             dispatch({ tipo: "MOSTRAR_MODAL_ERROR", payload: error });
         }
