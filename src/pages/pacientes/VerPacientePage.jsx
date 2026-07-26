@@ -24,12 +24,12 @@ import { Paciente } from "../../models";
 export default function VerPacientePage() {
     const navigate = useNavigate();
     const { id } = useParams();
+    const { error, paciente } = usePaciente(id);
     const { t } = useTranslation();
     const [transaccionIniciada, setTransaccionIniciada] = useState(false);
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
     const [modalEliminacion, setModalEliminacion] = useState(false);
     const { eliminarPacientes } = useOperacionesPacientes();
-    const paciente = usePaciente(id);
     const campos = [
         { id: "nombre", titulo: t("txtNombre"), valor: paciente?.nombre },
         { id: "cedula", titulo: t("txtCedula"), valor: paciente?.cedula },
@@ -62,6 +62,12 @@ export default function VerPacientePage() {
         setModalEliminacion(false);
         await eliminarPaciente();
     };
+
+    useEffect(() => {
+        if (error) {
+            navigate("/pacientes");
+        }
+    }, [error, navigate]);
 
     useEffect(() => {
         document.title = paciente ? `${t("txtPaciente")} — ${paciente?.nombre}` : t("titVerPaciente");

@@ -1,27 +1,24 @@
 import useIdioma from "./idioma-hook";
-
 import { DiagnosticosHelper } from "../helpers";
 import { useAppConfig } from "./appConfig-hook";
 import { useAuth } from "./auth-hook";
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from "react-router";
 import { usePaciente, usePacientes } from "./pacientes-hook";
 import { useUsuario, useUsuarios } from "./usuarios-hook";
+import { validarId } from "../utils";
 
 
 /**
  * Hook para realizar operaciones relacionadas con los diagnósticos.
  * @returns {Object} Objeto con las claves:
- * - "diagnosticos" (Array<Diagnostico>): Lista de diagnósticos.
  * - "eliminarDiagnosticos" (Function): Función para eliminar diagnósticos por sus IDs.
  * - "generarDiagnostico" (Function): Función para generar un nuevo diagnóstico.
  * - "helperListo" (Boolean): Indica si el helper de datos está listo para usarse.
  * - "validarDiagnostico" (Function): Función para validar un diagnóstico.
  * - "verDiagnostico" (Function): Función para ver los datos de un diagnóstico por su ID.
  * - "verDiagnosticos" (Function): Función para ver los diagnósticos, filtrando por usuario y fecha.
- * - "mapeoDiagnosticos" (Object): Objeto que mapea los IDs de los diagnósticos a sus instancias correspondientes.
  */
-export default function useOperacionesDiagnosticos() {
+export function useOperacionesDiagnosticos() {
     const { autenticado, usuario } = useAuth();
     const { firestore } = useAppConfig();
     const { idioma } = useIdioma();
@@ -105,22 +102,31 @@ export default function useOperacionesDiagnosticos() {
 };
 
 /**
+ * Hook para obtener los datos de un diagnóstico específico por su ID.
  * @param {String} id ID del diagnóstico a consultar.
  * @param {Boolean} traerInfoPersona Indica si se debe traer la información del paciente y usuario relacionados al diagnóstico.
  * @returns {Object} Objeto con las claves:
  * - "diagnostico" (Diagnostico|null) - Instancia de Diagnostico correspondiente al ID proporcionado o null si no se encuentra.
- * - "paciente" (Paciente|null) - Instancia de Paciente correspondiente al diagnóstico o null si no se encuentra.
- * - "usuario" (Usuario|null) - Instancia de Usuario correspondiente al diagnóstico o null si no se encuentra.
+ * - "persona" (Paciente|Usuario|null) - Instancia de Paciente o Usuario correspondiente al diagnóstico o null si no se encuentra.
  * - "error" (String|null) - Mensaje de error en caso de que la operación falle, sino null.
  */
 export function useDiagnostico(id, traerInfoPersona = false) {
-    const navigate = useNavigate();
-    const { establecerPaciente, manejadorCargaPaciente, paciente } = usePaciente(id, false);
-    const { manejadorCargaUsuario, usuario } = useUsuario(id, false);
-    const { usuario: usuarioAutenticado, usuariosListo } = useAuth();
+    const { usuario: usuarioAutenticado } = useAuth();
     const { verDiagnostico, helperListo: diagnosticosListo } = useOperacionesDiagnosticos();
     const [diagnostico, setDiagnostico] = useState(null);
     const [error, setError] = useState(null);
+    const idUsuario = useMemo(() => id.substring(36), [id]);
+    const idPaciente = useMemo(() => {
+        if (!diagnostico) {
+            return "11111111-1111-1111-1111-111111111111";
+        } else {
+            return diagnostico.paciente;
+        }
+    }, [diagnostico]);
+    const { establecerPaciente, manejadorCargaPaciente, paciente, error: errorPaciente } = usePaciente(idPaciente, false);
+    const { helperListo: usuariosListo, manejadorCargaUsuario, usuario, error: errorUsuario } = useUsuario(idUsuario, false);
+    const persona = useMemo(() => usuarioAutenticado?.rolVisible ? usuario : paciente
+    , [paciente, usuario, usuarioAutenticado?.rolVisible]);
 
     useEffect(() => {
         async function cargarPaciente(esAnonimo) {
@@ -128,13 +134,11 @@ export function useDiagnostico(id, traerInfoPersona = false) {
                 establecerPaciente(esAnonimo);
                 return;
             }
-
-            const { success, error } = await manejadorCargaPaciente();
+            const { success } = await manejadorCargaPaciente();
             if (!success) {
                 establecerPaciente(false);
-                setError(error);
             }
-        }
+        };
 
         if (diagnosticosListo && diagnostico && !usuario?.rolVisible && traerInfoPersona) {
             const esAnonimo = !diagnostico.paciente;
@@ -146,16 +150,8 @@ export function useDiagnostico(id, traerInfoPersona = false) {
     ]);
 
     useEffect(() => {
-        async function cargarUsuario() {
-            const { success, error } = await manejadorCargaUsuario();
-
-            if (!success) {
-                setError(error);
-            }
-        };
-
         if (usuariosListo && usuarioAutenticado?.rolVisible && traerInfoPersona) {
-            cargarUsuario();
+            manejadorCargaUsuario();
         }
     }, [usuarioAutenticado?.rolVisible, traerInfoPersona, manejadorCargaUsuario, usuariosListo]);
 
@@ -169,18 +165,47 @@ export function useDiagnostico(id, traerInfoPersona = false) {
                 setError(error);
             }
         };
-        if (diagnosticosListo && !diagnostico) {
+
+        const res = validarId(id.replace(/-\w{28}$/, ""));
+        if (!res) {
+            setError("errIdInvalido");
+            return;
+        } else if (res && diagnosticosListo) {
             cargarDiagnostico(id);
         }
-    }, [diagnosticosListo, diagnostico, navigate, id, verDiagnostico]);
+    }, [diagnosticosListo, id, verDiagnostico]);
+
+    useEffect(() => {
+        if (errorPaciente) {
+            setError(errorPaciente);
+        } else if (errorUsuario) {
+            setError(errorUsuario);
+        }
+    }, [errorPaciente, errorUsuario]);
+
+    const value = useMemo(() => ({
+        diagnostico, persona, error
+    }), [diagnostico, persona, error]);
     
-    return { diagnostico, paciente, usuario, error };
+    return value;
 };
 
+/**
+ * Hook para obtener la lista de diagnósticos de todos los usuarios o de un usuario específico, filtrando por fecha si se desea.
+ * @param {Boolean} verTodos Indicador para ver todos los diagnósticos o solo los del usuario indicado.
+ * @param {String|null} uid UID del usuario por el cual consultar los diagnósticos. Si verTodos es true, este parámetro se ignora.
+ * @param {Date|null} fecha Fecha para filtrar los diagnósticos. Si verTodos es true, este parámetro se ignora.
+ * @param {Boolean} traerInfoPersona Indicador para cargar los datos del paciente o usuario relacionado a cada diagnóstico.
+ * @returns {Object} Objeto con las claves:
+ * - "diagnosticos" (Array<Diagnostico>|null) - Lista de diagnósticos obtenidos, sino null.
+ * - "personas" (Array<Paciente|Usuario>|null) - Lista de pacientes o usuarios relacionados a los diagnósticos obtenidos, sino null.
+ * - "error" (String|null) - Mensaje de error en caso de que la operación falle, sino null.
+ * - "mapeoDiagnosticos" (Object) - Objeto que mapea los IDs de los diagnósticos a sus datos.
+ */
 export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPersona = false) {
-    const { manejadorCargaPacientes, pacientes } = usePacientes(false);
-    const { manejadorCargaUsuarios, usuarios } = useUsuarios(false);
-    const { usuario, usuariosListo } = useAuth();
+    const { helperListo: pacientesListo, manejadorCargaPacientes, pacientes } = usePacientes(false);
+    const { helperListo: usuariosListo, manejadorCargaUsuarios, usuarios } = useUsuarios(false);
+    const { usuario } = useAuth();
     const { verDiagnosticos, helperListo: diagnosticosListo } = useOperacionesDiagnosticos();
     const [diagnosticos, setDiagnosticos] = useState(null);
     const [error, setError] = useState(null);
@@ -193,37 +218,26 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
         }
         return mapeo;
     }, [diagnosticos]);
+    const personas = useMemo(() => usuario?.rolVisible ? usuarios : pacientes
+    , [usuarios, pacientes, usuario?.rolVisible]);
 
-    useEffect(() => {
-        async function cargarPacientes() {
-            const { success, error } = await manejadorCargaPacientes();
-            if (!success) {
-                setError(error);
-            }
-        };
-
-        if (diagnosticosListo && !usuario?.rolVisible && traerInfoPersona) {
-            cargarPacientes();
+    /**
+     * @param {String} tipo Tipo de persona a cargar: "paciente" o "usuario".
+     */
+    const cargarPersonas = useCallback(async (tipo) => {
+        const { success, error } = await tipo == "paciente" ? manejadorCargaPacientes() : manejadorCargaUsuarios();
+        if (!success) {
+            setError(error);
         }
-    }, [usuario?.rolVisible, manejadorCargaPacientes, traerInfoPersona, diagnosticosListo]);
+    }, [manejadorCargaPacientes, manejadorCargaUsuarios]);
 
-    useEffect(() => {
-        async function cargarUsuarios() {
-            const { success, error } = await manejadorCargaUsuarios();
-
-            if (!success) {
-                setError(error);
-            }
-        };
-
-        if (usuariosListo && usuario?.rolVisible && traerInfoPersona) {
-            cargarUsuarios();
-        }
-    }, [usuario?.rolVisible, traerInfoPersona, manejadorCargaUsuarios, usuariosListo]);
-
-    useEffect(() => {
-        async function cargarDiagnosticos(verTodos, uid, fecha) {
-            const { success, data, error } = await verDiagnosticos(verTodos, uid, fecha);
+    /**
+     * @param {Boolean} verTodos Indica si se deben cargar todos los diagnósticos o solo los del usuario indicado.
+     * @param {String|null} uid UID del usuario por el cual consultar los diagnósticos. Si verTodos es true, este parámetro se ignora.
+     * @param {Date|null} fecha Fecha para filtrar los diagnósticos. Si verTodos es true, este parámetro se ignora.
+     */
+    const manejadorCargaDiagnosticos = useCallback(async (verTodos, uid, fecha) => {
+        const { success, data, error } = await verDiagnosticos(verTodos, uid, fecha);
             if (success) {
                 setDiagnosticos(data);
                 setError(null);
@@ -231,11 +245,25 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
                 setDiagnosticos([]);
                 setError(error);
             }
-        };
-        if (diagnosticosListo && !diagnosticos) {
-            cargarDiagnosticos(verTodos, uid, fecha);
+    }, [verDiagnosticos]);
+
+    useEffect(() => {
+        if (traerInfoPersona && !usuario?.rolVisible && diagnosticos && pacientesListo) {
+            cargarPersonas("paciente");
         }
-    }, [diagnosticosListo, verDiagnosticos, verTodos, uid, fecha, diagnosticos]);
+    }, [cargarPersonas, usuario?.rolVisible, manejadorCargaPacientes, traerInfoPersona, diagnosticos, pacientesListo]);
+
+    useEffect(() => {
+        if (traerInfoPersona && usuario?.rolVisible && usuariosListo) {
+            cargarPersonas("usuario");
+        }
+    }, [cargarPersonas, usuario?.rolVisible, traerInfoPersona, manejadorCargaUsuarios, usuariosListo]);
+
+    useEffect(() => {
+        if (diagnosticosListo && !diagnosticos) {
+            manejadorCargaDiagnosticos(verTodos, uid, fecha);
+        }
+    }, [diagnosticosListo, verDiagnosticos, verTodos, uid, fecha, diagnosticos, manejadorCargaDiagnosticos]);
     
-    return { diagnosticos, pacientes, usuarios, error, mapeoDiagnosticos };
+    return { diagnosticos, personas, error, mapeoDiagnosticos };
 };

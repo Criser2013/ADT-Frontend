@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
  * @returns {JSX.Element}
  */
 export default function DiagnosticoPacientePage() {
-    const { error, manejadorCarga, pacientes } = usePacientes();
+    const { error, manejadorCargaPacientes, pacientes } = usePacientes();
     const { t } = useTranslation();
     const [modal, setModal] = useState({ mostrar: false, texto: "" });
     const listadoPestanas = [{
@@ -23,7 +23,7 @@ export default function DiagnosticoPacientePage() {
         if (error) {
             setModal({ mostrar: true, texto: error });
         }
-    }, [error, setModal]);
+    }, [error]);
 
     useEffect(() => {
         document.title = t("titDiagnosticoPaciente");
@@ -36,7 +36,7 @@ export default function DiagnosticoPacientePage() {
                 titulo={t("titDiagnosticoPaciente")}
                 pacientes={pacientes}
                 pestanas={listadoPestanas}
-                manejadorRecarga={manejadorCarga}
+                manejadorRecarga={manejadorCargaPacientes}
                 indicadorDatosCargados={Boolean(pacientes)} />
             <ModalSimple
                 mostrar={modal.mostrar}

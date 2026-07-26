@@ -16,7 +16,7 @@ import { DiagnosticoIcono } from "../icons/IconosSidebar";
 import { ModalSimple } from "../modals";
 import { PantallaCarga, TabHeader } from "../layout";
 import { SelectChip } from "../selects";
-import { useAuth, useDiagnosticos } from "../../hooks";
+import { useAuth, useOperacionesDiagnosticos } from "../../hooks";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -55,7 +55,7 @@ export default function FormDiagnostico({
     pestanas, manejadorRecarga = null, indicadorDatosCargados = false
 }) {
     const navigate = useNavigate();
-    const { generarDiagnostico } = useDiagnosticos();
+    const { generarDiagnostico } = useOperacionesDiagnosticos();
     const { t } = useTranslation();
     const { usuario } = useAuth();
     const [cargando, setCargando] = useState(esDiagPacientes);
@@ -87,10 +87,6 @@ export default function FormDiagnostico({
             setCargando(false);
         }
     }, [esDiagPacientes, indicadorDatosCargados, setCargando]);
-
-    function cerrarModal() {
-        setModal({ ...modal, mostrar: false });
-    };
 
     function manejadorBtnVaciar() {
         reset(valoresPredet);
@@ -421,7 +417,7 @@ export default function FormDiagnostico({
                 titulo={t("tituloErr")}
                 texto={modal.texto}
                 txtBtn={t("txtBtnCerrar")}
-                manejadorBtn={cerrarModal}
+                manejadorBtn={() => setModal((x) => ({ ...x, mostrar: false }))}
                 iconoBtn={<CloseIcon />} />
         </>
     );

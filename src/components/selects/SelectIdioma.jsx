@@ -23,16 +23,12 @@ export default function SelectIdioma() {
         { codigo: idiomaIngles, nombre: "English (🇬🇧)", icono: IconoIngles }
     ];
 
-    function cerrarPopOver() {
-        setPopOver(null);
-    };
-
     /**
      * @param {string} idioma Código del idioma a cambiar.
      */
     function cambiarIdiomaApp(idioma) {
         cambiarIdioma(idioma);
-        cerrarPopOver();
+        setPopOver(null);
     };
 
     /**
@@ -57,7 +53,7 @@ export default function SelectIdioma() {
             <Popover
                 id={idPopOver}
                 open={open}
-                onClose={cerrarPopOver}
+                onClose={() => setPopOver(null)}
                 anchorEl={popOver}
                 anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                 transformOrigin={{ vertical: "top", horizontal: "left" }}

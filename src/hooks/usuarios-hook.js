@@ -83,6 +83,7 @@ export function useOperacionesUsuarios() {
  * @returns {Object} Objeto con las claves:
  * - "usuario" (Usuario|null) - Contiene los datos del usuario si la operación fue exitosa, sino null.
  * - "error" (String|null) - Mensaje de error en caso de que la operación falle, sino null.
+ * - "manejadorCargaUsuario" (Function) - Función para recargar los datos del usuario.
  */
 export function useUsuario(id, cargaAutomatica = true) {
     const { helperListo, verUsuario } = useOperacionesUsuarios();
@@ -107,12 +108,20 @@ export function useUsuario(id, cargaAutomatica = true) {
     }, [verUsuario, setUsuario, setError, id]);
 
     useEffect(() => {
-        if (cargaAutomatica && usuarioAutenticado?.rolVisible && helperListo) {
+        const expIdUsuario = /-\w{28}$/;
+        const res = expIdUsuario.test(id);
+        if (!res) {
+            setError("errIdInvalido");
+        } else if (res && cargaAutomatica && usuarioAutenticado?.rolVisible && helperListo) {
             manejadorCargaUsuario();
         }
-    }, [cargaAutomatica, verUsuario, helperListo, usuarioAutenticado?.rolVisible, manejadorCargaUsuario]);
+    }, [id, cargaAutomatica, verUsuario, helperListo, usuarioAutenticado?.rolVisible, manejadorCargaUsuario]);
 
-    return { usuario, error, manejadorCargaUsuario };
+    const value = useMemo(() => ({
+        usuario, error, manejadorCargaUsuario
+    }), [usuario, error, manejadorCargaUsuario]);
+
+    return value;
 };
 
 /**
@@ -125,8 +134,8 @@ export function useUsuario(id, cargaAutomatica = true) {
  * - "manejadorCargaUsuarios" (Function): Función para recargar la lista de usuarios.
  */
 export function useUsuarios(cargaAutomatica = true) {
-    const { helperListo, verUsuarios} = useOperacionesUsuarios();
-    const { usuario: usuarioAutenticado } = useAuth();
+    const { helperListo, verUsuarios } = useOperacionesUsuarios();
+    const { usuario } = useAuth();
     const [error, setError] = useState(null);
     const [usuarios, setUsuarios] = useState(null);
     const mapeoUsuarios = useMemo(() => {
@@ -143,6 +152,7 @@ export function useUsuarios(cargaAutomatica = true) {
         const { success, data, error } = await verUsuarios();
             if (success) {
                 setUsuarios(data);
+                setError(null);
             } else {
                 setUsuarios([]);
                 setError(error);
@@ -150,10 +160,14 @@ export function useUsuarios(cargaAutomatica = true) {
     }, [verUsuarios, setUsuarios, setError]);
 
     useEffect(() => {
-        if (cargaAutomatica && usuarioAutenticado?.rolVisible && helperListo) {
+        if (cargaAutomatica && usuario?.rolVisible && helperListo) {
             manejadorCargaUsuarios();
         }
-    }, [cargaAutomatica, verUsuarios, helperListo, usuarioAutenticado?.rolVisible, manejadorCargaUsuarios]);
+    }, [cargaAutomatica, verUsuarios, helperListo, usuario?.rolVisible, manejadorCargaUsuarios]);
 
-    return { usuarios, mapeoUsuarios, error, manejadorCargaUsuarios };
+    const value = useMemo(() => ({
+        usuarios, mapeoUsuarios, error, manejadorCargaUsuarios, helperListo
+    }), [usuarios, mapeoUsuarios, error, manejadorCargaUsuarios, helperListo]);
+
+    return value;
 };

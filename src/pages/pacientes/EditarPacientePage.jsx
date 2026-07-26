@@ -3,7 +3,7 @@ import { FormPaciente } from "../../components/forms";
 import { MenuLayout } from "../../components/layout";
 import { Paciente } from "../../models";;
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { usePaciente } from "../../hooks";
 import { useTranslation } from "react-i18next";
 
@@ -13,14 +13,21 @@ import { useTranslation } from "react-i18next";
  * @returns {JSX.Element}
  */
 export default function EditarPacientePage() {
+    const navigate = useNavigate();
     const { id } = useParams();
+    const { error, paciente } = usePaciente(id);
     const { t } = useTranslation();
-    const paciente = usePaciente(id);
     const listadoPestanas = [
         { texto: t("titListaPacientes"), url: "/pacientes" },
         { texto: `${t("txtPaciente")} — ${paciente?.nombre}`, url: `/pacientes/${id}` },
         { texto: t("titEditarPaciente"), url: `/pacientes/${id}/editar` }
     ];
+
+    useEffect(() => {
+        if (error) {
+            navigate("/pacientes");
+        }
+    }, [error, navigate]);
 
     useEffect(() => {
         document.title = paciente ? `${t("titEditarPaciente")} — ${paciente?.nombre}`

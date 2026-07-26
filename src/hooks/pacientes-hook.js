@@ -2,7 +2,6 @@ import { Paciente } from "../models";
 import { useAuth } from "./auth-hook";
 import { useCallback, useMemo, useState } from "react";
 import { useEffect } from "react";
-import { useNavigate } from "react-router";
 import { validarId } from "../utils/Validadores";
 
 
@@ -96,7 +95,6 @@ export function useOperacionesPacientes() {
  * @returns {Paciente|null} Objeto Paciente correspondiente al ID proporcionado o null si no se encuentra.
  */
 export function usePaciente(id, cargaAutomatica = true) {
-    const navigate = useNavigate();
     const { verPaciente, helperListo, cancelarPeticiones } = useOperacionesPacientes();
     const [error, setError] = useState(null);
     const [paciente, setPaciente] = useState(null);
@@ -123,15 +121,22 @@ export function usePaciente(id, cargaAutomatica = true) {
     }, [setPaciente]);
 
     useEffect(() => {
-        if (validarId(id) && helperListo && cargaAutomatica) {
+        const validacion = validarId(id);
+        if (validacion && helperListo && cargaAutomatica) {
             manejadorCargaPaciente();
+        } else if (!validacion) {
+            setError("ID de paciente inválido");
         }
         return () => {
             cancelarPeticiones();
         };
-    }, [id, cargaAutomatica, verPaciente, helperListo, cancelarPeticiones, manejadorCargaPaciente, navigate]);
+    }, [id, cargaAutomatica, verPaciente, helperListo, cancelarPeticiones, manejadorCargaPaciente]);
 
-    return { error, establecerPaciente, manejadorCargaPaciente, paciente };
+    const value = useMemo(() => ({
+        error, establecerPaciente, manejadorCargaPaciente, paciente
+    }), [error, establecerPaciente, manejadorCargaPaciente, paciente]);
+
+    return value;
 };
 
 /**
@@ -145,8 +150,8 @@ export function usePaciente(id, cargaAutomatica = true) {
  */
 export function usePacientes(cargaAutomatica = true) {
     const { cancelarPeticiones, cargarDatos, helperListo } = useOperacionesPacientes();
-    const [pacientes, setPacientes] = useState(null);
     const [error, setError] = useState(null);
+    const [pacientes, setPacientes] = useState(null);
     const mapeoPacientes = useMemo(() => {
         const mapeo = {};
         if (pacientes) {
@@ -176,8 +181,11 @@ export function usePacientes(cargaAutomatica = true) {
             };
         }
     }, [cargaAutomatica, helperListo, manejadorCargaPacientes, cancelarPeticiones]);
-    return {
+
+    const value = useMemo(() => ({
         pacientes, mapeoPacientes, error,
-        manejadorCargaPacientes
-    };
+        manejadorCargaPacientes, helperListo
+    }), [pacientes, mapeoPacientes, error, manejadorCargaPacientes, helperListo]);
+
+    return value;
 };

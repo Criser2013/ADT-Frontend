@@ -21,7 +21,7 @@ import { useNavigate } from "react-router";
 export default function VerPacientesPage() {
     const navigate = useNavigate();
     const { eliminarPacientes } = useOperacionesPacientes();
-    const { error, manejadorCarga, pacientes } = usePacientes();
+    const { error, manejadorCargaPacientes, pacientes } = usePacientes();
     const { t } = useTranslation();
     const [cargando, setCargando] = useState(false);
     const [modalEliminacion, setModalEliminacion] = useState(false);
@@ -42,7 +42,7 @@ export default function VerPacientesPage() {
         setModalEliminacion(false);
         setModalError((x) => ({ ...x, mostrar: false }));
         setPacientesSeleccionados([]);
-        await manejadorCarga();
+        await manejadorCargaPacientes();
         setCargando(false);
     };
 
@@ -70,7 +70,7 @@ export default function VerPacientesPage() {
             setCargando(false);
         } else {
             setPacientesSeleccionados([]);
-            await manejadorCarga();
+            await manejadorCargaPacientes();
         }
     };
 
@@ -82,7 +82,7 @@ export default function VerPacientesPage() {
         if (error) {
             setModalError({ mostrar: true, texto: error });
         }
-    }, [error, setModalError]);
+    }, [error]);
 
     return (
         <MenuLayout>
