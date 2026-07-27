@@ -9,6 +9,7 @@ import FormSeleccionar from "../../components/forms/FormSeleccionar";
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 import { AdvertenciaEspacio } from "../../components/menu";
+import { BtnTabla } from "../../components/datatable";
 import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography } from "@mui/material";
 import { Check } from "../../components/tabs";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
@@ -16,7 +17,7 @@ import { descargarArchivoXlsx } from "../../utils/XlsxFiles";
 import { detTxtDiagnostico, nombresCampos } from "../../utils/TratarDatos";
 import { MenuLayout, TabHeader, PantallaCarga } from "../../components/layout";
 import { ModalDoble, ModalSimple } from "../../components/modals";
-import { useAppConfig, useAuth, useIdioma, useDiagnosticos, useOperacionesDiagnosticos } from "../../hooks";
+import { useAuth, useDiagnosticos, useIdioma, useOperacionesDiagnosticos } from "../../hooks";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -62,13 +63,17 @@ export default function VerDiagnosticosPage() {
             { id: "edad", label: t("txtCampoEdad"), componente: null, ordenable: true },
             { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo valor={x.sexo} />, ordenable: true },
             { id: "diagnostico", label: t("txtCampoDiagModelo"), componente: (x) => <ChipDiagnostico valor={x.diagnostico} />, ordenable: true },
-            { id: "validado", label: t("txtCampoDiagMedico"), componente: (x) => <ChipValidado valor={x.validado} />, ordenable: true }
+            { id: "validado", label: t("txtCampoDiagMedico"), componente: (x) => <ChipValidado valor={x.validado} />, ordenable: true },
+            {
+                id: "accion", label: t("txtAccion"),
+                componente: usuario?.rolVisible ? 
+                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnValidarTabla} txtAyuda="txtAyudaValidar" icono={<CheckCircleOutlineIcon />} /> : 
+                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnEliminarTabla} txtAyuda="txtAyudaEliminarDiag" color="error" icono={<DeleteIcon />} />, 
+                ordenable: false
+            }
         ];
         if (!usuario?.rolVisible) {
             aux.push({ id: "paciente", label: t("txtCedula"), componente: null, ordenable: true });
-        }
-        if (usuario?.rolVisible) {
-            aux2.push({ id: "accion", label: t("txtAccion"), componente: null, ordenable: false });
         }
         return aux.concat(aux2);
     }, [usuario?.rolVisible, t]);
@@ -138,20 +143,17 @@ export default function VerDiagnosticosPage() {
         }
 
         for (let i = 0; i < diags.length; i++) {
-            auxDiag[i].sexo = auxDiag[i].sexo == 0 ? t("txtMasculino") : t("txtFemenino");
             const campos = admin ? "medico" : "paciente";
             const persona = aux[auxDiag[i][campos]];
             const nombre = (admin && persona == undefined) ? t("txtUsuario") : t("txtPaciente");
             if (!admin) {
                 auxDiag[i].paciente = (persona != undefined) ? persona.cedula : "N/A";
-                auxDiag[i].id = auxDiag[i].id.replace(/-\w{28}$/, "");
             }
 
 
             auxDiag[i].nombre = (persona != undefined) ? persona.nombre : `${nombre} ${t("txtEliminado")}`;
             auxDiag[i].diagnostico = detTxtDiagnostico(auxDiag[i].diagnostico, navegacion.idioma);
             auxDiag[i].fecha = auxDiag[i].fecha.toDate();
-            auxDiag[i].accion = (auxDiag[i].validado == 2 && !admin) ? <BtnValidar diagnostico={i} /> : "";
             auxDiag[i].validado = detTxtDiagnostico(auxDiag[i].validado, navegacion.idioma);
 
             delete auxDiag[i].medico;
@@ -205,30 +207,6 @@ export default function VerDiagnosticosPage() {
             await manejadorCargaDiagnosticos(usuario?.rolVisible, usuario?.uid, Timestamp.now());
         }
         setProcesando(false);
-    };
-
-    /**
-     * Botón para validar diagnóstico
-     * @param {JSON} diagnostico - Diagnóstico a validar.
-     * @returns {JSX.Element}
-     */
-    const BtnValidar = (diagnostico) => {
-        const func = (x) => {
-            sessionStorage.setItem("ejecutar-callback", "false");
-            setInstancia(x);
-            setModoModal(2);
-            setModal({
-                mostrar: true, titulo: t("titValidar"), mensaje: "", icono: <CheckCircleOutlineIcon />,
-            });
-        };
-
-        return (
-            <Tooltip title={t("txtAyudaValidar")}>
-                <Button onClick={() => func(diagnostico)} color="primary" variant="outlined">
-                    <CheckCircleOutlineIcon />
-                </Button>
-            </Tooltip>
-        );
     };
 
     /**
