@@ -42,6 +42,7 @@ export default function VerDiagnosticosPage() {
     const [procesando, setProcesando] = useState(true);
     const [modalValidacion, setModalValidacion] = useState(false);
     const [modalEliminacion, setModalEliminacion] = useState(false);
+    const [modalExportacion, setModalExportacion] = useState(false);
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
 
     const [seleccionados, setSeleccionados] = useState([]);
@@ -251,13 +252,6 @@ export default function VerDiagnosticosPage() {
         }
     };
 
-    function manejadorBtnExportar() {
-        setModal({
-            mostrar: true, titulo: t("titExportar"),
-            texto: "", icono: <FileDownloadIcon />
-        });
-    };
-
     /**
      * Cuerpo del modal de confirmación.
      * @returns JSX.Element
@@ -371,20 +365,29 @@ export default function VerDiagnosticosPage() {
                 manejadorBtn={manejadorBtnValidar}
                 manejadorCierre={() => setModalValidacion(false)} />
             <ModalDoble
-                mostrar={modal.mostrar}
-                titulo={modal.titulo}
-                txtBtnPrincipal={lblBtnPrimarioModal}
+                mostrar={modalEliminacion}
+                titulo={t("titAlerta")}
+                txtBtnPrincipal={t("txtBtnEliminar")}
                 txtBtnSecundario={t("txtBtnCancelar")}
-                manejadorBtnPrincipal={manejadorBtnModal}
-                manejadorBtnSecundario={() => setModal((x) => ({ ...x, mostrar: false }))}
-                iconoBtnPrincipal={modal.icono}
-                iconoBtnSecundario={<CloseIcon />}>
+                manejadorBtnPrincipal={manejadorBtnEliminar}
+                manejadorBtnSecundario={() => setModalEliminacion(false)}
+                iconoBtnPrincipal={<DeleteIcon />}
+                iconoBtnSecundario={<CloseIcon />} />
+            <ModalDoble
+                mostrar={modalExportacion}
+                titulo={t("titExportar")}
+                txtBtnPrincipal={t("txtBtnExportar")}
+                txtBtnSecundario={t("txtBtnCancelar")}
+                manejadorBtnPrincipal={exportarDiagnosticos}
+                manejadorBtnSecundario={() => setModalExportacion(false)}
+                iconoBtnPrincipal={<FileDownloadIcon />}
+                iconoBtnSecundario={<CloseIcon />} >
                 <CuerpoModal />
             </ModalDoble>
             <ModalSimple
                 mostrar={modalError.mostrar}
                 titulo={t("titErr")}
-                texto={modalError.texto}
+                texto={t(modalError.texto)}
                 txtBtn={t("txtBtnCerrar")}
                 manejadorBtn={() => setModalError((X) => ({ ...X, mostrar: false }))}
                 iconoBtn={<CloseIcon />} />
