@@ -271,8 +271,8 @@
     "errLimPeticiones": "Límite de peticiones alcanzado. Reintente en 1 minuto.",
     "errEstrucArchivoInvalida": "El archivo no tiene la estructura correcta o contiene datos invalidos.",
     "txtNoValidado": "No validado",
-    "txtCampoOtraEnfermedad": "Otra enfermedad",
-    "txtTep": "TEP",
+    "otra_enfermedad": "Otra enfermedad",
+    "tep": "TEP",
     "txtSufijoEdad": "años",
     "txtBtnEditar": "Editar",
     "titExplicacion": "Explicación del diagnóstico",
@@ -315,5 +315,6 @@
     "txtAyudaBtnBuscar": "Buscar",
     "txtBtnReiniciar": "Reiniciar",
     "txtAyudaBtnReiniciar": "Reinicia el formulario colocando los datos actuales del paciente.",
-    "errDiagnosticar": "Se ha producido un error al generar el diagnóstico. Por favor, inténtalo de nuevo más tarde."
+    "errDiagnosticar": "Se ha producido un error al generar el diagnóstico. Por favor, inténtalo de nuevo más tarde.",
+    "txtCamposSiginificativos": "Campos significativos para el diagnóstico"
 }

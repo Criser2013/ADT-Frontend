@@ -271,8 +271,8 @@
     "errLimPeticiones": "Request limit reached. Please try again in 1 minute.",
     "errEstrucArchivoInvalida": "The file has an incorrect structure or contains invalid data.",
     "txtNoValidado": "Not validated",
-    "txtCampoOtraEnfermedad": "Other disease",
-    "txtTep": "PE",
+    "otra_enfermedad": "Other disease",
+    "tep": "PE",
     "txtSufijoEdad": "years old",
     "txtBtnEditar": "Edit",
     "titExplicacion": "Diagnosis explanation",
@@ -315,5 +315,6 @@
     "txtAyudaBtnBuscar": "Search",
     "txtBtnReiniciar": "Reset",
     "txtAyudaBtnReiniciar": "Reset the form with the current patient data.",
-    "errDiagnosticar": "Something went wrong while generating the diagnosis. Please try again later."
+    "errDiagnosticar": "Something went wrong while generating the diagnosis. Please try again later.",
+    "txtCamposSiginificativos": "Significant fields for the diagnosis"
 }

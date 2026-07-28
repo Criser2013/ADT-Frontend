@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals';
-import { evaluarIntervalo, nombresCampos, oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool, quitarDatosPersonales } from "../../../../src/utils/TratarDatos";
+import { evaluarIntervalo, nombresCampos, oneHotEncoderOtraEnfermedad, oneHotDecoderOtraEnfermedad, procBool } from "../../../../src/utils/TratarDatos";
 
 describe("Validar oneHotEncoder de 'otra enfermedad'", () => {
     test("CP - 15", () => {
@@ -46,40 +46,6 @@ describe("Validar la función 'oneHotInversoOtraEnfermedad'", () => {
             "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0
         });
         expect(res).toEqual([]);
-    });
-});
-
-describe("Validar la función 'quitarDatosPersonales'", () => {
-    test("CP - 53", () => {
-        const res = quitarDatosPersonales({
-            nombre: "Nombre de persona", sexo: 0, fechaNacimiento: "20/12/2025",
-            telefono: "12345678", cedula: "123456789", "Enfermedad vascular": 1,
-            "Enfermedad vascular": 1, "Diabetes Mellitus": 0, "Trombofilia": 0,
-            "Enfermedad pulmonar": 0, "Hipertensión arterial": 1, "Hepatopatía crónica": 0,
-            "Enfermedad hematológica": 1, "VIH": 1, "Enfermedad cardíaca": 0,
-            "Enfermedad coronaria": 1, "Enfermedad endocrina": 1,
-            "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0
-        });
-
-        expect(res).toEqual({
-            nombre: "Nombre de persona", sexo: 0, fechaNacimiento: "20/12/2025",
-            telefono: "12345678", cedula: "123456789"
-        });
-    });
-
-    test("CP - 54", () => {
-        const res = quitarDatosPersonales({
-            nombre: "Nombre de persona", sexo: 0, fechaNacimiento: "20/12/2025",
-            telefono: "12345678", cedula: "123456789", "Enfermedad vascular": 1,
-            "Enfermedad vascular": 1, "Diabetes Mellitus": 0, "Trombofilia": 0,
-            "Enfermedad pulmonar": 0, "Hipertensión arterial": 1, "Hepatopatía crónica": 0,
-            "Enfermedad hematológica": 1, "VIH": 1, "Enfermedad cardíaca": 0,
-        });
-
-        expect(res).toEqual({
-            nombre: "Nombre de persona", sexo: 0, fechaNacimiento: "20/12/2025",
-            telefono: "12345678", cedula: "123456789"
-        });
     });
 });
 

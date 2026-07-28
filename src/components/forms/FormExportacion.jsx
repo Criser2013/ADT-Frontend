@@ -50,7 +50,10 @@ export default function FormExportacion({ diagnosticos, mostrar = false, manejad
             }
         }
 
-        const resDrive = guardarDrive ? await datosHelper.crearCopiaDiagnosticos(auxArr, nombreArchivo, tipoArchivo) : { success: true, error: null };
+        const resDrive = guardarDrive ? (
+            await datosHelper?.crearCopiaDiagnosticos(auxArr, nombreArchivo, tipoArchivo)) : (
+            { success: true, error: null }
+        );
         const resDescarga = descargarArchivoXlsx(auxArr, nombreArchivo, tipoArchivo);
 
         if (!(resDrive.success && resDescarga.success)) {
@@ -117,8 +120,8 @@ export default function FormExportacion({ diagnosticos, mostrar = false, manejad
                 mostrar={modalError.mostrar}
                 titulo={t("tituloErr")}
                 mensaje={`${t("errExportar")} ${modalError.texto}.`}
-                manejadorCierre={() => setModalError((x) => ({...x, mostrar: false}))}
-             />
+                manejadorCierre={() => setModalError((x) => ({ ...x, mostrar: false }))}
+            />
         </>
     );
 };
