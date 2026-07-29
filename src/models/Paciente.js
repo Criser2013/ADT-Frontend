@@ -1,7 +1,7 @@
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import dayjs from "dayjs";
 import { COMORBILIDADES } from "../constants";
-import { oneHotDecoderOtraEnfermedad } from "../utils/TratarDatos";
+import { decoderOtraEnfermedad } from "../utils/TratarDatos";
 
 dayjs.extend(customParseFormat);
 
@@ -61,7 +61,7 @@ export default class Paciente {
     }
 
     get comorbilidades() {
-        return oneHotDecoderOtraEnfermedad(this.#comorbilidades);
+        return decoderOtraEnfermedad(this.#comorbilidades);
     }
 
     get comorbilidadesCodificadas() {

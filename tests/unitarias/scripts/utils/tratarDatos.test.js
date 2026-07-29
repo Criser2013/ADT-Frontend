@@ -1,7 +1,7 @@
 import { expect, describe, test } from '@jest/globals';
 import Diagnostico from "../../../../src/models/Diagnostico";
 import ExplicacionLime from "../../../../src/models/ExplicacionLime";
-import { evaluarIntervalo, crearArchivoExportable, decoderOtraEnfermedad, procBool } from "../../../../src/utils/TratarDatos";
+import { evaluarIntervalo, convertirDiagnosticoExportable, decoderOtraEnfermedad, procBool } from "../../../../src/utils/TratarDatos";
 
 describe("Validar la función 'decoderOtraEnfermedad'", () => {
     // --------------------------- Parámetros -----------------------
@@ -64,7 +64,7 @@ describe("Validar la función 'procBool'", () => {
     });
 });
 
-describe("Validar la nfunción 'crearArchivoExportable'", () => {
+describe("Validar la función 'convertirDiagnosticoExportable'", () => {
     const instancia = new Diagnostico("ID", "Usuario Test", "1f073a07-6630-6d90-ac94-34c18cc96549",
         ["Enfermedad hematológica", "Hipertensión arterial"],
         new Date("2023-10-01T00:00:00Z"), 0, true, {
@@ -103,7 +103,7 @@ describe("Validar la nfunción 'crearArchivoExportable'", () => {
             "Campos significativos para el diagnóstico": '[{"VIH":51.85,"Hepatopatía crónica":-48.2}]'
         };
 
-        const res = await crearArchivoExportable(instancia, false, false, "es");
+        const res = await convertirDiagnosticoExportable(instancia, false, false, "es");
         expect(res).toEqual(respuesta);
     });
 
@@ -128,7 +128,7 @@ describe("Validar la nfunción 'crearArchivoExportable'", () => {
             "Diagnóstico médico": "N/A", "ID": "ID-Usuario Test", "Usuario": "Usuario Test", "Fecha": "1/10/2023", "Diagnóstico modelo": 1
         };
 
-        const res = await crearArchivoExportable(instancia, true, true, "es");
+        const res = await convertirDiagnosticoExportable(instancia, true, true, "es");
         expect(res).toEqual(respuesta);
     });
 });

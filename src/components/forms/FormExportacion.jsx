@@ -1,12 +1,13 @@
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { Check } from "../tabs";
-import { ModalDoble, ModalSimple } from "../modals";
 import { Controller, useForm } from "react-hook-form";
+import { convertirDiagnosticoExportable } from "../../utils/TratarDatos";
+import { descargarArchivoXlsx } from "../../utils/XlsxFiles";
+import { MenuItem, Select, Typography } from "@mui/material";
+import { ModalDoble, ModalSimple } from "../modals";
 import { useAuth, useIdioma } from "../../hooks";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MenuItem, Select, Typography } from "@mui/material";
-import { descargarArchivoXlsx } from "../../utils/XlsxFiles";
 
 
 const valoresPredet = {
@@ -19,18 +20,27 @@ const formatos = [
     { valor: "csv", texto: "txtCsv" }
 ];
 
+/**
+ * Formulario para exportar diagnósticos en un archivo de Excel o CSV.
+ * @param {Array<Diagnostico>} diagnosticos Diagnósticos a exportar.
+ * @param {Boolean} mostrar Indica si el formulario debe mostrarse.
+ * @param {Function} manejadorCierre Función que se ejecuta al cerrar el formulario.
+ * @returns {JSX.Element}
+ */
 export default function FormExportacion({ diagnosticos, mostrar = false, manejadorCierre }) {
-    const { usuario, datosHelper } = useAuth();
+    const { control, handleSubmit } = useForm({ defaultValues: valoresPredet });
     const { idioma } = useIdioma();
     const { t } = useTranslation();
-    const { control, handleSubmit } = useForm({ defaultValues: valoresPredet });
+    const { usuario, datosHelper } = useAuth();
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
 
+    /**
+     * @param {Object} datos Datos del formulario.
+     */
     async function manejadorExportar(datos) {
         manejadorCierre();
 
         const { preprocesar, guardarDrive, tipoArchivo } = datos;
-
         const json = diagnosticos.map((x) => x.toJson());
         const opciones = {
             weekday: "long", year: "numeric", month: "long",
@@ -38,16 +48,14 @@ export default function FormExportacion({ diagnosticos, mostrar = false, manejad
         };
         const fecha = new Date().toLocaleDateString(idioma, opciones).replaceAll(".", "");
         const auxArr = [];
-        const nombreArchivo = preprocesar ? `HADT ${t("txtDiagnosticos")} — ${fecha}-${t("txtPreprocesados")}` : `HADT ${t("txtDiagnosticos")} — ${fecha}`;
+        const nombreArchivo = preprocesar ? `HADT ${t("txtDiagnosticos")} — ${fecha}-${t("txtPreprocesados")}`
+            : `HADT ${t("txtDiagnosticos")} — ${fecha}`;
 
         for (let i = 0; i < json.length; i++) {
-            // Solo se incluyen los diagnósticos validados si se requiere preprocesar y lo pide un admin
-            if (!preprocesar || (preprocesar && json[i].validado)) {
-                json[i].id = usuario?.rolVisible ? `${json[i].id}-${json[i].usuario}` : json[i].id;
-                json[i].paciente = datos[i].nombre;
-                json[i] = nombresCampos(json[i], usuario?.rolVisible, preprocesar, idioma);
-                auxArr.push(json[i]);
-            }
+            json[i].id = usuario?.rolVisible ? `${json[i].id}-${json[i].usuario}` : json[i].id;
+            json[i].paciente = datos[i].nombre;
+            json[i] = await convertirDiagnosticoExportable(json[i], usuario?.rolVisible, preprocesar, idioma);
+            auxArr.push(json[i]);
         }
 
         const resDrive = guardarDrive ? (
@@ -120,8 +128,7 @@ export default function FormExportacion({ diagnosticos, mostrar = false, manejad
                 mostrar={modalError.mostrar}
                 titulo={t("tituloErr")}
                 mensaje={`${t("errExportar")} ${modalError.texto}.`}
-                manejadorCierre={() => setModalError((x) => ({ ...x, mostrar: false }))}
-            />
+                manejadorCierre={() => setModalError((x) => ({ ...x, mostrar: false }))} />
         </>
     );
 };

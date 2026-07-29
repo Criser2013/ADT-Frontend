@@ -75,19 +75,6 @@ export function evaluarIntervalo(valor, intervalos) {
 };
 
 /**
- * Aplica el preprocesamiento de los campos numéricos de una instancia de diagnóstico.
- * @param {Diagnostico} instancia Instancia de diagnóstico convertida a JSON.
- * @returns {Object} Instancia de diagnóstico con los campos numéricos preprocesados.
- */
-export function procCamposNumericos(instancia) {
-    const aux = { ...instancia };
-    for (const i in INTERVALOS_PREPROCESAMIENTO) {
-        aux[i] = evaluarIntervalo(instancia.sintomasNumericos[i], INTERVALOS_PREPROCESAMIENTO[i]);
-    }
-    return aux;
-};
-
-/**
  * Transforma una instancia de diagnóstico de Firestore a un formato JSON para ser exportado 
  * como hoja de Excel o archivo CSV.
  * @param {Diagnostico} instancia Instancia de diagnóstico.
@@ -96,9 +83,9 @@ export function procCamposNumericos(instancia) {
  * @param {String} idioma Idioma para los títulos, por defecto "es" (español). Opciones: "es", "en".
  * @returns {Object} Instancia de diagnóstico en formato JSON para exportación.
  */
-export async function crearArchivoExportable(instancia, esAdmin, preprocesar = false, idioma = "es") {
+export async function convertirDiagnosticoExportable(instancia, esAdmin, preprocesar = false, idioma = "es") {
     const datos = {};
-    const textos = await import(`/public/locales/${idioma}/translation.json`).then((module) => module.default);
+    const textos = (await import(`/public/locales/${idioma}/translation.json`, { with: { type: "json" } })).default;
 
     for (const i of CAMPOS_BIN) {
         datos[textos[i]] = procBool(instancia.sintomasBinarios[i]);
