@@ -65,21 +65,9 @@ export default function FormDiagnostico({
     const { getValues, setValue, control, handleSubmit, reset, watch, formState: { errors } } = useForm({
         defaultValues: valoresPredet, mode: "onBlur"
     });
-    const listaPacientes = useMemo(() => 
-            Array.isArray(pacientes) ? [valoresPredet.paciente, ...pacientes] : [valoresPredet.paciente]
-    , [pacientes]);
-    const camposExamenes = [
-        { nombre: "plt", label: t("txtCampoPLT") },
-        { nombre: "hb", label: t("txtCampoHB") },
-        { nombre: "wbc", label: t("txtCampoWBC") }
-    ];
-    const camposSignosVitales = [
-        { nombre: "presion_sistolica", label: `${t("txtCampoPresionSist")} (mmHg)` },
-        { nombre: "presion_diastolica", label: `${t("txtCampoPresionDiast")} (mmHg)` },
-        { nombre: "frecuencia_respiratoria", label: `${t("txtCampoFrecRes")}` },
-        { nombre: "frecuencia_cardiaca", label: `${t("txtCampoFrecCard")}` },
-        { nombre: "saturacion_de_la_sangre", label: `${t("txtCampoSO2")}` }
-    ];
+    const listaPacientes = useMemo(() =>
+        Array.isArray(pacientes) ? [valoresPredet.paciente, ...pacientes] : [valoresPredet.paciente]
+        , [pacientes]);
     const otraEnfermedad = watch("otra_enfermedad");
 
     useEffect(() => {
@@ -96,7 +84,7 @@ export default function FormDiagnostico({
     /**
      * @param {Event} e Evento de cambio del select de pacientes.
      */
-    const manejadorCambioPaciente = (e) => {
+    function manejadorCambioPaciente(e) {
         const paciente = e.target.value;
 
         if (paciente.id != "null") {
@@ -165,10 +153,8 @@ export default function FormDiagnostico({
 
     return (
         <>
-            {cargando ? (
-                <PantallaCarga />
-            ) : (
-                <>
+            {cargando ? <PantallaCarga /> :
+                (<>
                     <TabHeader
                         titulo={titulo}
                         pestanas={pestanas}
@@ -250,7 +236,7 @@ export default function FormDiagnostico({
                                 }}
                                 render={({ field }) => (
                                     <TextField
-                                        label={t("txtCampoEdad")}
+                                        label={t("edad")}
                                         {...field}
                                         error={errors.edad}
                                         disabled={esDiagPacientes}
@@ -292,35 +278,11 @@ export default function FormDiagnostico({
                                 {t("titSignosVitales")}
                             </Typography>
                         </Grid>
-                        {camposSignosVitales.map((campo) => (
-                            <Grid size={1} key={campo.nombre}>
-                                <Controller
-                                    name={campo.nombre}
-                                    control={control}
-                                    rules={{
-                                        required: t("errCampoObligatorio"),
-                                        validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            label={campo.label}
-                                            {...field}
-                                            error={errors[campo.nombre]}
-                                            helperText={errors[campo.nombre]?.message}
-                                            fullWidth />
-                                    )} />
-                            </Grid>
-                        ))}
-                        <Grid size={numColumnas}>
-                            <Typography variant="h6" fontWeight="bold">
-                                {t("titExamenes")}
-                            </Typography>
-                        </Grid>
-                        <Grid size={{ xs: 1, sm: 2, md: 3 }} container columns={numColumnas} spacing={2}>
-                            {camposExamenes.map((campo) => (
-                                <Grid key={campo.nombre} size={1}>
+                        {["presion_sistolica", "presion_diastolica", "frecuencia_respiratoria",
+                            "frecuencia_cardiaca", "saturacion_de_la_sangre"].map((campo) => (
+                                <Grid size={1} key={campo}>
                                     <Controller
-                                        name={campo.nombre}
+                                        name={campo}
                                         control={control}
                                         rules={{
                                             required: t("errCampoObligatorio"),
@@ -328,10 +290,35 @@ export default function FormDiagnostico({
                                         }}
                                         render={({ field }) => (
                                             <TextField
-                                                label={campo.label}
+                                                label={t(campo)}
                                                 {...field}
-                                                error={errors[campo.nombre]}
-                                                helperText={errors[campo.nombre]?.message}
+                                                error={errors[campo]}
+                                                helperText={errors[campo]?.message}
+                                                fullWidth />
+                                        )} />
+                                </Grid>
+                            ))}
+                        <Grid size={numColumnas}>
+                            <Typography variant="h6" fontWeight="bold">
+                                {t("titExamenes")}
+                            </Typography>
+                        </Grid>
+                        <Grid size={{ xs: 1, sm: 2, md: 3 }} container columns={numColumnas} spacing={2}>
+                            {["plt", "hb", "wbc"].map((campo) => (
+                                <Grid key={campo} size={1}>
+                                    <Controller
+                                        name={campo}
+                                        control={control}
+                                        rules={{
+                                            required: t("errCampoObligatorio"),
+                                            validate: (value) => validarFloatPos(value) || t("errValidarNumPos")
+                                        }}
+                                        render={({ field }) => (
+                                            <TextField
+                                                label={t(campo)}
+                                                {...field}
+                                                error={errors[campo]}
+                                                helperText={errors[campo]?.message}
                                                 fullWidth />
                                         )} />
                                 </Grid>

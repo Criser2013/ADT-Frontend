@@ -2,7 +2,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import dayjs from "dayjs";
 import ExplicacionLime from "./ExplicacionLime";
 import { CAMPOS_BIN, CAMPOS_DECIMALES, CAMPOS_ENTEROS, CAMPOS_NUM, COMORBILIDADES } from "../constants";
-import { oneHotDecoderOtraEnfermedad } from "../utils/TratarDatos";
+import { decoderOtraEnfermedad } from "../utils/TratarDatos";
 import { procBool } from "../utils/TratarDatos";
 import { Timestamp } from "firebase/firestore";
 
@@ -74,7 +74,7 @@ export default class Diagnostico {
     }
 
     get comorbilidades() {
-        return oneHotDecoderOtraEnfermedad(this.#comorbilidades);
+        return decoderOtraEnfermedad(this.#comorbilidades);
     }
 
     get comorbilidadesCodificadas() {

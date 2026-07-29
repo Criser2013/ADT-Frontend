@@ -1,24 +1,4 @@
-import { CAMPOS_NUM, CAMPOS_BIN, COMORBILIDADES, INTERVALOS_PREPROCESAMIENTO } from "../constants";
-
-/**
- * Convierte la lista de comorbilidades en un JSON cuyas claves son las comorbilidades
- * y los valores son 0 o 1, dependiendo si el paciente la padece o no.
- * @param {Array} datos - Lista de comorbilidades.
- * @returns {JSON}
- */
-export function oneHotEncoderOtraEnfermedad(datos) {
-    const aux = {};
-
-    for (const i of COMORBILIDADES) {
-        aux[i] = 0;
-    }
-
-    for (const i of datos) {
-        aux[i] = 1;
-    }
-
-    return aux;
-};
+import { CAMPOS_BIN, CAMPOS_NUM, COMORBILIDADES, INTERVALOS_PREPROCESAMIENTO } from "../constants";
 
 
 /**
@@ -26,7 +6,7 @@ export function oneHotEncoderOtraEnfermedad(datos) {
  * @param {JSON} datos - JSON con las comorbilidades codificadas como one-hot.
  * @returns {Array}
  */
-export function oneHotDecoderOtraEnfermedad(datos) {
+export function decoderOtraEnfermedad(datos) {
     const aux = [];
     for (const i of COMORBILIDADES) {
         if (datos[i] == 1) {
@@ -77,15 +57,15 @@ export function procBool(valor) {
 export function evaluarIntervalo(valor, intervalos) {
     for (const i of intervalos) {
         const [min, max, etiqueta] = i;
-        if ((min != Infinity) && (max != Infinity)) {
+        if ((min != -Infinity) && (max != Infinity)) {
             if ((valor >= min) && (valor < max)) {
                 return etiqueta;
             }
-        } else if ((min != Infinity) && (max == Infinity)) {
+        } else if ((min != -Infinity) && (max == Infinity)) {
             if (valor >= min) {
                 return etiqueta;
             }
-        } else if ((min == Infinity) && (max != Infinity)) {
+        } else if ((min == -Infinity) && (max != Infinity)) {
             if (valor < max) {
                 return etiqueta;
             }
@@ -96,13 +76,13 @@ export function evaluarIntervalo(valor, intervalos) {
 
 /**
  * Aplica el preprocesamiento de los campos numéricos de una instancia de diagnóstico.
- * @param {Object} instancia Instancia de diagnóstico convertida a JSON.
+ * @param {Diagnostico} instancia Instancia de diagnóstico convertida a JSON.
  * @returns {Object} Instancia de diagnóstico con los campos numéricos preprocesados.
  */
 export function procCamposNumericos(instancia) {
     const aux = { ...instancia };
     for (const i in INTERVALOS_PREPROCESAMIENTO) {
-        aux[i] = evaluarIntervalo(instancia[i], INTERVALOS_PREPROCESAMIENTO[i]);
+        aux[i] = evaluarIntervalo(instancia.sintomasNumericos[i], INTERVALOS_PREPROCESAMIENTO[i]);
     }
     return aux;
 };
@@ -110,7 +90,7 @@ export function procCamposNumericos(instancia) {
 /**
  * Transforma una instancia de diagnóstico de Firestore a un formato JSON para ser exportado 
  * como hoja de Excel o archivo CSV.
- * @param {Object} instancia Instancia de diagnóstico (en formato JSON).
+ * @param {Diagnostico} instancia Instancia de diagnóstico.
  * @param {Boolean} esAdmin Indica si el usuario es administrador
  * @param {Boolean} preprocesar Indicador para preprocesar los datos (interval encoding).
  * @param {String} idioma Idioma para los títulos, por defecto "es" (español). Opciones: "es", "en".
@@ -118,30 +98,32 @@ export function procCamposNumericos(instancia) {
  */
 export async function crearArchivoExportable(instancia, esAdmin, preprocesar = false, idioma = "es") {
     const datos = {};
-    const textos = await import(`/locales/${idioma}/translation.json`);
+    const textos = await import(`/public/locales/${idioma}/translation.json`).then((module) => module.default);
 
     for (const i of CAMPOS_BIN) {
-        datos[textos[i]] = procBool(instancia[i]);
+        datos[textos[i]] = procBool(instancia.sintomasBinarios[i]);
     }
 
     for (const i of CAMPOS_NUM) {
-        datos[textos[i]] = preprocesar ? evaluarIntervalo(instancia[i], INTERVALOS_PREPROCESAMIENTO[i]) : instancia[i];
+        datos[textos[i]] = preprocesar ? evaluarIntervalo(
+            instancia.sintomasNumericos[i], INTERVALOS_PREPROCESAMIENTO[i]
+        ) : instancia.sintomasNumericos[i];
     }
 
     for (const i of COMORBILIDADES) {
-        datos[textos[i]] = procBool(instancia[i]);
+        datos[textos[i]] = procBool(instancia.comorbilidadesCodificadas[i]);
     }
 
     datos.ID = esAdmin ? `${instancia.id}-${instancia.usuario}` : instancia.id;
-    datos.sexo = instancia.sexo == 0 ? "M" : "F";
-    datos[textos.otra_enfermedad] = instancia.otra_enfermedad;
-    datos[textos.txtCampoDiagnostico] = instancia.diagnostico;
-    datos[textos.txtCampoMedico] = instancia.validado ? instancia.validado : "N/A";
-    datos[textos.txtFecha] = instancia.fecha.toDate().toLocaleDateString(idioma);
+    datos.Sexo = !preprocesar ? instancia.sexo : (instancia.sexo == 0 ? "M" : "F");
+    datos[textos.otra_enfermedad] = procBool(instancia.otraEnfermedad);
+    datos[textos.txtCampoDiagModelo] = procBool(instancia.diagnosticoModelo);
+    datos[textos.txtCampoDiagMedico] = instancia.validado ? procBool(instancia.validado) : "N/A";
+    datos[textos.txtFecha] = instancia.fecha.toLocaleDateString(idioma);
 
     if (!esAdmin) {
         datos[textos.txtPaciente] = instancia.paciente;
-        datos[textos.txtCamposSignificativos] = instancia.explicacion;
+        datos[textos.txtCamposSignificativos] = JSON.stringify(instancia.explicacion.toJson());
         datos[textos.txtCampoProbabilidad] = (instancia.probabilidad * 100).toFixed(2);
     } else {
         datos[textos.txtUsuario] = instancia.usuario;
