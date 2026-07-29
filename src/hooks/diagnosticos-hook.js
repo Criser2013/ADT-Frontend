@@ -1,4 +1,5 @@
 import useIdioma from "./idioma-hook";
+import { Paciente, Usuario } from "../models";
 import { DiagnosticosHelper } from "../helpers";
 import { useAppConfig } from "./appConfig-hook";
 import { useAuth } from "./auth-hook";
@@ -199,28 +200,44 @@ export function useDiagnostico(id, traerInfoPersona = false) {
  * @param {Boolean} traerInfoPersona Indicador para cargar los datos del paciente o usuario relacionado a cada diagnóstico.
  * @returns {Object} Objeto con las claves:
  * - "diagnosticos" (Array<Diagnostico>|null) - Lista de diagnósticos obtenidos, sino null.
- * - "personas" (Array<Paciente|Usuario>|null) - Lista de pacientes o usuarios relacionados a los diagnósticos obtenidos, sino null.
  * - "error" (String|null) - Mensaje de error en caso de que la operación falle, sino null.
  * - "mapeoDiagnosticos" (Object) - Objeto que mapea los IDs de los diagnósticos a sus datos.
  */
 export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPersona = false) {
-    const { helperListo: pacientesListo, manejadorCargaPacientes, pacientes } = usePacientes(false);
-    const { helperListo: usuariosListo, manejadorCargaUsuarios, usuarios } = useUsuarios(false);
+    const { helperListo: pacientesListo, manejadorCargaPacientes, mapeoPacientes } = usePacientes(false);
+    const { helperListo: usuariosListo, manejadorCargaUsuarios, mapeoUsuarios } = useUsuarios(false);
     const { usuario } = useAuth();
     const { verDiagnosticos, helperListo: diagnosticosListo } = useOperacionesDiagnosticos();
     const [diagnosticos, setDiagnosticos] = useState(null);
     const [error, setError] = useState(null);
     const mapeoDiagnosticos = useMemo(() => {
-        const mapeo = {};
-        if (diagnosticos) {
+        const aux = {};
+        if (Array.isArray(diagnosticos)) {
             for (const d of diagnosticos) {
-                mapeo[d.id] = d;
+                aux[d.id] = d;
             }
         }
-        return mapeo;
+        return aux;
     }, [diagnosticos]);
-    const personas = useMemo(() => usuario?.rolVisible ? usuarios : pacientes
-        , [usuarios, pacientes, usuario?.rolVisible]);
+
+    const diagnosticosMapeados = useMemo(() => {
+        const aux = diagnosticos?.map((d) => d.deepClone()) || [];
+
+        if (traerInfoPersona) {
+            for (const d of aux) {
+                if (usuario?.rolVisible) {
+                    d.usuario = mapeoUsuarios[d.usuario]?.nombre || "eliminado";
+                }
+                if (!d.paciente) {
+                    d.paciente = "anonimo";
+                } else {
+                    d.paciente = mapeoPacientes[d.paciente]?.nombre || "eliminado";
+                }
+            }
+        }
+
+        return aux;
+    }, [usuario?.rolVisible, traerInfoPersona, diagnosticos, mapeoPacientes, mapeoUsuarios]);
 
     /**
      * @param {String} tipo Tipo de persona a cargar: "paciente" o "usuario".
@@ -266,5 +283,5 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
         }
     }, [diagnosticosListo, verDiagnosticos, verTodos, uid, fecha, diagnosticos, manejadorCargaDiagnosticos]);
 
-    return { diagnosticos, personas, error, mapeoDiagnosticos };
+    return { mapeoDiagnosticos, diagnosticos: diagnosticosMapeados, error };
 };

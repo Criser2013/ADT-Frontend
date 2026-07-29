@@ -40,7 +40,6 @@ export default function Datatable({
     activarSeleccion = true, camposBusqueda = [], campoOrdenInicial = "id", direccionOrdenInicial = "desc",
     callbackClicCelda = null, callbackBtnAccion = null, icono = null
 }) {
-
     const [auxDatos, setAuxDatos] = useState(datos);
     const [campoOrden, setCampoOrden] = useState(campoOrdenInicial ? campoOrdenInicial : campos[0].id);
     const [filasEnPagina, setFilasEnPagina] = useState(5);

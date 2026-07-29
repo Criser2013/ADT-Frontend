@@ -20,6 +20,18 @@ const formatos = [
     { valor: "csv", texto: "txtCsv" }
 ];
 
+function detTextoPersona(rol, nombre) {
+    if (rol == "paciente" && nombre == "null") {
+        return ["txtPaciente", "txtEliminado"];
+    } else if (rol == "paciente" && nombre == "anonimo") {
+        return ["txtPaciente", "txtAnonimo"];
+    } else if (rol == "usuario" && nombre == "eliminado") {
+        return ["txtUsuario", "txtEliminado"];
+    } else {
+        return [nombre];
+    }
+};
+
 /**
  * Formulario para exportar diagnósticos en un archivo de Excel o CSV.
  * @param {Array<Diagnostico>} diagnosticos Diagnósticos a exportar.
@@ -52,8 +64,9 @@ export default function FormExportacion({ diagnosticos, mostrar = false, manejad
             : `HADT ${t("txtDiagnosticos")} — ${fecha}`;
 
         for (let i = 0; i < json.length; i++) {
+            const persona = usuario?.rolVisible ? "usuario" : "paciente";
+            json[i][persona] = detTextoPersona(persona, diagnosticos[i][persona]).map((x) => t(x)).join(" ");
             json[i].id = usuario?.rolVisible ? `${json[i].id}-${json[i].usuario}` : json[i].id;
-            json[i].paciente = datos[i].nombre;
             json[i] = await convertirDiagnosticoExportable(json[i], usuario?.rolVisible, preprocesar, idioma);
             auxArr.push(json[i]);
         }
