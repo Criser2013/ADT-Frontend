@@ -36,6 +36,7 @@ export default function VerDiagnosticosPage() {
 
     const navigate = useNavigate();
     const [procesando, setProcesando] = useState(false);
+    const [diagnosticosSeleccionados, setDiagnosticosSeleccionados] = useState([]);
     const [modalValidacion, setModalValidacion] = useState(false);
     const [modalEliminacion, setModalEliminacion] = useState(false);
     const [modalExportacion, setModalExportacion] = useState(false);
@@ -63,31 +64,39 @@ export default function VerDiagnosticosPage() {
         await manejadorCargaDiagnosticos(
             usuario?.rolVisible, usuario?.uid, Timestamp.now()
         );
+        setDiagnosticosSeleccionados([]);
         setProcesando(false);
     };
 
-    /**
-     * @param {Array<String>|null} diagnosticos Lista IDs de los diagnósticos a eliminar.
-     */
-    async function manejadorBtnModalEliminacion(diagnosticos) {
+    async function manejadorBtnModalEliminacion() {
         setModalEliminacion(false);
         setProcesando(true);
-        if (Array.isArray(diagnosticos)) {
-            await eliminarDiagnosticos(diagnosticos);
+        if (Array.isArray(diagnosticosSeleccionados)) {
+            await eliminarDiagnosticos(diagnosticosSeleccionados);
+            setDiagnosticosSeleccionados([]);
         } else {
             await eliminarDiagnosticos(instancia);
         }
         await manejadorCargaDiagnosticos(
             usuario?.rolVisible, usuario?.uid, Timestamp.now()
         );
+        setInstancia(null);
         setProcesando(false); 
+    };
+
+    /**
+     * @param {Array<Diagnostico>} diagnosticos Instancias de los diagnósticos a eliminar.
+     */
+    function manejadorBtnEliminar(diagnosticos) {
+        setDiagnosticosSeleccionados(diagnosticos.map((x) => x.id));
+        setModalEliminacion(true);
     };
 
     /**
      * @param {Diagnostico} diagnostico Instancia del diagnóstico a eliminar.
      * @param {Event} e Evento del clic.
      */
-    const manejadorBtnEliminarTabla = useCallback((diagnostico, e) => {
+    const manejadorBtnEliminarFila = useCallback((diagnostico, e) => {
         e.stopPropagation();
         setInstancia(diagnostico.id);
         setModalEliminacion(true);
@@ -97,7 +106,7 @@ export default function VerDiagnosticosPage() {
      * @param {Diagnostico} diagnostico Instancia del diagnóstico a validar.
      * @param {Event} e Evento del clic.
      */
-    const manejadorBtnValidarTabla = useCallback((diagnostico, e) => {
+    const manejadorBtnValidarFila = useCallback((diagnostico, e) => {
         e.stopPropagation();
         setInstancia(mapeoDiagnosticos[diagnostico.id]);
         setModalValidacion(true);
@@ -133,13 +142,13 @@ export default function VerDiagnosticosPage() {
             {
                 id: "accion", label: t("txtAccion"),
                 componente: usuario?.rolVisible ? 
-                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnEliminarTabla} txtAyuda="txtAyudaEliminarDiag" color="error" icono={<DeleteIcon />} /> :
-                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnValidarTabla} txtAyuda="txtAyudaValidar" icono={<CheckCircleOutlineIcon />} />, 
+                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnEliminarFila} txtAyuda="txtAyudaEliminarDiag" color="error" icono={<DeleteIcon />} /> :
+                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnValidarFila} txtAyuda="txtAyudaValidar" icono={<CheckCircleOutlineIcon />} />, 
                 ordenable: false
             }
         ];
         return aux.concat(aux2);
-    }, [usuario?.rolVisible, t, manejadorBtnValidarTabla, manejadorBtnEliminarTabla]);
+    }, [usuario?.rolVisible, t, manejadorBtnValidarFila, manejadorBtnEliminarFila]);
 
     return (
         <MenuLayout>
@@ -184,7 +193,7 @@ export default function VerDiagnosticosPage() {
                             campoOrdenInicial="fecha"
                             direccionOrdenInicial="asc"
                             callbackClicCelda={(x) => navigate(`/diagnosticos/${x.id}`)}
-                            callbackBtnAccion={() => setModalEliminacion(true)}
+                            callbackBtnAccion={manejadorBtnEliminar}
                             icono={<DeleteIcon />} />
                     </Grid>
                 </>)}
