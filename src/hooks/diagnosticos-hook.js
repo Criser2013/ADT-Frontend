@@ -214,7 +214,7 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
         const aux = {};
         if (Array.isArray(diagnosticos)) {
             for (const d of diagnosticos) {
-                aux[d.id] = d;
+                aux[`${d.id}-${d.usuario}`] = d;
             }
         }
         return aux;
@@ -288,5 +288,5 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
         }
     }, [diagnosticosListo, verDiagnosticos, verTodos, uid, fecha, diagnosticos, manejadorCargaDiagnosticos]);
 
-    return { mapeoDiagnosticos, diagnosticos: diagnosticosMapeados, error };
+    return { mapeoDiagnosticos, diagnosticos: diagnosticosMapeados, error, manejadorCargaDiagnosticos };
 };

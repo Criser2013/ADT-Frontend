@@ -75,7 +75,7 @@ export default function VerDiagnosticosPage() {
         if (Array.isArray(diagnosticos)) {
             await eliminarDiagnosticos(diagnosticos);
         } else {
-            await eliminarDiagnosticos([instancia.id]);
+            await eliminarDiagnosticos(instancia);
         }
         await manejadorCargaDiagnosticos(
             usuario?.rolVisible, usuario?.uid, Timestamp.now()
@@ -85,16 +85,20 @@ export default function VerDiagnosticosPage() {
 
     /**
      * @param {Diagnostico} diagnostico Instancia del diagnóstico a eliminar.
+     * @param {Event} e Evento del clic.
      */
-    const manejadorBtnEliminarTabla = useCallback((diagnostico) => {
-        setInstancia(mapeoDiagnosticos[diagnostico.id]);
+    const manejadorBtnEliminarTabla = useCallback((diagnostico, e) => {
+        e.stopPropagation();
+        setInstancia(diagnostico.id);
         setModalEliminacion(true);
-    }, [mapeoDiagnosticos]);
+    }, []);
 
     /**
      * @param {Diagnostico} diagnostico Instancia del diagnóstico a validar.
+     * @param {Event} e Evento del clic.
      */
-    const manejadorBtnValidarTabla = useCallback((diagnostico) => {
+    const manejadorBtnValidarTabla = useCallback((diagnostico, e) => {
+        e.stopPropagation();
         setInstancia(mapeoDiagnosticos[diagnostico.id]);
         setModalValidacion(true);
     }, [mapeoDiagnosticos]);
@@ -179,7 +183,7 @@ export default function VerDiagnosticosPage() {
                             camposBusqueda={usuario?.rolVisible ? ["id", "nombre"] : ["id", "nombre", "paciente"]}
                             campoOrdenInicial="fecha"
                             direccionOrdenInicial="asc"
-                            callbackClicCelda={(x) => navigate(`/diagnosticos/${x.id}-${mapeoDiagnosticos[x.id]?.usuario}`)}
+                            callbackClicCelda={(x) => navigate(`/diagnosticos/${x.id}`)}
                             callbackBtnAccion={() => setModalEliminacion(true)}
                             icono={<DeleteIcon />} />
                     </Grid>

@@ -73,6 +73,7 @@ export default class DiagnosticosHelper {
      * contrario es null.
      */
     async eliminarDiagnosticos(ids) {
+        console.log(ids)
         let error = null;
         let success = true;
         const pets = [];

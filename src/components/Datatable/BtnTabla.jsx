@@ -15,7 +15,7 @@ export default function BtnValidacion({ instancia, manejadorBtn, txtAyuda, color
     const { t } = useTranslation();
     return (
         <Tooltip title={t(txtAyuda)}>
-            <Button onClick={() => manejadorBtn(instancia)} color={color} variant="outlined">
+            <Button onClick={(e) => manejadorBtn(instancia, e)} color={color} variant="outlined">
                 {icono}
             </Button>
         </Tooltip>
