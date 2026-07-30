@@ -108,7 +108,7 @@
     "txtAvisoDiagsNoValidados": "⚠️ Attention! There are {{cantNoConfirmados}} unvalidated diagnosis(es).",
     "txtPositivo": "Positive",
     "txtNegativo": "Negative",
-    "txtSelecDiagnostico": "Select diagnoses",
+    "txtSelecDiagnostico": "Select diagnose",
     "txtExcel": "Excel spreadsheet",
     "txtCsv": "Comma-separated file",
     "txtSelecArchivo": "Select the file type to export",

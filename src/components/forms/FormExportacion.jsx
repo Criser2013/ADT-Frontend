@@ -68,7 +68,7 @@ export default function FormExportacion({ diagnosticos, mostrar = false, manejad
             const persona = usuario?.rolVisible ? "usuario" : "paciente";
             diagnosticos[i][persona] = detTextoPersona(persona, diagnosticos[i][persona]).map((x) => t(x)).join(" ");
             auxArr.push(
-                convertirDiagnosticoExportable(diagnosticos[i], usuario?.rolVisible, preprocesar, idioma)
+                await convertirDiagnosticoExportable(diagnosticos[i], usuario?.rolVisible, preprocesar, idioma)
             );
         }
 
@@ -119,24 +119,27 @@ export default function FormExportacion({ diagnosticos, mostrar = false, manejad
                                 ))}
                             </TextField>
                         )} />
-                    <Controller
-                        name="preprocesar"
-                        control={control}
-                        render={({ field }) => (
-                            <Check
-                                marcado={field.value}
-                                manejadorCambios={field.onChange}
-                                etiqueta={t("txtPreprocesar")} />)} />
                     {usuario?.rolVisible ? (
-                        <Controller
-                            name="guardarDrive"
-                            control={control}
-                            render={({ field }) => (
-                                <Check
-                                    marcado={field.value}
-                                    manejadorCambios={field.onChange}
-                                    etiqueta={t("txtCopiaDrive")} />
-                            )} />
+                        <>
+                            <Controller
+                                name="preprocesar"
+                                control={control}
+                                render={({ field }) => (
+                                    <Check
+                                        marcado={field.value}
+                                        manejadorCambios={field.onChange}
+                                        etiqueta={t("txtPreprocesar")} />)} />
+
+                            <Controller
+                                name="guardarDrive"
+                                control={control}
+                                render={({ field }) => (
+                                    <Check
+                                        marcado={field.value}
+                                        manejadorCambios={field.onChange}
+                                        etiqueta={t("txtCopiaDrive")} />
+                                )} />
+                        </>
                     ) : null}
                 </Stack>
             </ModalDoble>

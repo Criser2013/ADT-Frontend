@@ -86,6 +86,22 @@ export async function convertirDiagnosticoExportable(instancia, esAdmin, preproc
     const datos = {};
     const textos = await fetch(`/locales/${idioma}/translation.json`).then((res) => res.json());
 
+    datos.ID = esAdmin ? instancia.id : instancia.id.replace(/-\w{28}$/, "");
+
+    if (!esAdmin) {
+        datos[textos.txtPaciente] = instancia.paciente;
+        datos[textos.txtCamposSignificativos] = JSON.stringify(instancia.explicacion.toJson());
+        datos[textos.txtCampoProbabilidad] = (instancia.probabilidad * 100).toFixed(2);
+    } else {
+        datos[textos.txtUsuario] = instancia.usuario;
+    }
+
+    datos[textos.txtCampoSexo] = (!esAdmin || (esAdmin && !preprocesar)) ? (instancia.sexo == 0 ? "M" : "F") : instancia.sexo;
+    datos[textos.otra_enfermedad] = procBool(instancia.otraEnfermedad);
+    datos[textos.txtCampoDiagModelo] = procBool(instancia.diagnosticoModelo);
+    datos[textos.txtCampoDiagMedico] = instancia.validado ? procBool(instancia.validado) : "N/A";
+    datos[textos.txtFecha] = instancia.fecha.toLocaleDateString(idioma);
+
     for (const i of CAMPOS_BIN) {
         datos[textos[i]] = procBool(instancia.sintomasBinarios[i]);
     }
@@ -98,21 +114,6 @@ export async function convertirDiagnosticoExportable(instancia, esAdmin, preproc
 
     for (const i of COMORBILIDADES) {
         datos[textos[i]] = procBool(instancia.comorbilidadesCodificadas[i]);
-    }
-
-    datos.ID = esAdmin ? `${instancia.id}-${instancia.usuario}` : instancia.id;
-    datos[textos.sexo] = !preprocesar ? instancia.sexo : (instancia.sexo == 0 ? "M" : "F");
-    datos[textos.otra_enfermedad] = procBool(instancia.otraEnfermedad);
-    datos[textos.txtCampoDiagModelo] = procBool(instancia.diagnosticoModelo);
-    datos[textos.txtCampoDiagMedico] = instancia.validado ? procBool(instancia.validado) : "N/A";
-    datos[textos.txtFecha] = instancia.fecha.toLocaleDateString(idioma);
-
-    if (!esAdmin) {
-        datos[textos.txtPaciente] = instancia.paciente;
-        datos[textos.txtCamposSignificativos] = JSON.stringify(instancia.explicacion.toJson());
-        datos[textos.txtCampoProbabilidad] = (instancia.probabilidad * 100).toFixed(2);
-    } else {
-        datos[textos.txtUsuario] = instancia.usuario;
     }
 
     return datos;

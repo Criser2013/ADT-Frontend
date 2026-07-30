@@ -232,10 +232,14 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
                 d.edad = d.sintomasNumericos?.edad;
                 if (usuario?.rolVisible) {
                     d.usuario = mapeoUsuarios[d.usuario]?.nombre || "eliminado";
+                } else {
+                    d.cedula = mapeoPacientes[d.paciente]?.cedula || "N/A";
                 }
                 if (!d.paciente) {
                     d.paciente = "anonimo";
+                    d.cedula = "N/A";
                 } else {
+                    d.cedula = mapeoPacientes[d.paciente]?.cedula || "N/A";
                     d.paciente = mapeoPacientes[d.paciente]?.nombre || "eliminado";
                 }
             }
@@ -243,6 +247,10 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
 
         return aux;
     }, [usuario?.rolVisible, traerInfoPersona, diagnosticos, mapeoPacientes, mapeoUsuarios]);
+
+    const cantDiagnosticosNoValidados = useMemo(() =>
+        diagnosticosMapeados?.reduce((x, d) => x + (d.validado ? 0 : 1), 0) || 0
+    , [diagnosticosMapeados]);
 
     /**
      * @param {String} tipo Tipo de persona a cargar: "paciente" o "usuario".
@@ -288,5 +296,5 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
         }
     }, [diagnosticosListo, verDiagnosticos, verTodos, uid, fecha, diagnosticos, manejadorCargaDiagnosticos]);
 
-    return { mapeoDiagnosticos, diagnosticos: diagnosticosMapeados, error, manejadorCargaDiagnosticos };
+    return { mapeoDiagnosticos, diagnosticos: diagnosticosMapeados, error, manejadorCargaDiagnosticos, cantDiagnosticosNoValidados };
 };

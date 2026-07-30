@@ -75,7 +75,7 @@ export async function verDiagnosticosPorMedico(uid, db, fecha = null) {
     try {
         let consulta = collection(db, `usuarios/${uid}/diagnosticos`);
 
-        if (fecha != null) {
+        if (fecha) {
             consulta = query(consulta, where("fecha", ">=", fecha));
         }
         const datos = await getDocs(consulta);

@@ -108,7 +108,7 @@
     "txtAvisoDiagsNoValidados": "⚠️ ¡Atención! Hay {{cantNoConfirmados}} diagnostico(s) sin validar.",
     "txtPositivo": "Positivo",
     "txtNegativo": "Negativo",
-    "txtSelecDiagnostico": "Seleccionar diagnósticos",
+    "txtSelecDiagnostico": "Seleccionar diagnóstico",
     "txtExcel": "Hoja de cálculo de Excel",
     "txtCsv": "Archivo separado por comas",
     "txtSelecArchivo": "Selecciona el tipo de archivo a exportar",

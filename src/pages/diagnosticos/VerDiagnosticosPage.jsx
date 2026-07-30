@@ -18,9 +18,20 @@ import { useAuth, useDiagnosticos, useOperacionesDiagnosticos } from "../../hook
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Timestamp } from "firebase/firestore";
 import { Diagnostico } from '../../models';
 
+
+function detTextoPersona(rol, nombre) {
+    if (rol == "paciente" && nombre == "null") {
+        return ["txtPaciente", "txtEliminado"];
+    } else if (rol == "paciente" && nombre == "anonimo") {
+        return ["txtPaciente", "txtAnonimo"];
+    } else if (rol == "usuario" && nombre == "eliminado") {
+        return ["txtUsuario", "txtEliminado"];
+    } else {
+        return [nombre];
+    }
+};
 
 /**
  * Página para ver los diagnósticos del usuario.
@@ -30,8 +41,8 @@ export default function VerDiagnosticosPage() {
     const { usuario } = useAuth();
     const { t } = useTranslation();
     const { eliminarDiagnosticos, validarDiagnostico } = useOperacionesDiagnosticos();
-    const { error, diagnosticos, mapeoDiagnosticos, manejadorCargaDiagnosticos } = useDiagnosticos(
-        usuario?.rolVisible, usuario?.uid, Timestamp.now(), true
+    const { cantDiagnosticosNoValidados, error, diagnosticos, mapeoDiagnosticos, manejadorCargaDiagnosticos } = useDiagnosticos(
+        usuario?.rolVisible, usuario?.uid, null, true
     );
 
     const navigate = useNavigate();
@@ -44,7 +55,7 @@ export default function VerDiagnosticosPage() {
 
     const [instancia, setInstancia] = useState(null);
 
-    const mostrarPantallaCarga = procesando || !diagnosticos || mapeoDiagnosticos == {};
+    const mostrarPantallaCarga = procesando || (!diagnosticos || mapeoDiagnosticos == {});
     const listadoPestanas = [
         { texto: usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" }
     ];
@@ -62,7 +73,7 @@ export default function VerDiagnosticosPage() {
     async function manejadorBtnRecargar() {
         setProcesando(true);
         await manejadorCargaDiagnosticos(
-            usuario?.rolVisible, usuario?.uid, Timestamp.now()
+            usuario?.rolVisible, usuario?.uid, null
         );
         setDiagnosticosSeleccionados([]);
         setProcesando(false);
@@ -78,10 +89,10 @@ export default function VerDiagnosticosPage() {
             await eliminarDiagnosticos(instancia);
         }
         await manejadorCargaDiagnosticos(
-            usuario?.rolVisible, usuario?.uid, Timestamp.now()
+            usuario?.rolVisible, usuario?.uid, null
         );
         setInstancia(null);
-        setProcesando(false); 
+        setProcesando(false);
     };
 
     /**
@@ -120,35 +131,46 @@ export default function VerDiagnosticosPage() {
         setProcesando(true);
         const { success } = await validarDiagnostico(instancia, diagnosticoMedico);
         if (success) {
-            await manejadorCargaDiagnosticos(usuario?.rolVisible, usuario?.uid, Timestamp.now());
+            await manejadorCargaDiagnosticos(usuario?.rolVisible, usuario?.uid, null);
         }
         setProcesando(false);
     };
 
     const campos = useMemo(() => {
         const campoNombre = usuario?.rolVisible ? "usuario" : "paciente";
-        const titulo = usuario?.rolVisible ? t("txtUsuario") : t("txtCampoCedula");
+        const titulo = usuario?.rolVisible ? t("txtUsuario") : t("txtPaciente");
 
         const aux = [
             { id: "id", label: "ID", componente: (x) => usuario?.rolVisible ? x.id : x.id.replace(/-\w{28}$/, ""), ordenable: true },
-            { id: campoNombre, label: titulo, componente: null, ordenable: true }
+            { id: campoNombre, label: titulo, componente: (x) => detTextoPersona(campoNombre, x[campoNombre]).map((y) => t(y)).join(" "), ordenable: true }
         ];
         const aux2 = [
             { id: "fecha", label: t("txtFecha"), componente: (x) => dayjs(x.fecha).format(t("formatoFechaHoraResumida")), ordenable: true },
             { id: "edad", label: t("edad"), componente: null, ordenable: true },
             { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo valor={x.sexo} />, ordenable: true },
-            { id: "diagnostico", label: t("txtCampoDiagModelo"), componente: (x) => <ChipDiagnostico valor={x.diagnostico} />, ordenable: true },
-            { id: "validado", label: t("txtCampoDiagMedico"), componente: (x) => <ChipValidado valor={x.validado} />, ordenable: true },
-            {
-                id: "accion", label: t("txtAccion"),
-                componente: usuario?.rolVisible ? 
-                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnEliminarFila} txtAyuda="txtAyudaEliminarDiag" color="error" icono={<DeleteIcon />} /> :
-                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnValidarFila} txtAyuda="txtAyudaValidar" icono={<CheckCircleOutlineIcon />} />, 
-                ordenable: false
-            }
+            { id: "diagnostico", label: t("txtCampoDiagModelo"), componente: (x) => <ChipDiagnostico valor={x.diagnosticoModelo} />, ordenable: true },
+            { id: "validado", label: t("txtCampoDiagMedico"), componente: (x) => <ChipValidado valor={x.diagnosticoMedico} />, ordenable: true },
         ];
+
+        if (!usuario?.rolVisible) {
+            aux.push({ id: "cedula", label: t("txtCedula"), componente: null, ordenable: true });
+            if (cantDiagnosticosNoValidados > 0) {
+                aux2.push({
+                    id: "accion", label: t("txtAccion"), componente: 
+                    (x) => x.validado ? null : <BtnTabla instancia={x} manejadorBtn={manejadorBtnValidarFila} txtAyuda="txtAyudaValidar" icono={<CheckCircleOutlineIcon />} />,
+                    ordenable: false
+                });
+            }
+        } else {
+            aux.push({
+                id: "accion", label: t("txtAccion"), componente:
+                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnEliminarFila} txtAyuda="txtAyudaEliminarDiag" color="error" icono={<DeleteIcon />} />,
+                ordenable: false
+            });
+        }
+
         return aux.concat(aux2);
-    }, [usuario?.rolVisible, t, manejadorBtnValidarFila, manejadorBtnEliminarFila]);
+    }, [usuario?.rolVisible, t, manejadorBtnValidarFila, manejadorBtnEliminarFila, cantDiagnosticosNoValidados]);
 
     return (
         <MenuLayout>
@@ -189,7 +211,7 @@ export default function VerDiagnosticosPage() {
                             tooltipAccion={t("txtAyudaEliminarDiags")}
                             activarBusqueda
                             activarSeleccion={usuario?.rolVisible}
-                            camposBusqueda={usuario?.rolVisible ? ["id", "nombre"] : ["id", "nombre", "paciente"]}
+                            camposBusqueda={usuario?.rolVisible ? ["id", "usuario"] : ["id", "cedula", "paciente"]}
                             campoOrdenInicial="fecha"
                             direccionOrdenInicial="asc"
                             callbackClicCelda={(x) => navigate(`/diagnosticos/${x.id}`)}
