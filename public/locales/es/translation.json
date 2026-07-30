@@ -104,7 +104,7 @@
     "txtBtnExportar": "Exportar diagnósticos",
     "txtAyudaBtnRecargar": "Recargar la página",
     "txtCopiaDrive": "Crear una copia en Google Drive",
-    "txtPreprocesar": "Preprocesar (no se exportan diagnósticos sin validar)",
+    "txtPreprocesar": "Preprocesar (utilizando codificación de intervalos)",
     "txtAvisoDiagsNoValidados": "⚠️ ¡Atención! Hay {{cantNoConfirmados}} diagnostico(s) sin validar.",
     "txtPositivo": "Positivo",
     "txtNegativo": "Negativo",

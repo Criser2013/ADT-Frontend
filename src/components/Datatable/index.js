@@ -1,3 +1,4 @@
 import Datatable from './Datatable';
+import BtnTabla from './BtnTabla';
 
-export { Datatable };
+export { BtnTabla, Datatable };

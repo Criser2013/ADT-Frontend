@@ -104,7 +104,7 @@
     "txtBtnExportar": "Export diagnoses",
     "txtAyudaBtnRecargar": "Reload the page",
     "txtCopiaDrive": "Create a copy in Google Drive",
-    "txtPreprocesar": "Preprocess (unvalidated diagnoses are not exported)",
+    "txtPreprocesar": "Preprocess (using interval encoding)",
     "txtAvisoDiagsNoValidados": "⚠️ Attention! There are {{cantNoConfirmados}} unvalidated diagnosis(es).",
     "txtPositivo": "Positive",
     "txtNegativo": "Negative",

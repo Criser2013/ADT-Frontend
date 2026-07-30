@@ -1,4 +1,4 @@
-import { expect, describe, test } from '@jest/globals';
+import { jest, beforeEach, expect, describe, test } from '@jest/globals';
 import Diagnostico from "../../../../src/models/Diagnostico";
 import ExplicacionLime from "../../../../src/models/ExplicacionLime";
 import { evaluarIntervalo, convertirDiagnosticoExportable, decoderOtraEnfermedad, procBool } from "../../../../src/utils/TratarDatos";
@@ -65,6 +65,7 @@ describe("Validar la función 'procBool'", () => {
 });
 
 describe("Validar la función 'convertirDiagnosticoExportable'", () => {
+    // --------------------------- Parámetros -----------------------
     const instancia = new Diagnostico("ID", "Usuario Test", "1f073a07-6630-6d90-ac94-34c18cc96549",
         ["Enfermedad hematológica", "Hipertensión arterial"],
         new Date("2023-10-01T00:00:00Z"), 0, true, {
@@ -80,55 +81,54 @@ describe("Validar la función 'convertirDiagnosticoExportable'", () => {
         frecuencia_cardiaca: 128, edad: 60,
         saturacion_de_la_sangre: 80, plt: 211100, hb: 13.8, wbc: 12300,
     }, true, null, 0.5, new ExplicacionLime([{ "VIH": 51.85, "Hepatopatía crónica": -48.2 }]));
+    const param1 = "es";
+    const param2 = "en";
 
-    test("CP - 79", async () => {
-        const respuesta = {
-            "Edad": 60, "Sexo": 0, "Bebedor": 0, "Fumador": 0,
-            "Procedimiento quirúrgico o traumatismo reciente": 0, "Viaje prolongado": 0,
-            "Tos": 0, "Fiebre": 0, "Crepitaciones": 0,
-            "Dolor torácico": 1, "Malignidad": 0, "Hemoptisis": 0,
-            "Disnea": 1, "Sibilancias": 0, "Derrame": 0,
-            "TEP - TVP previo": 0, "Edema de miembros inferiores": 0, "Síntomas disautonómicos": 0,
-            "Inmovilidad de miembros inferiores": 0, "Otra enfermedad": 1, "Soplos": 0,
-            "Presión sistólica": 129, "Presión diastólica": 93, "Frecuencia respiratoria": 26,
-            "Frecuencia cardíaca": 128, "Saturación de la sangre (SO2)": 80, "Conteo de plaquetas": 211100, "Hemoglobina": 13.8, "Conteo glóbulos blancos": 12300,
-            "Enfermedad hematológica": 1, "Enfermedad vascular": 0,
-            "Enfermedad pulmonar": 0, "Enfermedad renal": 0,
-            "Enfermedad cardíaca": 0, "Enfermedad coronaria": 0,
-            "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
-            "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
-            "Trombofilia": 0, "VIH": 0, "Paciente": "1f073a07-6630-6d90-ac94-34c18cc96549", "Probabilidad": "50.00",
-            "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
-            "Diagnóstico médico": "N/A", "ID": "ID", "Fecha": "1/10/2023", "Diagnóstico modelo": 1,
-            "Campos significativos para el diagnóstico": '[{"VIH":51.85,"Hepatopatía crónica":-48.2}]'
-        };
-
-        const res = await convertirDiagnosticoExportable(instancia, false, false, "es");
-        expect(res).toEqual(respuesta);
-    });
-
-    test("CP - 80", async () => {
-        const respuesta = {
-            "Edad": 2, "Sexo": "M", "Bebedor": 0, "Fumador": 0,
-            "Procedimiento quirúrgico o traumatismo reciente": 0, "Viaje prolongado": 0,
-            "Tos": 0, "Fiebre": 0, "Crepitaciones": 0,
-            "Dolor torácico": 1, "Malignidad": 0, "Hemoptisis": 0,
-            "Disnea": 1, "Sibilancias": 0, "Derrame": 0,
-            "TEP - TVP previo": 0, "Edema de miembros inferiores": 0, "Síntomas disautonómicos": 0,
-            "Inmovilidad de miembros inferiores": 0, "Otra enfermedad": 1, "Soplos": 0,
-            "Presión sistólica": 4, "Presión diastólica": 6, "Frecuencia respiratoria": 3,
-            "Frecuencia cardíaca": 4, "Saturación de la sangre (SO2)": 7, "Conteo de plaquetas": 4, "Hemoglobina": 4, "Conteo glóbulos blancos": 3,
-            "Enfermedad hematológica": 1, "Enfermedad vascular": 0,
-            "Enfermedad pulmonar": 0, "Enfermedad renal": 0,
-            "Enfermedad cardíaca": 0, "Enfermedad coronaria": 0,
-            "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
-            "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
-            "Trombofilia": 0, "VIH": 0,
-            "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
-            "Diagnóstico médico": "N/A", "ID": "ID-Usuario Test", "Usuario": "Usuario Test", "Fecha": "1/10/2023", "Diagnóstico modelo": 1
-        };
-
-        const res = await convertirDiagnosticoExportable(instancia, true, true, "es");
-        expect(res).toEqual(respuesta);
+    // --------------------------- Resultados esperados -----------------------
+    const res1 = {
+        "Edad": 60, "Sexo": 0, "Bebedor": 0, "Fumador": 0,
+        "Procedimiento quirúrgico o traumatismo reciente": 0, "Viaje prolongado": 0,
+        "Tos": 0, "Fiebre": 0, "Crepitaciones": 0,
+        "Dolor torácico": 1, "Malignidad": 0, "Hemoptisis": 0,
+        "Disnea": 1, "Sibilancias": 0, "Derrame": 0,
+        "TEP - TVP previo": 0, "Edema de miembros inferiores": 0, "Síntomas disautonómicos": 0,
+        "Inmovilidad de miembros inferiores": 0, "Otra enfermedad": 1, "Soplos": 0,
+        "Presión sistólica": 129, "Presión diastólica": 93, "Frecuencia respiratoria": 26,
+        "Frecuencia cardíaca": 128, "Saturación de la sangre (SO2)": 80, "Conteo de plaquetas": 211100, "Hemoglobina": 13.8, "Conteo glóbulos blancos": 12300,
+        "Enfermedad hematológica": 1, "Enfermedad vascular": 0,
+        "Enfermedad pulmonar": 0, "Enfermedad renal": 0,
+        "Enfermedad cardíaca": 0, "Enfermedad coronaria": 0,
+        "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
+        "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
+        "Trombofilia": 0, "VIH": 0, "Paciente": "1f073a07-6630-6d90-ac94-34c18cc96549", "Probabilidad": "50.00",
+        "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
+        "Diagnóstico médico": "N/A", "ID": "ID", "Fecha": "1/10/2023", "Diagnóstico modelo": 1,
+        "Campos significativos para el diagnóstico": '[{"VIH":51.85,"Hepatopatía crónica":-48.2}]'
+    };
+    const res2 = {
+        "Age": 2, "Sex": "M", "Drinker": 0, "Smoker": 0,
+        "Recent surgical procedure or trauma": 0, "Prolongued travel": 0,
+        "Cough": 0, "Fever": 0, "Crackles": 0,
+        "Chest pain": 1, "Malignancy": 0, "Hemoptysis": 0,
+        "Dyspnea": 1, "Wheezing": 0, "Stroke": 0,
+        "Previous PE - DVT": 0, "Edema of lower Limbs": 0, "Dysautonomic Symptoms": 0,
+        "Lower limb immobility": 0, "Other disease": 1, "Murmurs": 0,
+        "Systolic preasure": 4, "Diastolic preasure": 6, "Respiratory rate": 3,
+        "Heart rate": 4, "Blood saturation (SO2)": 7, "Platelet count": 4, "Hemoglobin": 4, "White blood cell count": 3,
+        "Hematologic disease": 1, "Vascular disease": 0,
+        "Lung disease": 0, "Kidney disease": 0,
+        "Heart disease": 0, "Coronary disease": 0,
+        "Endocrine disease": 0, "Gastrointestinal disease": 0,
+        "Urologic disease": 0, "Neurologic disease": 0,
+        "Thrombophilia": 0, "HIV": 0,
+        "Diabetes Mellitus": 0, "Chronic liver disease": 0, "High blood preasure": 1,
+        "Medical diagnosis": "N/A", "ID": "ID-Usuario Test", "User": "Usuario Test", "Fecha": "1/10/2023", "Model daignosis": 1
+    };
+    test.each([
+        ["79", param1, res1],
+        ["80", param2, res2]
+    ])("CP - %s",(idPrueba, param, resEsperada) => {
+        const res = convertirDiagnosticoExportable(instancia, false, false, param);
+        expect(res).toEqual(resEsperada);
     });
 });

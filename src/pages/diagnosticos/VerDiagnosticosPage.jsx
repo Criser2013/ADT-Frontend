@@ -1,15 +1,13 @@
 import AddToDriveIcon from '@mui/icons-material/AddToDrive';
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CloseIcon from "@mui/icons-material/Close";
-import Datatable from "../../components/datatable";
 import dayjs from "dayjs";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import FormSeleccionar from "../../components/forms/FormSeleccionar";
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 import { AdvertenciaEspacio } from "../../components/menu";
-import { BtnTabla } from "../../components/datatable";
+import { BtnTabla, Datatable } from "../../components/datatable";
 import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography } from "@mui/material";
 import { Check } from "../../components/tabs";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
@@ -37,7 +35,7 @@ export default function VerDiagnosticosPage() {
     );
 
     const navigate = useNavigate();
-    const [procesando, setProcesando] = useState(true);
+    const [procesando, setProcesando] = useState(false);
     const [modalValidacion, setModalValidacion] = useState(false);
     const [modalEliminacion, setModalEliminacion] = useState(false);
     const [modalExportacion, setModalExportacion] = useState(false);
@@ -45,34 +43,7 @@ export default function VerDiagnosticosPage() {
 
     const [instancia, setInstancia] = useState(null);
 
-    const mostrarPantallaCarga = procesando || !diagnosticos || !mapeoDiagnosticos;
-
-    const campos = useMemo(() => {
-        const campoNombre = usuario?.rolVisible ? "usuario" : "paciente";
-
-        const aux = [
-            { id: "id", label: "ID", componente: null, ordenable: true },
-            { id: campoNombre, label: t(`txt${campoNombre[0].toUpperCase() + campoNombre.slice(1)}`), componente: null, ordenable: true }
-        ];
-        const aux2 = [
-            { id: "fecha", label: t("txtFecha"), componente: (x) => dayjs(x.fecha).format(t("formatoFechaHoraResumida")), ordenable: true },
-            { id: "edad", label: t("txtCampoEdad"), componente: null, ordenable: true },
-            { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo valor={x.sexo} />, ordenable: true },
-            { id: "diagnostico", label: t("txtCampoDiagModelo"), componente: (x) => <ChipDiagnostico valor={x.diagnostico} />, ordenable: true },
-            { id: "validado", label: t("txtCampoDiagMedico"), componente: (x) => <ChipValidado valor={x.validado} />, ordenable: true },
-            {
-                id: "accion", label: t("txtAccion"),
-                componente: usuario?.rolVisible ? 
-                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnEliminarTabla} txtAyuda="txtAyudaEliminarDiag" color="error" icono={<DeleteIcon />} /> :
-                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnValidarTabla} txtAyuda="txtAyudaValidar" icono={<CheckCircleOutlineIcon />} />, 
-                ordenable: false
-            }
-        ];
-        if (!usuario?.rolVisible) {
-            aux.push({ id: "paciente", label: t("txtCedula"), componente: null, ordenable: true });
-        }
-        return aux.concat(aux2);
-    }, [usuario?.rolVisible, t, manejadorBtnValidarTabla, manejadorBtnEliminarTabla]);
+    const mostrarPantallaCarga = procesando || !diagnosticos || mapeoDiagnosticos == {};
     const listadoPestanas = [
         { texto: usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" }
     ];
@@ -141,6 +112,31 @@ export default function VerDiagnosticosPage() {
         setProcesando(false);
     };
 
+    const campos = useMemo(() => {
+        const campoNombre = usuario?.rolVisible ? "usuario" : "paciente";
+        const titulo = usuario?.rolVisible ? t("txtUsuario") : t("txtCampoCedula");
+
+        const aux = [
+            { id: "id", label: "ID", componente: (x) => usuario?.rolVisible ? x.id : x.id.replace(/-\w{28}$/, ""), ordenable: true },
+            { id: campoNombre, label: titulo, componente: null, ordenable: true }
+        ];
+        const aux2 = [
+            { id: "fecha", label: t("txtFecha"), componente: (x) => dayjs(x.fecha).format(t("formatoFechaHoraResumida")), ordenable: true },
+            { id: "edad", label: t("edad"), componente: null, ordenable: true },
+            { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo valor={x.sexo} />, ordenable: true },
+            { id: "diagnostico", label: t("txtCampoDiagModelo"), componente: (x) => <ChipDiagnostico valor={x.diagnostico} />, ordenable: true },
+            { id: "validado", label: t("txtCampoDiagMedico"), componente: (x) => <ChipValidado valor={x.validado} />, ordenable: true },
+            {
+                id: "accion", label: t("txtAccion"),
+                componente: usuario?.rolVisible ? 
+                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnEliminarTabla} txtAyuda="txtAyudaEliminarDiag" color="error" icono={<DeleteIcon />} /> :
+                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnValidarTabla} txtAyuda="txtAyudaValidar" icono={<CheckCircleOutlineIcon />} />, 
+                ordenable: false
+            }
+        ];
+        return aux.concat(aux2);
+    }, [usuario?.rolVisible, t, manejadorBtnValidarTabla, manejadorBtnEliminarTabla]);
+
     return (
         <MenuLayout>
             {mostrarPantallaCarga ? <PantallaCarga /> : (
@@ -182,9 +178,9 @@ export default function VerDiagnosticosPage() {
                             activarSeleccion={usuario?.rolVisible}
                             camposBusqueda={usuario?.rolVisible ? ["id", "nombre"] : ["id", "nombre", "paciente"]}
                             campoOrdenInicial="fecha"
-                            direccionOrdenInicial="desc"
-                            callbackClicCelda={(x) => navigate(`/diagnosticos/${x.id}-${x.usuario}`)}
-                            callbackBtnbAccion={() => setModalEliminacion(true)}
+                            direccionOrdenInicial="asc"
+                            callbackClicCelda={(x) => navigate(`/diagnosticos/${x.id}-${mapeoDiagnosticos[x.id]?.usuario}`)}
+                            callbackBtnAccion={() => setModalEliminacion(true)}
                             icono={<DeleteIcon />} />
                     </Grid>
                 </>)}
@@ -195,6 +191,7 @@ export default function VerDiagnosticosPage() {
             <ModalDoble
                 mostrar={modalEliminacion}
                 titulo={t("titAlerta")}
+                texto={t("txtConfirmacionEliminarDiags")}
                 txtBtnPrincipal={t("txtBtnEliminar")}
                 txtBtnSecundario={t("txtBtnCancelar")}
                 manejadorBtnPrincipal={manejadorBtnModalEliminacion}

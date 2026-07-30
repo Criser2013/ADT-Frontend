@@ -1,6 +1,6 @@
 import FormDiagnostico from "./FormDiagnostico";
+import FormExportacion from "./FormExportacion";
 import FormPaciente from "./FormPaciente";
-import FormSeleccionar from "./FormSeleccionar";
 import FormValidacion from "./FormValidacion";
 
-export { FormDiagnostico, FormPaciente, FormSeleccionar, FormValidacion };
+export { FormDiagnostico, FormPaciente, FormExportacion, FormValidacion };

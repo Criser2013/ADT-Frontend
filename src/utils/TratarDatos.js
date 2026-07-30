@@ -1,5 +1,6 @@
 import { CAMPOS_BIN, CAMPOS_NUM, COMORBILIDADES, INTERVALOS_PREPROCESAMIENTO } from "../constants";
-
+import textosEspanol from "/locales/es/translation.json";
+import textosIngles from "/locales/en/translation.json";
 
 /**
  * Transforma los datos de comorbilidades codificados como one-hot a un Arrray.
@@ -85,7 +86,7 @@ export function evaluarIntervalo(valor, intervalos) {
  */
 export async function convertirDiagnosticoExportable(instancia, esAdmin, preprocesar = false, idioma = "es") {
     const datos = {};
-    const textos = (await import(`/public/locales/${idioma}/translation.json`, { with: { type: "json" } })).default;
+    const textos = idioma == "es" ? textosEspanol : textosIngles;
 
     for (const i of CAMPOS_BIN) {
         datos[textos[i]] = procBool(instancia.sintomasBinarios[i]);
@@ -102,7 +103,7 @@ export async function convertirDiagnosticoExportable(instancia, esAdmin, preproc
     }
 
     datos.ID = esAdmin ? `${instancia.id}-${instancia.usuario}` : instancia.id;
-    datos.Sexo = !preprocesar ? instancia.sexo : (instancia.sexo == 0 ? "M" : "F");
+    datos[textos.sexo] = !preprocesar ? instancia.sexo : (instancia.sexo == 0 ? "M" : "F");
     datos[textos.otra_enfermedad] = procBool(instancia.otraEnfermedad);
     datos[textos.txtCampoDiagModelo] = procBool(instancia.diagnosticoModelo);
     datos[textos.txtCampoDiagMedico] = instancia.validado ? procBool(instancia.validado) : "N/A";

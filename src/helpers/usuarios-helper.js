@@ -55,7 +55,7 @@ export default class UsuariosHelper {
             "errCargarUsuarios"
         );
         if (success) {
-            const datosSerializados = data.map((usuario) => new Usuario(
+            const datosSerializados = data.usuarios.map((usuario) => new Usuario(
                 usuario.uid, usuario.correo, usuario.nombre, usuario.administrador,
                 usuario.estado, usuario.fecha_registro, usuario.ultima_conexion
             ));

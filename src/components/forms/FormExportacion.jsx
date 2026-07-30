@@ -1,9 +1,10 @@
+import CloseIcon from "@mui/icons-material/Close";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { Check } from "../tabs";
 import { Controller, useForm } from "react-hook-form";
 import { convertirDiagnosticoExportable } from "../../utils/TratarDatos";
 import { descargarArchivoXlsx } from "../../utils/XlsxFiles";
-import { MenuItem, Select, Typography } from "@mui/material";
+import { MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { ModalDoble, ModalSimple } from "../modals";
 import { useAuth, useIdioma } from "../../hooks";
 import { useState } from "react";
@@ -40,7 +41,7 @@ function detTextoPersona(rol, nombre) {
  * @returns {JSX.Element}
  */
 export default function FormExportacion({ diagnosticos, mostrar = false, manejadorCierre }) {
-    const { control, handleSubmit } = useForm({ defaultValues: valoresPredet });
+    const { control, handleSubmit, reset } = useForm({ defaultValues: valoresPredet });
     const { idioma } = useIdioma();
     const { t } = useTranslation();
     const { usuario, datosHelper } = useAuth();
@@ -52,8 +53,8 @@ export default function FormExportacion({ diagnosticos, mostrar = false, manejad
     async function manejadorExportar(datos) {
         manejadorCierre();
 
+        const nombreHoja = usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos");
         const { preprocesar, guardarDrive, tipoArchivo } = datos;
-        const json = diagnosticos.map((x) => x.toJson());
         const opciones = {
             weekday: "long", year: "numeric", month: "long",
             day: "numeric", hour: "numeric", minute: "numeric"
@@ -63,24 +64,26 @@ export default function FormExportacion({ diagnosticos, mostrar = false, manejad
         const nombreArchivo = preprocesar ? `HADT ${t("txtDiagnosticos")} — ${fecha}-${t("txtPreprocesados")}`
             : `HADT ${t("txtDiagnosticos")} — ${fecha}`;
 
-        for (let i = 0; i < json.length; i++) {
+        for (let i = 0; i < diagnosticos.length; i++) {
             const persona = usuario?.rolVisible ? "usuario" : "paciente";
-            json[i][persona] = detTextoPersona(persona, diagnosticos[i][persona]).map((x) => t(x)).join(" ");
-            json[i].id = usuario?.rolVisible ? `${json[i].id}-${json[i].usuario}` : json[i].id;
-            json[i] = await convertirDiagnosticoExportable(json[i], usuario?.rolVisible, preprocesar, idioma);
-            auxArr.push(json[i]);
+            diagnosticos[i][persona] = detTextoPersona(persona, diagnosticos[i][persona]).map((x) => t(x)).join(" ");
+            auxArr.push(
+                convertirDiagnosticoExportable(diagnosticos[i], usuario?.rolVisible, preprocesar, idioma)
+            );
         }
 
         const resDrive = guardarDrive ? (
-            await datosHelper?.crearCopiaDiagnosticos(auxArr, nombreArchivo, tipoArchivo)) : (
+            await datosHelper?.crearCopiaDiagnosticos(nombreArchivo, auxArr, tipoArchivo)) : (
             { success: true, error: null }
         );
-        const resDescarga = descargarArchivoXlsx(auxArr, nombreArchivo, tipoArchivo);
+        const resDescarga = descargarArchivoXlsx(auxArr, tipoArchivo, nombreArchivo, nombreHoja);
 
         if (!(resDrive.success && resDescarga.success)) {
             setModalError({
                 mostrar: true, texto: resDrive.error || resDescarga.error
             });
+        } else {
+            reset(valoresPredet);
         }
     };
 
@@ -140,8 +143,10 @@ export default function FormExportacion({ diagnosticos, mostrar = false, manejad
             <ModalSimple
                 mostrar={modalError.mostrar}
                 titulo={t("tituloErr")}
-                mensaje={`${t("errExportar")} ${modalError.texto}.`}
-                manejadorCierre={() => setModalError((x) => ({ ...x, mostrar: false }))} />
+                texto={`${t("errExportar")} ${modalError.texto}.`}
+                txtBtn={t("txtBtnCerrar")}
+                iconoBtn={<CloseIcon />}
+                manejadorBtn={() => setModalError((x) => ({ ...x, mostrar: false }))} />
         </>
     );
 };

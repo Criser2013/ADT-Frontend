@@ -221,10 +221,15 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
     }, [diagnosticos]);
 
     const diagnosticosMapeados = useMemo(() => {
-        const aux = diagnosticos?.map((d) => d.deepClone()) || [];
+        const aux = diagnosticos?.map((d) => {
+            const aux = d.deepClone();
+            aux.id = `${aux.id}-${aux.usuario}`;
+            return aux;
+        }) || [];
 
         if (traerInfoPersona) {
             for (const d of aux) {
+                d.edad = d.sintomasNumericos?.edad;
                 if (usuario?.rolVisible) {
                     d.usuario = mapeoUsuarios[d.usuario]?.nombre || "eliminado";
                 }
