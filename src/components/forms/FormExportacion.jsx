@@ -4,6 +4,7 @@ import { Check } from "../tabs";
 import { Controller, useForm } from "react-hook-form";
 import { convertirDiagnosticoExportable } from "../../utils/TratarDatos";
 import { descargarArchivoXlsx } from "../../utils/XlsxFiles";
+import { detTextoPersona } from "../../utils/TratarDatos";
 import { MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { ModalDoble, ModalSimple } from "../modals";
 import { useAuth, useIdioma } from "../../hooks";
@@ -20,18 +21,6 @@ const formatos = [
     { valor: "xlsx", texto: "txtExcel" },
     { valor: "csv", texto: "txtCsv" }
 ];
-
-function detTextoPersona(rol, nombre) {
-    if (rol == "paciente" && nombre == "null") {
-        return ["txtPaciente", "txtEliminado"];
-    } else if (rol == "paciente" && nombre == "anonimo") {
-        return ["txtPaciente", "txtAnonimo"];
-    } else if (rol == "usuario" && nombre == "eliminado") {
-        return ["txtUsuario", "txtEliminado"];
-    } else {
-        return [nombre];
-    }
-};
 
 /**
  * Formulario para exportar diagnósticos en un archivo de Excel o CSV.

@@ -10,6 +10,8 @@ import { BtnTabla, Datatable } from "../../components/datatable";
 import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography } from "@mui/material";
 import { Check } from "../../components/tabs";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
+import { detTextoPersona } from "../../utils/TratarDatos";
+import { Diagnostico } from '../../models';
 import { FormExportacion, FormValidacion } from "../../components/forms";
 import { MenuLayout, TabHeader, PantallaCarga } from "../../components/layout";
 import { ModalDoble, ModalSimple } from "../../components/modals";
@@ -17,7 +19,6 @@ import { useAuth, useDiagnosticos, useOperacionesDiagnosticos } from "../../hook
 import { useCallback, useEffect, useMemo, useReducer } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Diagnostico } from '../../models';
 
 
 const estadoInicial = {
@@ -58,18 +59,6 @@ function reducer(state, action) {
             return { ...state, procesando: true, modalValidacion: false };
         default:
             return state;
-    }
-}
-
-function detTextoPersona(rol, nombre) {
-    if (rol == "paciente" && nombre == "eliminado") {
-        return ["txtPaciente", "txtEliminado"];
-    } else if (rol == "paciente" && nombre == "anonimo") {
-        return ["txtPaciente", "txtAnonimo"];
-    } else if (rol == "usuario" && nombre == "eliminado") {
-        return ["txtUsuario", "txtEliminado"];
-    } else {
-        return [nombre];
     }
 };
 
@@ -153,39 +142,56 @@ export default function VerDiagnosticosPage() {
     };
 
     const campos = useMemo(() => {
-        const campoNombre = usuario?.rolVisible ? "usuario" : "paciente";
-        const titulo = usuario?.rolVisible ? t("txtUsuario") : t("txtPaciente");
-
-        const aux = [
-            { id: "id", label: "ID", componente: (x) => usuario?.rolVisible ? x.id : x.id.replace(/-\w{28}$/, ""), ordenable: true },
-            { id: campoNombre, label: titulo, componente: (x) => detTextoPersona(campoNombre, x[campoNombre]).map((y) => t(y)).join(" "), ordenable: true }
-        ];
-        const aux2 = [
-            { id: "fecha", label: t("txtFecha"), componente: (x) => dayjs(x.fecha).format(t("formatoFechaHoraResumida")), ordenable: true },
+        const idCampoNombre = usuario?.rolVisible ? "usuario" : "paciente";
+        const etiquetaCampoNombre = usuario?.rolVisible ? t("txtUsuario") : t("txtPaciente");
+        const CompBtnEliminacion = (x) => (
+            <BtnTabla
+                instancia={x}
+                manejadorBtn={manejadorBtnEliminarFila}
+                txtAyuda="txtAyudaEliminarDiagnostico"
+                color="error"
+                icono={<DeleteIcon />} />
+        );
+        const CompBtnValidacion = (x) => x.validado ? null : (
+            <BtnTabla
+                instancia={x}
+                manejadorBtn={manejadorBtnValidarFila}
+                txtAyuda="txtAyudaValidar"
+                icono={<CheckCircleOutlineIcon />} />
+        );
+        const CompVerDiagnostico = (x) => <ChipDiagnostico valor={x.diagnosticoModelo} />;
+        const CompVerFecha = (x) => dayjs(x.fecha).format(t("formatoFechaHoraResumida"));
+        const CompVerId = (x) => usuario?.rolVisible ? x.id : x.id.replace(/-\w{28}$/, "");
+        const CompVerNombre = (x) => detTextoPersona(
+            idCampoNombre, x[idCampoNombre]
+        ).map((y) => t(y)).join(" ");
+        const CompVerSexo = (x) => <ChipSexo valor={x.sexo} />;
+        const CompVerValidado = (x) => <ChipValidado valor={x.validado} />;
+        const camposBase = [
+            { id: "id", label: "ID", componente: CompVerId, ordenable: true },
+            { id: idCampoNombre, label: etiquetaCampoNombre, componente: CompVerNombre, ordenable: true },
+            { id: "fecha", label: t("txtFecha"), componente: CompVerFecha, ordenable: true },
             { id: "edad", label: t("edad"), componente: null, ordenable: true },
-            { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo valor={x.sexo} />, ordenable: true },
-            { id: "diagnostico", label: t("txtCampoDiagModelo"), componente: (x) => <ChipDiagnostico valor={x.diagnosticoModelo} />, ordenable: true },
-            { id: "validado", label: t("txtCampoDiagMedico"), componente: (x) => <ChipValidado valor={x.diagnosticoMedico} />, ordenable: true },
+            { id: "sexo", label: t("txtCampoSexo"), componente: CompVerSexo, ordenable: true },
+            { id: "diagnostico", label: t("txtCampoDiagModelo"), componente: CompVerDiagnostico, ordenable: true },
+            { id: "validado", label: t("txtCampoDiagMedico"), componente: CompVerValidado, ordenable: true },
         ];
 
         if (!usuario?.rolVisible) {
-            aux.push({ id: "cedula", label: t("txtCedula"), componente: null, ordenable: true });
+            camposBase.splice(
+                2, 0, { id: "cedula", label: t("txtCedula"), componente: null, ordenable: true }
+            );
             if (cantDiagnosticosNoValidados > 0) {
-                aux2.push({
-                    id: "accion", label: t("txtAccion"), componente:
-                        (x) => x.validado ? null : <BtnTabla instancia={x} manejadorBtn={manejadorBtnValidarFila} txtAyuda="txtAyudaValidar" icono={<CheckCircleOutlineIcon />} />,
-                    ordenable: false
+                camposBase.push({
+                    id: "accion", label: t("txtAccion"), componente: CompBtnValidacion, ordenable: false
                 });
             }
         } else {
-            aux2.push({
-                id: "accion", label: t("txtAccion"), componente:
-                    (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnEliminarFila} txtAyuda="txtAyudaEliminarDiagnostico" color="error" icono={<DeleteIcon />} />,
-                ordenable: false
+            camposBase.push({
+                id: "accion", label: t("txtAccion"), componente: CompBtnEliminacion, ordenable: false
             });
         }
-
-        return aux.concat(aux2);
+        return camposBase;
     }, [usuario?.rolVisible, t, manejadorBtnValidarFila, manejadorBtnEliminarFila, cantDiagnosticosNoValidados]);
 
     return (

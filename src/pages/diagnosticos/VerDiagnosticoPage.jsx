@@ -10,6 +10,7 @@ import { BtnFlotante, Check } from "../../components/tabs";
 import { CAMPOS_BIN, COMORBILIDADES } from "../../constants";
 import { CampoTexto, ContComorbilidades, ContLime } from "../../components/diagnosticos";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
+import { detTextoPersona } from "../../utils/TratarDatos";
 import { Diagnostico, Paciente, Usuario } from "../../models";
 import { FormValidacion } from "../../components/forms";
 import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
@@ -26,39 +27,27 @@ const estadoInicial = {
     procesando: false
 };
 
-function reducer(estado, accion) {
-    switch (accion.tipo) {
+function reducer(state, action) {
+    switch (action.type) {
         case "MOSTRAR_MODAL_ERROR":
-            return { ...estado, modalError: { mostrar: true, texto: accion.payload } };
+            return { ...state, modalError: { mostrar: true, texto: action.payload } };
         case "CERRAR_MODAL_ERROR":
-            return { ...estado, modalError: { mostrar: false, texto: estado.modalError.texto } };
+            return { ...state, modalError: { mostrar: false, texto: state.modalError.texto } };
         case "MOSTRAR_MODAL_ELIMINACION":
-            return { ...estado, modalEliminacion: true };
+            return { ...state, modalEliminacion: true };
         case "CERRAR_MODAL_ELIMINACION":
-            return { ...estado, modalEliminacion: false };
+            return { ...state, modalEliminacion: false };
         case "MOSTRAR_MODAL_VALIDACION":
-            return { ...estado, modalValidacion: true };
+            return { ...state, modalValidacion: true };
         case "CERRAR_MODAL_VALIDACION":
-            return { ...estado, modalValidacion: false };
+            return { ...state, modalValidacion: false };
         case "INICIAR_PROCESADO":
-            return { ...estado, procesando: true };
+            return { ...state, procesando: true };
         case "FINALIZAR_PROCESADO":
-            return { ...estado, procesando: false };
+            return { ...state, procesando: false };
         default:
-            return estado;
+            return state;
     };
-};
-
-function detTextoPersona(rol, nombre) {
-    if (rol && nombre == "null") {
-        return ["txtUsuario", "txtEliminado"];
-    } else if (!rol && nombre == "anonimo") {
-        return ["txtPaciente", "txtAnonimo"];
-    } else if (!rol && nombre == "eliminado") {
-        return ["txtPaciente", "txtEliminado"];
-    } else {
-        return [nombre];
-    }
 };
 
 /**
@@ -72,25 +61,21 @@ export default function VerDiagnosticoPage() {
     const { diagnostico, persona, error, manejadorCargaDiagnostico } = useDiagnostico(id, true);
     const { t } = useTranslation();
     const { usuario: usuarioAutenticado } = useAuth();
-
-    const [estado, dispatch] = useReducer(reducer, estadoInicial);
-    const { modalError, modalEliminacion, modalValidacion, procesando } = estado;
-    const mostrarPantallaCarga = !diagnostico || !persona || procesando;
-
-    const camposPersonales = useMemo(() => {
-        const campoNombre = { id: "nombre", titulo: usuarioAutenticado?.rolVisible ? t("txtMedico") : t("txtPaciente") };
-        const res = detTextoPersona(usuarioAutenticado?.rolVisible, persona?.nombre);
-        campoNombre.valor = res.length == 1 ? res[0] : `${t(res[0])} ${t(res[1])}`;
-        return [
-            { id: "id", titulo: "ID", valor: diagnostico?.id }, campoNombre,
-            { id: "sexo", titulo: t("txtCampoSexo"), componente: <ChipSexo valor={diagnostico?.sexo} /> },
-            { id: "edad", titulo: t("txtCampoEdad"), valor: `${diagnostico?.sintomasNumericos.edad} ${t("txtSufijoEdad")}` },
-            { id: "fecha", titulo: t("txtCampoFechaDiag"), valor: dayjs(diagnostico?.fecha).format(t("formatoFechaCompleta")) },
-            { id: "diagnosticoModelo", titulo: t("txtCampoDiagModelo"), componente: <ChipDiagnostico valor={diagnostico?.diagnosticoModelo} /> },
-            { id: "probabilidad", titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico?.probabilidad * 100).toFixed(2)}%` },
-            { id: "diagnosticoMedico", titulo: t("txtCampoDiagMedico"), componente: <ChipValidado valor={diagnostico?.diagnosticoMedico} /> },
-        ];
-    }, [usuarioAutenticado, diagnostico, persona, t]);
+    const [state, dispatch] = useReducer(reducer, estadoInicial);
+    const { modalError, modalEliminacion, modalValidacion, procesando } = state;
+    const textoPersona = useMemo(() =>
+        detTextoPersona(usuarioAutenticado?.rolVisible ? "usuario" : "paciente", persona?.nombre).map((x) => t(x)).join(" ")
+    , [t, persona, usuarioAutenticado?.rolVisible]);
+    const camposPersonales = useMemo(() => [
+        { id: "id", titulo: "ID", valor: diagnostico?.id },
+        { id: "nombre", titulo: usuarioAutenticado?.rolVisible ? t("txtMedico") : t("txtPaciente"), valor: textoPersona },
+        { id: "sexo", titulo: t("txtCampoSexo"), componente: <ChipSexo valor={diagnostico?.sexo} /> },
+        { id: "edad", titulo: t("txtCampoEdad"), valor: `${diagnostico?.sintomasNumericos.edad} ${t("txtSufijoEdad")}` },
+        { id: "fecha", titulo: t("txtCampoFechaDiag"), valor: dayjs(diagnostico?.fecha).format(t("formatoFechaCompleta")) },
+        { id: "diagnosticoModelo", titulo: t("txtCampoDiagModelo"), componente: <ChipDiagnostico valor={diagnostico?.diagnosticoModelo} /> },
+        { id: "probabilidad", titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico?.probabilidad * 100).toFixed(2)}%` },
+        { id: "diagnosticoMedico", titulo: t("txtCampoDiagMedico"), componente: <ChipValidado valor={diagnostico?.diagnosticoMedico} /> },
+    ], [usuarioAutenticado, diagnostico, t, textoPersona]);
     const camposVitales = useMemo(() => [
         { id: "presionSistolica", titulo: t("txtCampoPresionSist"), valor: `${diagnostico?.sintomasNumericos.presion_sistolica} mmHg.` },
         { id: "presionDiastolica", titulo: t("txtCampoPresionDiast"), valor: `${diagnostico?.sintomasNumericos.presion_diastolica} mmHg.` },
@@ -103,58 +88,53 @@ export default function VerDiagnosticoPage() {
         { id: "hb", titulo: t("txtCampoHB"), valor: `${diagnostico?.sintomasNumericos.hb} g/dL.` },
         { id: "wbc", titulo: t("txtCampoWBC"), valor: `${diagnostico?.sintomasNumericos.wbc} /µL.` },
     ], [diagnostico, t]);
-    const listadoPestanas = useMemo(() => {
-        const res = detTextoPersona(usuarioAutenticado?.rolVisible, persona?.nombre);
-        const nombre = res.length == 1 ? res[0] : `${t(res[0])} ${t(res[1])}`;
-        return [
-            { texto: usuarioAutenticado?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
-            { texto: `${usuarioAutenticado?.rolVisible ? t("txtDiagnostico") : t("txtPaciente")} — ${nombre} - ${diagnostico?.fecha.toLocaleString()}` }
-        ];
-    }, [usuarioAutenticado, persona, diagnostico, t]);
+    const listadoPestanas = useMemo(() => [
+        { texto: usuarioAutenticado?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
+        { texto: `${usuarioAutenticado?.rolVisible ? t("txtDiagnostico") : t("txtPaciente")} — ${textoPersona} - ${diagnostico?.fecha.toLocaleString()}` }
+    ], [usuarioAutenticado, textoPersona, diagnostico, t]);
+    const mostrarPantallaCarga = !diagnostico || !persona || procesando;
 
     useEffect(() => {
         let titulo = usuarioAutenticado?.rolVisible ? t("titDiagnostico") : t("titVerDiagnostico");
         if (diagnostico && persona) {
-            const res = detTextoPersona(usuarioAutenticado?.rolVisible, persona?.nombre);
-            const nombre = res.length == 1 ? res[0] : `${t(res[0])} ${t(res[1])}`;
-            titulo = `${t("txtDiagnostico")} — ${nombre} - ${diagnostico?.fecha.toLocaleString()}`;
+            titulo = `${t("txtDiagnostico")} — ${textoPersona} - ${diagnostico?.fecha.toLocaleString()}`;
         }
         document.title = titulo;
-    }, [usuarioAutenticado, persona, diagnostico, t]);
+    }, [usuarioAutenticado, persona, diagnostico, t, textoPersona]);
 
     useEffect(() => {
         if (error == "errIdInvalido") {
             navigate("/diagnosticos");
         } else if (error) {
-            dispatch({ tipo: "MOSTRAR_MODAL_ERROR", payload: error });
+            dispatch({ type: "MOSTRAR_MODAL_ERROR", payload: error });
         }
     }, [error, navigate]);
 
     async function manejadorBtnBorrar() {
-        dispatch({ tipo: "CERRAR_MODAL_ELIMINACION" });
-        dispatch({ tipo: "INICIAR_PROCESADO" });
+        dispatch({ type: "CERRAR_MODAL_ELIMINACION" });
+        dispatch({ type: "INICIAR_PROCESADO" });
         const { success, error } = await eliminarDiagnosticos(id);
         if (success) {
             navigate("/diagnosticos");
             return;
         }
-        dispatch({ tipo: "MOSTRAR_MODAL_ERROR", payload: error });
-        dispatch({ tipo: "FINALIZAR_PROCESADO", payload: false });
+        dispatch({ type: "MOSTRAR_MODAL_ERROR", payload: error });
+        dispatch({ type: "FINALIZAR_PROCESADO", payload: false });
     };
 
     /**
      * @param {Object} diagnosticoMedico Diagnóstico TEP confirmado por el médico.
      */
     async function manejadorBtnValidar({ diagnosticoMedico }) {
-        dispatch({ tipo: "CERRAR_MODAL_VALIDACION" });
-        dispatch({ tipo: "INICIAR_PROCESADO" });
+        dispatch({ type: "CERRAR_MODAL_VALIDACION" });
+        dispatch({ type: "INICIAR_PROCESADO" });
         const { success, error } = await validarDiagnostico(diagnostico, diagnosticoMedico);
         if (success) {
             await manejadorCargaDiagnostico();
         } else {
-            dispatch({ tipo: "MOSTRAR_MODAL_ERROR", payload: error });
+            dispatch({ type: "MOSTRAR_MODAL_ERROR", payload: error });
         }
-        dispatch({ tipo: "FINALIZAR_PROCESADO" });
+        dispatch({ type: "FINALIZAR_PROCESADO" });
     };
 
     return (
@@ -174,7 +154,7 @@ export default function VerDiagnosticoPage() {
                             {usuarioAutenticado?.rolVisible ? (
                                 <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                                     <Tooltip title={t("txtAyudaEliminarDiagnostico")}>
-                                        <IconButton color="inherit" onClick={() => dispatch({ tipo: "MOSTRAR_MODAL_ELIMINACION" })}>
+                                        <IconButton color="inherit" onClick={() => dispatch({ type: "MOSTRAR_MODAL_ELIMINACION" })}>
                                             <DeleteIcon />
                                         </IconButton>
                                     </Tooltip>
@@ -273,7 +253,7 @@ export default function VerDiagnosticoPage() {
                             <BtnFlotante
                                 txtBtn={t("txtBtnValidar")}
                                 txtAyudaBtn={t("txtAyudaBtnValidar")}
-                                manejadorBtn={() => dispatch({ tipo: "MOSTRAR_MODAL_VALIDACION" })}
+                                manejadorBtn={() => dispatch({ type: "MOSTRAR_MODAL_VALIDACION" })}
                                 icono={<CheckCircleOutlineIcon />} />
                         ) : null}
                     </>
@@ -281,7 +261,7 @@ export default function VerDiagnosticoPage() {
                 <FormValidacion
                     mostrar={modalValidacion}
                     manejadorBtn={manejadorBtnValidar}
-                    manejadorCierre={() => dispatch({ tipo: "CERRAR_MODAL_VALIDACION" })} />
+                    manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_VALIDACION" })} />
                 <ModalDoble
                     mostrar={modalEliminacion}
                     titulo={t("titAlerta")}
@@ -289,7 +269,7 @@ export default function VerDiagnosticoPage() {
                     txtBtnPrincipal={t("txtBtnEliminar")}
                     txtBtnSecundario={t("txtBtnCancelar")}
                     manejadorBtnPrincipal={manejadorBtnBorrar}
-                    manejadorBtnSecundario={() => dispatch({ tipo: "CERRAR_MODAL_ELIMINACION" })}
+                    manejadorBtnSecundario={() => dispatch({ type: "CERRAR_MODAL_ELIMINACION" })}
                     iconoBtnPrincipal={<DeleteIcon />}
                     iconoBtnSecundario={<CloseIcon />} />
                 <ModalSimple
@@ -297,7 +277,7 @@ export default function VerDiagnosticoPage() {
                     titulo={t("tituloErr")}
                     texto={t(modalError.texto)}
                     txtBtn={t("txtBtnCerrar")}
-                    manejadorBtn={() => dispatch({ tipo: "CERRAR_MODAL_ERROR" })}
+                    manejadorBtn={() => dispatch({ type: "CERRAR_MODAL_ERROR" })}
                     iconoBtn={<CloseIcon />} />
             </MenuLayout>
         </>

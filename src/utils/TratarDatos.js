@@ -118,3 +118,23 @@ export async function convertirDiagnosticoExportable(instancia, esAdmin, preproc
 
     return datos;
 };
+
+/**
+ * Determina qué nombre se debería mostrar para una persona según su rol y nombre. 
+ * Útil para mostrar correctamente los nombres de pacientes y usuarios que han sido eliminados o anonimizados.
+ * @param {String} rol Rol de la persona (paciente o usuario).
+ * @param {String} nombre Nombre de la persona (puede ser "eliminado" o "anonimo").
+ * @returns {Array<String>} Array con los textos correspondientes según el rol 
+ * y nombre de la persona.
+ */
+export function detTextoPersona(rol, nombre) {
+    if (rol == "paciente" && nombre == "eliminado") {
+        return ["txtPaciente", "txtEliminado"];
+    } else if (rol == "paciente" && nombre == "anonimo") {
+        return ["txtPaciente", "txtAnonimo"];
+    } else if (rol == "usuario" && nombre == "eliminado") {
+        return ["txtUsuario", "txtEliminado"];
+    } else {
+        return [nombre];
+    }
+};
