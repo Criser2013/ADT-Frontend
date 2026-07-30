@@ -5,7 +5,6 @@ import dayjs from "dayjs";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import RefreshIcon from '@mui/icons-material/Refresh';
-
 import { AdvertenciaEspacio } from "../../components/menu";
 import { BtnTabla, Datatable } from "../../components/datatable";
 import { Grid, Box, CircularProgress, Tooltip, IconButton, Button, Typography } from "@mui/material";
@@ -15,14 +14,55 @@ import { FormExportacion, FormValidacion } from "../../components/forms";
 import { MenuLayout, TabHeader, PantallaCarga } from "../../components/layout";
 import { ModalDoble, ModalSimple } from "../../components/modals";
 import { useAuth, useDiagnosticos, useOperacionesDiagnosticos } from "../../hooks";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Diagnostico } from '../../models';
 
 
+const estadoInicial = {
+    diagnosticosSeleccionados: [], instancia: null, modalEliminacion: false,
+    modalError: { mostrar: false, texto: "" }, modalExportacion: false,
+    modalValidacion: false, procesando: false,
+};
+
+function reducer(state, action) {
+    switch (action.type) {
+        case "ABRIR_MODAL_ELIMINACION_MULTIPLE":
+            return { ...state, modalEliminacion: true, diagnosticosSeleccionados: action.payload };
+        case "ABRIR_MODAL_ELIMINACION_SINGULAR":
+            return { ...state, modalEliminacion: true, instancia: action.payload };
+        case "ABRIR_MODAL_ERROR":
+            return { ...state, modalError: { mostrar: true, texto: action.payload } };
+        case "ABRIR_MODAL_EXPORTACION":
+            return { ...state, modalExportacion: true };
+        case "ABRIR_MODAL_VALIDACION":
+            return { ...state, modalValidacion: true, instancia: action.payload };
+        case "CERRAR_MODAL_ELIMINACION":
+            return { ...state, modalEliminacion: false, diagnosticosSeleccionados: [], instancia: null };
+        case "CERRAR_MODAL_ERROR":
+            return { ...state, modalError: { ...state.modalError, mostrar: false } };
+        case "CERRAR_MODAL_EXPORTACION":
+            return { ...state, modalExportacion: false };
+        case "CERRAR_MODAL_VALIDACION":
+            return { ...state, modalValidacion: false, instancia: null };
+        case "FINALIZAR_CARGA_DATOS":
+            return { ...state, procesando: false, diagnosticosSeleccionados: [], instancia: null };
+        case "FINALIZAR_VALIDACION_INSTANCIA":
+            return { ...state, procesando: false, instancia: null };
+        case "INICIAR_CARGA_DATOS":
+            return { ...state, procesando: true };
+        case "INICIAR_ELIMINADO_INSTANCIAS":
+            return { ...state, procesando: true, modalEliminacion: false, diagnosticosSeleccionados: [], instancia: null };
+        case "INICIAR_VALIDACION_INSTANCIA":
+            return { ...state, procesando: true, modalValidacion: false };
+        default:
+            return state;
+    }
+}
+
 function detTextoPersona(rol, nombre) {
-    if (rol == "paciente" && nombre == "null") {
+    if (rol == "paciente" && nombre == "eliminado") {
         return ["txtPaciente", "txtEliminado"];
     } else if (rol == "paciente" && nombre == "anonimo") {
         return ["txtPaciente", "txtAnonimo"];
@@ -38,27 +78,20 @@ function detTextoPersona(rol, nombre) {
  * @returns {JSX.Element}
  */
 export default function VerDiagnosticosPage() {
-    const { usuario } = useAuth();
-    const { t } = useTranslation();
-    const { eliminarDiagnosticos, validarDiagnostico } = useOperacionesDiagnosticos();
-    const { cantDiagnosticosNoValidados, error, diagnosticos, mapeoDiagnosticos, manejadorCargaDiagnosticos } = useDiagnosticos(
-        usuario?.rolVisible, usuario?.uid, null, true
-    );
-
     const navigate = useNavigate();
-    const [procesando, setProcesando] = useState(false);
-    const [diagnosticosSeleccionados, setDiagnosticosSeleccionados] = useState([]);
-    const [modalValidacion, setModalValidacion] = useState(false);
-    const [modalEliminacion, setModalEliminacion] = useState(false);
-    const [modalExportacion, setModalExportacion] = useState(false);
-    const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
-
-    const [instancia, setInstancia] = useState(null);
-
-    const mostrarPantallaCarga = procesando || (!diagnosticos || mapeoDiagnosticos == {});
+    const { eliminarDiagnosticos, validarDiagnostico } = useOperacionesDiagnosticos();
+    const { usuario } = useAuth();
+    const { cantDiagnosticosNoValidados, diagnosticos, diagnosticosCargados,
+        error, mapeoDiagnosticos, manejadorCargaDiagnosticos } = useDiagnosticos(
+            usuario?.rolVisible, usuario?.uid, null, true
+        );
+    const { t } = useTranslation();
+    const [state, dispatch] = useReducer(reducer, estadoInicial);
+    const { diagnosticosSeleccionados, instancia, modalEliminacion, modalError, modalExportacion, modalValidacion, procesando } = state;
     const listadoPestanas = [
         { texto: usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" }
     ];
+    const mostrarPantallaCarga = procesando || !diagnosticosCargados;
 
     useEffect(() => {
         document.title = usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos");
@@ -66,41 +99,27 @@ export default function VerDiagnosticosPage() {
 
     useEffect(() => {
         if (error) {
-            setModalError({ mostrar: true, texto: error });
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
         }
     }, [error]);
 
     async function manejadorBtnRecargar() {
-        setProcesando(true);
+        dispatch({ type: "INICIAR_CARGA_DATOS" });
         await manejadorCargaDiagnosticos(
             usuario?.rolVisible, usuario?.uid, null
         );
-        setDiagnosticosSeleccionados([]);
-        setProcesando(false);
+        dispatch({ type: "FINALIZAR_CARGA_DATOS" });
     };
 
     async function manejadorBtnModalEliminacion() {
-        setModalEliminacion(false);
-        setProcesando(true);
-        if (Array.isArray(diagnosticosSeleccionados)) {
-            await eliminarDiagnosticos(diagnosticosSeleccionados);
-            setDiagnosticosSeleccionados([]);
-        } else {
-            await eliminarDiagnosticos(instancia);
-        }
+        dispatch({ type: "INICIAR_ELIMINADO_INSTANCIAS" });
+        await eliminarDiagnosticos(
+            Array.isArray(diagnosticosSeleccionados) ? diagnosticosSeleccionados : instancia
+        );
         await manejadorCargaDiagnosticos(
             usuario?.rolVisible, usuario?.uid, null
         );
-        setInstancia(null);
-        setProcesando(false);
-    };
-
-    /**
-     * @param {Array<Diagnostico>} diagnosticos Instancias de los diagnósticos a eliminar.
-     */
-    function manejadorBtnEliminar(diagnosticos) {
-        setDiagnosticosSeleccionados(diagnosticos.map((x) => x.id));
-        setModalEliminacion(true);
+        dispatch({ type: "FINALIZAR_PROCESO" });
     };
 
     /**
@@ -109,8 +128,7 @@ export default function VerDiagnosticosPage() {
      */
     const manejadorBtnEliminarFila = useCallback((diagnostico, e) => {
         e.stopPropagation();
-        setInstancia(diagnostico.id);
-        setModalEliminacion(true);
+        dispatch({ type: "ABRIR_MODAL_ELIMINACION_SINGULAR", payload: diagnostico.id });
     }, []);
 
     /**
@@ -119,21 +137,19 @@ export default function VerDiagnosticosPage() {
      */
     const manejadorBtnValidarFila = useCallback((diagnostico, e) => {
         e.stopPropagation();
-        setInstancia(mapeoDiagnosticos[diagnostico.id]);
-        setModalValidacion(true);
+        dispatch({ type: "ABRIR_MODAL_VALIDACION", payload: mapeoDiagnosticos[diagnostico.id] });
     }, [mapeoDiagnosticos]);
 
     /**
      * @param {Boolean} diagnosticoMedico Valor de validación del diagnóstico.
      */
     async function manejadorBtnValidar({ diagnosticoMedico }) {
-        setModalValidacion(false);
-        setProcesando(true);
+        dispatch({ type: "INICIAR_VALIDACION_INSTANCIA" });
         const { success } = await validarDiagnostico(instancia, diagnosticoMedico);
         if (success) {
             await manejadorCargaDiagnosticos(usuario?.rolVisible, usuario?.uid, null);
         }
-        setProcesando(false);
+        dispatch({ type: "FINALIZAR_VALIDACION_INSTANCIA" });
     };
 
     const campos = useMemo(() => {
@@ -156,15 +172,15 @@ export default function VerDiagnosticosPage() {
             aux.push({ id: "cedula", label: t("txtCedula"), componente: null, ordenable: true });
             if (cantDiagnosticosNoValidados > 0) {
                 aux2.push({
-                    id: "accion", label: t("txtAccion"), componente: 
-                    (x) => x.validado ? null : <BtnTabla instancia={x} manejadorBtn={manejadorBtnValidarFila} txtAyuda="txtAyudaValidar" icono={<CheckCircleOutlineIcon />} />,
+                    id: "accion", label: t("txtAccion"), componente:
+                        (x) => x.validado ? null : <BtnTabla instancia={x} manejadorBtn={manejadorBtnValidarFila} txtAyuda="txtAyudaValidar" icono={<CheckCircleOutlineIcon />} />,
                     ordenable: false
                 });
             }
         } else {
-            aux.push({
+            aux2.push({
                 id: "accion", label: t("txtAccion"), componente:
-                (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnEliminarFila} txtAyuda="txtAyudaEliminarDiag" color="error" icono={<DeleteIcon />} />,
+                    (x) => <BtnTabla instancia={x} manejadorBtn={manejadorBtnEliminarFila} txtAyuda="txtAyudaEliminarDiagnostico" color="error" icono={<DeleteIcon />} />,
                 ordenable: false
             });
         }
@@ -193,7 +209,7 @@ export default function VerDiagnosticosPage() {
                                     <Button
                                         variant="contained"
                                         color="primary"
-                                        onClick={() => setModalExportacion(true)}
+                                        onClick={() => dispatch({ type: "ABRIR_MODAL_EXPORTACION" })}
                                         disabled={diagnosticos?.length == 0}
                                         sx={{ textTransform: "none" }}
                                         startIcon={usuario?.rolVisible ? <AddToDriveIcon /> : <FileDownloadIcon />}>
@@ -215,14 +231,16 @@ export default function VerDiagnosticosPage() {
                             campoOrdenInicial="fecha"
                             direccionOrdenInicial="asc"
                             callbackClicCelda={(x) => navigate(`/diagnosticos/${x.id}`)}
-                            callbackBtnAccion={manejadorBtnEliminar}
+                            callbackBtnAccion={(diagnosticos) => dispatch({
+                                type: "ABRIR_MODAL_ELIMINACION_MULTIPLE", payload: diagnosticos.map((x) => x.id)
+                            })}
                             icono={<DeleteIcon />} />
                     </Grid>
                 </>)}
             <FormValidacion
                 mostrar={modalValidacion}
                 manejadorBtn={manejadorBtnValidar}
-                manejadorCierre={() => setModalValidacion(false)} />
+                manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_VALIDACION" })} />
             <ModalDoble
                 mostrar={modalEliminacion}
                 titulo={t("titAlerta")}
@@ -230,19 +248,19 @@ export default function VerDiagnosticosPage() {
                 txtBtnPrincipal={t("txtBtnEliminar")}
                 txtBtnSecundario={t("txtBtnCancelar")}
                 manejadorBtnPrincipal={manejadorBtnModalEliminacion}
-                manejadorBtnSecundario={() => setModalEliminacion(false)}
+                manejadorBtnSecundario={() => dispatch({ type: "CERRAR_MODAL_ELIMINACION" })}
                 iconoBtnPrincipal={<DeleteIcon />}
                 iconoBtnSecundario={<CloseIcon />} />
             <FormExportacion
                 mostrar={modalExportacion}
                 diagnosticos={diagnosticos}
-                manejadorCierre={() => setModalExportacion(false)} />
+                manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_EXPORTACION" })} />
             <ModalSimple
                 mostrar={modalError.mostrar}
                 titulo={t("titErr")}
                 texto={t(modalError.texto)}
                 txtBtn={t("txtBtnCerrar")}
-                manejadorBtn={() => setModalError((X) => ({ ...X, mostrar: false }))}
+                manejadorBtn={() => dispatch({ type: "CERRAR_MODAL_ERROR" })}
                 iconoBtn={<CloseIcon />} />
         </MenuLayout>
     );

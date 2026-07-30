@@ -209,6 +209,7 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
     const { usuario } = useAuth();
     const { verDiagnosticos, helperListo: diagnosticosListo } = useOperacionesDiagnosticos();
     const [diagnosticos, setDiagnosticos] = useState(null);
+    const [personasCargadas, setPersonasCargadas] = useState(false);
     const [error, setError] = useState(null);
     const mapeoDiagnosticos = useMemo(() => {
         const aux = {};
@@ -244,6 +245,8 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
                 }
             }
         }
+
+        setPersonasCargadas(true);
 
         return aux;
     }, [usuario?.rolVisible, traerInfoPersona, diagnosticos, mapeoPacientes, mapeoUsuarios]);
@@ -296,5 +299,11 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
         }
     }, [diagnosticosListo, verDiagnosticos, verTodos, uid, fecha, diagnosticos, manejadorCargaDiagnosticos]);
 
-    return { mapeoDiagnosticos, diagnosticos: diagnosticosMapeados, error, manejadorCargaDiagnosticos, cantDiagnosticosNoValidados };
+    const value = useMemo(() => ({
+        mapeoDiagnosticos, diagnosticos: diagnosticosMapeados, error, manejadorCargaDiagnosticos,
+        cantDiagnosticosNoValidados, diagnosticosCargados: diagnosticos !== null && personasCargadas
+    }), [mapeoDiagnosticos, diagnosticosMapeados, error, manejadorCargaDiagnosticos,
+        cantDiagnosticosNoValidados, diagnosticos, personasCargadas]);
+
+    return value;
 };
