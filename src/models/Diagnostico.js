@@ -120,16 +120,6 @@ export default class Diagnostico {
             new ExplicacionLime(this.explicacion.toJson())
         );
     }
-
-    /**
-     * @returns {DiagnosticoDto} Una instancia de la clase DiagnosticoDto creada a partir de los datos del diagnóstico.
-     */
-    toDto() {
-        return new DiagnosticoDto(
-            this.id, this.usuario, "", this.paciente, "", "", this.sintomasNumericos.edad, this.fecha, this.sexo,
-            this.diagnosticoModelo, this.diagnosticoMedico
-        );
-    }
  
     toJson() {
         return {

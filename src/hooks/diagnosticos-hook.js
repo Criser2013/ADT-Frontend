@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePaciente, usePacientes } from "./pacientes-hook";
 import { useUsuario, useUsuarios } from "./usuarios-hook";
 import { validarId } from "../utils/Validadores";
+import { DiagnosticoDto } from "../dto";
 
 
 /**
@@ -222,29 +223,21 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
     }, [diagnosticos]);
 
     const diagnosticosMapeados = useMemo(() => {
-        const aux = diagnosticos?.map((d) => d.toDto()) || [];
-
+        const aux = diagnosticos?.map((d) => d.deepClone()) || [];
         if (traerInfoPersona) {
-            for (const d of aux) {
-                if (usuario?.rolVisible) {
-                    d.usuario = mapeoUsuarios[d.usuario]?.nombre || "usuario eliminado";
-                } else {
-                    d.cedula = mapeoPacientes[d.paciente]?.cedula || "N/A";
-                }
-                if (!d.paciente) {
-                    d.paciente = "paciente anónimo";
-                    d.cedula = "N/A";
-                } else {
-                    d.cedula = mapeoPacientes[d.paciente]?.cedula || "N/A";
-                    d.paciente = mapeoPacientes[d.paciente]?.nombre || "paciente eliminado";
-                }
+            for (let i=0; i < aux.length; i++) {
+                const d = aux[i];
+                aux[i] = new DiagnosticoDto(
+                    d.id, d.usuario, mapeoUsuarios[d.usuario]?.nombre || "usuario eliminado", 
+                    d.paciente, d.paciente ? mapeoPacientes[d.paciente]?.nombre || "paciente eliminado" : "paciente anónimo",
+                    mapeoPacientes[d.paciente]?.cedula || "N/A",
+                    d.sintomasNumericos.edad, d.fecha, d.sexo, d.diagnosticoModelo, d.diagnosticoMedico
+                );
             }
         }
-
         setPersonasCargadas(true);
-
         return aux;
-    }, [usuario?.rolVisible, traerInfoPersona, diagnosticos, mapeoPacientes, mapeoUsuarios]);
+    }, [traerInfoPersona, diagnosticos, mapeoPacientes, mapeoUsuarios]);
 
     const cantDiagnosticosNoValidados = useMemo(() =>
         diagnosticosMapeados?.reduce((x, d) => x + (d.validado ? 0 : 1), 0) || 0
@@ -280,13 +273,13 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
         if (traerInfoPersona && !usuario?.rolVisible && diagnosticos && pacientesListo) {
             cargarPersonas("paciente");
         }
-    }, [cargarPersonas, usuario?.rolVisible, manejadorCargaPacientes, traerInfoPersona, diagnosticos, pacientesListo]);
+    }, [cargarPersonas, usuario?.rolVisible, traerInfoPersona, diagnosticos, pacientesListo]);
 
     useEffect(() => {
         if (traerInfoPersona && usuario?.rolVisible && usuariosListo) {
             cargarPersonas("usuario");
         }
-    }, [cargarPersonas, usuario?.rolVisible, traerInfoPersona, manejadorCargaUsuarios, usuariosListo]);
+    }, [cargarPersonas, usuario?.rolVisible, traerInfoPersona, usuariosListo]);
 
     useEffect(() => {
         if (diagnosticosListo && !diagnosticos) {

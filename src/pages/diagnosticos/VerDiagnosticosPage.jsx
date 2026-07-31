@@ -92,6 +92,14 @@ export default function VerDiagnosticosPage() {
         }
     }, [error]);
 
+    useEffect(() => {
+        dispatch({ type: "INICIAR_CARGA_DATOS" });
+    }, [usuario?.rolVisible]);
+
+    useEffect(() => {
+        dispatch({ type: "FINALIZAR_CARGA_DATOS" });
+    }, [diagnosticos]);
+
     async function manejadorBtnRecargar() {
         dispatch({ type: "INICIAR_CARGA_DATOS" });
         await manejadorCargaDiagnosticos(
@@ -117,7 +125,7 @@ export default function VerDiagnosticosPage() {
      */
     const manejadorBtnEliminarFila = useCallback((diagnostico, e) => {
         e.stopPropagation();
-        dispatch({ type: "ABRIR_MODAL_ELIMINACION_SINGULAR", payload: diagnostico.id });
+        dispatch({ type: "ABRIR_MODAL_ELIMINACION_SINGULAR", payload: diagnostico.idCompuesto });
     }, []);
 
     /**
@@ -126,7 +134,7 @@ export default function VerDiagnosticosPage() {
      */
     const manejadorBtnValidarFila = useCallback((diagnostico, e) => {
         e.stopPropagation();
-        dispatch({ type: "ABRIR_MODAL_VALIDACION", payload: mapeoDiagnosticos[diagnostico.id] });
+        dispatch({ type: "ABRIR_MODAL_VALIDACION", payload: mapeoDiagnosticos[diagnostico.idCompuesto] });
     }, [mapeoDiagnosticos]);
 
     /**
@@ -162,11 +170,11 @@ export default function VerDiagnosticosPage() {
         const CompVerDiagnostico = (x) => <ChipDiagnostico valor={x.diagnosticoModelo} />;
         const CompVerFecha = (x) => dayjs(x.fecha).format(t("formatoFechaHoraResumida"));
         const CompVerId = (x) => x.mostrarId(usuario?.rolVisible);
-        const CompVerNombre = (x) => detTextoPersona(idCampoNombre, x[idCampoNombre].split(" ")[1], t);
+        const CompVerNombre = (x) => detTextoPersona(idCampoNombre, x[idCampoNombre], t);
         const CompVerSexo = (x) => <ChipSexo valor={x.sexo} />;
-        const CompVerValidado = (x) => <ChipValidado valor={x.validado} />;
+        const CompVerValidado = (x) => <ChipValidado valor={x.diagnosticoMedico} />;
         const camposBase = [
-            { id: "id", label: "ID", componente: CompVerId, ordenable: true },
+            { id: "idCompuesto", label: "ID", componente: CompVerId, ordenable: true },
             { id: idCampoNombre, label: etiquetaCampoNombre, componente: CompVerNombre, ordenable: true },
             { id: "fecha", label: t("txtFecha"), componente: CompVerFecha, ordenable: true },
             { id: "edad", label: t("edad"), componente: null, ordenable: true },
@@ -225,18 +233,18 @@ export default function VerDiagnosticosPage() {
                         <Datatable
                             datos={diagnosticos}
                             campos={campos}
-                            campoId="id"
+                            campoId="idCompuesto"
                             lblBusqueda={usuario?.rolVisible ? t("txtBusqDiagAdmin") : t("txtBusqDiag")}
                             lblSeleccion={t("txtSufijoDiagsSelecs")}
                             tooltipAccion={t("txtAyudaEliminarDiags")}
                             activarBusqueda
                             activarSeleccion={usuario?.rolVisible}
-                            camposBusqueda={usuario?.rolVisible ? ["id", "usuario"] : ["id", "cedula", "paciente"]}
+                            camposBusqueda={usuario?.rolVisible ? ["idCompuesto", "usuario"] : ["idCompuesto", "cedula", "paciente"]}
                             campoOrdenInicial="fecha"
                             direccionOrdenInicial="asc"
-                            callbackClicCelda={(x) => navigate(`/diagnosticos/${x.id}`)}
+                            callbackClicCelda={(x) => navigate(`/diagnosticos/${x.idCompuesto}`)}
                             callbackBtnAccion={(diagnosticos) => dispatch({
-                                type: "ABRIR_MODAL_ELIMINACION_MULTIPLE", payload: diagnosticos.map((x) => x.id)
+                                type: "ABRIR_MODAL_ELIMINACION_MULTIPLE", payload: diagnosticos.map((x) => x.idCompuesto)
                             })}
                             icono={<DeleteIcon />} />
                     </Grid>

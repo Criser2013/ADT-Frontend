@@ -158,13 +158,13 @@ export function useUsuarios(cargaAutomatica = true) {
                 setUsuarios([]);
                 setError(error);
             }
-    }, [verUsuarios, setUsuarios, setError]);
+    }, [verUsuarios]);
 
     useEffect(() => {
         if (cargaAutomatica && usuario?.rolVisible && helperListo) {
             manejadorCargaUsuarios();
         }
-    }, [cargaAutomatica, verUsuarios, helperListo, usuario?.rolVisible, manejadorCargaUsuarios]);
+    }, [cargaAutomatica, helperListo, usuario?.rolVisible, manejadorCargaUsuarios]);
 
     const value = useMemo(() => ({
         usuarios, mapeoUsuarios, error, manejadorCargaUsuarios, helperListo

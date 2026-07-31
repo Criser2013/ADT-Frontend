@@ -128,11 +128,11 @@ export async function convertirDiagnosticoExportable(instancia, esAdmin, preproc
  * @returns {String} Texto correspondiente según el rol y nombre de la persona.
  */
 export function detTextoPersona(rol, nombre, t) {
-    if (rol == "paciente" && nombre == "eliminado") {
+    if (rol == "paciente" && nombre == "paciente eliminado") {
         return `${t("txtPaciente")} ${t("txtEliminado")}`;
-    } else if (rol == "paciente" && nombre == "anonimo") {
+    } else if (rol == "paciente" && nombre == "paciente anónimo") {
         return `${t("txtPaciente")} ${t("txtAnonimo")}`;
-    } else if (rol == "usuario" && nombre == "eliminado") {
+    } else if (rol == "usuario" && nombre == "usuario eliminado") {
         return `${t("txtUsuario")} ${t("txtEliminado")}`;
     } else {
         return nombre;
