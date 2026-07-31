@@ -51,13 +51,25 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
         };
         const res2 = { success: false, error: "Error al cargar los usuarios" };
 
+        // ---------------------- Mocks ----------------------
+        const mock1 = {
+            success: true, data: {
+                usuarios: [
+                    new Usuario(
+                        "174", "correo@correo.com", "Usuario de prueba", true, true, "01/01/2023 12:00", "01/01/2023 12:00"
+                    )]
+            }
+        };
+        const mock2 = { success: false, error: "Error al cargar los usuarios" };
+
+
         beforeEach(() => {
             jest.clearAllMocks();
         });
 
         test.each([
-            ["185", res1, res1],
-            ["186", res2, res2]
+            ["185", mock1, res1],
+            ["186", mock2, res2]
         ])("CP - %s", async (idPrueba, mock, resEsperada) => {
             peticionApi.mockResolvedValue(mock);
             const helper = new UsuariosHelper("token", "es");

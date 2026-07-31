@@ -22,6 +22,7 @@ export default class DiagnosticoDto {
         edad, fecha, sexo, diagnosticoModelo, diagnosticoMedico
     ) {
         this.idCompuesto = `${id}-${idUsuario}`;
+        this.idUsuario = idUsuario;
         this.usuario = usuario;
         this.idPaciente = idPaciente;
         this.paciente = paciente;
@@ -38,11 +39,21 @@ export default class DiagnosticoDto {
         this.esPacienteEliminado = paciente == "paciente eliminado";
     }
 
+    get usuario() {
+        return this._usuario;
+    }
+
     set usuario(nombre) {
+        this._usuario = nombre;
         this.esUsuarioEliminado = nombre == "usuario eliminado";
     }
 
+    get paciente() {
+        return this._paciente;
+    }
+
     set paciente(nombre) {
+        this._paciente = nombre;
         this.esPacienteAnonimo = nombre == "paciente anónimo";
         this.esPacienteEliminado = nombre == "paciente eliminado";
     }

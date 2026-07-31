@@ -1,4 +1,5 @@
 import { jest, describe, expect, test, beforeEach } from '@jest/globals';
+import DiagnosticoDto from "../../../../src/dto/DiagnosticoDto";
 
 jest.unstable_mockModule("firebase/firestore", () => ({
     Timestamp: {
@@ -192,6 +193,18 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
 
             expect(clon).not.toBe(original);
             expect(clon).toEqual(original);
+        });
+    });
+
+    describe("Validar el método 'toDto'", () => {
+        test("CP - 192", () => {
+            const original = new Diagnostico(
+                "1", "1", "1", comorbilidades,
+                new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos,
+                true, false, 0.5, new ExplicacionLime([{ campo: "edad", contribucion: 0.5 }])
+            );
+            const res = original.toDto();
+            expect(res).toBeInstanceOf(DiagnosticoDto);
         });
     });
 });
