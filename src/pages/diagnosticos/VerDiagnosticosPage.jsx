@@ -112,7 +112,7 @@ export default function VerDiagnosticosPage() {
     };
 
     /**
-     * @param {Diagnostico} diagnostico Instancia del diagnóstico a eliminar.
+     * @param {DiagnosticoDto} diagnostico Instancia del diagnóstico a eliminar.
      * @param {Event} e Evento del clic.
      */
     const manejadorBtnEliminarFila = useCallback((diagnostico, e) => {
@@ -121,7 +121,7 @@ export default function VerDiagnosticosPage() {
     }, []);
 
     /**
-     * @param {Diagnostico} diagnostico Instancia del diagnóstico a validar.
+     * @param {DiagnosticoDto} diagnostico Instancia del diagnóstico a validar.
      * @param {Event} e Evento del clic.
      */
     const manejadorBtnValidarFila = useCallback((diagnostico, e) => {
@@ -161,8 +161,8 @@ export default function VerDiagnosticosPage() {
         );
         const CompVerDiagnostico = (x) => <ChipDiagnostico valor={x.diagnosticoModelo} />;
         const CompVerFecha = (x) => dayjs(x.fecha).format(t("formatoFechaHoraResumida"));
-        const CompVerId = (x) => usuario?.rolVisible ? x.id : x.id.replace(/-\w{28}$/, "");
-        const CompVerNombre = (x) => detTextoPersona(idCampoNombre, x[idCampoNombre], t);
+        const CompVerId = (x) => x.mostrarId(usuario?.rolVisible);
+        const CompVerNombre = (x) => detTextoPersona(idCampoNombre, x[idCampoNombre].split(" ")[1], t);
         const CompVerSexo = (x) => <ChipSexo valor={x.sexo} />;
         const CompVerValidado = (x) => <ChipValidado valor={x.validado} />;
         const camposBase = [
@@ -171,8 +171,8 @@ export default function VerDiagnosticosPage() {
             { id: "fecha", label: t("txtFecha"), componente: CompVerFecha, ordenable: true },
             { id: "edad", label: t("edad"), componente: null, ordenable: true },
             { id: "sexo", label: t("txtCampoSexo"), componente: CompVerSexo, ordenable: true },
-            { id: "diagnostico", label: t("txtCampoDiagModelo"), componente: CompVerDiagnostico, ordenable: true },
-            { id: "validado", label: t("txtCampoDiagMedico"), componente: CompVerValidado, ordenable: true },
+            { id: "diagnosticoModelo", label: t("txtCampoDiagModelo"), componente: CompVerDiagnostico, ordenable: true },
+            { id: "diagnosticoMedico", label: t("txtCampoDiagMedico"), componente: CompVerValidado, ordenable: true },
         ];
 
         if (!usuario?.rolVisible) {

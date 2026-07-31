@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import ExplicacionLime from "./ExplicacionLime";
 import { CAMPOS_BIN, CAMPOS_DECIMALES, CAMPOS_ENTEROS, CAMPOS_NUM, COMORBILIDADES } from "../constants";
 import { decoderOtraEnfermedad } from "../utils/TratarDatos";
+import { DiagnosticoDto } from "../dto";
 import { procBool } from "../utils/TratarDatos";
 import { Timestamp } from "firebase/firestore";
 
@@ -117,6 +118,16 @@ export default class Diagnostico {
             this.sexo, this.otraEnfermedad, { ...this.sintomasBinarios }, { ...this.sintomasNumericos },
             this.diagnosticoModelo, this.diagnosticoMedico, this.probabilidad,
             new ExplicacionLime(this.explicacion.toJson())
+        );
+    }
+
+    /**
+     * @returns {DiagnosticoDto} Una instancia de la clase DiagnosticoDto creada a partir de los datos del diagnóstico.
+     */
+    toDto() {
+        return new DiagnosticoDto(
+            this.id, this.usuario, "", this.paciente, "", "", this.sintomasNumericos.edad, this.fecha, this.sexo,
+            this.diagnosticoModelo, this.diagnosticoMedico
         );
     }
  

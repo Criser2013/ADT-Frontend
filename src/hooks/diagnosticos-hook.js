@@ -222,26 +222,21 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
     }, [diagnosticos]);
 
     const diagnosticosMapeados = useMemo(() => {
-        const aux = diagnosticos?.map((d) => {
-            const aux = d.deepClone();
-            aux.id = `${aux.id}-${aux.usuario}`;
-            return aux;
-        }) || [];
+        const aux = diagnosticos?.map((d) => d.toDto()) || [];
 
         if (traerInfoPersona) {
             for (const d of aux) {
-                d.edad = d.sintomasNumericos?.edad;
                 if (usuario?.rolVisible) {
-                    d.usuario = mapeoUsuarios[d.usuario]?.nombre || "eliminado";
+                    d.usuario = mapeoUsuarios[d.usuario]?.nombre || "usuario eliminado";
                 } else {
                     d.cedula = mapeoPacientes[d.paciente]?.cedula || "N/A";
                 }
                 if (!d.paciente) {
-                    d.paciente = "anonimo";
+                    d.paciente = "paciente anónimo";
                     d.cedula = "N/A";
                 } else {
                     d.cedula = mapeoPacientes[d.paciente]?.cedula || "N/A";
-                    d.paciente = mapeoPacientes[d.paciente]?.nombre || "eliminado";
+                    d.paciente = mapeoPacientes[d.paciente]?.nombre || "paciente eliminado";
                 }
             }
         }
