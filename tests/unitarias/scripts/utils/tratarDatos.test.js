@@ -1,7 +1,7 @@
 import { jest, beforeEach, expect, describe, test } from '@jest/globals';
 import Diagnostico from "../../../../src/models/Diagnostico";
 import ExplicacionLime from "../../../../src/models/ExplicacionLime";
-import { evaluarIntervalo, convertirDiagnosticoExportable, decoderOtraEnfermedad, procBool } from "../../../../src/utils/TratarDatos";
+import { detTextoPersona, evaluarIntervalo, convertirDiagnosticoExportable, decoderOtraEnfermedad, procBool } from "../../../../src/utils/TratarDatos";
 
 describe("Validar la función 'decoderOtraEnfermedad'", () => {
     // --------------------------- Parámetros -----------------------
@@ -81,12 +81,12 @@ describe("Validar la función 'convertirDiagnosticoExportable'", () => {
         frecuencia_cardiaca: 128, edad: 60,
         saturacion_de_la_sangre: 80, plt: 211100, hb: 13.8, wbc: 12300,
     }, true, null, 0.5, new ExplicacionLime([{ "VIH": 51.85, "Hepatopatía crónica": -48.2 }]));
-    const param1 = "es";
-    const param2 = "en";
+    const params1 = { esAdmin: false, preprocesar: false, idioma: "es" };
+    const params2 = { esAdmin: true, preprocesar: true, idioma: "en" };
 
     // --------------------------- Resultados esperados -----------------------
     const res1 = {
-        "Edad": 60, "Sexo": 0, "Bebedor": 0, "Fumador": 0,
+        "Edad": 60, "Sexo": "M", "Bebedor": 0, "Fumador": 0,
         "Procedimiento quirúrgico o traumatismo reciente": 0, "Viaje prolongado": 0,
         "Tos": 0, "Fiebre": 0, "Crepitaciones": 0,
         "Dolor torácico": 1, "Malignidad": 0, "Hemoptisis": 0,
@@ -106,29 +106,124 @@ describe("Validar la función 'convertirDiagnosticoExportable'", () => {
         "Campos significativos para el diagnóstico": '[{"VIH":51.85,"Hepatopatía crónica":-48.2}]'
     };
     const res2 = {
-        "Age": 2, "Sex": "M", "Drinker": 0, "Smoker": 0,
-        "Recent surgical procedure or trauma": 0, "Prolongued travel": 0,
-        "Cough": 0, "Fever": 0, "Crackles": 0,
-        "Chest pain": 1, "Malignancy": 0, "Hemoptysis": 0,
-        "Dyspnea": 1, "Wheezing": 0, "Stroke": 0,
-        "Previous PE - DVT": 0, "Edema of lower Limbs": 0, "Dysautonomic Symptoms": 0,
-        "Lower limb immobility": 0, "Other disease": 1, "Murmurs": 0,
-        "Systolic preasure": 4, "Diastolic preasure": 6, "Respiratory rate": 3,
-        "Heart rate": 4, "Blood saturation (SO2)": 7, "Platelet count": 4, "Hemoglobin": 4, "White blood cell count": 3,
-        "Hematologic disease": 1, "Vascular disease": 0,
-        "Lung disease": 0, "Kidney disease": 0,
-        "Heart disease": 0, "Coronary disease": 0,
-        "Endocrine disease": 0, "Gastrointestinal disease": 0,
-        "Urologic disease": 0, "Neurologic disease": 0,
-        "Thrombophilia": 0, "HIV": 0,
-        "Diabetes Mellitus": 0, "Chronic liver disease": 0, "High blood preasure": 1,
-        "Medical diagnosis": "N/A", "ID": "ID-Usuario Test", "User": "Usuario Test", "Fecha": "1/10/2023", "Model daignosis": 1
+        "Edad": 2, "Sexo": 0, "Bebedor": 0, "Fumador": 0,
+        "Procedimiento quirúrgico o traumatismo reciente": 0, "Viaje prolongado": 0,
+        "Tos": 0, "Fiebre": 0, "Crepitaciones": 0,
+        "Dolor torácico": 1, "Malignidad": 0, "Hemoptisis": 0,
+        "Disnea": 1, "Sibilancias": 0, "Derrame": 0,
+        "TEP - TVP previo": 0, "Edema de miembros inferiores": 0, "Síntomas disautonómicos": 0,
+        "Inmovilidad de miembros inferiores": 0, "Otra enfermedad": 1, "Soplos": 0,
+        "Presión sistólica": 4, "Presión diastólica": 6, "Frecuencia respiratoria": 3,
+        "Frecuencia cardíaca": 4, "Saturación de la sangre (SO2)": 7, "Conteo de plaquetas": 4, "Hemoglobina": 4, "Conteo glóbulos blancos": 3,
+        "Enfermedad hematológica": 1, "Enfermedad vascular": 0,
+        "Enfermedad pulmonar": 0, "Enfermedad renal": 0,
+        "Enfermedad cardíaca": 0, "Enfermedad coronaria": 0,
+        "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
+        "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
+        "Trombofilia": 0, "VIH": 0,
+        "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
+        "Diagnóstico médico": "N/A", "ID": "ID", "Usuario": "Usuario Test", "Fecha": "10/1/2023", "Diagnóstico modelo": 1
     };
+
+    beforeEach(() => {
+        global.fetch = jest.fn(() =>
+            Promise.resolve({
+                json: () => Promise.resolve({
+                    edad: "Edad",
+                    txtPaciente: "Paciente",
+                    txtUsuario: "Usuario",
+                    txtCamposSignificativos: "Campos significativos para el diagnóstico",
+                    txtCampoProbabilidad: "Probabilidad",
+                    txtCampoSexo: "Sexo",
+                    otra_enfermedad: "Otra enfermedad",
+                    txtCampoDiagModelo: "Diagnóstico modelo",
+                    txtCampoDiagMedico: "Diagnóstico médico",
+                    txtFecha: "Fecha",
+                    txtEliminado: "Eliminado",
+                    txtAnonimo: "Anónimo",
+                    bebedor: "Bebedor",
+                    fumador: "Fumador",
+                    proc_quirurgico_traumatismo: "Procedimiento quirúrgico o traumatismo reciente",
+                    viaje_prolongado: "Viaje prolongado",
+                    tos: "Tos",
+                    fiebre: "Fiebre",
+                    crepitaciones: "Crepitaciones",
+                    dolor_toracico: "Dolor torácico",
+                    malignidad: "Malignidad",
+                    hemoptisis: "Hemoptisis",
+                    disnea: "Disnea",
+                    sibilancias: "Sibilancias",
+                    derrame: "Derrame",
+                    TEP_TVP_previo: "TEP - TVP previo",
+                    edema_de_m_inferiores: "Edema de miembros inferiores",
+                    sintomas_disautonomicos: "Síntomas disautonómicos",
+                    inmovilidad_de_m_inferiores: "Inmovilidad de miembros inferiores",
+                    soplos: "Soplos",
+                    presion_sistolica: "Presión sistólica",
+                    presion_diastolica: "Presión diastólica",
+                    frecuencia_respiratoria: "Frecuencia respiratoria",
+                    frecuencia_cardiaca: "Frecuencia cardíaca",
+                    saturacion_de_la_sangre: "Saturación de la sangre (SO2)",
+                    plt: "Conteo de plaquetas",
+                    hb: "Hemoglobina",
+                    wbc: "Conteo glóbulos blancos",
+                    "Enfermedad hematológica": "Enfermedad hematológica",
+                    "Enfermedad vascular": "Enfermedad vascular",
+                    "Enfermedad pulmonar": "Enfermedad pulmonar",
+                    "Enfermedad renal": "Enfermedad renal",
+                    "Enfermedad cardíaca": "Enfermedad cardíaca",
+                    "Enfermedad coronaria": "Enfermedad coronaria",
+                    "Enfermedad endocrina": "Enfermedad endocrina",
+                    "Enfermedad gastrointestinal": "Enfermedad gastrointestinal",
+                    "Enfermedad urológica": "Enfermedad urológica",
+                    "Enfermedad neurológica": "Enfermedad neurológica",
+                    Trombofilia: "Trombofilia",
+                    VIH: "VIH",
+                    "Diabetes Mellitus": "Diabetes Mellitus",
+                    "Hepatopatía crónica": "Hepatopatía crónica",
+                    "Hipertensión arterial": "Hipertensión arterial"
+                })
+            })
+        );
+    });
+
     test.each([
-        ["79", param1, res1],
-        ["80", param2, res2]
-    ])("CP - %s",(idPrueba, param, resEsperada) => {
-        const res = convertirDiagnosticoExportable(instancia, false, false, param);
+        ["79", params1, res1],
+        ["80", params2, res2]
+    ])("CP - %s", async (idPrueba, params, resEsperada) => {
+        const res = await convertirDiagnosticoExportable(instancia, params.esAdmin, params.preprocesar, params.idioma);
+        expect(res).toEqual(resEsperada);
+    });
+});
+
+describe("Validar la función 'detTextoPersona'", () => {
+    const func = (x) => {
+        const textos = {
+            "txtPaciente": "Paciente", "txtUsuario": "Usuario",
+            "txtEliminado": "Eliminado", "txtAnonimo": "Anónimo"
+        };
+        return textos[x] || x;
+    };
+
+    // --------------------------- Parámetros -----------------------
+    const params1 = ["paciente", "eliminado"];
+    const params2 = ["paciente", "anonimo"];
+    const params3 = ["usuario", "eliminado"];
+    const params4 = ["usuario", "Juan Pérez"];
+
+    // --------------------------- Resultados esperados -----------------------
+    const res1 = "Paciente Eliminado";
+    const res2 = "Paciente Anónimo";
+    const res3 = "Usuario Eliminado";
+    const res4 = "Juan Pérez";
+
+    test.each([
+        ["76", params1, res1],
+        ["77", params2, res2],
+        ["78", params3, res3],
+        ["53", params4, res4]
+    ])("CP - %s", (idPrueba, params, resEsperada) => {
+        const res = detTextoPersona(params[0], params[1], func);
         expect(res).toEqual(resEsperada);
     });
 });

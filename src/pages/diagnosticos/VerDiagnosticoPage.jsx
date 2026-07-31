@@ -64,7 +64,7 @@ export default function VerDiagnosticoPage() {
     const [state, dispatch] = useReducer(reducer, estadoInicial);
     const { modalError, modalEliminacion, modalValidacion, procesando } = state;
     const textoPersona = useMemo(() =>
-        detTextoPersona(usuarioAutenticado?.rolVisible ? "usuario" : "paciente", persona?.nombre).map((x) => t(x)).join(" ")
+        detTextoPersona(usuarioAutenticado?.rolVisible ? "usuario" : "paciente", persona?.nombre, t)
     , [t, persona, usuarioAutenticado?.rolVisible]);
     const camposPersonales = useMemo(() => [
         { id: "id", titulo: "ID", valor: diagnostico?.id },

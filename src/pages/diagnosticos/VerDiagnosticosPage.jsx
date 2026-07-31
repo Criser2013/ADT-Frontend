@@ -162,9 +162,7 @@ export default function VerDiagnosticosPage() {
         const CompVerDiagnostico = (x) => <ChipDiagnostico valor={x.diagnosticoModelo} />;
         const CompVerFecha = (x) => dayjs(x.fecha).format(t("formatoFechaHoraResumida"));
         const CompVerId = (x) => usuario?.rolVisible ? x.id : x.id.replace(/-\w{28}$/, "");
-        const CompVerNombre = (x) => detTextoPersona(
-            idCampoNombre, x[idCampoNombre]
-        ).map((y) => t(y)).join(" ");
+        const CompVerNombre = (x) => detTextoPersona(idCampoNombre, x[idCampoNombre], t);
         const CompVerSexo = (x) => <ChipSexo valor={x.sexo} />;
         const CompVerValidado = (x) => <ChipValidado valor={x.validado} />;
         const camposBase = [

@@ -55,7 +55,7 @@ export default function FormExportacion({ diagnosticos, mostrar = false, manejad
 
         for (let i = 0; i < diagnosticos.length; i++) {
             const persona = usuario?.rolVisible ? "usuario" : "paciente";
-            diagnosticos[i][persona] = detTextoPersona(persona, diagnosticos[i][persona]).map((x) => t(x)).join(" ");
+            diagnosticos[i][persona] = detTextoPersona(persona, diagnosticos[i][persona], t);
             auxArr.push(
                 await convertirDiagnosticoExportable(diagnosticos[i], usuario?.rolVisible, preprocesar, idioma)
             );
