@@ -115,7 +115,7 @@ export function usePaciente(id, cargaAutomatica = true) {
     const establecerPaciente = useCallback((esAnonimo) => {
         setPaciente(
             new Paciente(
-                "null", null, esAnonimo ? "anonimo" : "eliminado", 2, null, null, null, false, []
+                "null", null, `paciente ${esAnonimo ? "anónimo" : "eliminado"}`, 2, null, null, null, false, []
             )
         );
     }, [setPaciente]);

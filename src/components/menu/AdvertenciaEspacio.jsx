@@ -14,7 +14,7 @@ export default function AdvertenciaEspacio({ numDiagnosticos }) {
     const { t } = useTranslation();
     const { usuario } = useAuth();
     return (
-        ((usuario.rol) && (numDiagnosticos >= CANT_LIM_DIAGNOSTICOS)) ? (
+        ((usuario?.rolVisible) && (numDiagnosticos >= CANT_LIM_DIAGNOSTICOS)) ? (
             <Alert severity="warning">
                 {t("txtEspacio")}
             </Alert>

@@ -1,5 +1,6 @@
-import useIdioma from "./idioma-hook";
+import i18n from "i18next";
 import { DiagnosticosHelper } from "../helpers";
+import { Paciente, Usuario } from "../models";
 import { useAppConfig } from "./appConfig-hook";
 import { useAuth } from "./auth-hook";
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -21,13 +22,12 @@ import { validarId } from "../utils/Validadores";
 export function useOperacionesDiagnosticos() {
     const { autenticado, usuario } = useAuth();
     const { firestore } = useAppConfig();
-    const { idioma } = useIdioma();
     const helper = useMemo(() => {
         if (autenticado) {
-            return new DiagnosticosHelper(usuario.tokenFirebase, firestore, idioma);
+            return new DiagnosticosHelper(usuario.tokenFirebase, firestore);
         }
         return null;
-    }, [firestore, usuario, autenticado, idioma]);
+    }, [firestore, usuario, autenticado]);
     const helperListo = useMemo(() => helper !== null, [helper]);
 
     /**
@@ -50,7 +50,7 @@ export function useOperacionesDiagnosticos() {
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
      */
     const generarDiagnostico = useCallback(async (diagnostico) => {
-        return await helper.diagnosticar(diagnostico);
+        return await helper.diagnosticar(diagnostico, i18n.language.split("-")[0]);
     }, [helper]);
 
     /**
@@ -199,72 +199,91 @@ export function useDiagnostico(id, traerInfoPersona = false) {
  * @param {Boolean} traerInfoPersona Indicador para cargar los datos del paciente o usuario relacionado a cada diagnóstico.
  * @returns {Object} Objeto con las claves:
  * - "diagnosticos" (Array<Diagnostico>|null) - Lista de diagnósticos obtenidos, sino null.
- * - "personas" (Array<Paciente|Usuario>|null) - Lista de pacientes o usuarios relacionados a los diagnósticos obtenidos, sino null.
  * - "error" (String|null) - Mensaje de error en caso de que la operación falle, sino null.
  * - "mapeoDiagnosticos" (Object) - Objeto que mapea los IDs de los diagnósticos a sus datos.
  */
 export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPersona = false) {
-    const { helperListo: pacientesListo, manejadorCargaPacientes, pacientes } = usePacientes(false);
-    const { helperListo: usuariosListo, manejadorCargaUsuarios, usuarios } = useUsuarios(false);
+    const { helperListo: pacientesListo, manejadorCargaPacientes, mapeoPacientes, error: errorPacientes } = usePacientes(false);
+    const { helperListo: usuariosListo, manejadorCargaUsuarios, mapeoUsuarios, error: errorUsuarios } = useUsuarios(false);
     const { usuario } = useAuth();
     const { verDiagnosticos, helperListo: diagnosticosListo } = useOperacionesDiagnosticos();
     const [diagnosticos, setDiagnosticos] = useState(null);
     const [error, setError] = useState(null);
-    const mapeoDiagnosticos = useMemo(() => {
-        const mapeo = {};
-        if (diagnosticos) {
-            for (const d of diagnosticos) {
-                mapeo[d.id] = d;
+    const diagnosticosMapeados = useMemo(() => {
+        const aux = diagnosticos?.map((d) => d.deepClone()) || [];
+        if (traerInfoPersona) {
+            for (let i = 0; i < aux.length; i++) {
+                const d = aux[i];
+                d.cambiarDatosPersonas(
+                    mapeoUsuarios[d.usuario]?.nombre || "usuario eliminado",
+                    d.paciente ? mapeoPacientes[d.paciente]?.nombre || "paciente eliminado" : "paciente anónimo",
+                    mapeoPacientes[d.paciente]?.cedula || "N/A"
+                );
             }
         }
-        return mapeo;
-    }, [diagnosticos]);
-    const personas = useMemo(() => usuario?.rolVisible ? usuarios : pacientes
-        , [usuarios, pacientes, usuario?.rolVisible]);
+        return aux;
+    }, [traerInfoPersona, diagnosticos, mapeoPacientes, mapeoUsuarios]);
+    const cantDiagnosticosNoValidados = useMemo(() =>
+        diagnosticosMapeados?.reduce((x, d) => x + (d.validado ? 0 : 1), 0) || 0
+    , [diagnosticosMapeados]);
 
     /**
-     * @param {String} tipo Tipo de persona a cargar: "paciente" o "usuario".
-     */
-    const cargarPersonas = useCallback(async (tipo) => {
-        const { success, error } = await tipo == "paciente" ? manejadorCargaPacientes() : manejadorCargaUsuarios();
-        if (!success) {
-            setError(error);
-        }
-    }, [manejadorCargaPacientes, manejadorCargaUsuarios]);
-
-    /**
+     * @param {String} tipo Tipo de persona a cargar, puede ser "paciente" o "usuario".
      * @param {Boolean} verTodos Indica si se deben cargar todos los diagnósticos o solo los del usuario indicado.
      * @param {String|null} uid UID del usuario por el cual consultar los diagnósticos. Si verTodos es true, este parámetro se ignora.
      * @param {Date|null} fecha Fecha para filtrar los diagnósticos. Si verTodos es true, este parámetro se ignora.
      */
-    const manejadorCargaDiagnosticos = useCallback(async (verTodos, uid, fecha) => {
-        const { success, data, error } = await verDiagnosticos(verTodos, uid, fecha);
+    const manejadorCargaDiagnosticos = useCallback(async (tipo, verTodos, uid, fecha) => {
+        let pets = [];
+
+        if (traerInfoPersona) {
+            pets.push(tipo == "paciente" ? manejadorCargaPacientes() : manejadorCargaUsuarios());
+        }
+
+        pets.push(verDiagnosticos(verTodos, uid, fecha));
+
+        pets = await Promise.all(pets);
+        const success = pets[pets.length - 1].success;
+        const data = pets[pets.length - 1].data;
+
         if (success) {
             setDiagnosticos(data);
             setError(null);
         } else {
             setDiagnosticos([]);
-            setError(error);
+            setError(pets[pets.length - 1].error);
         }
-    }, [verDiagnosticos]);
+    }, [verDiagnosticos, traerInfoPersona, manejadorCargaPacientes, manejadorCargaUsuarios]);
 
     useEffect(() => {
-        if (traerInfoPersona && !usuario?.rolVisible && diagnosticos && pacientesListo) {
-            cargarPersonas("paciente");
+        const esAdmin = usuario?.rolVisible;
+        const expCargaPersonas = !traerInfoPersona || (traerInfoPersona && (
+            (esAdmin && usuariosListo) || (!esAdmin && pacientesListo))
+        );
+        if (diagnosticosListo && expCargaPersonas) {
+            manejadorCargaDiagnosticos(
+                esAdmin ? "usuario" : "paciente",
+                verTodos, uid, fecha
+            );
         }
-    }, [cargarPersonas, usuario?.rolVisible, manejadorCargaPacientes, traerInfoPersona, diagnosticos, pacientesListo]);
+    }, [
+        diagnosticosListo, verTodos, uid, fecha, manejadorCargaDiagnosticos,
+        usuario?.rolVisible, pacientesListo, usuariosListo, traerInfoPersona
+    ]);
 
     useEffect(() => {
-        if (traerInfoPersona && usuario?.rolVisible && usuariosListo) {
-            cargarPersonas("usuario");
+        if (errorPacientes) {
+            setError(errorPacientes);
+        } else if (errorUsuarios) {
+            setError(errorUsuarios);
         }
-    }, [cargarPersonas, usuario?.rolVisible, traerInfoPersona, manejadorCargaUsuarios, usuariosListo]);
+    }, [errorPacientes, errorUsuarios]);
 
-    useEffect(() => {
-        if (diagnosticosListo && !diagnosticos) {
-            manejadorCargaDiagnosticos(verTodos, uid, fecha);
-        }
-    }, [diagnosticosListo, verDiagnosticos, verTodos, uid, fecha, diagnosticos, manejadorCargaDiagnosticos]);
+    const value = useMemo(() => ({
+        diagnosticos: diagnosticosMapeados, error, manejadorCargaDiagnosticos,
+        cantDiagnosticosNoValidados, diagnosticosCargados: diagnosticos !== null,
+    }), [diagnosticosMapeados, error, manejadorCargaDiagnosticos,
+        cantDiagnosticosNoValidados, diagnosticos]);
 
-    return { diagnosticos, personas, error, mapeoDiagnosticos };
+    return value;
 };

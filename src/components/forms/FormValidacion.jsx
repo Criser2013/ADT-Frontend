@@ -21,8 +21,13 @@ const valorPredet = { diagnosticoMedico: 2 };
  * @returns {JSX.Element}
  */
 export default function FormValidacion({ mostrar = false, manejadorBtn, manejadorCierre }) {
-    const { control, handleSubmit, formState: { errors } } = useForm({ defaultValues: valorPredet });
+    const { control, handleSubmit, reset, formState: { errors } } = useForm({ defaultValues: valorPredet });
     const { t } = useTranslation();
+
+    function manejadorClic(datos) {
+        manejadorBtn(datos);
+        reset(valorPredet);
+    };
 
     return (
         <ModalDoble
@@ -30,7 +35,7 @@ export default function FormValidacion({ mostrar = false, manejadorBtn, manejado
             titulo={t("titValidar")}
             txtBtnPrincipal={t("txtBtnValidar")}
             txtBtnSecundario={t("txtBtnCancelar")}
-            manejadorBtnPrincipal={handleSubmit(manejadorBtn)}
+            manejadorBtnPrincipal={handleSubmit(manejadorClic)}
             manejadorBtnSecundario={manejadorCierre}
             iconoBtnPrincipal={<CheckCircleOutlineIcon />}
             iconoBtnSecundario={<CloseIcon />} >

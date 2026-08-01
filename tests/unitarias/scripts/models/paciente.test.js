@@ -4,10 +4,10 @@ import { COMORBILIDADES } from "../../../../src/constants";
 const mockDecoder = jest.fn();
 
 jest.unstable_mockModule("../../../../src/utils/TratarDatos", () => ({
-    oneHotDecoderOtraEnfermedad: mockDecoder
+    decoderOtraEnfermedad: mockDecoder
 }));
 
-const { oneHotDecoderOtraEnfermedad } = await import("../../../../src/utils/TratarDatos");
+const { decoderOtraEnfermedad } = await import("../../../../src/utils/TratarDatos");
 const Paciente = (await import("../../../../src/models/Paciente")).default;
 
 describe("Pruebas para la clase Paciente", () => {

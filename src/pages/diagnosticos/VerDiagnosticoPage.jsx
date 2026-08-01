@@ -10,56 +10,18 @@ import { BtnFlotante, Check } from "../../components/tabs";
 import { CAMPOS_BIN, COMORBILIDADES } from "../../constants";
 import { CampoTexto, ContComorbilidades, ContLime } from "../../components/diagnosticos";
 import { ChipDiagnostico, ChipSexo, ChipValidado } from "../../components/tabs/Chips";
+import { detTextoPersona } from "../../utils/TratarDatos";
 import { Diagnostico, Paciente, Usuario } from "../../models";
 import { FormValidacion } from "../../components/forms";
 import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
 import { ModalDoble, ModalSimple } from "../../components/modals";
 import { useAuth, useDiagnostico, useOperacionesDiagnosticos } from "../../hooks";
-import { useEffect, useMemo, useReducer } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 
+
 const numCols = { xs: 12, lg: 6, xl: 4 };
-const estadoInicial = {
-    modalError: { mostrar: false, texto: "" },
-    modalEliminacion: false, modalValidacion: false,
-    procesando: false
-};
-
-function reducer(estado, accion) {
-    switch (accion.tipo) {
-        case "MOSTRAR_MODAL_ERROR":
-            return { ...estado, modalError: { mostrar: true, texto: accion.payload } };
-        case "CERRAR_MODAL_ERROR":
-            return { ...estado, modalError: { mostrar: false, texto: estado.modalError.texto } };
-        case "MOSTRAR_MODAL_ELIMINACION":
-            return { ...estado, modalEliminacion: true };
-        case "CERRAR_MODAL_ELIMINACION":
-            return { ...estado, modalEliminacion: false };
-        case "MOSTRAR_MODAL_VALIDACION":
-            return { ...estado, modalValidacion: true };
-        case "CERRAR_MODAL_VALIDACION":
-            return { ...estado, modalValidacion: false };
-        case "INICIAR_PROCESADO":
-            return { ...estado, procesando: true };
-        case "FINALIZAR_PROCESADO":
-            return { ...estado, procesando: false };
-        default:
-            return estado;
-    };
-};
-
-function detTextoPersona(rol, nombre) {
-    if (rol && nombre == "null") {
-        return ["txtUsuario", "txtEliminado"];
-    } else if (!rol && nombre == "anonimo") {
-        return ["txtPaciente", "txtAnonimo"];
-    } else if (!rol && nombre == "eliminado") {
-        return ["txtPaciente", "txtEliminado"];
-    } else {
-        return [nombre];
-    }
-};
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -72,89 +34,82 @@ export default function VerDiagnosticoPage() {
     const { diagnostico, persona, error, manejadorCargaDiagnostico } = useDiagnostico(id, true);
     const { t } = useTranslation();
     const { usuario: usuarioAutenticado } = useAuth();
-
-    const [estado, dispatch] = useReducer(reducer, estadoInicial);
-    const { modalError, modalEliminacion, modalValidacion, procesando } = estado;
-    const mostrarPantallaCarga = !diagnostico || !persona || procesando;
-
-    const camposPersonales = useMemo(() => {
-        const campoNombre = { id: "nombre", titulo: usuarioAutenticado?.rolVisible ? t("txtMedico") : t("txtPaciente") };
-        const res = detTextoPersona(usuarioAutenticado?.rolVisible, persona?.nombre);
-        campoNombre.valor = res.length == 1 ? res[0] : `${t(res[0])} ${t(res[1])}`;
-        return [
-            { id: "id", titulo: "ID", valor: diagnostico?.id }, campoNombre,
-            { id: "sexo", titulo: t("txtCampoSexo"), componente: <ChipSexo valor={diagnostico?.sexo} /> },
-            { id: "edad", titulo: t("txtCampoEdad"), valor: `${diagnostico?.sintomasNumericos.edad} ${t("txtSufijoEdad")}` },
-            { id: "fecha", titulo: t("txtCampoFechaDiag"), valor: dayjs(diagnostico?.fecha).format(t("formatoFechaCompleta")) },
-            { id: "diagnosticoModelo", titulo: t("txtCampoDiagModelo"), componente: <ChipDiagnostico valor={diagnostico?.diagnosticoModelo} /> },
-            { id: "probabilidad", titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico?.probabilidad * 100).toFixed(2)}%` },
-            { id: "diagnosticoMedico", titulo: t("txtCampoDiagMedico"), componente: <ChipValidado valor={diagnostico?.diagnosticoMedico} /> },
-        ];
-    }, [usuarioAutenticado, diagnostico, persona, t]);
+    const [modalEliminacion, setModalEliminacion] = useState(false);
+    const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
+    const [modalValidacion, setModalValidacion] = useState(false);
+    const [procesando, setProcesando] = useState(false);
+    const textoPersona = useMemo(() =>
+        detTextoPersona(usuarioAutenticado?.rolVisible ? "usuario" : "paciente", persona?.nombre, t)
+    , [t, persona, usuarioAutenticado?.rolVisible]);
+    const camposPersonales = useMemo(() => [
+        { id: "id", titulo: "ID", valor: diagnostico?.mostrarId(usuarioAutenticado?.rolVisible) },
+        { id: "nombre", titulo: usuarioAutenticado?.rolVisible ? t("txtMedico") : t("txtPaciente"), valor: textoPersona },
+        { id: "sexo", titulo: t("txtCampoSexo"), componente: <ChipSexo valor={diagnostico?.sexo} /> },
+        { id: "edad", titulo: t("edad"), valor: `${diagnostico?.sintomasNumericos.edad} ${t("txtSufijoEdad")}` },
+        { id: "fecha", titulo: t("txtCampoFechaDiag"), valor: dayjs(diagnostico?.fecha).format(t("formatoFechaCompleta")) },
+        { id: "diagnosticoModelo", titulo: t("txtCampoDiagModelo"), componente: <ChipDiagnostico valor={diagnostico?.diagnosticoModelo} /> },
+        { id: "probabilidad", titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico?.probabilidad * 100).toFixed(2)}%` },
+        { id: "diagnosticoMedico", titulo: t("txtCampoDiagMedico"), componente: <ChipValidado valor={diagnostico?.diagnosticoMedico} /> },
+    ], [usuarioAutenticado?.rolVisible, diagnostico, t, textoPersona]);
     const camposVitales = useMemo(() => [
-        { id: "presionSistolica", titulo: t("txtCampoPresionSist"), valor: `${diagnostico?.sintomasNumericos.presion_sistolica} mmHg.` },
-        { id: "presionDiastolica", titulo: t("txtCampoPresionDiast"), valor: `${diagnostico?.sintomasNumericos.presion_diastolica} mmHg.` },
-        { id: "frecuenciaCardiaca", titulo: t("txtCampoFrecCard"), valor: `${diagnostico?.sintomasNumericos.frecuencia_cardiaca} lpm.` },
-        { id: "frecuenciaRespiratoria", titulo: t("txtCampoFrecRes"), valor: `${diagnostico?.sintomasNumericos.frecuencia_respiratoria} rpm.` },
-        { id: "saturacionDeLaSangre", titulo: t("txtCampoSO2"), valor: `${diagnostico?.sintomasNumericos.saturacion_de_la_sangre} %` },
+        { id: "presionSistolica", titulo: t("presion_sistolica"), valor: `${diagnostico?.sintomasNumericos.presion_sistolica} mmHg.` },
+        { id: "presionDiastolica", titulo: t("presion_diastolica"), valor: `${diagnostico?.sintomasNumericos.presion_diastolica} mmHg.` },
+        { id: "frecuenciaCardiaca", titulo: t("frecuencia_cardiaca"), valor: `${diagnostico?.sintomasNumericos.frecuencia_cardiaca} lpm.` },
+        { id: "frecuenciaRespiratoria", titulo: t("frecuencia_respiratoria"), valor: `${diagnostico?.sintomasNumericos.frecuencia_respiratoria} rpm.` },
+        { id: "saturacionDeLaSangre", titulo: t("saturacion_de_la_sangre"), valor: `${diagnostico?.sintomasNumericos.saturacion_de_la_sangre} %` },
     ], [diagnostico, t]);
     const camposExamenes = useMemo(() => [
-        { id: "plt", titulo: t("txtCampoPLT"), valor: `${diagnostico?.sintomasNumericos.plt} /µL.` },
-        { id: "hb", titulo: t("txtCampoHB"), valor: `${diagnostico?.sintomasNumericos.hb} g/dL.` },
-        { id: "wbc", titulo: t("txtCampoWBC"), valor: `${diagnostico?.sintomasNumericos.wbc} /µL.` },
+        { id: "plt", titulo: t("plt"), valor: `${diagnostico?.sintomasNumericos.plt} /µL.` },
+        { id: "hb", titulo: t("hb"), valor: `${diagnostico?.sintomasNumericos.hb} g/dL.` },
+        { id: "wbc", titulo: t("wbc"), valor: `${diagnostico?.sintomasNumericos.wbc} /µL.` },
     ], [diagnostico, t]);
-    const listadoPestanas = useMemo(() => {
-        const res = detTextoPersona(usuarioAutenticado?.rolVisible, persona?.nombre);
-        const nombre = res.length == 1 ? res[0] : `${t(res[0])} ${t(res[1])}`;
-        return [
-            { texto: usuarioAutenticado?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
-            { texto: `${usuarioAutenticado?.rolVisible ? t("txtDiagnostico") : t("txtPaciente")} — ${nombre} - ${diagnostico?.fecha.toLocaleString()}` }
-        ];
-    }, [usuarioAutenticado, persona, diagnostico, t]);
+    const listadoPestanas = useMemo(() => [
+        { texto: usuarioAutenticado?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
+        { texto: `${usuarioAutenticado?.rolVisible ? t("txtDiagnostico") : t("txtPaciente")} — ${textoPersona} - ${diagnostico?.fecha.toLocaleString()}` }
+    ], [usuarioAutenticado?.rolVisible, textoPersona, diagnostico, t]);
+    const mostrarPantallaCarga = !diagnostico || !persona || procesando;
 
     useEffect(() => {
         let titulo = usuarioAutenticado?.rolVisible ? t("titDiagnostico") : t("titVerDiagnostico");
         if (diagnostico && persona) {
-            const res = detTextoPersona(usuarioAutenticado?.rolVisible, persona?.nombre);
-            const nombre = res.length == 1 ? res[0] : `${t(res[0])} ${t(res[1])}`;
-            titulo = `${t("txtDiagnostico")} — ${nombre} - ${diagnostico?.fecha.toLocaleString()}`;
+            titulo = `${t("txtDiagnostico")} — ${textoPersona} - ${diagnostico?.fecha.toLocaleString()}`;
         }
         document.title = titulo;
-    }, [usuarioAutenticado, persona, diagnostico, t]);
+    }, [usuarioAutenticado, persona, diagnostico, t, textoPersona]);
 
     useEffect(() => {
         if (error == "errIdInvalido") {
             navigate("/diagnosticos");
         } else if (error) {
-            dispatch({ tipo: "MOSTRAR_MODAL_ERROR", payload: error });
+            setModalError({ mostrar: true, texto: error });
         }
     }, [error, navigate]);
 
     async function manejadorBtnBorrar() {
-        dispatch({ tipo: "CERRAR_MODAL_ELIMINACION" });
-        dispatch({ tipo: "INICIAR_PROCESADO" });
+        setModalEliminacion(false);
+        setProcesando(true);
         const { success, error } = await eliminarDiagnosticos(id);
         if (success) {
             navigate("/diagnosticos");
             return;
         }
-        dispatch({ tipo: "MOSTRAR_MODAL_ERROR", payload: error });
-        dispatch({ tipo: "FINALIZAR_PROCESADO", payload: false });
-    };
+        setModalError({ mostrar: true, texto: error });
+        setProcesando(false);
+    }
 
     /**
      * @param {Object} diagnosticoMedico Diagnóstico TEP confirmado por el médico.
      */
     async function manejadorBtnValidar({ diagnosticoMedico }) {
-        dispatch({ tipo: "CERRAR_MODAL_VALIDACION" });
-        dispatch({ tipo: "INICIAR_PROCESADO" });
+        setModalValidacion(false);
+        setProcesando(true);
         const { success, error } = await validarDiagnostico(diagnostico, diagnosticoMedico);
         if (success) {
             await manejadorCargaDiagnostico();
         } else {
-            dispatch({ tipo: "MOSTRAR_MODAL_ERROR", payload: error });
+            setModalError({ mostrar: true, texto: error });
         }
-        dispatch({ tipo: "FINALIZAR_PROCESADO" });
+        setProcesando(false);
     };
 
     return (
@@ -174,7 +129,7 @@ export default function VerDiagnosticoPage() {
                             {usuarioAutenticado?.rolVisible ? (
                                 <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                                     <Tooltip title={t("txtAyudaEliminarDiagnostico")}>
-                                        <IconButton color="inherit" onClick={() => dispatch({ tipo: "MOSTRAR_MODAL_ELIMINACION" })}>
+                                        <IconButton color="inherit" onClick={() => setModalEliminacion(true)}>
                                             <DeleteIcon />
                                         </IconButton>
                                     </Tooltip>
@@ -273,7 +228,7 @@ export default function VerDiagnosticoPage() {
                             <BtnFlotante
                                 txtBtn={t("txtBtnValidar")}
                                 txtAyudaBtn={t("txtAyudaBtnValidar")}
-                                manejadorBtn={() => dispatch({ tipo: "MOSTRAR_MODAL_VALIDACION" })}
+                                manejadorBtn={() => setModalValidacion(true)}
                                 icono={<CheckCircleOutlineIcon />} />
                         ) : null}
                     </>
@@ -281,7 +236,7 @@ export default function VerDiagnosticoPage() {
                 <FormValidacion
                     mostrar={modalValidacion}
                     manejadorBtn={manejadorBtnValidar}
-                    manejadorCierre={() => dispatch({ tipo: "CERRAR_MODAL_VALIDACION" })} />
+                    manejadorCierre={() => setModalValidacion(false)} />
                 <ModalDoble
                     mostrar={modalEliminacion}
                     titulo={t("titAlerta")}
@@ -289,7 +244,7 @@ export default function VerDiagnosticoPage() {
                     txtBtnPrincipal={t("txtBtnEliminar")}
                     txtBtnSecundario={t("txtBtnCancelar")}
                     manejadorBtnPrincipal={manejadorBtnBorrar}
-                    manejadorBtnSecundario={() => dispatch({ tipo: "CERRAR_MODAL_ELIMINACION" })}
+                    manejadorBtnSecundario={() => setModalEliminacion(false)}
                     iconoBtnPrincipal={<DeleteIcon />}
                     iconoBtnSecundario={<CloseIcon />} />
                 <ModalSimple
@@ -297,7 +252,7 @@ export default function VerDiagnosticoPage() {
                     titulo={t("tituloErr")}
                     texto={t(modalError.texto)}
                     txtBtn={t("txtBtnCerrar")}
-                    manejadorBtn={() => dispatch({ tipo: "CERRAR_MODAL_ERROR" })}
+                    manejadorBtn={() => setModalError((x) => ({ ...x, mostrar: false}))}
                     iconoBtn={<CloseIcon />} />
             </MenuLayout>
         </>

@@ -64,8 +64,8 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
                 cambiarDiagnostico.mockResolvedValue(mocks.cambiarDiagnostico);
             }
 
-            const helper = new DiagnosticosHelper("token", {}, "es");
-            const res = await helper.diagnosticar(params);
+            const helper = new DiagnosticosHelper("token", {});
+            const res = await helper.diagnosticar(params, "es");
 
             expect(res).toEqual(resEsperada);
             expect(peticionApi).toHaveBeenCalledWith(
@@ -115,7 +115,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
         ])("CP - %s", async (idPrueba, mock, params, resEsperada) => {
             cambiarDiagnostico.mockResolvedValue(mock);
 
-            const helper = new DiagnosticosHelper("token", {}, "es");
+            const helper = new DiagnosticosHelper("token", {});
             const res = await helper.validarDiagnostico(params, true);
 
             expect(res).toEqual(resEsperada);
@@ -161,7 +161,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
         ])("CP - %s", async (idPrueba, mocks, params, resEsperada) => {
             verDiagnostico.mockResolvedValue(mocks);
 
-            const helper = new DiagnosticosHelper("token", {}, "es");
+            const helper = new DiagnosticosHelper("token", {});
             const res = await helper.cargarDiagnostico(params);
 
             expect(res).toEqual(resEsperada);
@@ -260,7 +260,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
                 verDiagnosticos.mockResolvedValue(mocks.verDiagnosticos);
             }
 
-            const helper = new DiagnosticosHelper("token", {}, "es");
+            const helper = new DiagnosticosHelper("token", {});
             const res = await helper.cargarDiagnosticos(params.cargarTodos, params.params);
 
             expect(res).toEqual(resEsperada);
@@ -312,7 +312,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
             eliminarDiagnostico.mockImplementation(mock);
             verDiagnosticos.mockResolvedValue({ success: true, data: [] });
 
-            const helper = new DiagnosticosHelper("token", {}, "es");
+            const helper = new DiagnosticosHelper("token", {});
             const res = await helper.eliminarDiagnosticos(params.compuesto);
 
             expect(res).toEqual(resEsperada);

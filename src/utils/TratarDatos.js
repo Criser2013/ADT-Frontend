@@ -1,47 +1,11 @@
-import { COMORBILIDADES } from "../constants";
-//import textos from "../assets/textos/textos.json";
-
-/**
- * Convierte la lista de comorbilidades en un JSON cuyas claves son las comorbilidades
- * y los valores son 0 o 1, dependiendo si el paciente la padece o no.
- * @param {Array} datos - Lista de comorbilidades.
- * @returns {JSON}
- */
-export function oneHotEncoderOtraEnfermedad(datos) {
-    const aux = {};
-
-    for (const i of COMORBILIDADES) {
-        aux[i] = 0;
-    }
-
-    for (const i of datos) {
-        aux[i] = 1;
-    }
-
-    return aux;
-};
-
-/**
- * Elimina los datos personales de los pacientes. Solo deja los datos de comorbilidades.
- * @param {JSON} datos - JSON con los datos de los pacientes.
- * @returns {JSON}
- */
-export function quitarDatosPersonales(datos) {
-    const aux = { ...datos };
-    for (const j of COMORBILIDADES) {
-        if (aux[j] != undefined) {
-            delete aux[j];
-        }
-    }
-    return aux;
-};
+import { CAMPOS_BIN, CAMPOS_NUM, COMORBILIDADES, INTERVALOS_PREPROCESAMIENTO } from "../constants";
 
 /**
  * Transforma los datos de comorbilidades codificados como one-hot a un Arrray.
  * @param {JSON} datos - JSON con las comorbilidades codificadas como one-hot.
  * @returns {Array}
  */
-export function oneHotDecoderOtraEnfermedad(datos) {
+export function decoderOtraEnfermedad(datos) {
     const aux = [];
     for (const i of COMORBILIDADES) {
         if (datos[i] == 1) {
@@ -73,7 +37,7 @@ export function validarArray(array, funcEval, funcVal, callback) {
 /**
  * Convierte un valor booleano a un entero.
  * @param {Boolean} valor 
- * @returns {Integer}
+ * @returns {Integer} 1 si el valor es true, 0 si es false.
  */
 export function procBool(valor) {
     return valor ? 1 : 0;
@@ -81,297 +45,96 @@ export function procBool(valor) {
 
 /**
  * Determina a qué intervalo pertenece un valor dado.
- * @param {Int} valor - Valor a clasificar.
- * @param {Array[Array]} intervalos - Lista de intervalos con sus valores asociados.
- * El último elemento de cada tripa es el valor del intervalo. El 1º es el mínimo y el 2º es el máximo. 
- * Tener un "null" en los primeros 2 valores es equivalente al infinito.
- * @returns Integer
+ * @param {Number} valor Valor a clasificar.
+ * @param {Array<Array<Number>>} intervalos Lista de intervalos con sus valores asociados.
+ * - El primer elemento de cada tripla es el valor mínimo del intervalo.
+ * - El segundo elemento de cada tripla es el valor máximo del intervalo.
+ * - El último elemento de cada tripla es el valor del intervalo.
+ * @returns {Number} Etiqueta del intervalo numérico al que pertenece el valor. Sino pertenece a 
+ * ninguno, devuelve -1.
  */
 export function evaluarIntervalo(valor, intervalos) {
     for (const i of intervalos) {
-        if ((i[0] !== null) && (i[1] !== null) && (valor >= i[0]) && (valor < i[1])) {
-            return i[2];
-        } else if ((i[0] !== null) && (i[1] === null) && (valor >= i[0])) {
-            return i[2];
-        } else if ((i[0] === null) && (i[1] !== null) && (valor < i[1])) {
-            return i[2];
+        const [min, max, etiqueta] = i;
+        if ((min != -Infinity) && (max != Infinity)) {
+            if ((valor >= min) && (valor < max)) {
+                return etiqueta;
+            }
+        } else if ((min != -Infinity) && (max == Infinity)) {
+            if (valor >= min) {
+                return etiqueta;
+            }
+        } else if ((min == -Infinity) && (max != Infinity)) {
+            if (valor < max) {
+                return etiqueta;
+            }
         }
     }
     return -1;
 };
 
 /**
- * Convierte un valor de presión sistólica a un entero. Valores del grupo:
- * 1 = [50, 70)
- * 2 = [70, 90)
- * 3 = [90, 110)
- * 4 = [110, 130)
- * 5 = [130, 150)
- * 6 = [150, 170)
- * 7 = [170, 190)
- * 8 = [190, 210)
- * 9 = (-∞ , 50)
- * 10 = [210, ∞)
- * @param {String} valor - Valor a convertir.
- * @returns {Number}
+ * Transforma una instancia de diagnóstico de Firestore a un formato JSON para ser exportado 
+ * como hoja de Excel o archivo CSV.
+ * @param {Diagnostico} instancia Instancia de diagnóstico.
+ * @param {Boolean} esAdmin Indica si el usuario es administrador
+ * @param {Boolean} preprocesar Indicador para preprocesar los datos (interval encoding).
+ * @param {String} idioma Idioma para los títulos, por defecto "es" (español). Opciones: "es", "en".
+ * @returns {Object} Instancia de diagnóstico en formato JSON para exportación.
  */
-export function procPresionSist(valor) {
-    return evaluarIntervalo(valor, [
-        [50, 70, 1], [70, 90, 2], [90, 110, 3], [110, 130, 4],
-        [130, 150, 5], [150, 170, 6], [170, 190, 7], [190, 210, 8],
-        [null, 50, 9], [210, null, 10]
-    ]);
-};
+export async function convertirDiagnosticoExportable(instancia, esAdmin, preprocesar = false, idioma = "es") {
+    const datos = {};
+    const textos = await fetch(`/locales/${idioma}/translation.json`).then((res) => res.json());
 
-/**
- * Convierte un valor de presión diastólica a un entero. Valores del grupo:
- * 1 = [40, 50)
- * 2 = [50, 60)
- * 3 = [60, 70)
- * 4 = [70, 80)
- * 5 = [80, 90)
- * 6 = [90, 100)
- * 7 = [100, 110)
- * 8 = [110, 120)
- * 9 = (-∞ , 40)
- * 10 = [120, ∞)
- * @param {String} valor - Valor a convertir.
- * @returns {Number}
- */
-export function procPresionDiast(valor) {
-    return evaluarIntervalo(valor, [
-        [40, 50, 1], [50, 60, 2], [60, 70, 3], [70, 80, 4],
-        [80, 90, 5], [90, 100, 6], [100, 110, 7], [110, 120, 8],
-        [null, 40, 9], [120, null, 10]
-    ]);
-};
-
-/**
- * Convierte un valor de conteo de globulos blancos (WBC) a un entero. Valores del grupo:
- * 1 = [2000, 4000)
- * 2 = [4000, 10000)
- * 3 = [10000, 15000)
- * 4 = [15000, 20000)
- * 5 = [20000, 30000)
- * 6 = [30000, 35000)
- * 7 = (-∞ , 2000)
- * 8 = [35000, ∞)
- * @param {String} valor - Valor a convertir.
- * @returns {Number}
- */
-export function procWbc(valor) {
-    return evaluarIntervalo(valor, [
-        [2000, 4000, 1], [4000, 10000, 2], [10000, 15000, 3],
-        [15000, 20000, 4], [20000, 30000, 5], [30000, 35000, 6],
-        [null, 2000, 7], [35000, null, 7]
-    ]);
-};
-
-/**
- * Convierte un valor de hemoglobina (HB) a un entero. Valores del grupo:
- * 1 = [6, 8)
- * 2 = [8, 10)
- * 3 = [10, 12)
- * 4 = [12, 14)
- * 5 = [14, 16)
- * 6 = [16, 18)
- * 7 = [18, 20)
- * 8 = [20, 22)
- * 9 = (-∞ , 6)
- * 10 = [22, ∞)
- * @param {String} valor - Valor a convertir.
- * @returns {Number}
- */
-export function procHb(valor) {
-    return evaluarIntervalo(valor, [
-        [6, 8, 1], [8, 10, 2], [10, 12, 3], [12, 14, 4], [14, 16, 5],
-        [16, 18, 6], [18, 20, 7], [20, 22, 8], [null, 6, 9], [22, null, 10]
-    ]);
-};
-
-/**
- * Convierte el conteo de plaquetas (PLT) a un entero. Valores del grupo:
- * 1 = [10000, 50000)
- * 2 = [50000, 100000)
- * 3 = [100000, 150000)
- * 4 = [150000, 400000)
- * 5 = [400000, 500000)
- * 6 = [500000, 600000)
- * 7 = [600000, 700000)
- * 8 = (-∞ , 10000)
- * 9 = [700000, ∞)
- * @param {String} valor - Valor a convertir.
- * @returns {Number}
- */
-export function procPlt(valor) {
-    return evaluarIntervalo(valor, [
-        [10000, 50000, 1], [50000, 100000, 2], [100000, 150000, 3],
-        [150000, 400000, 4], [400000, 500000, 5], [500000, 600000, 6],
-        [600000, 700000, 7], [null, 10000, 9], [700000, null, 10]
-    ]);
-};
-
-/**
- * Convierte un valor de frecuencia respiratoria a un entero. Valores del grupo:
- * 1 = [15, 20)
- * 2 = [20, 25)
- * 3 = [25, 30)
- * 4 = [30, 35)
- * 5 = [35, 40)
- * 6 = [40, 45)
- * 7 = [45, 50)
- * 8 = [50, 55)
- * 9 = [55, 60)
- * 10 = (-∞,15]
- * 11 = [60, ∞)
- * @param {String} valor - Valor a convertir
- * @returns {Number}
- */
-export function procFrecRes(valor) {
-    return evaluarIntervalo(valor, [
-        [15, 20, 1], [20, 25, 2], [25, 30, 3], [30, 35, 4], [35, 40, 5],
-        [40, 45, 6], [45, 50, 7], [50, 55, 8], [55, 60, 9], [null, 15, 10],
-        [60, null, 11]
-    ]);
-};
-
-/**
- * Convierte un valor de saturación de oxígeno (SO2) a un entero. Valores del grupo:
- * 1 = [50, 55)
- * 2 = [55, 60)
- * 3 = [60, 65)
- * 4 = [65, 70)
- * 5 = [70, 75)
- * 6 = [75, 80)
- * 7 = [80, 85)
- * 8 = [85, 90)
- * 9 = [90, 95)
- * 10 = [95, 100)
- * 11 = (-∞ , 50)
- * 12 = [100, ∞)
- * @param {String} valor - Valor a convertir.
- * @returns {Number}
- */
-export function procSo2(valor) {
-    return evaluarIntervalo(valor, [
-        [50, 55, 1], [55, 60, 2], [60, 65, 3], [65, 70, 4], [70, 75, 5],
-        [75, 80, 6], [80, 85, 7], [85, 90, 8], [90, 95, 9], [95, 100, 10],
-        [null, 50, 11], [100, null, 12]
-    ]);
-};
-
-/**
- * Convierte un valor de frecuencia cardíaca a un entero. Valores del grupo:
- * 1 = [50, 70)
- * 2 = [70, 90)
- * 3 = [90, 110)
- * 4 = [110, 130)
- * 5 = [130, 150)
- * 6 = [150, 170)
- * 7 = [170, 190)
- * 8 = [190, 210)
- * 9 = (-∞ , 50)
- * 10 = [210, ∞)
- * @param {String} valor - Valor a convertir.
- * @returns {Number}
- */
-export function procFrecCard(valor) {
-    return evaluarIntervalo(valor, [
-        [50, 70, 1], [70, 90, 2], [90, 110, 3], [110, 130, 4], [130, 150, 5],
-        [150, 170, 6], [170, 190, 7], [190, 210, 8], [null, 50, 9], [210, null, 10]
-    ]);
-};
-
-/**
- * Convierte un valor de edad a un entero. Valores del grupo:
- * 0 = [0, 20) - Menor de 20 años.
- * 1 = [20, 40) - 20 a 40 años.
- * 2 = [40, 60) - 41 a 60 años.
- * 3 = [60, 80) - 60 a 80 años.
- * 4 = [81, ∞) - Mayor de 80 años.
- * @param {String} valor - Valor a convertir.
- * @returns {Number}
- */
-export function procEdad(valor) {
-    return evaluarIntervalo(valor, [
-        [0, 20, 0], [20, 41, 1], [41, 61, 2],
-        [61, 81, 3], [81, null, 4]
-    ]);
-};
-
-/**
- * Transforma una instancia de la base de datos al formato de campos de Excel.
- * @param {JSON} instancia - Instancia de diagnóstico.
- * @param {Boolean} esAdmin - Indica si el usuario es administrador.
- * @param {Boolean} preprocesar - Indica si se deben preprocesar los datos (convertir a rangos).
- * @param {String} idioma - Idioma para los textos, por defecto "es" (español). Opciones: "es", "en".
- * @returns {JSON}
- */
-export function nombresCampos(instancia, esAdmin, preprocesar = false, idioma = "es") {
-    const traducciones = { "txtPaciente": "Paciente", "txtFecha": "Fecha", "txtCampoEdad": "Edad", "txtCampoSexo": "Sexo", "txtCampoFrecRes": "Frecuencia respiratoria", "txtCampoSO2": "Saturación de la sangre (SO2)", "txtCampoFrecCard": "Frecuencia cardíaca", "txtCampoPresionSist": "Presión sistólica", "txtCampoPresionDiast": "Presión diastólica" };
-    let datos = {
-        "ID": instancia.id,
-    };
+    datos.ID = esAdmin ? instancia.idCompuesto : instancia.id;
 
     if (!esAdmin) {
-        datos[traducciones.txtPaciente] = instancia.paciente;
-        datos[traducciones.txtFecha] = instancia.fecha.toDate().toLocaleDateString(idioma);
+        datos[textos.txtPaciente] = detTextoPersona("paciente", instancia.nombrePaciente, (key) => textos[key]);
+        datos[textos.txtCamposSignificativos] = JSON.stringify(instancia.explicacion.toJson());
+        datos[textos.txtCampoProbabilidad] = (instancia.probabilidad * 100).toFixed(2);
+    } else {
+        datos[textos.txtUsuario] = detTextoPersona("usuario", instancia.usuario, (key) => textos[key]);
     }
 
-    datos = {
-        ...datos,
-        [traducciones.txtCampoEdad]: preprocesar ? procEdad(instancia.edad) : instancia.edad,
-        [traducciones.txtCampoSexo]: preprocesar ? instancia.sexo : (instancia.sexo == 0 ? "M" : "F"),
-        [traducciones.bebedor]: instancia.bebedor,
-        [traducciones.fumador]: instancia.fumador,
-        [traducciones.cirugiaReciente]: instancia.cirugiaReciente,
-        [traducciones.inmovilidad]: instancia.inmovilidad,
-        [traducciones.viajeProlongado]: instancia.viajeProlongado,
-        [traducciones.tepPrevio]: instancia.tepPrevio,
-        [traducciones.malignidad]: instancia.malignidad,
-        [traducciones.disnea]: instancia.disnea,
-        [traducciones.dolorToracico]: instancia.dolorToracico,
-        [traducciones.tos]: instancia.tos,
-        [traducciones.hemoptisis]: instancia.hemoptisis,
-        [traducciones.disautonomicos]: instancia.disautonomicos,
-        [traducciones.edema]: instancia.edema,
-        [traducciones.txtCampoFrecRes]: preprocesar ? procFrecRes(instancia.frecRes) : instancia.frecRes,
-        [traducciones.txtCampoSO2]: preprocesar ? procSo2(instancia.so2) : instancia.so2,
-        [traducciones.txtCampoFrecCard]: preprocesar ? procFrecCard(instancia.frecCard) : instancia.frecCard,
-        [traducciones.txtCampoPresionSist]: preprocesar ? procPresionSist(instancia.presionSis) : instancia.presionSis,
-        [traducciones.txtCampoPresionDiast]: preprocesar ? procPresionDiast(instancia.presionDias) : instancia.presionDias,
-        [traducciones.fiebre]: instancia.fiebre,
-        [traducciones.crepitaciones]: instancia.crepitaciones,
-        [traducciones.sibilancias]: instancia.sibilancias,
-        [traducciones.soplos]: instancia.soplos,
-        [traducciones.txtCampoWBC]: preprocesar ? procWbc(instancia.wbc) : instancia.wbc,
-        [traducciones.txtCampoHB]: preprocesar ? procHb(instancia.hemoglobina) : instancia.hemoglobina,
-        [traducciones.txtCampoPLT]: preprocesar ? procPlt(instancia.plaquetas) : instancia.plaquetas,
-        [traducciones.derrame]: instancia.derrame,
-        [traducciones.txtCampoOtraEnfermedad]: instancia.otraEnfermedad,
-        [traducciones["Enfermedad hematológica"]]: instancia["Enfermedad hematológica"],
-        [traducciones["Enfermedad cardíaca"]]: instancia["Enfermedad cardíaca"],
-        [traducciones["Enfermedad coronaria"]]: instancia["Enfermedad coronaria"],
-        [traducciones["Diabetes"]]: instancia["Diabetes"],
-        [traducciones["Enfermedad endocrina"]]: instancia["Enfermedad endocrina"],
-        [traducciones["Enfermedad gastrointestinal"]]: instancia["Enfermedad gastrointestinal"],
-        [traducciones["Hepatopatía crónica"]]: instancia["Hepatopatía crónica"],
-        [traducciones["Hipertensión arterial"]]: instancia["Hipertensión arterial"],
-        [traducciones["Enfermedad neurológica"]]: instancia["Enfermedad neurológica"],
-        [traducciones["Enfermedad pulmonar"]]: instancia["Enfermedad pulmonar"],
-        [traducciones["Enfermedad renal"]]: instancia["Enfermedad renal"],
-        [traducciones["Trombofilia"]]: instancia["Trombofilia"],
-        [traducciones["Enfermedad urológica"]]: instancia["Enfermedad urológica"],
-        [traducciones["Enfermedad vascular"]]: instancia["Enfermedad vascular"],
-        [traducciones["VIH"]]: instancia["VIH"],
-        [traducciones.txtTep]: (instancia.validado != 2) ? instancia.validado : "N/A",
-    };
+    datos[textos.txtCampoSexo] = (!esAdmin || (esAdmin && !preprocesar)) ? (instancia.sexo == 0 ? "M" : "F") : instancia.sexo;
+    datos[textos.otra_enfermedad] = procBool(instancia.otraEnfermedad);
+    datos[textos.txtCampoDiagModelo] = procBool(instancia.diagnosticoModelo);
+    datos[textos.txtCampoDiagMedico] = instancia.validado ? procBool(instancia.validado) : "N/A";
+    datos[textos.txtFecha] = instancia.fecha.toLocaleDateString(idioma);
 
-    if (!esAdmin) {
-        datos[traducciones.txtCampoDiagModelo] = instancia.diagnostico;
-        datos[traducciones.txtCampoProbabilidad] = (instancia.probabilidad * 100).toFixed(2);
-        datos["Campos Significativos para el diagnóstico"] = JSON.stringify(instancia.lime);
+    for (const i of CAMPOS_BIN) {
+        datos[textos[i]] = procBool(instancia.sintomasBinarios[i]);
+    }
+
+    for (const i of CAMPOS_NUM) {
+        datos[textos[i]] = preprocesar ? evaluarIntervalo(
+            instancia.sintomasNumericos[i], INTERVALOS_PREPROCESAMIENTO[i]
+        ) : instancia.sintomasNumericos[i];
+    }
+
+    for (const i of COMORBILIDADES) {
+        datos[textos[i]] = procBool(instancia.comorbilidadesCodificadas[i]);
     }
 
     return datos;
+};
+
+/**
+ * Determina qué nombre se debería mostrar para una persona según su rol y nombre. 
+ * Útil para mostrar correctamente los nombres de pacientes y usuarios que han sido eliminados o anonimizados.
+ * @param {String} rol Rol de la persona (paciente o usuario).
+ * @param {String} nombre Nombre de la persona (puede ser "eliminado" o "anonimo").
+ * @param {Function} t Función para traducir los textos.
+ * @returns {String} Texto correspondiente según el rol y nombre de la persona.
+ */
+export function detTextoPersona(rol, nombre, t) {
+    if (rol == "paciente" && nombre == "paciente eliminado") {
+        return `${t("txtPaciente")} ${t("txtEliminado")}`;
+    } else if (rol == "paciente" && nombre == "paciente anónimo") {
+        return `${t("txtPaciente")} ${t("txtAnonimo")}`;
+    } else if (rol == "usuario" && nombre == "usuario eliminado") {
+        return `${t("txtUsuario")} ${t("txtEliminado")}`;
+    } else {
+        return nombre;
+    }
 };

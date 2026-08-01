@@ -2,7 +2,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import dayjs from "dayjs";
 import ExplicacionLime from "./ExplicacionLime";
 import { CAMPOS_BIN, CAMPOS_DECIMALES, CAMPOS_ENTEROS, CAMPOS_NUM, COMORBILIDADES } from "../constants";
-import { oneHotDecoderOtraEnfermedad } from "../utils/TratarDatos";
+import { decoderOtraEnfermedad } from "../utils/TratarDatos";
 import { procBool } from "../utils/TratarDatos";
 import { Timestamp } from "firebase/firestore";
 
@@ -29,11 +29,14 @@ export default class Diagnostico {
      * @param {Boolean|null} diagnosticoMedico Diagnóstico de TEP dado por el médico. 
      * @param {Number|null} probabilidad Probabilidad de TEP según el modelo.
      * @param {ExplicacionLime|null} explicacion Explicación del modelo de diagnóstico.
+     * @param {String} nombreUsuario Nombre de la cuenta de usuario que realizó el diagnóstico.
+     * @param {String} nombrePaciente Nombre del paciente al que pertenece el diagnóstico.
+     * @param {String} cedula Número de cédula del paciente al que pertenece el diagnóstico.
      */
     constructor(
         id, usuario, paciente, comorbilidades, fecha, sexo, otraEnfermedad, sintomasBinarios,
         sintomasNumericos, diagnosticoModelo = null, diagnosticoMedico = null, probabilidad = null,
-        explicacion = null
+        explicacion = null, nombreUsuario = "", nombrePaciente = "", cedula = ""
     ) {
         this.id = id;
         this.usuario = usuario;
@@ -49,6 +52,9 @@ export default class Diagnostico {
         this.probabilidad = probabilidad;
         this.explicacion = explicacion;
         this.validado = diagnosticoMedico !== null;
+        this.nombreUsuario = nombreUsuario;
+        this.nombrePaciente = nombrePaciente;
+        this.cedula = cedula;
     }
 
     /**
@@ -74,15 +80,23 @@ export default class Diagnostico {
     }
 
     get comorbilidades() {
-        return oneHotDecoderOtraEnfermedad(this.#comorbilidades);
+        return decoderOtraEnfermedad(this.#comorbilidades);
     }
 
     get comorbilidadesCodificadas() {
         return this.#comorbilidades;
     }
 
+    get edad() {
+        return this.sintomasNumericos?.edad;
+    }
+
     get fechaFormateada() {
         return dayjs(this.fecha).format("DD-MM-YYYY");
+    }
+
+    get idCompuesto() {
+        return `${this.id}-${this.usuario}`;
     }
 
     /**
@@ -111,15 +125,36 @@ export default class Diagnostico {
         );
     }
 
+    /**
+     * Cambia los datos del médico y del paciente asociados al diagnóstico.
+     * @param {String} nombreUsuario Nombre de la cuenta de usuario que realizó el diagnóstico.
+     * @param {String} nombrePaciente Nombre del paciente al que pertenece el diagnóstico.
+     * @param {String} cedula Número de cédula del paciente al que pertenece el diagnóstico.
+     */
+    cambiarDatosPersonas(nombreUsuario, nombrePaciente, cedula) {
+        this.nombreUsuario = nombreUsuario;
+        this.nombrePaciente = nombrePaciente;
+        this.cedula = cedula;
+    }
+
     deepClone() {
         return new Diagnostico(
             this.id, this.usuario, this.paciente, this.comorbilidades, this.fecha,
             this.sexo, this.otraEnfermedad, { ...this.sintomasBinarios }, { ...this.sintomasNumericos },
             this.diagnosticoModelo, this.diagnosticoMedico, this.probabilidad,
-            new ExplicacionLime(this.explicacion.toJson())
+            new ExplicacionLime(this.explicacion.toJson()), this.nombreUsuario, this.nombrePaciente, this.cedula
         );
     }
- 
+
+    /**
+     * @param {Boolean} esAdmin Indicador de si el usuario es administrador o n
+     * @returns {String} ID del diagnóstico, si el usuario es administrador se devuelve el 
+     * ID completo, si no se devuelve solo el ID del diagnóstico sin el UID del usuario.
+     */
+    mostrarId(esAdmin) {
+        return esAdmin ? this.idCompuesto : this.id;
+    }
+
     toJson() {
         return {
             sexo: this.sexo,
@@ -159,7 +194,7 @@ export default class Diagnostico {
                 clave = "enfermedad_coronaria";
             } else {
                 clave = i.replace("Enfermedad ", "").toLocaleLowerCase().normalize('NFD').
-                replace(/[\u0300-\u036f]/g, "").replace(" ", "_");
+                    replace(/[\u0300-\u036f]/g, "").replace(" ", "_");
             }
 
             json[clave] = this.#comorbilidades[i];

@@ -40,7 +40,6 @@ export default function Datatable({
     activarSeleccion = true, camposBusqueda = [], campoOrdenInicial = "id", direccionOrdenInicial = "desc",
     callbackClicCelda = null, callbackBtnAccion = null, icono = null
 }) {
-
     const [auxDatos, setAuxDatos] = useState(datos);
     const [campoOrden, setCampoOrden] = useState(campoOrdenInicial ? campoOrdenInicial : campos[0].id);
     const [filasEnPagina, setFilasEnPagina] = useState(5);
@@ -105,7 +104,7 @@ export default function Datatable({
             const estaSeleccionado = seleccionados.includes(instancia);
             manejadorBtnSeleccionarFila({ target: { checked: !estaSeleccionado } }, instancia);
         } else if (!modoSeleccion && callbackClicCelda && e.target.checked == undefined) {
-            callbackClicCelda(instancia);
+            callbackClicCelda(instancia, e);
         }
     };
 

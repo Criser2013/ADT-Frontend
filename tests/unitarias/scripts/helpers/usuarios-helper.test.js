@@ -30,8 +30,8 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
             ["184", res2, param, res2]
         ])("CP - %s", async (idPrueba, mock, params, resObtenida) => {
             peticionApi.mockResolvedValue(mock);
-            const helper = new UsuariosHelper("token", "es");
-            const res = await helper.cargarUsuario(idPrueba);
+            const helper = new UsuariosHelper("token");
+            const res = await helper.cargarUsuario(idPrueba, "es");
 
             expect(res).toEqual(resObtenida);
             expect(peticionApi).toHaveBeenCalledWith(
@@ -51,17 +51,29 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
         };
         const res2 = { success: false, error: "Error al cargar los usuarios" };
 
+        // ---------------------- Mocks ----------------------
+        const mock1 = {
+            success: true, data: {
+                usuarios: [
+                    new Usuario(
+                        "174", "correo@correo.com", "Usuario de prueba", true, true, "01/01/2023 12:00", "01/01/2023 12:00"
+                    )]
+            }
+        };
+        const mock2 = { success: false, error: "Error al cargar los usuarios" };
+
+
         beforeEach(() => {
             jest.clearAllMocks();
         });
 
         test.each([
-            ["185", res1, res1],
-            ["186", res2, res2]
+            ["185", mock1, res1],
+            ["186", mock2, res2]
         ])("CP - %s", async (idPrueba, mock, resEsperada) => {
             peticionApi.mockResolvedValue(mock);
-            const helper = new UsuariosHelper("token", "es");
-            const res = await helper.cargarUsuarios();
+            const helper = new UsuariosHelper("token");
+            const res = await helper.cargarUsuarios("es");
 
             expect(res).toEqual(resEsperada);
             expect(peticionApi).toHaveBeenCalledWith(
@@ -94,8 +106,8 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
             for (const m of mock) {
                 peticionApi.mockResolvedValueOnce(m);
             }
-            const helper = new UsuariosHelper("token", "es");
-            const res = await helper.eliminarUsuarios(params);
+            const helper = new UsuariosHelper("token");
+            const res = await helper.eliminarUsuarios(params, "es");
 
             expect(res).toEqual(resEsperada);
             for (let i = 1; i < params.length; i++) {
@@ -126,8 +138,8 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
             ["190", res2, param, res2]
         ])("CP - %s", async (idPrueba, mock, params, resEsperada) => {
             peticionApi.mockResolvedValue(mock);
-            const helper = new UsuariosHelper("token", "es");
-            const res = await helper.modificarUsuario(params.id, params.rol, params.desactivar);
+            const helper = new UsuariosHelper("token");
+            const res = await helper.modificarUsuario(params.id, params.rol, params.desactivar, "es");
 
             expect(res).toEqual(resEsperada);
             expect(peticionApi).toHaveBeenCalledWith(
