@@ -115,7 +115,7 @@ export function useUsuario(id, cargaAutomatica = true) {
         } else if (res && cargaAutomatica && usuarioAutenticado?.rolVisible && helperListo) {
             manejadorCargaUsuario();
         }
-    }, [id, cargaAutomatica, verUsuario, helperListo, usuarioAutenticado?.rolVisible, manejadorCargaUsuario]);
+    }, [id, cargaAutomatica, helperListo, usuarioAutenticado?.rolVisible, manejadorCargaUsuario]);
 
     const value = useMemo(() => ({
         usuario, error, manejadorCargaUsuario, helperListo

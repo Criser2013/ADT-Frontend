@@ -16,39 +16,12 @@ import { FormValidacion } from "../../components/forms";
 import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
 import { ModalDoble, ModalSimple } from "../../components/modals";
 import { useAuth, useDiagnostico, useOperacionesDiagnosticos } from "../../hooks";
-import { useEffect, useMemo, useReducer } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 
-const numCols = { xs: 12, lg: 6, xl: 4 };
-const estadoInicial = {
-    modalError: { mostrar: false, texto: "" },
-    modalEliminacion: false, modalValidacion: false,
-    procesando: false
-};
 
-function reducer(state, action) {
-    switch (action.type) {
-        case "MOSTRAR_MODAL_ERROR":
-            return { ...state, modalError: { mostrar: true, texto: action.payload } };
-        case "CERRAR_MODAL_ERROR":
-            return { ...state, modalError: { mostrar: false, texto: state.modalError.texto } };
-        case "MOSTRAR_MODAL_ELIMINACION":
-            return { ...state, modalEliminacion: true };
-        case "CERRAR_MODAL_ELIMINACION":
-            return { ...state, modalEliminacion: false };
-        case "MOSTRAR_MODAL_VALIDACION":
-            return { ...state, modalValidacion: true };
-        case "CERRAR_MODAL_VALIDACION":
-            return { ...state, modalValidacion: false };
-        case "INICIAR_PROCESADO":
-            return { ...state, procesando: true };
-        case "FINALIZAR_PROCESADO":
-            return { ...state, procesando: false };
-        default:
-            return state;
-    };
-};
+const numCols = { xs: 12, lg: 6, xl: 4 };
 
 /**
  * Página para ver los datos de un diagnóstico.
@@ -61,8 +34,10 @@ export default function VerDiagnosticoPage() {
     const { diagnostico, persona, error, manejadorCargaDiagnostico } = useDiagnostico(id, true);
     const { t } = useTranslation();
     const { usuario: usuarioAutenticado } = useAuth();
-    const [state, dispatch] = useReducer(reducer, estadoInicial);
-    const { modalError, modalEliminacion, modalValidacion, procesando } = state;
+    const [modalEliminacion, setModalEliminacion] = useState(false);
+    const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
+    const [modalValidacion, setModalValidacion] = useState(false);
+    const [procesando, setProcesando] = useState(false);
     const textoPersona = useMemo(() =>
         detTextoPersona(usuarioAutenticado?.rolVisible ? "usuario" : "paciente", persona?.nombre, t)
     , [t, persona, usuarioAutenticado?.rolVisible]);
@@ -106,35 +81,35 @@ export default function VerDiagnosticoPage() {
         if (error == "errIdInvalido") {
             navigate("/diagnosticos");
         } else if (error) {
-            dispatch({ type: "MOSTRAR_MODAL_ERROR", payload: error });
+            setModalError({ mostrar: true, texto: error });
         }
     }, [error, navigate]);
 
     async function manejadorBtnBorrar() {
-        dispatch({ type: "CERRAR_MODAL_ELIMINACION" });
-        dispatch({ type: "INICIAR_PROCESADO" });
+        setModalEliminacion(false);
+        setProcesando(true);
         const { success, error } = await eliminarDiagnosticos(id);
         if (success) {
             navigate("/diagnosticos");
             return;
         }
-        dispatch({ type: "MOSTRAR_MODAL_ERROR", payload: error });
-        dispatch({ type: "FINALIZAR_PROCESADO", payload: false });
-    };
+        setModalError({ mostrar: true, texto: error });
+        setProcesando(false);
+    }
 
     /**
      * @param {Object} diagnosticoMedico Diagnóstico TEP confirmado por el médico.
      */
     async function manejadorBtnValidar({ diagnosticoMedico }) {
-        dispatch({ type: "CERRAR_MODAL_VALIDACION" });
-        dispatch({ type: "INICIAR_PROCESADO" });
+        setModalValidacion(false);
+        setProcesando(true);
         const { success, error } = await validarDiagnostico(diagnostico, diagnosticoMedico);
         if (success) {
             await manejadorCargaDiagnostico();
         } else {
-            dispatch({ type: "MOSTRAR_MODAL_ERROR", payload: error });
+            setModalError({ mostrar: true, texto: error });
         }
-        dispatch({ type: "FINALIZAR_PROCESADO" });
+        setProcesando(false);
     };
 
     return (
@@ -154,7 +129,7 @@ export default function VerDiagnosticoPage() {
                             {usuarioAutenticado?.rolVisible ? (
                                 <Grid size={12} display="flex" justifyContent="end" margin="-2vh 0vw">
                                     <Tooltip title={t("txtAyudaEliminarDiagnostico")}>
-                                        <IconButton color="inherit" onClick={() => dispatch({ type: "MOSTRAR_MODAL_ELIMINACION" })}>
+                                        <IconButton color="inherit" onClick={() => setModalEliminacion(true)}>
                                             <DeleteIcon />
                                         </IconButton>
                                     </Tooltip>
@@ -253,7 +228,7 @@ export default function VerDiagnosticoPage() {
                             <BtnFlotante
                                 txtBtn={t("txtBtnValidar")}
                                 txtAyudaBtn={t("txtAyudaBtnValidar")}
-                                manejadorBtn={() => dispatch({ type: "MOSTRAR_MODAL_VALIDACION" })}
+                                manejadorBtn={() => setModalValidacion(true)}
                                 icono={<CheckCircleOutlineIcon />} />
                         ) : null}
                     </>
@@ -261,7 +236,7 @@ export default function VerDiagnosticoPage() {
                 <FormValidacion
                     mostrar={modalValidacion}
                     manejadorBtn={manejadorBtnValidar}
-                    manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_VALIDACION" })} />
+                    manejadorCierre={() => setModalValidacion(false)} />
                 <ModalDoble
                     mostrar={modalEliminacion}
                     titulo={t("titAlerta")}
@@ -269,7 +244,7 @@ export default function VerDiagnosticoPage() {
                     txtBtnPrincipal={t("txtBtnEliminar")}
                     txtBtnSecundario={t("txtBtnCancelar")}
                     manejadorBtnPrincipal={manejadorBtnBorrar}
-                    manejadorBtnSecundario={() => dispatch({ type: "CERRAR_MODAL_ELIMINACION" })}
+                    manejadorBtnSecundario={() => setModalEliminacion(false)}
                     iconoBtnPrincipal={<DeleteIcon />}
                     iconoBtnSecundario={<CloseIcon />} />
                 <ModalSimple
@@ -277,7 +252,7 @@ export default function VerDiagnosticoPage() {
                     titulo={t("tituloErr")}
                     texto={t(modalError.texto)}
                     txtBtn={t("txtBtnCerrar")}
-                    manejadorBtn={() => dispatch({ type: "CERRAR_MODAL_ERROR" })}
+                    manejadorBtn={() => setModalError((x) => ({ ...x, mostrar: false}))}
                     iconoBtn={<CloseIcon />} />
             </MenuLayout>
         </>

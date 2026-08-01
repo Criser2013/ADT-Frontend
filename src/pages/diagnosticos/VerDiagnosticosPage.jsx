@@ -71,7 +71,7 @@ export default function VerDiagnosticosPage() {
     const { eliminarDiagnosticos, validarDiagnostico } = useOperacionesDiagnosticos();
     const { usuario } = useAuth();
     const { cantDiagnosticosNoValidados, diagnosticos, diagnosticosCargados,
-        error, manejadorCargaDiagnosticos, manejadorCargaPersonas } = useDiagnosticos(
+        error, manejadorCargaDiagnosticos } = useDiagnosticos(
             usuario?.rolVisible, usuario?.uid, null, true
         );
     const { t } = useTranslation();
@@ -101,13 +101,11 @@ export default function VerDiagnosticosPage() {
     }, [diagnosticos]);
 
     async function manejadorBtnRecargar() {
-        const pets = [];
         dispatch({ type: "INICIAR_CARGA_DATOS" });
-        pets.push(manejadorCargaPersonas(usuario?.rolVisible ? "usuario" : "paciente"));
-        pets.push(manejadorCargaDiagnosticos(
+        await manejadorCargaDiagnosticos(
+            usuario?.rolVisible ? "usuario" : "paciente",
             usuario?.rolVisible, usuario?.uid, null
-        ));
-        await Promise.all(pets);
+        );
         dispatch({ type: "FINALIZAR_CARGA_DATOS" });
     };
 
