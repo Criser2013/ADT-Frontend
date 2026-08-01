@@ -22,7 +22,7 @@ import { useTranslation } from "react-i18next";
 
 
 const estadoInicial = {
-    diagnosticosSeleccionados: [], instancia: null, modalEliminacion: false,
+    diagnosticosSeleccionados: null, instancia: null, modalEliminacion: false,
     modalError: { mostrar: false, texto: "" }, modalExportacion: false,
     modalValidacion: false, procesando: false,
 };
@@ -40,7 +40,7 @@ function reducer(state, action) {
         case "ABRIR_MODAL_VALIDACION":
             return { ...state, modalValidacion: true, instancia: action.payload };
         case "CERRAR_MODAL_ELIMINACION":
-            return { ...state, modalEliminacion: false, diagnosticosSeleccionados: [], instancia: null };
+            return { ...state, modalEliminacion: false, diagnosticosSeleccionados: null, instancia: null };
         case "CERRAR_MODAL_ERROR":
             return { ...state, modalError: { ...state.modalError, mostrar: false } };
         case "CERRAR_MODAL_EXPORTACION":
@@ -48,13 +48,13 @@ function reducer(state, action) {
         case "CERRAR_MODAL_VALIDACION":
             return { ...state, modalValidacion: false, instancia: null };
         case "FINALIZAR_CARGA_DATOS":
-            return { ...state, procesando: false, diagnosticosSeleccionados: [], instancia: null };
+            return { ...state, procesando: false, diagnosticosSeleccionados: null, instancia: null };
         case "FINALIZAR_VALIDACION_INSTANCIA":
             return { ...state, procesando: false, instancia: null };
         case "INICIAR_CARGA_DATOS":
             return { ...state, procesando: true };
         case "INICIAR_ELIMINADO_INSTANCIAS":
-            return { ...state, procesando: true, modalEliminacion: false, diagnosticosSeleccionados: [], instancia: null };
+            return { ...state, procesando: true, modalEliminacion: false, diagnosticosSeleccionados: null, instancia: null };
         case "INICIAR_VALIDACION_INSTANCIA":
             return { ...state, procesando: true, modalValidacion: false };
         default:
@@ -142,7 +142,7 @@ export default function VerDiagnosticosPage() {
         dispatch({ type: "INICIAR_VALIDACION_INSTANCIA" });
         const { success } = await validarDiagnostico(instancia, diagnosticoMedico);
         if (success) {
-            await manejadorCargaDiagnosticos(usuario?.rolVisible, usuario?.uid, null);
+            manejadorBtnRecargar();
         }
         dispatch({ type: "FINALIZAR_VALIDACION_INSTANCIA" });
     };
@@ -203,7 +203,7 @@ export default function VerDiagnosticosPage() {
             {mostrarPantallaCarga ? <PantallaCarga /> : (
                 <>
                     <TabHeader
-                        titulo={usuario?.rolVisible ? t("txtHistorialDiagnosticos") : t("txtDatosRecolectados")}
+                        titulo={usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos")}
                         pestanas={listadoPestanas}
                         activarBtnAtras={false} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh" }}>

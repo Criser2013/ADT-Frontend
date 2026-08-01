@@ -80,7 +80,9 @@ describe("Validar la función 'convertirDiagnosticoExportable'", () => {
         presion_sistolica: 129, presion_diastolica: 93, frecuencia_respiratoria: 26,
         frecuencia_cardiaca: 128, edad: 60,
         saturacion_de_la_sangre: 80, plt: 211100, hb: 13.8, wbc: 12300,
-    }, true, null, 0.5, new ExplicacionLime([{ "VIH": 51.85, "Hepatopatía crónica": -48.2 }]));
+    }, true, null, 0.5, new ExplicacionLime([{ "VIH": 51.85, "Hepatopatía crónica": -48.2 }]),
+        "Usuario", "Paciente", "123456789", "N/A"
+    );
     const params1 = { esAdmin: false, preprocesar: false, idioma: "es" };
     const params2 = { esAdmin: true, preprocesar: true, idioma: "en" };
 
@@ -100,7 +102,7 @@ describe("Validar la función 'convertirDiagnosticoExportable'", () => {
         "Enfermedad cardíaca": 0, "Enfermedad coronaria": 0,
         "Enfermedad endocrina": 0, "Enfermedad gastrointestinal": 0,
         "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
-        "Trombofilia": 0, "VIH": 0, "Paciente": "1f073a07-6630-6d90-ac94-34c18cc96549", "Probabilidad": "50.00",
+        "Trombofilia": 0, "VIH": 0, "Paciente": "Paciente", "Probabilidad": "50.00",
         "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
         "Diagnóstico médico": "N/A", "ID": "ID", "Fecha": "1/10/2023", "Diagnóstico modelo": 1,
         "Campos significativos para el diagnóstico": '[{"VIH":51.85,"Hepatopatía crónica":-48.2}]'
@@ -122,7 +124,7 @@ describe("Validar la función 'convertirDiagnosticoExportable'", () => {
         "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
         "Trombofilia": 0, "VIH": 0,
         "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
-        "Diagnóstico médico": "N/A", "ID": "ID", "Usuario": "Usuario Test", "Fecha": "10/1/2023", "Diagnóstico modelo": 1
+        "Diagnóstico médico": "N/A", "ID": "ID-Usuario Test", "Usuario": "Usuario Test", "Fecha": "10/1/2023", "Diagnóstico modelo": 1
     };
 
     beforeEach(() => {

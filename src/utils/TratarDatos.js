@@ -89,11 +89,11 @@ export async function convertirDiagnosticoExportable(instancia, esAdmin, preproc
     datos.ID = esAdmin ? instancia.idCompuesto : instancia.id;
 
     if (!esAdmin) {
-        datos[textos.txtPaciente] = instancia.nombrePaciente;
+        datos[textos.txtPaciente] = detTextoPersona("paciente", instancia.nombrePaciente, (key) => textos[key]);
         datos[textos.txtCamposSignificativos] = JSON.stringify(instancia.explicacion.toJson());
         datos[textos.txtCampoProbabilidad] = (instancia.probabilidad * 100).toFixed(2);
     } else {
-        datos[textos.txtUsuario] = instancia.usuario;
+        datos[textos.txtUsuario] = detTextoPersona("usuario", instancia.usuario, (key) => textos[key]);
     }
 
     datos[textos.txtCampoSexo] = (!esAdmin || (esAdmin && !preprocesar)) ? (instancia.sexo == 0 ? "M" : "F") : instancia.sexo;

@@ -208,7 +208,6 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
     const { usuario } = useAuth();
     const { verDiagnosticos, helperListo: diagnosticosListo } = useOperacionesDiagnosticos();
     const [diagnosticos, setDiagnosticos] = useState(null);
-    const [personasCargadas, setPersonasCargadas] = useState(false);
     const [error, setError] = useState(null);
     const diagnosticosMapeados = useMemo(() => {
         const aux = diagnosticos?.map((d) => d.deepClone()) || [];
@@ -222,13 +221,11 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
                 );
             }
         }
-        setPersonasCargadas(true);
         return aux;
     }, [traerInfoPersona, diagnosticos, mapeoPacientes, mapeoUsuarios]);
     const cantDiagnosticosNoValidados = useMemo(() =>
         diagnosticosMapeados?.reduce((x, d) => x + (d.validado ? 0 : 1), 0) || 0
     , [diagnosticosMapeados]);
-
 
     /**
      * @param {String} tipo Tipo de persona a cargar, puede ser "paciente" o "usuario".
@@ -265,7 +262,7 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
         );
         if (diagnosticosListo && expCargaPersonas) {
             manejadorCargaDiagnosticos(
-                usuario?.rolVisible ? "usuario" : "paciente",
+                esAdmin ? "usuario" : "paciente",
                 verTodos, uid, fecha
             );
         }
@@ -284,9 +281,9 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
 
     const value = useMemo(() => ({
         diagnosticos: diagnosticosMapeados, error, manejadorCargaDiagnosticos,
-        cantDiagnosticosNoValidados, diagnosticosCargados: diagnosticos !== null && personasCargadas,
+        cantDiagnosticosNoValidados, diagnosticosCargados: diagnosticos !== null,
     }), [diagnosticosMapeados, error, manejadorCargaDiagnosticos,
-        cantDiagnosticosNoValidados, diagnosticos, personasCargadas]);
+        cantDiagnosticosNoValidados, diagnosticos]);
 
     return value;
 };
