@@ -16,12 +16,10 @@ export default class DiagnosticosHelper {
     /**
      * @param {String} token Access token de Firebase para la autenticación con la API.
      * @param {import("firebase/firestore").Firestore} firestore Instancia de Firestore.
-     * @param {String} idioma Código de idioma para la internacionalización.
      */
-    constructor(token, firestore, idioma) {
+    constructor(token, firestore) {
         this.#token = token;
         this.#db = firestore;
-        this.idioma = idioma;
     }
 
     /**
@@ -94,13 +92,14 @@ export default class DiagnosticosHelper {
 
     /**
      * @param {Diagnostico} diagnostico Instancia de la clase Diagnostico.
+     * @param {String} idioma Idioma en el que se desea recibir la información.
      * @returns {Object} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo contrario es null.
      */
-    async diagnosticar(diagnostico) {
+    async diagnosticar(diagnostico, idioma) {
         const { success, data, error } = await peticionApi("diagnosticar", "POST", {},
-            diagnostico.toJsonApi(), this.#token, this.idioma, "errDiagnosticar"
+            diagnostico.toJsonApi(), this.#token, idioma, "errDiagnosticar"
         );
 
         if (success) {

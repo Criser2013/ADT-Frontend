@@ -71,7 +71,7 @@ export default function VerDiagnosticosPage() {
     const { eliminarDiagnosticos, validarDiagnostico } = useOperacionesDiagnosticos();
     const { usuario } = useAuth();
     const { cantDiagnosticosNoValidados, diagnosticos, diagnosticosCargados,
-        error, mapeoDiagnosticos, manejadorCargaDiagnosticos } = useDiagnosticos(
+        error, mapeoDiagnosticos, manejadorCargaDiagnosticos, manejadorCargaPersonas } = useDiagnosticos(
             usuario?.rolVisible, usuario?.uid, null, true
         );
     const { t } = useTranslation();
@@ -105,6 +105,7 @@ export default function VerDiagnosticosPage() {
         await manejadorCargaDiagnosticos(
             usuario?.rolVisible, usuario?.uid, null
         );
+        await manejadorCargaPersonas(usuario?.rolVisible ? "usuario" : "paciente");
         dispatch({ type: "FINALIZAR_CARGA_DATOS" });
     };
 

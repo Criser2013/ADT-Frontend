@@ -12,24 +12,22 @@ export default class UsuariosHelper {
     /**
      * Instancia de la clase UsuariosHelper para manejar operaciones sobre usuarios.
      * @param {String} token Token de Firebase para verificar la autenticidad.
-     * @param {String} idioma Código de idioma para la internacionalización (por ejemplo, "es" 
-     * para español).
      */
-    constructor(token, idioma) {
+    constructor(token) {
         this.#token = token;
-        this.idioma = idioma;
     }
 
     /**
      * @param {String} id UID del usuario a cargar.
+     * @param {String} idioma Idioma en el que se desea recibir la información.
      * @returns {Object} Objeto con las claves:
      * - success (Boolean) - Indica si la operación fue exitosa.
      * - data (Usuario) - Contiene los datos del usuario si la operación fue exitosa.
      * - error (String) - Contiene el mensaje de error si la operación no fue exitosa.
      */
-    async cargarUsuario(id) {
+    async cargarUsuario(id, idioma) {
         const { success, data, error } = await peticionApi(
-            `admin/usuarios/${id}`, "GET", {}, null, this.#token, this.idioma,
+            `admin/usuarios/${id}`, "GET", {}, null, this.#token, idioma,
             "errCargarDatosUsuarios"
         );
         if (success) {
@@ -44,14 +42,15 @@ export default class UsuariosHelper {
     }
 
     /**
+     * @param {String} idioma Idioma en el que se desea recibir la información.
      * @returns {Object} Objeto con las claves:
      * - success (Boolean) - Indica si la operación fue exitosa.
      * - data (Array<Usuario>) - Contiene los datos de los usuarios si la operación fue exitosa.
      * - error (String) - Contiene el mensaje de error si la operación no fue exitosa.
      */
-    async cargarUsuarios() {
+    async cargarUsuarios(idioma) {
         const { success, data, error } = await peticionApi(
-            "admin/usuarios", "GET", {}, null, this.#token, this.idioma,
+            "admin/usuarios", "GET", {}, null, this.#token, idioma,
             "errCargarUsuarios"
         );
         if (success) {
@@ -67,18 +66,19 @@ export default class UsuariosHelper {
 
     /**
      * @param {Array<Usuario>} usuarios Lista de usuarios a desactivar. 
+     * @param {String} idioma Idioma en el que se desea recibir la información.
      * @returns {Promise<Object>} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo 
      * contrario es null.
      */
-    async eliminarUsuarios(usuarios) {
+    async eliminarUsuarios(usuarios, idioma) {
         let error = null;
         let success = true;
         const pets = [];
 
         usuarios.forEach((usuario) => {
-            pets.push(this.#desactivarUsuario(usuario));
+            pets.push(this.#desactivarUsuario(usuario, idioma));
         });
 
         for (const pet of pets) {
@@ -97,27 +97,30 @@ export default class UsuariosHelper {
      * @param {String} id UID del usuario a actualizar.
      * @param {Boolean} rol Nuevo rol del usuario (true para administrador, false para usuario normal).
      * @param {Boolean} desactivar Indicador para desactivar el usuario.
+     * @param {String} idioma Idioma en el que se desea recibir la información.
      * @returns {Object} Objeto con las claves:
      * - success (Boolean) - Indica si la operación fue exitosa.
      * - error (String) - Contiene el mensaje de error si la operación no fue exitosa.
      */
-    async modificarUsuario(id, rol, desactivar) {
+    async modificarUsuario(id, rol, desactivar, idioma) {
         const cuerpo = { administrador: rol, desactivar: desactivar, eliminado: false };
         return await await peticionApi(
-            `admin/usuarios/${id}`, "PATCH", {}, cuerpo, this.#token, this.idioma, ""
+            `admin/usuarios/${id}`, "PATCH", {}, cuerpo, this.#token, idioma, ""
         );
     }
 
     /**
      * @param {Usuario} usuario Instancia de usuario a desactivar.
+     * @param {String} idioma Idioma en el que se desea recibir la información.
      * @returns {Promise<Object>} Resultado de la operación con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa o no.
      * - "error" (String) - Contiene el mensaje de error si la operación no fue exitosa, de lo
+     * contrario es null.
      */
-    async #desactivarUsuario(usuario) {
+    async #desactivarUsuario(usuario, idioma) {
         const cuerpo = { desactivar: true, administrador: usuario.rol, eliminado: true };
         return await peticionApi(
-            `admin/usuarios/${usuario.id}`, "PATCH", {}, cuerpo, this.#token, this.idioma, ""
+            `admin/usuarios/${usuario.id}`, "PATCH", {}, cuerpo, this.#token, idioma, ""
         );
     }
 }

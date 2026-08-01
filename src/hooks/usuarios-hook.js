@@ -1,4 +1,4 @@
-import useIdioma from "./idioma-hook";
+import i18n from "i18next";
 import { useAuth } from "./auth-hook";
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Usuario } from "../models";
@@ -15,13 +15,12 @@ import { UsuariosHelper } from "../helpers";
  */
 export function useOperacionesUsuarios() {
     const { autenticado, usuario } = useAuth();
-    const { idioma } = useIdioma();
     const helper = useMemo(() => {
         if (autenticado) {
-            return new UsuariosHelper(usuario.tokenFirebase, idioma);
+            return new UsuariosHelper(usuario.tokenFirebase);
         }
         return null;
-    }, [usuario, autenticado, idioma]);
+    }, [usuario, autenticado]);
     const helperListo = useMemo(() => helper !== null, [helper]);
 
     /**
@@ -33,7 +32,7 @@ export function useOperacionesUsuarios() {
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
      */
     const editarUsuario = useCallback(async (id, nuevoRol, desactivar) => {
-        return await helper.editarUsuario(id, nuevoRol, desactivar);
+        return await helper.editarUsuario(id, nuevoRol, desactivar, i18n.language.split("-")[0]);
     }, [helper]);
 
     /**
@@ -45,7 +44,7 @@ export function useOperacionesUsuarios() {
      */
     const eliminarUsuarios = useCallback(async (ids) => {
         const idsArray = Array.isArray(ids) ? ids : [ids];
-        return await helper.eliminarUsuarios(idsArray);
+        return await helper.eliminarUsuarios(idsArray, i18n.language.split("-")[0]);
     }, [helper]);
 
     /**
@@ -56,7 +55,7 @@ export function useOperacionesUsuarios() {
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
      */
     const verUsuario = useCallback(async (id) => {
-        return await helper.cargarUsuario(id);
+        return await helper.cargarUsuario(id, i18n.language.split("-")[0]);
     }, [helper]);
 
     /**
@@ -66,7 +65,7 @@ export function useOperacionesUsuarios() {
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
      */
     const verUsuarios = useCallback(async () => {
-        return await helper.cargarUsuarios();
+        return await helper.cargarUsuarios(i18n.language.split("-")[0]);
     }, [helper]);
 
     const value = useMemo(() => ({
@@ -93,7 +92,7 @@ export function useUsuario(id, cargaAutomatica = true) {
     const [usuario, setUsuario] = useState(null);
 
     const manejadorCargaUsuario = useCallback(async () => {
-        const { success, data, error } = await verUsuario(id);
+        const { success, data, error } = await verUsuario(id, i18n.language.split("-")[0]);
         if (success) {
             setUsuario(data);
             setError(null);
@@ -150,7 +149,7 @@ export function useUsuarios(cargaAutomatica = true) {
     }, [usuarios]);
 
     const manejadorCargaUsuarios = useCallback(async () => {
-        const { success, data, error } = await verUsuarios();
+        const { success, data, error } = await verUsuarios(i18n.language.split("-")[0]);
             if (success) {
                 setUsuarios(data);
                 setError(null);

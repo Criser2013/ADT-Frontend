@@ -1,13 +1,13 @@
-import useIdioma from "./idioma-hook";
-import { Paciente, Usuario } from "../models";
+import i18n from "i18next";
+import { DiagnosticoDto } from "../dto";
 import { DiagnosticosHelper } from "../helpers";
+import { Paciente, Usuario } from "../models";
 import { useAppConfig } from "./appConfig-hook";
 import { useAuth } from "./auth-hook";
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePaciente, usePacientes } from "./pacientes-hook";
 import { useUsuario, useUsuarios } from "./usuarios-hook";
 import { validarId } from "../utils/Validadores";
-import { DiagnosticoDto } from "../dto";
 
 
 /**
@@ -23,13 +23,12 @@ import { DiagnosticoDto } from "../dto";
 export function useOperacionesDiagnosticos() {
     const { autenticado, usuario } = useAuth();
     const { firestore } = useAppConfig();
-    const { idioma } = useIdioma();
     const helper = useMemo(() => {
         if (autenticado) {
-            return new DiagnosticosHelper(usuario.tokenFirebase, firestore, idioma);
+            return new DiagnosticosHelper(usuario.tokenFirebase, firestore);
         }
         return null;
-    }, [firestore, usuario, autenticado, idioma]);
+    }, [firestore, usuario, autenticado]);
     const helperListo = useMemo(() => helper !== null, [helper]);
 
     /**
@@ -52,7 +51,7 @@ export function useOperacionesDiagnosticos() {
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
      */
     const generarDiagnostico = useCallback(async (diagnostico) => {
-        return await helper.diagnosticar(diagnostico);
+        return await helper.diagnosticar(diagnostico, i18n.language.split("-")[0]);
     }, [helper]);
 
     /**
@@ -289,8 +288,9 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
 
     const value = useMemo(() => ({
         mapeoDiagnosticos, diagnosticos: diagnosticosMapeados, error, manejadorCargaDiagnosticos,
-        cantDiagnosticosNoValidados, diagnosticosCargados: diagnosticos !== null && personasCargadas
-    }), [mapeoDiagnosticos, diagnosticosMapeados, error, manejadorCargaDiagnosticos,
+        cantDiagnosticosNoValidados, diagnosticosCargados: diagnosticos !== null && personasCargadas,
+        manejadorCargaPersonas: cargarPersonas
+    }), [mapeoDiagnosticos, diagnosticosMapeados, error, manejadorCargaDiagnosticos, cargarPersonas,
         cantDiagnosticosNoValidados, diagnosticos, personasCargadas]);
 
     return value;
