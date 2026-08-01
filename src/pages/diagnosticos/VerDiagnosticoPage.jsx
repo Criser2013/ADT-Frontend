@@ -67,31 +67,31 @@ export default function VerDiagnosticoPage() {
         detTextoPersona(usuarioAutenticado?.rolVisible ? "usuario" : "paciente", persona?.nombre, t)
     , [t, persona, usuarioAutenticado?.rolVisible]);
     const camposPersonales = useMemo(() => [
-        { id: "id", titulo: "ID", valor: diagnostico?.id },
+        { id: "id", titulo: "ID", valor: diagnostico?.mostrarId(usuarioAutenticado?.rolVisible) },
         { id: "nombre", titulo: usuarioAutenticado?.rolVisible ? t("txtMedico") : t("txtPaciente"), valor: textoPersona },
         { id: "sexo", titulo: t("txtCampoSexo"), componente: <ChipSexo valor={diagnostico?.sexo} /> },
-        { id: "edad", titulo: t("txtCampoEdad"), valor: `${diagnostico?.sintomasNumericos.edad} ${t("txtSufijoEdad")}` },
+        { id: "edad", titulo: t("edad"), valor: `${diagnostico?.sintomasNumericos.edad} ${t("txtSufijoEdad")}` },
         { id: "fecha", titulo: t("txtCampoFechaDiag"), valor: dayjs(diagnostico?.fecha).format(t("formatoFechaCompleta")) },
         { id: "diagnosticoModelo", titulo: t("txtCampoDiagModelo"), componente: <ChipDiagnostico valor={diagnostico?.diagnosticoModelo} /> },
         { id: "probabilidad", titulo: t("txtCampoProbabilidad"), valor: `${(diagnostico?.probabilidad * 100).toFixed(2)}%` },
         { id: "diagnosticoMedico", titulo: t("txtCampoDiagMedico"), componente: <ChipValidado valor={diagnostico?.diagnosticoMedico} /> },
-    ], [usuarioAutenticado, diagnostico, t, textoPersona]);
+    ], [usuarioAutenticado?.rolVisible, diagnostico, t, textoPersona]);
     const camposVitales = useMemo(() => [
-        { id: "presionSistolica", titulo: t("txtCampoPresionSist"), valor: `${diagnostico?.sintomasNumericos.presion_sistolica} mmHg.` },
-        { id: "presionDiastolica", titulo: t("txtCampoPresionDiast"), valor: `${diagnostico?.sintomasNumericos.presion_diastolica} mmHg.` },
-        { id: "frecuenciaCardiaca", titulo: t("txtCampoFrecCard"), valor: `${diagnostico?.sintomasNumericos.frecuencia_cardiaca} lpm.` },
-        { id: "frecuenciaRespiratoria", titulo: t("txtCampoFrecRes"), valor: `${diagnostico?.sintomasNumericos.frecuencia_respiratoria} rpm.` },
-        { id: "saturacionDeLaSangre", titulo: t("txtCampoSO2"), valor: `${diagnostico?.sintomasNumericos.saturacion_de_la_sangre} %` },
+        { id: "presionSistolica", titulo: t("presion_sistolica"), valor: `${diagnostico?.sintomasNumericos.presion_sistolica} mmHg.` },
+        { id: "presionDiastolica", titulo: t("presion_diastolica"), valor: `${diagnostico?.sintomasNumericos.presion_diastolica} mmHg.` },
+        { id: "frecuenciaCardiaca", titulo: t("frecuencia_cardiaca"), valor: `${diagnostico?.sintomasNumericos.frecuencia_cardiaca} lpm.` },
+        { id: "frecuenciaRespiratoria", titulo: t("frecuencia_respiratoria"), valor: `${diagnostico?.sintomasNumericos.frecuencia_respiratoria} rpm.` },
+        { id: "saturacionDeLaSangre", titulo: t("saturacion_de_la_sangre"), valor: `${diagnostico?.sintomasNumericos.saturacion_de_la_sangre} %` },
     ], [diagnostico, t]);
     const camposExamenes = useMemo(() => [
-        { id: "plt", titulo: t("txtCampoPLT"), valor: `${diagnostico?.sintomasNumericos.plt} /µL.` },
-        { id: "hb", titulo: t("txtCampoHB"), valor: `${diagnostico?.sintomasNumericos.hb} g/dL.` },
-        { id: "wbc", titulo: t("txtCampoWBC"), valor: `${diagnostico?.sintomasNumericos.wbc} /µL.` },
+        { id: "plt", titulo: t("plt"), valor: `${diagnostico?.sintomasNumericos.plt} /µL.` },
+        { id: "hb", titulo: t("hb"), valor: `${diagnostico?.sintomasNumericos.hb} g/dL.` },
+        { id: "wbc", titulo: t("wbc"), valor: `${diagnostico?.sintomasNumericos.wbc} /µL.` },
     ], [diagnostico, t]);
     const listadoPestanas = useMemo(() => [
         { texto: usuarioAutenticado?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" },
         { texto: `${usuarioAutenticado?.rolVisible ? t("txtDiagnostico") : t("txtPaciente")} — ${textoPersona} - ${diagnostico?.fecha.toLocaleString()}` }
-    ], [usuarioAutenticado, textoPersona, diagnostico, t]);
+    ], [usuarioAutenticado?.rolVisible, textoPersona, diagnostico, t]);
     const mostrarPantallaCarga = !diagnostico || !persona || procesando;
 
     useEffect(() => {

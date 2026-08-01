@@ -206,9 +206,9 @@ describe("Validar la función 'detTextoPersona'", () => {
     };
 
     // --------------------------- Parámetros -----------------------
-    const params1 = ["paciente", "eliminado"];
-    const params2 = ["paciente", "anonimo"];
-    const params3 = ["usuario", "eliminado"];
+    const params1 = ["paciente", "paciente eliminado"];
+    const params2 = ["paciente", "paciente anónimo"];
+    const params3 = ["usuario", "usuario eliminado"];
     const params4 = ["usuario", "Juan Pérez"];
 
     // --------------------------- Resultados esperados -----------------------

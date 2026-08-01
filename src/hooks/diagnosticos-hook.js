@@ -1,5 +1,4 @@
 import i18n from "i18next";
-import { DiagnosticoDto } from "../dto";
 import { DiagnosticosHelper } from "../helpers";
 import { Paciente, Usuario } from "../models";
 import { useAppConfig } from "./appConfig-hook";
@@ -211,33 +210,21 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
     const [diagnosticos, setDiagnosticos] = useState(null);
     const [personasCargadas, setPersonasCargadas] = useState(false);
     const [error, setError] = useState(null);
-    const mapeoDiagnosticos = useMemo(() => {
-        const aux = {};
-        if (Array.isArray(diagnosticos)) {
-            for (const d of diagnosticos) {
-                aux[`${d.id}-${d.usuario}`] = d;
-            }
-        }
-        return aux;
-    }, [diagnosticos]);
-
     const diagnosticosMapeados = useMemo(() => {
         const aux = diagnosticos?.map((d) => d.deepClone()) || [];
         if (traerInfoPersona) {
-            for (let i=0; i < aux.length; i++) {
+            for (let i = 0; i < aux.length; i++) {
                 const d = aux[i];
-                aux[i] = new DiagnosticoDto(
-                    d.id, d.usuario, mapeoUsuarios[d.usuario]?.nombre || "usuario eliminado", 
-                    d.paciente, d.paciente ? mapeoPacientes[d.paciente]?.nombre || "paciente eliminado" : "paciente anónimo",
-                    mapeoPacientes[d.paciente]?.cedula || "N/A",
-                    d.sintomasNumericos.edad, d.fecha, d.sexo, d.diagnosticoModelo, d.diagnosticoMedico
+                d.cambiarDatosPersonas(
+                    mapeoUsuarios[d.usuario]?.nombre || "usuario eliminado",
+                    d.paciente ? mapeoPacientes[d.paciente]?.nombre || "paciente eliminado" : "paciente anónimo",
+                    mapeoPacientes[d.paciente]?.cedula || "N/A"
                 );
             }
         }
         setPersonasCargadas(true);
         return aux;
     }, [traerInfoPersona, diagnosticos, mapeoPacientes, mapeoUsuarios]);
-
     const cantDiagnosticosNoValidados = useMemo(() =>
         diagnosticosMapeados?.reduce((x, d) => x + (d.validado ? 0 : 1), 0) || 0
     , [diagnosticosMapeados]);
@@ -287,10 +274,10 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
     }, [diagnosticosListo, verDiagnosticos, verTodos, uid, fecha, diagnosticos, manejadorCargaDiagnosticos]);
 
     const value = useMemo(() => ({
-        mapeoDiagnosticos, diagnosticos: diagnosticosMapeados, error, manejadorCargaDiagnosticos,
+        diagnosticos: diagnosticosMapeados, error, manejadorCargaDiagnosticos,
         cantDiagnosticosNoValidados, diagnosticosCargados: diagnosticos !== null && personasCargadas,
         manejadorCargaPersonas: cargarPersonas
-    }), [mapeoDiagnosticos, diagnosticosMapeados, error, manejadorCargaDiagnosticos, cargarPersonas,
+    }), [diagnosticosMapeados, error, manejadorCargaDiagnosticos, cargarPersonas,
         cantDiagnosticosNoValidados, diagnosticos, personasCargadas]);
 
     return value;

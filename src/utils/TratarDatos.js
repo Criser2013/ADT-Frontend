@@ -86,10 +86,10 @@ export async function convertirDiagnosticoExportable(instancia, esAdmin, preproc
     const datos = {};
     const textos = await fetch(`/locales/${idioma}/translation.json`).then((res) => res.json());
 
-    datos.ID = esAdmin ? instancia.id : instancia.id.replace(/-\w{28}$/, "");
+    datos.ID = esAdmin ? instancia.idCompuesto : instancia.id;
 
     if (!esAdmin) {
-        datos[textos.txtPaciente] = instancia.paciente;
+        datos[textos.txtPaciente] = instancia.nombrePaciente;
         datos[textos.txtCamposSignificativos] = JSON.stringify(instancia.explicacion.toJson());
         datos[textos.txtCampoProbabilidad] = (instancia.probabilidad * 100).toFixed(2);
     } else {

@@ -99,7 +99,7 @@ export function useUsuario(id, cargaAutomatica = true) {
         } else {
             setUsuario(
                 new Usuario(
-                    "null", null, "null", false, false, null, null
+                    "null", null, "usuario eliminado", false, false, null, null
                 )
             );
             setError(error);

@@ -1,5 +1,4 @@
 import { jest, describe, expect, test, beforeEach } from '@jest/globals';
-import DiagnosticoDto from "../../../../src/dto/DiagnosticoDto";
 
 jest.unstable_mockModule("firebase/firestore", () => ({
     Timestamp: {
@@ -172,12 +171,17 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
         });
     });
 
-    describe("Validar el getter 'fechaFormateada'", () => {
+    describe("Validar los getters de la clase", () => {
         test("CP - 171", () => {
             const inst = new Diagnostico(
-                "1", "1", "1", comorbilidades, new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos
+                "1", "1", "1", comorbilidades, new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos,
+                true, false, 0.5, new ExplicacionLime([{ campo: "edad", contribucion: 0.5 }]),
+                "Usuario 1", "Paciente 1", "1234567890"
+
             );
 
+            expect(inst.edad).toEqual(60);
+            expect(inst.idCompuesto).toEqual("1-1");
             expect(inst.fechaFormateada).toEqual("23-04-2026");
         });
     });
@@ -187,12 +191,46 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
             const original = new Diagnostico(
                 "1", "1", "1", comorbilidades,
                 new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos,
-                true, false, 0.5, new ExplicacionLime([{ campo: "edad", contribucion: 0.5 }])
+                true, false, 0.5, new ExplicacionLime([{ campo: "edad", contribucion: 0.5 }]),
+                "Usuario 1", "Paciente 1", "1234567890"
             );
             const clon = original.deepClone();
-
             expect(clon).not.toBe(original);
             expect(clon).toEqual(original);
+        });
+    });
+
+    describe("Validar el método 'cambiarDatosPersonas'", () => {
+        test("CP - 194", () => {
+            const inst = new Diagnostico(
+                "idDiagnostico", "isUsuario", "1", comorbilidades, new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos
+            );
+            inst.cambiarDatosPersonas("idUsuarioNuevo", "idPacienteNuevo", "cedula");
+            expect(inst.nombreUsuario).toEqual("idUsuarioNuevo");
+            expect(inst.nombrePaciente).toEqual("idPacienteNuevo");
+            expect(inst.cedula).toEqual("cedula");
+        });
+    });
+
+    describe("Validar el método mostrarId", () => {
+        // ---------------------- Parámetros -----------------------
+        const param1 = true;
+        const param2 = false;
+        // ---------------------- Resultados esperados ----------------
+        const res1 = "idDiagnostico-idUsuario";
+        const res2 = "idDiagnostico";
+        // ---------------------- Mock ----------------------
+        const inst = new Diagnostico(
+            "idDiagnostico", "idUsuario", "1", comorbilidades, new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos,
+            "Usuario", "paciente", "cedula"
+        );
+
+        test.each([
+            ["196", param1, res1],
+            ["197", param2, res2]
+        ])("CP - %s", (idPrueba, param, resEsperada) => {
+            const res = inst.mostrarId(param);
+            expect(res).toBe(resEsperada);
         });
     });
 });

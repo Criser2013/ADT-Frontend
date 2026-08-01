@@ -71,7 +71,7 @@ export default function VerDiagnosticosPage() {
     const { eliminarDiagnosticos, validarDiagnostico } = useOperacionesDiagnosticos();
     const { usuario } = useAuth();
     const { cantDiagnosticosNoValidados, diagnosticos, diagnosticosCargados,
-        error, mapeoDiagnosticos, manejadorCargaDiagnosticos, manejadorCargaPersonas } = useDiagnosticos(
+        error, manejadorCargaDiagnosticos, manejadorCargaPersonas } = useDiagnosticos(
             usuario?.rolVisible, usuario?.uid, null, true
         );
     const { t } = useTranslation();
@@ -101,11 +101,13 @@ export default function VerDiagnosticosPage() {
     }, [diagnosticos]);
 
     async function manejadorBtnRecargar() {
+        const pets = [];
         dispatch({ type: "INICIAR_CARGA_DATOS" });
-        await manejadorCargaDiagnosticos(
+        pets.push(manejadorCargaPersonas(usuario?.rolVisible ? "usuario" : "paciente"));
+        pets.push(manejadorCargaDiagnosticos(
             usuario?.rolVisible, usuario?.uid, null
-        );
-        await manejadorCargaPersonas(usuario?.rolVisible ? "usuario" : "paciente");
+        ));
+        await Promise.all(pets);
         dispatch({ type: "FINALIZAR_CARGA_DATOS" });
     };
 
@@ -114,14 +116,11 @@ export default function VerDiagnosticosPage() {
         await eliminarDiagnosticos(
             Array.isArray(diagnosticosSeleccionados) ? diagnosticosSeleccionados : instancia
         );
-        await manejadorCargaDiagnosticos(
-            usuario?.rolVisible, usuario?.uid, null
-        );
-        dispatch({ type: "FINALIZAR_PROCESO" });
+        manejadorBtnRecargar();
     };
 
     /**
-     * @param {DiagnosticoDto} diagnostico Instancia del diagnóstico a eliminar.
+     * @param {Diagnostico} diagnostico Instancia del diagnóstico a eliminar.
      * @param {Event} e Evento del clic.
      */
     const manejadorBtnEliminarFila = useCallback((diagnostico, e) => {
@@ -130,13 +129,13 @@ export default function VerDiagnosticosPage() {
     }, []);
 
     /**
-     * @param {DiagnosticoDto} diagnostico Instancia del diagnóstico a validar.
+     * @param {Diagnostico} diagnostico Instancia del diagnóstico a validar.
      * @param {Event} e Evento del clic.
      */
     const manejadorBtnValidarFila = useCallback((diagnostico, e) => {
         e.stopPropagation();
-        dispatch({ type: "ABRIR_MODAL_VALIDACION", payload: mapeoDiagnosticos[diagnostico.idCompuesto] });
-    }, [mapeoDiagnosticos]);
+        dispatch({ type: "ABRIR_MODAL_VALIDACION", payload: diagnostico });
+    }, []);
 
     /**
      * @param {Boolean} diagnosticoMedico Valor de validación del diagnóstico.
@@ -151,7 +150,7 @@ export default function VerDiagnosticosPage() {
     };
 
     const campos = useMemo(() => {
-        const idCampoNombre = usuario?.rolVisible ? "usuario" : "paciente";
+        const idCampoNombre = usuario?.rolVisible ? "nombreUsuario" : "nombrePaciente";
         const etiquetaCampoNombre = usuario?.rolVisible ? t("txtUsuario") : t("txtPaciente");
         const CompBtnEliminacion = (x) => (
             <BtnTabla
@@ -171,7 +170,7 @@ export default function VerDiagnosticosPage() {
         const CompVerDiagnostico = (x) => <ChipDiagnostico valor={x.diagnosticoModelo} />;
         const CompVerFecha = (x) => dayjs(x.fecha).format(t("formatoFechaHoraResumida"));
         const CompVerId = (x) => x.mostrarId(usuario?.rolVisible);
-        const CompVerNombre = (x) => detTextoPersona(idCampoNombre, x[idCampoNombre], t);
+        const CompVerNombre = (x) => detTextoPersona(idCampoNombre.toLocaleLowerCase().replace("nombre", ""), x[idCampoNombre], t);
         const CompVerSexo = (x) => <ChipSexo valor={x.sexo} />;
         const CompVerValidado = (x) => <ChipValidado valor={x.diagnosticoMedico} />;
         const camposBase = [
@@ -240,7 +239,7 @@ export default function VerDiagnosticosPage() {
                             tooltipAccion={t("txtAyudaEliminarDiags")}
                             activarBusqueda
                             activarSeleccion={usuario?.rolVisible}
-                            camposBusqueda={usuario?.rolVisible ? ["idCompuesto", "usuario"] : ["idCompuesto", "cedula", "paciente"]}
+                            camposBusqueda={usuario?.rolVisible ? ["idCompuesto", "nombreUsuario"] : ["id", "cedula", "nombrePaciente"]}
                             campoOrdenInicial="fecha"
                             direccionOrdenInicial="asc"
                             callbackClicCelda={(x) => navigate(`/diagnosticos/${x.idCompuesto}`)}
