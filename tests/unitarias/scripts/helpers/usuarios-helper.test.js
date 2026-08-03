@@ -85,7 +85,7 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
 
     describe("Validar el método 'eliminarUsuarios'", () => {
         // ---------------------- Parámetros ----------------------
-        const param = [{ id: "174", nombre: "Usuario de prueba", rol: true }, { id: "175", nombre: "Usuario de prueba 2", rol: false }];
+        const param = [{ uid: "174", nombre: "Usuario de prueba", esAdmin: true }, { uid: "175", nombre: "Usuario de prueba 2", esAdmin: false }];
 
         // ---------------------- Respuestas esperadas ----------------------
         const res1 = { success: true, error: null };
@@ -112,8 +112,8 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
             expect(res).toEqual(resEsperada);
             for (let i = 1; i < params.length; i++) {
                 expect(peticionApi).toHaveBeenCalledWith(
-                    `admin/usuarios/${params[i].id}`, "PATCH", {}, {
-                    desactivar: true, eliminado: true, administrador: params[i].rol
+                    `admin/usuarios/${params[i].uid}`, "PATCH", {}, {
+                    desactivar: true, eliminado: true, administrador: params[i].esAdmin
                 }, "token", "es", ""
                 );
             }

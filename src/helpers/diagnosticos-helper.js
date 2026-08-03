@@ -78,7 +78,15 @@ export default class DiagnosticosHelper {
         ids.forEach((id) => {
             pets.push(this.#eliminarDiagnostico(id));
         });
-        pets = await Promise.all(pets);
+
+        for (const pet of pets) {
+            const res = await pet;
+            success &&= res.success;
+            if (!res.success) {
+                error = res.error;
+            }
+        };
+
         return { success, error };
     }
 
@@ -114,7 +122,7 @@ export default class DiagnosticosHelper {
      */
     async validarDiagnostico(instancia, diagnosticoMedico) {
         instancia.validar(diagnosticoMedico);
-        const { success, error }= await this.#guardarDiagnostico(instancia);
+        const { success, error } = await this.#guardarDiagnostico(instancia);
         if (success) {
             return { success, data: instancia.deepClone() };
         } else {
