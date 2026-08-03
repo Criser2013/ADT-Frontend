@@ -1,6 +1,4 @@
 import { Button, Grid, Box, CircularProgress, Tooltip, Stack, TextField, MenuItem, Typography, IconButton } from "@mui/material";
-import MenuLayout from "../../components/layout/MenuLayout";
-import TabHeader from "../../components/layout/TabHeader";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useAuth, useDiagnosticos, useUsuarios, useOperacionesUsuarios } from "../../hooks";
@@ -12,10 +10,13 @@ import SaveIcon from '@mui/icons-material/Save';
 import { ChipEstado, ChipRol } from "../../components/tabs/Chips";
 import { Trans, useTranslation } from "react-i18next";
 
+
+import { MenuLayout, TabHeader } from "../../components/layout";
 import { FormUsuario } from "../../components/forms";
 import PantallaUsuario from "../../components/usuarios/PantallaUsuario";
 import { PantallaCarga } from "../../components/layout";
 import { BotoneraTabla, Datatable } from "../../components/datatable";
+import { ModalDoble } from "../../components/modals";
 
 // modalEdicion
 // modalVer
@@ -49,6 +50,11 @@ function reducer(state) {
             return { ...state, modalError: { mostrar: true, texto: state.payload } };
         case "CERRAR_MODAL_ERROR":
             return { ...state, modalError: { mostrar: false, texto: state.modalError.texto } };
+
+        case "CERRAR_MODAL_ELIMINACION":
+            return {
+                ...state, modalEliminacion: false, seleccionados: [], instancia: null
+            };
         default:
             return state;
     }
@@ -66,12 +72,12 @@ export default function VerUsuariosPage() {
     const [state, dispatch] = useReducer(reducer, estadoInicial);
 
     const { modalEdicion, modalEliminacion, instancia, seleccionados, procesando, modalError, modalVisualizacion } = state;
-    const { editarUsuario, eliminarUsuarios } = useOperacionesUsuarios();
+    const { editarUsuario, eliminarUsuarios, error } = useOperacionesUsuarios();
 
     const { t } = useTranslation();
     const listadoPestanas = [{ texto: t("titListaUsuarios"), url: "/usuarios" }];
     const [cargando, setCargando] = useState(true);
-    
+
     const [datos, setDatos] = useState(null);
 
 
@@ -102,31 +108,6 @@ export default function VerUsuariosPage() {
 
         setDatos(formatearCeldas(medicos));
     };*/
-
-    /**
-     * Formatea el rol, estado y elimina los usuarios eliminados.
-     * @param {Array} datos - Lista de datos
-     * @returns {Array}
-     */
-    const formatearCeldas = (datos) => {
-        const { uid } = usuario;
-        const aux = [];
-
-        for (let i = 0; i < datos.length; i++) {
-            if (datos[i].rol != "N/A") {
-                aux.push({
-                    uid: datos[i].uid, nombre: datos[i].nombre, correo: datos[i].correo,
-                    rol: datos[i].administrador ? t("txtAdministrador") : t("txtUsuario"),
-                    estado: datos[i].estado ? t("txtActivo") : t("txtInactivo"),
-                    registro: datos[i].fecha_registro,
-                    cantidad: datos[i].cantidad, ultimaConexion: datos[i].ultima_conexion,
-                    accion: datos[i].uid == uid ? "" : <Botonera instancia={datos[i]} />
-                });
-            }
-        }
-
-        return aux;
-    };
 
     /**
      * Manejador de clic en el botón de eliminar pacientes de la tabla.
@@ -205,27 +186,6 @@ export default function VerUsuariosPage() {
     };
 
     /**
-     * Manejador del botón de eliminar en cada registro de la tabla.
-     * @param {Object} instancia - Instancia del usuario.
-     */
-    const manejadorBtnEliminar = (instancia) => {
-        sessionStorage.setItem("ejecutar-callback", "false");
-        const rol = instancia.rol ? t("txtAdministrador").toLowerCase() : t("txtUsuario").toLocaleLowerCase();
-        setSeleccionado(instancia);
-        setModoModal(0);
-        setModal({
-            mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
-            mensaje: (
-                <Trans i18nKey="txtEliminarUsuario" values={{ instancia, rol }} components={{ 1: <br />, 3: <b />, 5: <b /> }}>
-                    ¿Estás seguro de querer eliminar al usuario {instancia.nombre} ({instancia.correo}) — {rol}?
-                    <br />
-                    <br />
-                    <b>ADVERTENCIA:</b> Se bloqueará su acceso a la aplicación <b>permanentemente</b>
-                </Trans>)
-        });
-    };
-
-    /**
      * Manejador del botón de editar en cada registro de la tabla.
      * @param {Object} instancia - Instancia del usuario.
      */
@@ -238,9 +198,24 @@ export default function VerUsuariosPage() {
         });
     };
 
+    async function manejadorBtnModalEliminacion() {
+        dispatch({ type: "INICIAR_ELIMINADO_USUARIOS" });
+        await eliminarUsuarios(seleccionados);
+        manejadorBtnRecargar();
+    }
+
 
     const campos = useMemo(() => {
-        const CompAccion = (x) => <Botonera instancia={x} />;
+        const CompAccion = (x) => <BotoneraTabla instancia={x} botones={[
+            {
+                id: "editar", color: "primary", icono: <EditIcon />,
+                txtAyuda: "txtAyudaBtnEditarUsuario", manejadorClic: manejadorBtnEditar
+            },
+            {
+                id: "eliminar", color: "error", icono: <DeleteIcon />,
+                txtAyuda: "txtAyudaBtnEliminarUsuario", manejadorClic: manejadorBtnEliminar
+            }
+        ]} />;
         const CompEstado = (x) => <ChipEstado valor={x.estado} />;
         const CompRol = (x) => <ChipRol valor={x.esAdmin} />;
 
@@ -257,53 +232,76 @@ export default function VerUsuariosPage() {
         ];
     }, []);
 
-return (
-    <MenuLayout>
-        {cargando ? <PantallaCarga /> : (
-            <>
-                <TabHeader
-                    activarBtnAtras={false}
-                    titulo={t("titListaUsuarios")}
-                    pestanas={listadoPestanas} />
-                <Grid container columns={1} spacing={3} width="100%" sx={{ marginTop: "3vh" }}>
-                    <Grid display="flex" size={1} justifyContent="end">
-                        <Tooltip title={t("txtAyudaBtnRecargar")}>
-                            <IconButton onClick={() => manejadorRecargar()}>
-                                <RefreshIcon />
-                            </IconButton>
-                        </Tooltip>
+    useEffect(() => {
+        if (error) {
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
+        }
+    }, [error]);
+
+    return (
+        <MenuLayout>
+            {cargando ? <PantallaCarga /> : (
+                <>
+                    <TabHeader
+                        titulo={t("titListaUsuarios")}
+                        pestanas={listadoPestanas}
+                        activarBtnAtras={false} />
+                    <Grid container columns={1} spacing={3} width="100%" sx={{ marginTop: "3vh" }}>
+                        <Grid display="flex" size={1} justifyContent="end">
+                            <Tooltip title={t("txtAyudaBtnRecargar")}>
+                                <IconButton onClick={() => manejadorRecargar()}>
+                                    <RefreshIcon />
+                                </IconButton>
+                            </Tooltip>
+                        </Grid>
+                        <Grid size={1}>
+                            <Datatable
+                                datos={usuarios}
+                                campos={campos}
+                                campoId="uid"
+                                lblBusq={t("txtBusqUsuario")}
+                                lblSeleccion={t("txtSufijoUsuariosSelecs")}
+                                tooltipAccion={t("txtAyudaBtnEliminarUsuarios")}
+                                activarBusqueda
+                                activarSeleccion
+                                camposBusqueda={["uid", "nombre", "correo"]}
+                                campoOrdenInicial="fechaRegistro"
+                                direccionOrdenInicial="asc"
+                                callbackClicCelda={manejadorClicCelda}
+                                callbackBtnAccion={manejadorEliminar}
+                                icono={<DeleteIcon />} />
+                        </Grid>
                     </Grid>
-                    <Grid size={1}>
-                        <Datatable
-                            campos={campos}
-                            datos={datos}
-                            lblBusq={t("txtBusqUsuario")}
-                            activarBusqueda
-                            campoId="uid"
-                            terminoBusqueda={""}
-                            lblSeleccion={t("txtSufijoUsuariosSelecs")}
-                            camposBusq={["nombre", "correo"]}
-                            cbClicCelda={manejadorClicCelda}
-                            cbAccion={manejadorEliminar}
-                            tooltipAccion={t("txtAyudaBtnEliminarUsuarios")}
-                            icono={<DeleteIcon />}
-                            campoOrdenInicial="nombre"
-                            dirOrden="asc"
-                            cargarInfoToda
-                        />
-                    </Grid>
-                </Grid>
-            </>)}
-        <FormUsuario
-            mostrar={modalEdicion}
-            instancia={instancia}
-            manejadorBtn={manejadorBtnActualizarUsuario}
-            manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_EDICION" })} />
-        <PantallaUsuario
-            mostrar={modalVisualizacion}
-            instancia={instancia}
-            cantDiagnosticosAportados={instancia?.cantidad}
-            manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_VISUALIZACION" })} />
-    </MenuLayout>
-);
+                </>)}
+            <FormUsuario
+                mostrar={modalEdicion}
+                instancia={instancia}
+                manejadorBtn={manejadorBtnActualizarUsuario}
+                manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_EDICION" })} />
+            <PantallaUsuario
+                mostrar={modalVisualizacion}
+                instancia={instancia}
+                cantDiagnosticosAportados={instancia?.cantidad}
+                manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_VISUALIZACION" })} />
+            <ModalDoble
+                mostrar={modalEliminacion}
+                titulo={t("titAlerta")}
+                texto={!instancia ? t("txtEliminarUsuarios") : null}
+                txtBtnPrincipal={t("txtBtnEliminar")}
+                txtBtnSecundario={t("txtBtnCancelar")}
+                manejadorBtnPrincipal={manejadorBtnModalEliminacion}
+                manejadorBtnSecundario={() => dispatch({ type: "CERRAR_MODAL_ELIMINACION" })}
+                iconoBtnPrincipal={<DeleteIcon />}
+                iconoBtnSecundario={<CloseIcon />}>
+                {instancia ? (
+                    <Trans i18nKey="txtEliminarUsuario" values={instancia} components={{ 1: <br />, 3: <b />, 5: <b /> }}>
+                        ¿Estás seguro de querer eliminar al usuario {instancia.nombre} ({instancia.correo}) — {instancia.esAdmin ? t("txtAdministrador") : t("txtUsuario")}?
+                        <br />
+                        <br />
+                        <b>ADVERTENCIA:</b> Se bloqueará su acceso a la aplicación <b>permanentemente</b>
+                    </Trans>
+                ) : null}
+            </ModalDoble>
+        </MenuLayout>
+    );
 };
