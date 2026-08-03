@@ -1,6 +1,6 @@
 import CloseIcon from "@mui/icons-material/Close";
 import { ChipRol, ChipEstado } from "../tabs/Chips";
-import { Grid } from "@mui/material";
+import { Grid, Typography } from "@mui/material";
 import { ModalSimple } from "../modals";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,16 +30,16 @@ export default function PantallaUsuario({ mostrar, instancia, cantDiagnosticosAp
         <ModalSimple
             mostrar={mostrar}
             titulo={t("titDetallesUsuario")}
-            manejadorCierre={manejadorCierre}
+            manejadorBtn={manejadorCierre}
             txtBtn={t("txtBtnCerrar")}
             iconoBtn={<CloseIcon />} >
-            <Grid container columns={12}>
+            <Grid container columns={12} rowGap={1}>
                 {campos.map((x) => (
                     <>
-                        <Grid key={`${x.id}-titulo`} columns={4}>
-                            {x.nombre}
+                        <Grid key={`${x.id}-titulo`} size={4}>
+                            <Typography fontWeight="bold">{x.nombre}:</Typography>
                         </Grid>
-                        <Grid key={`${x.id}-valor`} columns={8}>
+                        <Grid key={`${x.id}-valor`} size={8}>
                             {x.valor}
                         </Grid>
                     </>

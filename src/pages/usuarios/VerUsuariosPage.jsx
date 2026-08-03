@@ -51,6 +51,8 @@ function reducer(state, action) {
             return { ...state, procesando: true };
         case "INICIAR_EDICION":
             return { ...state, procesando: true, modalEdicion: false };
+        case "INICIAR_ELIMINADO_USUARIOS":
+            return { ...state, procesando: true, modalEliminacion: false };
         default:
             return state;
     }
@@ -88,6 +90,10 @@ export default function VerUsuariosPage() {
         }
     }, [error, errorUsuario]);
 
+    useEffect(() => {
+        dispatch({ type: "FINALIZAR_CARGA_DATOS" });
+    }, [usuarios, diagnosticosCargados]);
+
     /**
      * @param {Usuario} usuario Instancia de usuario.
      * @param {Event} e Evento del clic.
@@ -105,7 +111,7 @@ export default function VerUsuariosPage() {
         if (esAutoEliminacion) {
             dispatch({ type: "ABRIR_MODAL_ERROR", payload: t("errAutoEliminado") });
         } else {
-            dispatch({ type: "ABRIR_MODAL_ELIMINACION_MULTIPLE", payload: usuarios.map((x) => x.uid) });
+            dispatch({ type: "ABRIR_MODAL_ELIMINACION_MULTIPLE", payload: usuarios });
         }
     };
 
@@ -121,7 +127,6 @@ export default function VerUsuariosPage() {
     async function manejadorBtnRecargar() {
         dispatch({ type: "INICIAR_CARGA_DATOS" });
         await manejadorCargaUsuarios();
-        dispatch({ type: "CERRAR_MODAL_EDICION" });
     };
 
 
@@ -130,10 +135,10 @@ export default function VerUsuariosPage() {
      */
     async function manejadorBtnModalActualizar(datos) {
         dispatch({ type: "INICIAR_EDICION" });
-        const { success, error } = await editarUsuario(datos.uid, datos.rol, datos.estado);
+        const { success, error } = await editarUsuario(datos.uid, datos.rol, !datos.estado);
         if (success) {
             await manejadorBtnRecargar();
-        } else {
+        } else { 
             dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
         }
         dispatch({ type: "FINALIZAR_EDICION" });
@@ -141,8 +146,15 @@ export default function VerUsuariosPage() {
 
     async function manejadorBtnModalEliminacion() {
         dispatch({ type: "INICIAR_ELIMINADO_USUARIOS" });
-        await eliminarUsuarios(seleccionados);
-        manejadorBtnRecargar();
+        const { success, error } = await eliminarUsuarios(
+            Array.isArray(seleccionados) ? seleccionados : instancia
+        );
+        if (!success) {
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
+        } else {
+            dispatch({ type: "CERRAR_MODAL_ELIMINACION" });
+        }
+        await manejadorBtnRecargar();
     };
 
     /**
@@ -155,7 +167,7 @@ export default function VerUsuariosPage() {
     };
 
     const campos = useMemo(() => {
-        const CompAccion = (x) => (x.uid == usuario?.uid) ? (
+        const CompAccion = (x) => (x.uid != usuario?.uid) ? (
             <BotoneraTabla instancia={x} botones={[
                 {
                     id: "editar", color: "primary", icono: <EditIcon />,
@@ -171,15 +183,15 @@ export default function VerUsuariosPage() {
         const CompEstado = (x) => <ChipEstado valor={x.estado} />;
         const CompRol = (x) => <ChipRol valor={x.esAdmin} />;
         return [
-            { id: "uid", label: t("txtUid"), componente: null },
-            { id: "nombre", label: t("txtNombre"), componente: null },
-            { id: "correo", label: t("txtCorreo"), componente: null },
-            { id: "rol", label: t("txtRol"), componente: CompRol },
-            { id: "estado", label: t("txtEstado"), componente: CompEstado },
-            { id: "fechaRegistro", label: t("txtFechaRegistro"), componente: null },
-            { id: "ultimaConexion", label: t("txtUltimaConexion"), componente: null },
-            { id: "cantidad", label: t("txtCantDiagnosticos"), componente: CompCantidad },
-            { id: "accion", label: t("txtAccion"), componente: CompAccion }
+            { id: "uid", label: "ID", componente: null, ordenable: true },
+            { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
+            { id: "correo", label: t("txtCorreo"), componente: null, ordenable: true },
+            { id: "rol", label: t("txtRol"), componente: CompRol, ordenable: true },
+            { id: "estado", label: t("txtEstado"), componente: CompEstado, ordenable: true },
+            { id: "fechaRegistro", label: t("txtFechaRegistro"), componente: null, ordenable: true },
+            { id: "fechaUltimoAcceso", label: t("txtUltimaConexion"), componente: null, ordenable: true },
+            { id: "cantidad", label: t("txtDiagnosticos"), componente: CompCantidad, ordenable: true },
+            { id: "accion", label: t("txtAccion"), componente: CompAccion, ordenable: false }
         ];
     }, [usuario?.uid, t, diagnosticosAgrupadosPorUsuario]);
 
@@ -204,7 +216,7 @@ export default function VerUsuariosPage() {
                                 datos={usuarios}
                                 campos={campos}
                                 campoId="uid"
-                                lblBusq={t("txtBusqUsuario")}
+                                lblBusqueda={t("txtBusqUsuario")}
                                 lblSeleccion={t("txtSufijoUsuariosSelecs")}
                                 tooltipAccion={t("txtAyudaBtnEliminarUsuarios")}
                                 activarBusqueda
@@ -213,7 +225,8 @@ export default function VerUsuariosPage() {
                                 campoOrdenInicial="fechaRegistro"
                                 direccionOrdenInicial="asc"
                                 callbackClicCelda={manejadorClicCelda}
-                                callbackBtnAccion={manejadorBtnEliminar} />
+                                callbackBtnAccion={manejadorBtnEliminar}
+                                icono={<DeleteIcon />} />
                         </Grid>
                     </Grid>
                 </>)}
@@ -238,8 +251,8 @@ export default function VerUsuariosPage() {
                 iconoBtnPrincipal={<DeleteIcon />}
                 iconoBtnSecundario={<CloseIcon />}>
                 {instancia ? (
-                    <Trans i18nKey="txtEliminarUsuario" values={instancia} components={{ 1: <br />, 3: <b />, 5: <b /> }}>
-                        ¿Estás seguro de querer eliminar al usuario {instancia.nombre} ({instancia.correo}) — {instancia.esAdmin ? t("txtAdministrador") : t("txtUsuario")}?
+                    <Trans i18nKey="txtEliminarUsuario" values={{ instancia }} components={{ 1: <br />, 3: <b />, 5: <b /> }}>
+                        ¿Estás seguro de querer eliminar al usuario "{instancia.nombre}" ({instancia.correo}) — {instancia.esAdmin ? t("txtAdministrador") : t("txtUsuario")}?
                         <br />
                         <br />
                         <b>ADVERTENCIA:</b> Se bloqueará su acceso a la aplicación <b>permanentemente</b>
@@ -248,10 +261,10 @@ export default function VerUsuariosPage() {
             </ModalDoble>
             <ModalSimple
                 mostrar={modalError.mostrar}
-                titulo={t("titErr")}
+                titulo={t("tituloErr")}
                 texto={modalError.texto}
                 txtBtn={t("txtBtnCerrar")}
-                manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_ERROR" })}
+                manejadorBtn={() => dispatch({ type: "CERRAR_MODAL_ERROR" })}
                 iconoBtn={<CloseIcon />}/>
         </MenuLayout>
     );

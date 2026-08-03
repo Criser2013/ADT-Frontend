@@ -32,12 +32,12 @@ export function useOperacionesUsuarios() {
      * - "error" (String) - Mensaje de error en caso de que la operación falle.
      */
     const editarUsuario = useCallback(async (id, nuevoRol, desactivar) => {
-        return await helper.editarUsuario(id, nuevoRol, desactivar, i18n.language.split("-")[0]);
+        return await helper.modificarUsuario(id, nuevoRol, desactivar, i18n.language.split("-")[0]);
     }, [helper]);
 
     /**
-     * @param {Array<String>|String} ids IDs de los usuarios a eliminar, si solo es uno,
-     * se puede pasar la ID como String.
+     * @param {Array<Usuario>|Usuario} ids Instancia de los usuarios a eliminar, si solo es uno,
+     * se puede pasar esa instancia únicamente.
      * @returns {Promise<Object>} Objeto con las claves:
      * - "success" (Boolean) - Indica si la operación fue exitosa.
      * - "error" (String) - Mensaje de error en caso de que la operación falle.

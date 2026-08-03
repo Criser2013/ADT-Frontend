@@ -272,7 +272,7 @@ export default function VerDiagnosticosPage() {
                 manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_EXPORTACION" })} />
             <ModalSimple
                 mostrar={modalError.mostrar}
-                titulo={t("titErr")}
+                titulo={t("tituloErr")}
                 texto={t(modalError.texto)}
                 txtBtn={t("txtBtnCerrar")}
                 manejadorBtn={() => dispatch({ type: "CERRAR_MODAL_ERROR" })}

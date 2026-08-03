@@ -3,7 +3,6 @@ import SaveIcon from "@mui/icons-material/Save";
 import { Controller, useForm } from "react-hook-form";
 import { Grid, MenuItem, TextField, Typography } from "@mui/material";
 import { ModalDoble, ModalSimple } from "../modals";
-import { useAuth } from "../../hooks";
 import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -23,8 +22,6 @@ const valoresPredet = {
 export default function FormUsuario({ mostrar = false, instancia, manejadorBtn, manejadorCierre }) {
     const { control, handleSubmit, reset, setValues, watch } = useForm({ defaultValues: valoresPredet });
     const { t } = useTranslation();
-    const { usuario } = useAuth();
-    const desactivarCampos = usuario.uid == instancia?.uid;
     const estado = watch("estado");
 
     /**
@@ -35,7 +32,7 @@ export default function FormUsuario({ mostrar = false, instancia, manejadorBtn, 
             uid: usuario.uid,
             nombre: usuario.nombre,
             correo: usuario.correo,
-            rol: usuario.rol,
+            rol: usuario.esAdmin,
             estado: usuario.estado
         });
     }, [setValues]);
@@ -58,8 +55,8 @@ export default function FormUsuario({ mostrar = false, instancia, manejadorBtn, 
             manejadorBtnSecundario={manejadorCierre}
             iconoBtnPrincipal={<SaveIcon />}
             iconoBtnSecundario={<CloseIcon />} >
-            <Grid container size={1} spacing={2} width={{ xs: "27vw", sm: "50vw", md: "60vw" }}>
-                <Grid columns={1}>
+            <Grid container columns={1} spacing={2} width={{ xs: "20vw", md: "30vw" }}>
+                <Grid size={1}>
                     <Controller
                         name="nombre"
                         control={control}
@@ -71,7 +68,7 @@ export default function FormUsuario({ mostrar = false, instancia, manejadorBtn, 
                                 fullWidth
                                 {...field} />)} />
                 </Grid>
-                <Grid columns={1}>
+                <Grid size={1}>
                     <Controller
                         name="correo"
                         control={control}
@@ -83,7 +80,7 @@ export default function FormUsuario({ mostrar = false, instancia, manejadorBtn, 
                                 fullWidth
                                 {...field} />)} />
                 </Grid>
-                <Grid columns={1}>
+                <Grid size={1}>
                     <Controller
                         name="rol"
                         control={control}
@@ -92,7 +89,6 @@ export default function FormUsuario({ mostrar = false, instancia, manejadorBtn, 
                                 select
                                 label={t("txtRol")}
                                 variant="outlined"
-                                disabled={desactivarCampos}
                                 {...field}
                                 fullWidth>
                                 <MenuItem value={false}>
@@ -103,7 +99,7 @@ export default function FormUsuario({ mostrar = false, instancia, manejadorBtn, 
                                 </MenuItem>
                             </TextField>)} />
                 </Grid>
-                <Grid columns={1}>
+                <Grid size={1}>
                     <Controller
                         name="estado"
                         control={control}
@@ -113,7 +109,6 @@ export default function FormUsuario({ mostrar = false, instancia, manejadorBtn, 
                                 variant="outlined"
                                 fullWidth
                                 select
-                                disabled={desactivarCampos}
                                 {...field}>
                                 <MenuItem value={false}>
                                     {t("txtInactivo")}
@@ -124,7 +119,7 @@ export default function FormUsuario({ mostrar = false, instancia, manejadorBtn, 
                             </TextField>)} />
                 </Grid>
                 {!estado ? (
-                    <Grid columns={1}>
+                    <Grid size={1}>
                         <Typography variant="body2" fontWeight="bold">
                             ⚠️ {t("txtAdvertenciaDesactivarUsuario")}
                         </Typography>

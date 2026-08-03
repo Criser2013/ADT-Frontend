@@ -1,5 +1,5 @@
 import BtnTabla from "./BtnTabla";
-import { Button, Grid, Tooltip } from "@mui/material";
+import { Button, Stack, Tooltip } from "@mui/material";
 
 
 /**
@@ -15,17 +15,15 @@ import { Button, Grid, Tooltip } from "@mui/material";
  */
 export default function BotoneraTabla({ instancia, botones }) {
     return (
-        <Grid container size={botones.length} spacing={1} columns={1} justifyContent="center" alignItems="center">
-            {botones.map(({ id, color, icono, txtAyuda, manejadorClic }) => (
-                <Grid item key={id}>
-                    <BtnTabla
-                        instancia={instancia}
-                        manejadorBtn={manejadorClic}
-                        txtAyuda={txtAyuda}
-                        color={color}
-                        icono={icono}/>
-                </Grid>
+        <Stack direction="row" spacing={1}>
+            {botones.map(({ color, icono, txtAyuda, manejadorClic }) => (
+                <BtnTabla
+                    instancia={instancia}
+                    manejadorBtn={manejadorClic}
+                    txtAyuda={txtAyuda}
+                    color={color}
+                    icono={icono} />
             ))}
-        </Grid>
+        </Stack>
     );
 };

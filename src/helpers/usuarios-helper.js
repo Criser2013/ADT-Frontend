@@ -118,9 +118,9 @@ export default class UsuariosHelper {
      * contrario es null.
      */
     async #desactivarUsuario(usuario, idioma) {
-        const cuerpo = { desactivar: true, administrador: usuario.rol, eliminado: true };
+        const cuerpo = { desactivar: true, administrador: usuario.esAdmin, eliminado: true };
         return await peticionApi(
-            `admin/usuarios/${usuario.id}`, "PATCH", {}, cuerpo, this.#token, idioma, ""
+            `admin/usuarios/${usuario.uid}`, "PATCH", {}, cuerpo, this.#token, idioma, ""
         );
     }
 }
