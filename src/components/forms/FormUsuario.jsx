@@ -52,7 +52,7 @@ export default function FormUsuario({ mostrar = false, instancia, manejadorBtn, 
         <ModalDoble
             mostrar={mostrar}
             titulo={t("titEditarUsuario")}
-            txtBtnPrincipal={t("txtActualizar")}
+            txtBtnPrincipal={t("txtBtnGuardar")}
             txtBtnSecundario={t("txtBtnCancelar")}
             manejadorBtnPrincipal={handleSubmit(manejadorBtn)}
             manejadorBtnSecundario={manejadorCierre}
