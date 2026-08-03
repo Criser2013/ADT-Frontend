@@ -13,14 +13,15 @@ import { peticionApi } from "../../services/Api";
 import { verDiagnosticos } from "../../firestore/diagnosticos-collection";
 import { useCredenciales } from "../../contexts/CredencialesContext";
 import EditIcon from '@mui/icons-material/Edit';
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloseIcon from '@mui/icons-material/Close';
 import { Controller, useForm } from "react-hook-form";
 import SaveIcon from '@mui/icons-material/Save';
 import { ChipEstado, ChipRol } from "../../components/tabs/Chips";
 import { Trans, useTranslation } from "react-i18next";
+
+import { FormUsuario } from "../../components/forms";
+import PantallaUsuario from "../../components/usuarios/PantallaUsuario";
 
 // modalEdicion
 // modalVer
@@ -72,6 +73,8 @@ export default function VerUsuariosPage() {
 
     const [state, dispatch] = useReducer(reducer, estadoInicial);
 
+    const { modalEdicion, modalEliminacion, instancia, seleccionados, procesando, modalError, modalVisualizacion } = state;
+
     const { t } = useTranslation();
     const listadoPestanas = useMemo(() => [{
         texto: t("titListaUsuarios"), url: "/usuarios"
@@ -85,13 +88,11 @@ export default function VerUsuariosPage() {
     const [usuarios, setUsuarios] = useState(null);
     const [seleccionado, setSeleccionado] = useState(null);
     const [diagnosticos, setDiagnosticos] = useState(null);
-    const [seleccionados, setSeleccionados] = useState([]);
     const { setValue, control, handleSubmit, watch } = useForm({
         defaultValues: {
             uid: "", nombre: "", correo: "", rol: false, estado: true
         }
     });
-    const estado = watch("estado");
     const width = useMemo(() => {
         return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
     }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
@@ -107,47 +108,7 @@ export default function VerUsuariosPage() {
     const txtBtnModal = useMemo(() => {
         return modoModal == 3 ? t("txtBtnGuardar") : t("txtBtnEliminar");
     }, [modoModal, navegacion.idioma]);
-    const desactivarCampos = useMemo(() => {
-        const { uid } = usuario;
-        if (seleccionado != null) {
-            return uid == seleccionado.uid;
-        } else {
-            return false;
-        }
-    }, [usuario, seleccionado]);
-    const mostrarTxtAdvertencia = useMemo(() => {
-        return seleccionado != null && (seleccionado.estado && !estado);
-    }, [seleccionado, estado]);
-    const usuarioSeleccionado = useMemo(() => {
-        const datos = seleccionado != null ? seleccionado : { nombre: "", correo: "", rol: 0, estado: true, ultimaConexion: "", cantidad: 0 };
-        return [
-            { id: "nombre", nombre: t("txtNombre"), valor: datos.nombre },
-            { id: "correo", nombre: t("txtCorreo"), valor: datos.correo },
-            { id: "rol", nombre: t("txtRol"), valor: <ChipRol valor={datos.rol} /> },
-            { id: "estado", nombre: t("txtEstado"), valor: <ChipEstado valor={datos.estado} /> },
-            { id: "ultimaConexion", nombre: t("txtUltimaConexion"), valor: datos.ultimaConexion },
-            { id: "registro", nombre: t("txtFechaRegistro"), valor: datos.registro },
-            { id: "cantidad", nombre: t("txtDiagAportados"), valor: datos.cantidad },
-        ];
-    }, [seleccionado, navegacion.idioma]);
-    const tamForm = useMemo(() => {
-        const { dispositivoMovil, orientacion } = navegacion;
-        if (!dispositivoMovil) {
-            return "27vw";
-        } else if (dispositivoMovil && orientacion == "horizontal") {
-            return "50vw";
-        } else {
-            return "60vw";
-        }
-    }, [navegacion]);
-    const numCols = useMemo(() => {
-        const { dispositivoMovil, orientacion } = navegacion;
-        if (dispositivoMovil && (orientacion == "vertical" || navegacion.ancho < 500)) {
-            return "column";
-        } else {
-            return "row";
-        }
-    }, [navegacion]);
+
     const admin = useMemo(() => usuario?.rolVisible, [usuario?.rolVisible]);
 
     /**
@@ -280,44 +241,12 @@ export default function VerUsuariosPage() {
     };
 
     /**
-     * Manejador del clic en una celda de la tabla.
-     * @param {JSON} dato - Instancia
+     * @param {Usuario} usuario Instancia de usuario.
+     * @param {Event} e Evento del clic.
      */
-    const manejadorClicCelda = (dato) => {
-        const ejecutar = sessionStorage.getItem("ejecutar-callback");
-        if (ejecutar == "true" || ejecutar == null) {
-            const aux = { ...dato };
-            aux.estado = aux.estado == t("txtActivo") ? false : true;
-            setSeleccionado(aux);
-            setModoModal(4);
-            setModal({
-                mostrar: true, titulo: t("titDetallesUsuario"), mensaje: "", icono: <CloseIcon />
-            });
-        }
-    };
-
-    /**
-     * Manejador del botón derecho del modal.
-     */
-    const manejadorBtnModal = async () => {
-        switch (modoModal) {
-            case 0:
-                setCargando(true);
-                eliminarUsuarios([{ uid: seleccionado.uid, rol: seleccionado.administrador }]);
-                break;
-            case 1:
-                setCargando(true);
-                if (!verificarAutoeliminacion(seleccionados)) {
-                    eliminarUsuarios(seleccionados.map(s => ({ uid: s.uid, rol: s.rol == t("txtAdministrador") })));
-                }
-                break;
-            case 3:
-                setCargando(true);
-                handleSubmit(actualizarUsuario)();
-        }
-
-        sessionStorage.setItem("ejecutar-callback", "true");
-        setModal({ ...modal, mostrar: false });
+    function manejadorClicCelda(usuario, e) {
+        e.stopPropagation();
+        dispatch({ type: "ABRIR_MODAL_VISUALIZACION", payload: usuario });
     };
 
     /**
@@ -346,9 +275,6 @@ export default function VerUsuariosPage() {
         const res = (await desactivarUsuarios([{ uid: seleccionado.uid, rol: nuevosDatos.rol }], !nuevosDatos.estado, false))[0];
 
         if (res.success) {
-            setSeleccionado(null);
-            cambiarValoresUsuario({ uid: "", nombre: "", correo: "", rol: false, estado: true });
-
             manejadorRecargar();
         } else {
             setModoModal(2);
@@ -469,14 +395,6 @@ export default function VerUsuariosPage() {
         });
     };
 
-    const cambiarValoresUsuario = (instancia) => {
-        setValue("uid", instancia.uid);
-        setValue("correo", instancia.correo);
-        setValue("nombre", instancia.nombre);
-        setValue("rol", instancia.administrador);
-        setValue("estado", instancia.estado);
-    };
-
     /**
      * Manejador del botón de editar en cada registro de la tabla.
      * @param {Object} instancia - Instancia del usuario.
@@ -484,19 +402,10 @@ export default function VerUsuariosPage() {
     const manejadorBtnEditar = (instancia) => {
         sessionStorage.setItem("ejecutar-callback", "false");
         setSeleccionado(instancia);
-        cambiarValoresUsuario(instancia);
         setModoModal(3);
         setModal({
             mostrar: true, titulo: t("titEditarUsuario"), mensaje: "", icono: <SaveIcon />
         });
-    };
-
-    /**
-     * Manejador del botón de cancelar/cerrar en el modal
-     */
-    const manejadorBtnCancelar = () => {
-        sessionStorage.setItem("ejecutar-callback", "true");
-        setModal((x) => ({ ...x, mostrar: false }));
     };
 
     /**
@@ -551,106 +460,6 @@ export default function VerUsuariosPage() {
         );
     };
 
-    const FormActualizarUsuario = useCallback(() => {
-        return (
-            <Stack spacing={2} width={tamForm}>
-                <Controller
-                    name="nombre"
-                    control={control}
-                    render={({ field }) => (
-                        <TextField
-                            label={t("txtNombre")}
-                            variant="outlined"
-                            disabled
-                            fullWidth
-                            {...field} />)} />
-                <Controller
-                    name="correo"
-                    control={control}
-                    render={({ field }) => (
-                        <TextField
-                            label={t("txtCorreoElectronico")}
-                            variant="outlined"
-                            disabled
-                            fullWidth
-                            {...field} />)} />
-                <Controller
-                    name="rol"
-                    control={control}
-                    render={({ field }) => (
-                        <TextField
-                            select
-                            label={t("txtRol")}
-                            variant="outlined"
-                            disabled={desactivarCampos}
-                            {...field}
-                            fullWidth>
-                            <MenuItem value={false}>
-                                {t("txtUsuario")}
-                            </MenuItem>
-                            <MenuItem value={true}>
-                                {t("txtAdministrador")}
-                            </MenuItem>
-                        </TextField>)} />
-                <Controller
-                    name="estado"
-                    control={control}
-                    render={({ field }) => (
-                        <TextField
-                            label={t("txtEstado")}
-                            variant="outlined"
-                            fullWidth
-                            select
-                            disabled={desactivarCampos}
-                            {...field}>
-                            <MenuItem value={false}>
-                                {t("txtInactivo")}
-                            </MenuItem>
-                            <MenuItem value={true}>
-                                {t("txtActivo")}
-                            </MenuItem>
-                        </TextField>)} />
-                {mostrarTxtAdvertencia ? <Typography variant="body2">
-                    ⚠️ <b>{t("txtAdvertenciaDesactivarUsuario")}</b>
-                </Typography> : null}
-            </Stack>
-        );
-    }, [control, desactivarCampos, tamForm, mostrarTxtAdvertencia]);
-
-    /**
-     * Componente que muestra los detalles del usuario seleccionado.
-     * @returns {JSX.Element}
-     */
-    const VerUsuario = () => {
-        return (
-            <Grid container columns={12}>
-                {usuarioSeleccionado.map((x) => (
-                    <>
-                        <Grid key={`${x.id}-titulo`} columns={4}>
-                            {x.nombre}
-                        </Grid>
-                        <Grid key={`${x.id}-valor`} columns={8}>
-                            {x.valor}
-                        </Grid>
-                    </>
-                ))}
-            </Grid>
-        );
-    };
-
-    /**
-     * Cuerpo del modal que se muestra al hacer clic en un usuario o en el botón de editar.
-     * @returns {JSX.Element}
-     */
-    const CuerpoModal = () => {
-        switch (modoModal) {
-            case 3:
-                return <FormActualizarUsuario />;
-            case 4:
-                return <VerUsuario />;
-        }
-    };
-
     return (
         <MenuLayout>
             {cargando ? (
@@ -692,20 +501,16 @@ export default function VerUsuariosPage() {
                         </Grid>
                     </Grid>
                 </>)}
-            <ModalDoble
-                abrir={modal.mostrar}
-                titulo={modal.titulo}
-                mensaje={modal.mensaje}
-                iconoBtnPrincipal={modal.icono}
-                iconoBtnSecundario={<CloseIcon />}
-                manejadorBtnPrimario={manejadorBtnModal}
-                manejadorBtnSecundario={manejadorBtnCancelar}
-                mostrarBtnSecundario={modoModal != 2 && modoModal != 4}
-                txtBtnSimple={txtBtnModal}
-                txtBtnSecundario={t("txtBtnCancelar")}
-                txtBtnSimpleAlt={t("txtBtnCerrar")}>
-                <CuerpoModal />
-            </ModalDoble>
+                <FormUsuario
+                    mostrar={modalEdicion}
+                    instancia={instancia}
+                    manejadorBtn={actualizarUsuario}
+                    manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_EDICION" })} />
+                <PantallaUsuario
+                    mostrar={modalVisualizacion}
+                    instancia={instancia}
+                    cantDiagnosticosAportados={instancia?.cantidad}
+                    manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_VISUALIZACION" })} />
         </MenuLayout>
     );
 };
