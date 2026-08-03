@@ -16,8 +16,9 @@ import { Button, Stack, Tooltip } from "@mui/material";
 export default function BotoneraTabla({ instancia, botones }) {
     return (
         <Stack direction="row" spacing={1}>
-            {botones.map(({ color, icono, txtAyuda, manejadorClic }) => (
+            {botones.map(({ id, color, icono, txtAyuda, manejadorClic }) => (
                 <BtnTabla
+                    key={id}
                     instancia={instancia}
                     manejadorBtn={manejadorClic}
                     txtAyuda={txtAyuda}

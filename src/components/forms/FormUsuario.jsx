@@ -55,7 +55,7 @@ export default function FormUsuario({ mostrar = false, instancia, manejadorBtn, 
             manejadorBtnSecundario={manejadorCierre}
             iconoBtnPrincipal={<SaveIcon />}
             iconoBtnSecundario={<CloseIcon />} >
-            <Grid container columns={1} spacing={2} width={{ xs: "20vw", md: "30vw" }}>
+            <Grid container columns={1} spacing={2} >
                 <Grid size={1}>
                     <Controller
                         name="nombre"

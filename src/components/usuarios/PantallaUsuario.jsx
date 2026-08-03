@@ -1,4 +1,5 @@
 import CloseIcon from "@mui/icons-material/Close";
+import dayjs from "dayjs";
 import { ChipRol, ChipEstado } from "../tabs/Chips";
 import { Grid, Typography } from "@mui/material";
 import { ModalSimple } from "../modals";
@@ -21,8 +22,8 @@ export default function PantallaUsuario({ mostrar, instancia, cantDiagnosticosAp
         { id: "correo", nombre: t("txtCorreo"), valor: instancia?.correo },
         { id: "rol", nombre: t("txtRol"), valor: <ChipRol valor={instancia?.esAdmin} /> },
         { id: "estado", nombre: t("txtEstado"), valor: <ChipEstado valor={instancia?.estado} /> },
-        { id: "ultimaConexion", nombre: t("txtUltimaConexion"), valor: instancia?.fechaUltimoAcceso },
-        { id: "registro", nombre: t("txtFechaRegistro"), valor: instancia?.fechaRegistro },
+        { id: "ultimaConexion", nombre: t("txtUltimaConexion"), valor: dayjs(instancia?.fechaUltimoAcceso).format(t("formatoFechaCompleta")) },
+        { id: "registro", nombre: t("txtFechaRegistro"), valor: dayjs(instancia?.fechaRegistro).format(t("formatoFechaCompleta")) },
         { id: "cantidad", nombre: t("txtDiagAportados"), valor: cantDiagnosticosAportados },
     ], [cantDiagnosticosAportados, instancia, t]);
 

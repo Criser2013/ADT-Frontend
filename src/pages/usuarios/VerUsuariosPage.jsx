@@ -1,4 +1,5 @@
 import CloseIcon from '@mui/icons-material/Close';
+import dayjs from 'dayjs';
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from '@mui/icons-material/Edit';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -18,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 
 const estadoInicial = {
     modalEdicion: false, modalEliminacion: false,
-    instancia: null, seleccionados: null, procesando: false,
+    instancia: null, usuariosSeleccionados: null, procesando: false,
     modalError: { mostrar: false, texto: "" },
     modalVisualizacion: false
 };
@@ -28,23 +29,23 @@ function reducer(state, action) {
         case "ABRIR_MODAL_EDICION":
             return { ...state, modalEdicion: true, instancia: action.payload };
         case "ABRIR_MODAL_ELIMINACION_SINGULAR":
-            return { ...state, modalEliminacion: true, instancia: action.payload };
+            return { ...state, modalEliminacion: true, instancia: action.payload, usuariosSeleccionados: null };
         case "ABRIR_MODAL_ELIMINACION_MULTIPLE":
-            return { ...state, modalEliminacion: true, seleccionados: action.payload };
+            return { ...state, modalEliminacion: true, usuariosSeleccionados: action.payload, instancia: null };
         case "ABRIR_MODAL_ERROR":
             return { ...state, modalError: { mostrar: true, texto: action.payload } };
         case "ABRIR_MODAL_VISUALIZACION":
             return { ...state, modalVisualizacion: true, instancia: action.payload };
         case "CERRAR_MODAL_EDICION":
-            return { ...state, modalEdicion: false, instancia: null };
+            return { ...state, modalEdicion: false };
         case "CERRAR_MODAL_ELIMINACION":
-            return { ...state, modalEliminacion: false, seleccionados: null, instancia: null };
+            return { ...state, modalEliminacion: false };
         case "CERRAR_MODAL_ERROR":
-            return { ...state, modalError: { mostrar: false, texto: state.modalError.texto } };
+            return { ...state, modalError: { mostrar: false, ...state.modalError } };
         case "CERRAR_MODAL_VISUALIZACION":
-            return { ...state, modalVisualizacion: false, instancia: null };
+            return { ...state, modalVisualizacion: false };
         case "FINALIZAR_CARGA_DATOS":
-            return { ...state, procesando: false, seleccionados: null, instancia: null };
+            return { ...state, procesando: false, usuariosSeleccionados: null, instancia: null };
         case "FINALIZAR_EDICION":
             return { ...state, procesando: false, instancia: null };
         case "INICIAR_CARGA_DATOS":
@@ -70,9 +71,14 @@ export default function VerUsuariosPage() {
     const { t } = useTranslation();
     const { usuario } = useAuth();
     const [state, dispatch] = useReducer(reducer, estadoInicial);
-    const { modalEdicion, modalEliminacion, instancia, seleccionados, procesando, modalError, modalVisualizacion } = state;
+    const { modalEdicion, modalEliminacion, instancia, UsuariosSeleccionados, procesando, modalError, modalVisualizacion } = state;
+    const datos = useMemo(() => usuarios?.map((usuario) => {
+            usuario.cantidad = diagnosticosAgrupadosPorUsuario[usuario.uid]?.length || 0;
+            return usuario;
+        }) || [], [usuarios, diagnosticosAgrupadosPorUsuario]);
     const listadoPestanas = [{ texto: t("titListaUsuarios"), url: "/usuarios" }];
     const mostrarPantallaCarga = !usuarios || !diagnosticosCargados || procesando;
+    const rolUsuario = instancia?.esAdmin ? t("txtAdministrador") : t("txtUsuario");
 
     useEffect(() => {
         if (usuario?.rolVisible === false) {
@@ -104,12 +110,12 @@ export default function VerUsuariosPage() {
     };
 
     /**
-     * @param {Array<Usuario>} usuarios - Lista de pacientes seleccionados.
+     * @param {Array<Usuario>} usuarios Lista de pacientes seleccionados.
      */
     function manejadorBtnEliminar(usuarios) {
         const esAutoEliminacion = usuarios.some((x) => x.uid == usuario?.uid);
         if (esAutoEliminacion) {
-            dispatch({ type: "ABRIR_MODAL_ERROR", payload: t("errAutoEliminado") });
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: "errAutoEliminado" });
         } else {
             dispatch({ type: "ABRIR_MODAL_ELIMINACION_MULTIPLE", payload: usuarios });
         }
@@ -136,18 +142,16 @@ export default function VerUsuariosPage() {
     async function manejadorBtnModalActualizar(datos) {
         dispatch({ type: "INICIAR_EDICION" });
         const { success, error } = await editarUsuario(datos.uid, datos.rol, !datos.estado);
-        if (success) {
-            await manejadorBtnRecargar();
-        } else { 
+        if (!success) { 
             dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
         }
-        dispatch({ type: "FINALIZAR_EDICION" });
+        manejadorBtnRecargar();
     };
 
     async function manejadorBtnModalEliminacion() {
         dispatch({ type: "INICIAR_ELIMINADO_USUARIOS" });
         const { success, error } = await eliminarUsuarios(
-            Array.isArray(seleccionados) ? seleccionados : instancia
+            Array.isArray(UsuariosSeleccionados) ? UsuariosSeleccionados : instancia
         );
         if (!success) {
             dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
@@ -178,22 +182,22 @@ export default function VerUsuariosPage() {
                     txtAyuda: "txtAyudaBtnEliminarUsuario", manejadorClic: manejadorBtnEliminarFila
                 }
             ]} />) : null;
-        const CompCantidad = (x) => diagnosticosAgrupadosPorUsuario[x.uid] ?
-            diagnosticosAgrupadosPorUsuario[x.uid].length : 0;
+        const CompFechaRegistro = (x) => dayjs(x.fechaRegistro).format(t("formatoFechaHoraResumida"));
+        const CompFechaUltimoAcceso = (x) => dayjs(x.fechaUltimoAcceso).format(t("formatoFechaHoraResumida"));
         const CompEstado = (x) => <ChipEstado valor={x.estado} />;
         const CompRol = (x) => <ChipRol valor={x.esAdmin} />;
         return [
             { id: "uid", label: "ID", componente: null, ordenable: true },
             { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
             { id: "correo", label: t("txtCorreo"), componente: null, ordenable: true },
-            { id: "rol", label: t("txtRol"), componente: CompRol, ordenable: true },
+            { id: "esAdmin", label: t("txtRol"), componente: CompRol, ordenable: true },
             { id: "estado", label: t("txtEstado"), componente: CompEstado, ordenable: true },
-            { id: "fechaRegistro", label: t("txtFechaRegistro"), componente: null, ordenable: true },
-            { id: "fechaUltimoAcceso", label: t("txtUltimaConexion"), componente: null, ordenable: true },
-            { id: "cantidad", label: t("txtDiagnosticos"), componente: CompCantidad, ordenable: true },
+            { id: "fechaRegistro", label: t("txtFechaRegistro"), componente: CompFechaRegistro, ordenable: true },
+            { id: "fechaUltimoAcceso", label: t("txtUltimaConexion"), componente: CompFechaUltimoAcceso, ordenable: true },
+            { id: "cantidad", label: t("txtDiagnosticos"), componente: null, ordenable: true },
             { id: "accion", label: t("txtAccion"), componente: CompAccion, ordenable: false }
         ];
-    }, [usuario?.uid, t, diagnosticosAgrupadosPorUsuario]);
+    }, [usuario?.uid, t]);
 
     return (
         <MenuLayout>
@@ -204,7 +208,7 @@ export default function VerUsuariosPage() {
                         pestanas={listadoPestanas}
                         activarBtnAtras={false} />
                     <Grid container columns={1} spacing={3} width="100%" sx={{ marginTop: "3vh" }}>
-                        <Grid display="flex" size={1} justifyContent="end">
+                        <Grid display="flex" size={1} justifyContent="begin">
                             <Tooltip title={t("txtAyudaBtnRecargar")}>
                                 <IconButton onClick={manejadorBtnRecargar}>
                                     <RefreshIcon />
@@ -213,7 +217,7 @@ export default function VerUsuariosPage() {
                         </Grid>
                         <Grid size={1}>
                             <Datatable
-                                datos={usuarios}
+                                datos={datos}
                                 campos={campos}
                                 campoId="uid"
                                 lblBusqueda={t("txtBusqUsuario")}
@@ -223,7 +227,7 @@ export default function VerUsuariosPage() {
                                 activarSeleccion
                                 camposBusqueda={["uid", "nombre", "correo"]}
                                 campoOrdenInicial="fechaRegistro"
-                                direccionOrdenInicial="asc"
+                                direccionOrdenInicial="desc"
                                 callbackClicCelda={manejadorClicCelda}
                                 callbackBtnAccion={manejadorBtnEliminar}
                                 icono={<DeleteIcon />} />
@@ -251,18 +255,16 @@ export default function VerUsuariosPage() {
                 iconoBtnPrincipal={<DeleteIcon />}
                 iconoBtnSecundario={<CloseIcon />}>
                 {instancia ? (
-                    <Trans i18nKey="txtEliminarUsuario" values={{ instancia }} components={{ 1: <br />, 3: <b />, 5: <b /> }}>
-                        ¿Estás seguro de querer eliminar al usuario "{instancia.nombre}" ({instancia.correo}) — {instancia.esAdmin ? t("txtAdministrador") : t("txtUsuario")}?
-                        <br />
-                        <br />
-                        <b>ADVERTENCIA:</b> Se bloqueará su acceso a la aplicación <b>permanentemente</b>
-                    </Trans>
+                    <Trans
+                        i18nKey="txtEliminarUsuario"
+                        values={{ instancia, rolUsuario }}
+                        components={{ 1: <br />, 3: <b />, 5: <b /> }} />
                 ) : null}
             </ModalDoble>
             <ModalSimple
                 mostrar={modalError.mostrar}
                 titulo={t("tituloErr")}
-                texto={modalError.texto}
+                texto={t(modalError.texto)}
                 txtBtn={t("txtBtnCerrar")}
                 manejadorBtn={() => dispatch({ type: "CERRAR_MODAL_ERROR" })}
                 iconoBtn={<CloseIcon />}/>
