@@ -6,7 +6,7 @@ import TabHeader from "../../components/layout/TabHeader";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router";
 import { useNavegacion } from "../../hooks/Navegacion";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import ModalDoble from "../../components/modals/ModalDoble";
 import { peticionApi } from "../../services/Api";
@@ -22,6 +22,43 @@ import SaveIcon from '@mui/icons-material/Save';
 import { ChipEstado, ChipRol } from "../../components/tabs/Chips";
 import { Trans, useTranslation } from "react-i18next";
 
+// modalEdicion
+// modalVer
+// modalEliminacion
+
+const estadoInicial = {
+    modalEdicion: false, modalEliminacion: false,
+    instancia: null, seleccionados: [], procesando: false,
+    modalError: { mostrar: false, texto: "" },
+    modalVisualizacion: false
+};
+
+function reducer(state) {
+    switch (state.type) {
+        case "ABRIR_MODAL_EDICION":
+            return { ...state, modalEdicion: true, instancia: state.payload };
+        case "CERRAR_MODAL_EDICION":
+            return { ...state, modalEdicion: false, instancia: null };
+
+        case "INICIAR_EDICION":
+            return { ...state, procesando: true, modalEdicion: false };
+        case "FINALIZAR_EDICION":
+            return { ...state, procesando: false, instancia: null };
+
+        case "ABRIR_MODAL_VISUALIZACION":
+            return { ...state, modalVisualizacion: true, instancia: state.payload };
+        case "CERRAR_MODAL_VISUALIZACION":
+            return { ...state, modalVisualizacion: false, instancia: null };
+
+        case "ABRIR_MODAL_ERROR":
+            return { ...state, modalError: { mostrar: true, texto: state.payload } };
+        case "CERRAR_MODAL_ERROR":
+            return { ...state, modalError: { mostrar: false, texto: state.modalError.texto } };
+        default:
+            return state;
+    }
+}
+
 /**
  * Página que muestra la lista de usuarios.
  * @returns {JSX.Element}
@@ -31,6 +68,10 @@ export default function VerUsuariosPage() {
     const navigate = useNavigate();
     const { firestore } = useCredenciales();
     const navegacion = useNavegacion();
+
+
+    const [state, dispatch] = useReducer(reducer, estadoInicial);
+
     const { t } = useTranslation();
     const listadoPestanas = useMemo(() => [{
         texto: t("titListaUsuarios"), url: "/usuarios"
@@ -80,13 +121,13 @@ export default function VerUsuariosPage() {
     const usuarioSeleccionado = useMemo(() => {
         const datos = seleccionado != null ? seleccionado : { nombre: "", correo: "", rol: 0, estado: true, ultimaConexion: "", cantidad: 0 };
         return [
-            { nombre: t("txtNombre"), valor: datos.nombre },
-            { nombre: t("txtCorreo"), valor: datos.correo },
-            { nombre: t("txtRol"), valor: datos.rol },
-            { nombre: t("txtEstado"), valor: datos.estado ? t("txtInactivo") : t("txtActivo") },
-            { nombre: t("txtUltimaConexion"), valor: datos.ultimaConexion },
-            { nombre: t("txtFechaRegistro"), valor: datos.registro },
-            { nombre: t("txtDiagAportados"), valor: datos.cantidad },
+            { id: "nombre", nombre: t("txtNombre"), valor: datos.nombre },
+            { id: "correo", nombre: t("txtCorreo"), valor: datos.correo },
+            { id: "rol", nombre: t("txtRol"), valor: <ChipRol valor={datos.rol} /> },
+            { id: "estado", nombre: t("txtEstado"), valor: <ChipEstado valor={datos.estado} /> },
+            { id: "ultimaConexion", nombre: t("txtUltimaConexion"), valor: datos.ultimaConexion },
+            { id: "registro", nombre: t("txtFechaRegistro"), valor: datos.registro },
+            { id: "cantidad", nombre: t("txtDiagAportados"), valor: datos.cantidad },
         ];
     }, [seleccionado, navegacion.idioma]);
     const tamForm = useMemo(() => {
@@ -581,38 +622,19 @@ export default function VerUsuariosPage() {
      * @returns {JSX.Element}
      */
     const VerUsuario = () => {
-        dayjs.extend(customParseFormat);
         return (
-            <Box>
-                {usuarioSeleccionado.map((x, i) => {
-                    let orientacion = numCols;
-                    let espaciado = (numCols == "column") ? 0 : 1;
-                    if (i == 2 || i == 3 || i == 5) {
-                        orientacion = "row";
-                        espaciado = 1;
-                    }
-                    return (
-                        <Stack
-                            direction={orientacion}
-                            spacing={espaciado}
-                            display="flex"
-                            justifyContent="start"
-                            key={i}
-                            width="100%"
-                            marginBottom="5px">
-                            <Typography variant="body1" fontWeight="bold">
-                                {x.nombre}:
-                            </Typography>
-                            {(x.nombre == t("txtRol")) ? <ChipRol rol={x.valor} /> : null}
-                            {(x.nombre == t("txtEstado")) ? <ChipEstado estado={x.valor} /> : null}
-                            {(![t("txtRol"), t("txtEstado")].includes(x.nombre)) ? (
-                                <Typography variant="body1">
-                                    {(i == 4 || i == 5) ? dayjs(x.valor, "DD/MM/YYYY hh:mm A").format(t("formatoFechaCompleta")) : x.valor}.
-                                </Typography>) : null}
-                        </Stack>
-                    );
-                })}
-            </Box>
+            <Grid container columns={12}>
+                {usuarioSeleccionado.map((x) => (
+                    <>
+                        <Grid key={`${x.id}-titulo`} columns={4}>
+                            {x.nombre}
+                        </Grid>
+                        <Grid key={`${x.id}-valor`} columns={8}>
+                            {x.valor}
+                        </Grid>
+                    </>
+                ))}
+            </Grid>
         );
     };
 
