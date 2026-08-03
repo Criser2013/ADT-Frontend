@@ -11,7 +11,7 @@ import { ModalDoble, ModalSimple } from "../../components/modals";
 import { PantallaCarga } from "../../components/layout";
 import { PantallaUsuario } from "../../components/usuarios";
 import { Trans, useTranslation } from "react-i18next";
-import { useAuth, useUsuarios, useOperacionesUsuarios } from "../../hooks";
+import { useAuth, useDiagnosticos, useOperacionesUsuarios, useUsuarios } from "../../hooks";
 import { useEffect, useMemo, useReducer } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -63,23 +63,24 @@ function reducer(state, action) {
 export default function VerUsuariosPage() {
     const navigate = useNavigate();
     const { editarUsuario, eliminarUsuarios, error } = useOperacionesUsuarios();
+    const { diagnosticosAgrupadosPorUsuario, diagnosticosCargados } = useDiagnosticos(true, true, null, null, false);
     const { error: errorUsuario, manejadorCargaUsuarios, usuarios } = useUsuarios(true);
     const { t } = useTranslation();
     const { usuario } = useAuth();
     const [state, dispatch] = useReducer(reducer, estadoInicial);
     const { modalEdicion, modalEliminacion, instancia, seleccionados, procesando, modalError, modalVisualizacion } = state;
     const listadoPestanas = [{ texto: t("titListaUsuarios"), url: "/usuarios" }];
-    const mostrarPantallaCarga = !usuarios || procesando;
-
-    useEffect(() => {
-        document.title = t("titListaUsuarios");
-    }, [t]);
+    const mostrarPantallaCarga = !usuarios || !diagnosticosCargados || procesando;
 
     useEffect(() => {
         if (usuario?.rolVisible === false) {
             navigate("/menu");
         }
     }, [usuario?.rolVisible, navigate]);
+
+    useEffect(() => {
+        document.title = t("titListaUsuarios");
+    }, [t]);
 
     useEffect(() => {
         if (error || errorUsuario) {
@@ -165,6 +166,8 @@ export default function VerUsuariosPage() {
                     txtAyuda: "txtAyudaBtnEliminarUsuario", manejadorClic: manejadorBtnEliminarFila
                 }
             ]} />) : null;
+        const CompCantidad = (x) => diagnosticosAgrupadosPorUsuario[x.uid] ?
+            diagnosticosAgrupadosPorUsuario[x.uid].length : 0;
         const CompEstado = (x) => <ChipEstado valor={x.estado} />;
         const CompRol = (x) => <ChipRol valor={x.esAdmin} />;
         return [
@@ -175,10 +178,10 @@ export default function VerUsuariosPage() {
             { id: "estado", label: t("txtEstado"), componente: CompEstado },
             { id: "fechaRegistro", label: t("txtFechaRegistro"), componente: null },
             { id: "ultimaConexion", label: t("txtUltimaConexion"), componente: null },
-            { id: "cantidad", label: t("txtCantDiagnosticos"), componente: null },
+            { id: "cantidad", label: t("txtCantDiagnosticos"), componente: CompCantidad },
             { id: "accion", label: t("txtAccion"), componente: CompAccion }
         ];
-    }, [usuario?.uid, t]);
+    }, [usuario?.uid, t, diagnosticosAgrupadosPorUsuario]);
 
     return (
         <MenuLayout>
@@ -222,7 +225,7 @@ export default function VerUsuariosPage() {
             <PantallaUsuario
                 mostrar={modalVisualizacion}
                 instancia={instancia}
-                cantDiagnosticosAportados={instancia?.cantidad}
+                cantDiagnosticosAportados={diagnosticosAgrupadosPorUsuario[instancia?.uid]?.length || 0}
                 manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_VISUALIZACION" })} />
             <ModalDoble
                 mostrar={modalEliminacion}

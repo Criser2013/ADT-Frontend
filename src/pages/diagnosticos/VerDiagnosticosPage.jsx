@@ -70,9 +70,9 @@ export default function VerDiagnosticosPage() {
     const navigate = useNavigate();
     const { eliminarDiagnosticos, validarDiagnostico } = useOperacionesDiagnosticos();
     const { usuario } = useAuth();
-    const { cantDiagnosticosNoValidados, diagnosticos,
+    const { cantDiagnosticosNoValidados, diagnosticos, diagnosticosCargados,
         error, manejadorCargaDiagnosticos } = useDiagnosticos(
-            usuario?.rolVisible, usuario?.uid, null, true
+            true, usuario?.rolVisible, usuario?.uid, null, true
         );
     const { t } = useTranslation();
     const [state, dispatch] = useReducer(reducer, estadoInicial);
@@ -80,7 +80,7 @@ export default function VerDiagnosticosPage() {
     const listadoPestanas = [
         { texto: usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" }
     ];
-    const mostrarPantallaCarga = procesando || !diagnosticos;
+    const mostrarPantallaCarga = procesando || !diagnosticosCargados;
 
     useEffect(() => {
         document.title = usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos");

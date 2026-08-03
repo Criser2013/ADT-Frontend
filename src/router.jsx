@@ -8,8 +8,7 @@ import {
     DiagnosticoAnonimoPage, DiagnosticoPacientePage,
     VerDiagnosticoPage, VerDiagnosticosPage
 } from "./pages/diagnosticos";
-/*
-import VerUsuariosPage from "./pages/usuarios/VerUsuariosPage";*/
+import { VerUsuariosPage } from "./pages/usuarios";
 import { MenuPage, Page404 } from "./pages/utils";
 
 /**
@@ -31,8 +30,8 @@ export default function Router() {
                 <Route path="/diagnosticos/:id" element={<VerDiagnosticoPage />} />
                 <Route path="/diagnosticos/paciente" element={<DiagnosticoPacientePage />} />
                 <Route path="/diagnosticos/anonimo" element={<DiagnosticoAnonimoPage />} />
-                {/*
                 <Route path="/usuarios" element={<VerUsuariosPage />} />
+                {/*
                 <Route path="/menu" element={
                     <DriveProvider>
                         <MenuPage />

@@ -150,13 +150,13 @@ export function useUsuarios(cargaAutomatica = true) {
 
     const manejadorCargaUsuarios = useCallback(async () => {
         const { success, data, error } = await verUsuarios(i18n.language.split("-")[0]);
-            if (success) {
-                setUsuarios(data);
-                setError(null);
-            } else {
-                setUsuarios([]);
-                setError(error);
-            }
+        if (success) {
+            setUsuarios(data);
+            setError(null);
+        } else {
+            setUsuarios([]);
+            setError(error);
+        }
     }, [verUsuarios]);
 
     useEffect(() => {
@@ -167,7 +167,8 @@ export function useUsuarios(cargaAutomatica = true) {
 
     const value = useMemo(() => ({
         usuarios, mapeoUsuarios, error, manejadorCargaUsuarios, helperListo
-    }), [usuarios, mapeoUsuarios, error, manejadorCargaUsuarios, helperListo]);
+    }), [usuarios, mapeoUsuarios, error, manejadorCargaUsuarios, helperListo
+    ]);
 
     return value;
 };
