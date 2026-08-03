@@ -172,7 +172,7 @@
     "errEliminarAlgunosUsuarios": "Algunos no se pudieron eliminar. Por favor, revisa los registros.",
     "errTitEliminarUsuarios": "❌ Error al eliminar los usuarios.",
     "errEliminarUsuarios": "Se ha producido un error al eliminar los usuarios seleccionados. Por favor, inténtalo de nuevo más tarde.",
-    "txtEliminarUsuario": "¿Estás seguro de querer eliminar al usuario {{instancia.nombre}} ({{instancia.correo}}) — {{rol}}? <1 /><1 /><3>ADVERTENCIA:</3> Se bloqueará su acceso a la aplicación <5>permanentemente</5>",
+    "txtEliminarUsuario": "¿Estás seguro de querer eliminar al usuario \"{{instancia.nombre}}\" ({{instancia.correo}}) — {{rolUsuario}}? <1 /><1 /><3>ADVERTENCIA:</3> Se bloqueará su acceso a la aplicación <5>permanentemente</5>",
     "titEditarUsuario": "✏️ Editar usuario",
     "txtAyudaBtnEliminarUsuario": "Eliminar usuario",
     "txtAyudaBtnEditarUsuario": "Editar usuario",

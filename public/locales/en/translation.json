@@ -172,7 +172,7 @@
     "errEliminarAlgunosUsuarios": "Some users could not be deleted. Please check the logs.",
     "errTitEliminarUsuarios": "❌ Error deleting users.",
     "errEliminarUsuarios": "An error occurred while deleting the selected users. Please try again later.",
-    "txtEliminarUsuario": "Are you sure you want to delete the user {{instancia.nombre}} ({{instancia.correo}}) — {{rol}}? <1 /><1 /><3>WARNING:</3> Their access to the application will be <5>permanently</5> blocked.",
+    "txtEliminarUsuario": "Are you sure you want to delete the user \"{{instancia.nombre}}\" ({{instancia.correo}}) — {{rolUsuario}}? <1 /><1 /><3>WARNING:</3> Their access to the application will be <5>permanently</5> blocked.",
     "titEditarUsuario": "✏️ Edit user",
     "txtAyudaBtnEliminarUsuario": "Delete user",
     "txtAyudaBtnEditarUsuario": "Edit user",

@@ -1,3 +1,8 @@
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+
+
+dayjs.extend(customParseFormat);
 /**
  * Modelo que representa un usuario del sistema.
  */
@@ -26,8 +31,8 @@ export default class Usuario {
         this.#nombre = nombre;
         this.#esAdmin = esAdmin;
         this.#estado = estado;
-        this.#fechaRegistro = fechaRegistro;
-        this.#fechaUltimoAcceso = fechaUltimoAcceso;
+        this.#fechaRegistro = dayjs(fechaRegistro, "DD/MM/YYYY HH:mm A").toDate();
+        this.#fechaUltimoAcceso = dayjs(fechaUltimoAcceso, "DD/MM/YYYY HH:mm A").toDate();
     }
 
     get uid() {

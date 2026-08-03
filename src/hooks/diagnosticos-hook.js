@@ -201,10 +201,13 @@ export function useDiagnostico(id, traerInfoPersona = false) {
  * - "diagnosticos" (Array<Diagnostico>|null) - Lista de diagnósticos obtenidos, sino null.
  * - "error" (String|null) - Mensaje de error en caso de que la operación falle, sino null.
  * - "mapeoDiagnosticos" (Object) - Objeto que mapea los IDs de los diagnósticos a sus datos.
+ * - "manejadorCargaDiagnosticos" (Function) - Función para recargar la lista de diagnósticos.
+ * - "cantDiagnosticosNoValidados" (Number) - Cantidad de diagnósticos que no han sido validados.
+ * - "diagnosticosAgrupadosPorUsuario" (Object) - Objeto que mapea los UID de los usuarios a sus diagnósticos.
  */
 export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPersona = false) {
     const { helperListo: pacientesListo, manejadorCargaPacientes, mapeoPacientes, error: errorPacientes } = usePacientes(false);
-    const { helperListo: usuariosListo, manejadorCargaUsuarios, mapeoUsuarios, error: errorUsuarios } = useUsuarios(false);
+    const { helperListo: usuariosListo, manejadorCargaUsuarios, mapeoUsuarios, error: errorUsuarios } = useUsuarios(false, false);
     const { usuario } = useAuth();
     const { verDiagnosticos, helperListo: diagnosticosListo } = useOperacionesDiagnosticos();
     const [diagnosticos, setDiagnosticos] = useState(null);
@@ -223,15 +226,24 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
         }
         return aux;
     }, [traerInfoPersona, diagnosticos, mapeoPacientes, mapeoUsuarios]);
+    const diagnosticosAgrupadosPorUsuario = useMemo(() => {
+        const aux = {};
+        if (diagnosticos) {
+            diagnosticos.forEach((d) => {
+                if (!aux[d.usuario]) {
+                    aux[d.usuario] = [];
+                }
+                aux[d.usuario].push(d);
+            });
+        }
+        return aux;
+    }, [diagnosticos]);
     const cantDiagnosticosNoValidados = useMemo(() =>
         diagnosticosMapeados?.reduce((x, d) => x + (d.validado ? 0 : 1), 0) || 0
-    , [diagnosticosMapeados]);
+        , [diagnosticosMapeados]);
 
     /**
      * @param {String} tipo Tipo de persona a cargar, puede ser "paciente" o "usuario".
-     * @param {Boolean} verTodos Indica si se deben cargar todos los diagnósticos o solo los del usuario indicado.
-     * @param {String|null} uid UID del usuario por el cual consultar los diagnósticos. Si verTodos es true, este parámetro se ignora.
-     * @param {Date|null} fecha Fecha para filtrar los diagnósticos. Si verTodos es true, este parámetro se ignora.
      */
     const manejadorCargaDiagnosticos = useCallback(async (tipo, verTodos, uid, fecha) => {
         let pets = [];
@@ -243,15 +255,13 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
         pets.push(verDiagnosticos(verTodos, uid, fecha));
 
         pets = await Promise.all(pets);
-        const success = pets[pets.length - 1].success;
-        const data = pets[pets.length - 1].data;
-
+        const { success, data, error } = pets[pets.length - 1];
         if (success) {
             setDiagnosticos(data);
             setError(null);
         } else {
             setDiagnosticos([]);
-            setError(pets[pets.length - 1].error);
+            setError(error);
         }
     }, [verDiagnosticos, traerInfoPersona, manejadorCargaPacientes, manejadorCargaUsuarios]);
 
@@ -281,9 +291,9 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
 
     const value = useMemo(() => ({
         diagnosticos: diagnosticosMapeados, error, manejadorCargaDiagnosticos,
-        cantDiagnosticosNoValidados, diagnosticosCargados: diagnosticos !== null,
-    }), [diagnosticosMapeados, error, manejadorCargaDiagnosticos,
-        cantDiagnosticosNoValidados, diagnosticos]);
+        cantDiagnosticosNoValidados, diagnosticosCargados: diagnosticos !== null, diagnosticosAgrupadosPorUsuario
+    }), [diagnosticosMapeados, error, manejadorCargaDiagnosticos, diagnosticos,
+        cantDiagnosticosNoValidados, diagnosticosAgrupadosPorUsuario]);
 
     return value;
 };

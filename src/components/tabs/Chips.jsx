@@ -5,13 +5,18 @@ import { useTranslation } from "react-i18next";
 
 /**
  * Chip para mostrar el rol del usuario.
- * @param {string} rol - Rol del usuario.
+ * @param {String} valor Rol del usuario.
  * @returns {JSX.Element}
  */
-export function ChipRol({ rol }) {
+export function ChipRol({ valor }) {
     const { t } = useTranslation();
-    return <Chips valor={rol} fnColor={(valor) => (valor === t("txtAdministrador") ? "error" : "success")} />;
-}
+    return (
+        <Chips
+            etiqueta={valor ? t("txtAdministrador") : t("txtUsuario")}
+            valor={valor}
+            fnColor={(valor) => (valor ? "error" : "success")} />
+    );
+};
 
 /**
  * Chip para mostrar el sexo del paciente.
@@ -26,7 +31,7 @@ export function ChipSexo({ valor }) {
             valor={valor}
             fnColor={(valor) => (valor == 0 ? "info" : "secondary")} />
     );
-}
+};
 
 /**
  * Chip para mostrar el diagnóstico del paciente.
@@ -41,7 +46,7 @@ export function ChipDiagnostico({ valor }) {
             valor={valor}
             fnColor={(valor) => (valor ? "warning" : "success")} />
     );
-}
+};
 
 /**
  * Chip para mostrar el estado de validación del diagnóstico.
@@ -69,17 +74,21 @@ export function ChipValidado({ valor }) {
     return (
         <Chips etiqueta={etiqueta} valor={valor} fnColor={fnColor} />
     );
-}
+};
 
 /**
  * Chip para mostrar el estado de un usuario.
- * @param {string} estado - Estado del usuario.
+ * @param {String} valor Estado del usuario.
  * @returns {JSX.Element}
  */
-export function ChipEstado({ estado }) {
+export function ChipEstado({ valor }) {
     const { t } = useTranslation();
-    return <Chips valor={estado} fnColor={(valor) => (valor === t("txtActivo") ? "success" : "error")} />;
-}
+    return (<Chips
+        etiqueta={valor ? t("txtActivo") : t("txtInactivo")}
+        valor={valor}
+        fnColor={(valor) => (valor ? "success" : "error")} />
+    );
+};
 
 /**
  * Componente para mostrar un dato dentro de un chip. Se recomienda usarlo en las tablas.

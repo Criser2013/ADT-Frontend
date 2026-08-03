@@ -73,7 +73,7 @@ export default class DiagnosticosHelper {
     async eliminarDiagnosticos(ids) {
         let error = null;
         let success = true;
-        const pets = [];
+        let pets = [];
 
         ids.forEach((id) => {
             pets.push(this.#eliminarDiagnostico(id));
@@ -122,7 +122,7 @@ export default class DiagnosticosHelper {
      */
     async validarDiagnostico(instancia, diagnosticoMedico) {
         instancia.validar(diagnosticoMedico);
-        const { success, error }= await this.#guardarDiagnostico(instancia);
+        const { success, error } = await this.#guardarDiagnostico(instancia);
         if (success) {
             return { success, data: instancia.deepClone() };
         } else {

@@ -72,7 +72,7 @@ export default function VerDiagnosticosPage() {
     const { usuario } = useAuth();
     const { cantDiagnosticosNoValidados, diagnosticos, diagnosticosCargados,
         error, manejadorCargaDiagnosticos } = useDiagnosticos(
-            usuario?.rolVisible, usuario?.uid, null, true
+            true, usuario?.rolVisible, usuario?.uid, null, true
         );
     const { t } = useTranslation();
     const [state, dispatch] = useReducer(reducer, estadoInicial);
@@ -111,9 +111,12 @@ export default function VerDiagnosticosPage() {
 
     async function manejadorBtnModalEliminacion() {
         dispatch({ type: "INICIAR_ELIMINADO_INSTANCIAS" });
-        await eliminarDiagnosticos(
+        const { success, error } = await eliminarDiagnosticos(
             Array.isArray(diagnosticosSeleccionados) ? diagnosticosSeleccionados : instancia
         );
+        if (!success) {
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
+        }
         manejadorBtnRecargar();
     };
 
@@ -140,9 +143,11 @@ export default function VerDiagnosticosPage() {
      */
     async function manejadorBtnValidar({ diagnosticoMedico }) {
         dispatch({ type: "INICIAR_VALIDACION_INSTANCIA" });
-        const { success } = await validarDiagnostico(instancia, diagnosticoMedico);
+        const { success, error } = await validarDiagnostico(instancia, diagnosticoMedico);
         if (success) {
             manejadorBtnRecargar();
+        } else {
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
         }
         dispatch({ type: "FINALIZAR_VALIDACION_INSTANCIA" });
     };
@@ -267,7 +272,7 @@ export default function VerDiagnosticosPage() {
                 manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_EXPORTACION" })} />
             <ModalSimple
                 mostrar={modalError.mostrar}
-                titulo={t("titErr")}
+                titulo={t("tituloErr")}
                 texto={t(modalError.texto)}
                 txtBtn={t("txtBtnCerrar")}
                 manejadorBtn={() => dispatch({ type: "CERRAR_MODAL_ERROR" })}

@@ -1,689 +1,273 @@
-import { Button, Grid, Box, CircularProgress, Tooltip, Stack, TextField, MenuItem, Typography, IconButton } from "@mui/material";
-import { detTamCarga } from "../../utils/Responsividad";
-import MenuLayout from "../../components/layout/MenuLayout";
-import Datatable from "../../components/tabs/Datatable";
-import TabHeader from "../../components/layout/TabHeader";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { useNavigate } from "react-router";
-import { useNavegacion } from "../../hooks/Navegacion";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
-import ModalDoble from "../../components/modals/ModalDoble";
-import { peticionApi } from "../../services/Api";
-import { verDiagnosticos } from "../../firestore/diagnosticos-collection";
-import { useCredenciales } from "../../contexts/CredencialesContext";
-import EditIcon from '@mui/icons-material/Edit';
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import RefreshIcon from '@mui/icons-material/Refresh';
 import CloseIcon from '@mui/icons-material/Close';
-import { Controller, useForm } from "react-hook-form";
-import SaveIcon from '@mui/icons-material/Save';
+import dayjs from 'dayjs';
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from '@mui/icons-material/Edit';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import { BotoneraTabla, Datatable } from "../../components/datatable";
+import { Button, Grid, Tooltip, Typography, IconButton } from "@mui/material";
 import { ChipEstado, ChipRol } from "../../components/tabs/Chips";
+import { FormUsuario } from "../../components/forms";
+import { MenuLayout, TabHeader } from "../../components/layout";
+import { ModalDoble, ModalSimple } from "../../components/modals";
+import { PantallaCarga } from "../../components/layout";
+import { PantallaUsuario } from "../../components/usuarios";
 import { Trans, useTranslation } from "react-i18next";
+import { useAuth, useDiagnosticos, useOperacionesUsuarios, useUsuarios } from "../../hooks";
+import { useEffect, useMemo, useReducer } from "react";
+import { useNavigate } from "react-router-dom";
+
+
+const estadoInicial = {
+    modalEdicion: false, modalEliminacion: false,
+    instancia: null, usuariosSeleccionados: null, procesando: false,
+    modalError: { mostrar: false, texto: "" },
+    modalVisualizacion: false
+};
+
+function reducer(state, action) {
+    switch (action.type) {
+        case "ABRIR_MODAL_EDICION":
+            return { ...state, modalEdicion: true, instancia: action.payload };
+        case "ABRIR_MODAL_ELIMINACION_SINGULAR":
+            return { ...state, modalEliminacion: true, instancia: action.payload, usuariosSeleccionados: null };
+        case "ABRIR_MODAL_ELIMINACION_MULTIPLE":
+            return { ...state, modalEliminacion: true, usuariosSeleccionados: action.payload, instancia: null };
+        case "ABRIR_MODAL_ERROR":
+            return { ...state, modalError: { mostrar: true, texto: action.payload } };
+        case "ABRIR_MODAL_VISUALIZACION":
+            return { ...state, modalVisualizacion: true, instancia: action.payload };
+        case "CERRAR_MODAL_EDICION":
+            return { ...state, modalEdicion: false };
+        case "CERRAR_MODAL_ELIMINACION":
+            return { ...state, modalEliminacion: false };
+        case "CERRAR_MODAL_ERROR":
+            return { ...state, modalError: { mostrar: false, ...state.modalError } };
+        case "CERRAR_MODAL_VISUALIZACION":
+            return { ...state, modalVisualizacion: false };
+        case "FINALIZAR_CARGA_DATOS":
+            return { ...state, procesando: false, usuariosSeleccionados: null, instancia: null };
+        case "FINALIZAR_EDICION":
+            return { ...state, procesando: false, instancia: null };
+        case "INICIAR_CARGA_DATOS":
+            return { ...state, procesando: true };
+        case "INICIAR_EDICION":
+            return { ...state, procesando: true, modalEdicion: false };
+        case "INICIAR_ELIMINADO_USUARIOS":
+            return { ...state, procesando: true, modalEliminacion: false };
+        default:
+            return state;
+    }
+};
 
 /**
  * Página que muestra la lista de usuarios.
  * @returns {JSX.Element}
  */
 export default function VerUsuariosPage() {
-    const { autenticado, usuario } = useAuth();
     const navigate = useNavigate();
-    const { firestore } = useCredenciales();
-    const navegacion = useNavegacion();
+    const { editarUsuario, eliminarUsuarios, error } = useOperacionesUsuarios();
+    const { diagnosticosAgrupadosPorUsuario, diagnosticosCargados } = useDiagnosticos(true, true, null, null, false);
+    const { error: errorUsuario, manejadorCargaUsuarios, usuarios } = useUsuarios(true);
     const { t } = useTranslation();
-    const listadoPestanas = useMemo(() => [{
-        texto: t("titListaUsuarios"), url: "/usuarios"
-    }], [navegacion.idioma]);
-    const [cargando, setCargando] = useState(true);
-    const [modal, setModal] = useState({
-        mostrar: false, titulo: "", mensaje: "", icono: null
-    });
-    const [modoModal, setModoModal] = useState(2);
-    const [datos, setDatos] = useState(null);
-    const [usuarios, setUsuarios] = useState(null);
-    const [seleccionado, setSeleccionado] = useState(null);
-    const [diagnosticos, setDiagnosticos] = useState(null);
-    const [seleccionados, setSeleccionados] = useState([]);
-    const { setValue, control, handleSubmit, watch } = useForm({
-        defaultValues: {
-            uid: "", nombre: "", correo: "", rol: false, estado: true
-        }
-    });
-    const estado = watch("estado");
-    const width = useMemo(() => {
-        return detTamCarga(navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho);
-    }, [navegacion.dispositivoMovil, navegacion.orientacion, navegacion.mostrarMenu, navegacion.ancho]);
-    const campos = useMemo(() => [
-        { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
-        { id: "correo", label: t("txtCorreo"), componente: null, ordenable: true },
-        { id: "rol", label: t("txtRol"), componente: (x) => <ChipRol rol={x.rol} />, ordenable: true },
-        { id: "ultimaConexion", label: t("txtUltimaConexion"), componente: null, ordenable: true },
-        { id: "cantidad", label: t("txtDiagnosticos"), componente: null, ordenable: true },
-        { id: "estado", label: t("txtEstado"), componente: (x) => <ChipEstado estado={x.estado} /> },
-        { id: "accion", label: t("txtAccion"), ordenable: false, componente: null }
-    ], [navegacion.idioma]);
-    const txtBtnModal = useMemo(() => {
-        return modoModal == 3 ? t("txtBtnGuardar") : t("txtBtnEliminar");
-    }, [modoModal, navegacion.idioma]);
-    const desactivarCampos = useMemo(() => {
-        const { uid } = usuario;
-        if (seleccionado != null) {
-            return uid == seleccionado.uid;
-        } else {
-            return false;
-        }
-    }, [usuario, seleccionado]);
-    const mostrarTxtAdvertencia = useMemo(() => {
-        return seleccionado != null && (seleccionado.estado && !estado);
-    }, [seleccionado, estado]);
-    const usuarioSeleccionado = useMemo(() => {
-        const datos = seleccionado != null ? seleccionado : { nombre: "", correo: "", rol: 0, estado: true, ultimaConexion: "", cantidad: 0 };
-        return [
-            { nombre: t("txtNombre"), valor: datos.nombre },
-            { nombre: t("txtCorreo"), valor: datos.correo },
-            { nombre: t("txtRol"), valor: datos.rol },
-            { nombre: t("txtEstado"), valor: datos.estado ? t("txtInactivo") : t("txtActivo") },
-            { nombre: t("txtUltimaConexion"), valor: datos.ultimaConexion },
-            { nombre: t("txtFechaRegistro"), valor: datos.registro },
-            { nombre: t("txtDiagAportados"), valor: datos.cantidad },
-        ];
-    }, [seleccionado, navegacion.idioma]);
-    const tamForm = useMemo(() => {
-        const { dispositivoMovil, orientacion } = navegacion;
-        if (!dispositivoMovil) {
-            return "27vw";
-        } else if (dispositivoMovil && orientacion == "horizontal") {
-            return "50vw";
-        } else {
-            return "60vw";
-        }
-    }, [navegacion]);
-    const numCols = useMemo(() => {
-        const { dispositivoMovil, orientacion } = navegacion;
-        if (dispositivoMovil && (orientacion == "vertical" || navegacion.ancho < 500)) {
-            return "column";
-        } else {
-            return "row";
-        }
-    }, [navegacion]);
-    const admin = useMemo(() => usuario?.rolVisible, [usuario?.rolVisible]);
+    const { usuario } = useAuth();
+    const [state, dispatch] = useReducer(reducer, estadoInicial);
+    const { modalEdicion, modalEliminacion, instancia, UsuariosSeleccionados, procesando, modalError, modalVisualizacion } = state;
+    const datos = useMemo(() => usuarios?.map((usuario) => {
+            usuario.cantidad = diagnosticosAgrupadosPorUsuario[usuario.uid]?.length || 0;
+            return usuario;
+        }) || [], [usuarios, diagnosticosAgrupadosPorUsuario]);
+    const listadoPestanas = [{ texto: t("titListaUsuarios"), url: "/usuarios" }];
+    const mostrarPantallaCarga = !usuarios || !diagnosticosCargados || procesando;
+    const rolUsuario = instancia?.esAdmin ? t("txtAdministrador") : t("txtUsuario");
 
-    /**
-     * Coloca el título de la página.
-     */
     useEffect(() => {
-        if (!usuario && admin) {
-            manejadorRecargar(usuario?.tokenDrive);
-        } else if (!autenticado || !admin) {
-            navigate("/menu", { replace: true });
+        if (usuario?.rolVisible === false) {
+            navigate("/menu");
         }
-    }, [admin, usuario, autenticado]);
+    }, [usuario?.rolVisible, navigate]);
 
     useEffect(() => {
         document.title = t("titListaUsuarios");
-    }, [navegacion.idioma]);
+    }, [t]);
 
-    /**
-     * Cuando se cargan los médicos y diagnósticos, se cuentan los diagnósticos por médico
-     * y se formatean los datos.
-     */
     useEffect(() => {
-        if (usuarios != null && diagnosticos != null && datos == null) {
-            contarDiagnosticos(diagnosticos, usuarios);
-            setCargando(false);
+        if (error || errorUsuario) {
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error || errorUsuario });
         }
-    }, [usuarios, diagnosticos, datos]);
+    }, [error, errorUsuario]);
+
+    useEffect(() => {
+        dispatch({ type: "FINALIZAR_CARGA_DATOS" });
+    }, [usuarios, diagnosticosCargados]);
 
     /**
-     * Carga los datos de los pacientes desde Drive.
-     * @param {String} token - Token de acceso de Firebase del usuario.
-     * @returns {Array[JSON]} Lista de usuarios o un array vacío en caso de error.
+     * @param {Usuario} usuario Instancia de usuario.
+     * @param {Event} e Evento del clic.
      */
-    const cargarUsuarios = async (token) => {
-        const res = await peticionApi(
-            "admin/usuarios", "GET", {}, null, token, navegacion.idioma,
-            t("errCargarUsuarios")
+    function manejadorBtnEditarFila(usuario, e) {
+        e.stopPropagation();
+        dispatch({ type: "ABRIR_MODAL_EDICION", payload: usuario });
+    };
+
+    /**
+     * @param {Array<Usuario>} usuarios Lista de pacientes seleccionados.
+     */
+    function manejadorBtnEliminar(usuarios) {
+        const esAutoEliminacion = usuarios.some((x) => x.uid == usuario?.uid);
+        if (esAutoEliminacion) {
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: "errAutoEliminado" });
+        } else {
+            dispatch({ type: "ABRIR_MODAL_ELIMINACION_MULTIPLE", payload: usuarios });
+        }
+    };
+
+    /**
+     * @param {Usuario} usuario Instancia de usuario.
+     * @param {Event} e Evento del clic.
+     */
+    function manejadorBtnEliminarFila(usuario, e) {
+        e.stopPropagation();
+        dispatch({ type: "ABRIR_MODAL_ELIMINACION_SINGULAR", payload: usuario });
+    };
+
+    async function manejadorBtnRecargar() {
+        dispatch({ type: "INICIAR_CARGA_DATOS" });
+        await manejadorCargaUsuarios();
+    };
+
+
+    /**
+     * @param {Object} datos Datos del formulario de edición de usuario.
+     */
+    async function manejadorBtnModalActualizar(datos) {
+        dispatch({ type: "INICIAR_EDICION" });
+        const { success, error } = await editarUsuario(datos.uid, datos.rol, !datos.estado);
+        if (!success) { 
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
+        }
+        manejadorBtnRecargar();
+    };
+
+    async function manejadorBtnModalEliminacion() {
+        dispatch({ type: "INICIAR_ELIMINADO_USUARIOS" });
+        const { success, error } = await eliminarUsuarios(
+            Array.isArray(UsuariosSeleccionados) ? UsuariosSeleccionados : instancia
         );
-        if (!res.success) {
-            setUsuarios([]);
-            setModoModal(2);
-            setModal({
-                mostrar: true, mensaje: res.error, icono: <CloseIcon />,
-                titulo: t("titErrCargaDatos"),
-            });
-            return [];
+        if (!success) {
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
         } else {
-            setUsuarios(res.data.usuarios);
-            return res.data.usuarios;
+            dispatch({ type: "CERRAR_MODAL_ELIMINACION" });
         }
+        await manejadorBtnRecargar();
     };
 
     /**
-     * Carga los diagnósticos desde la base de datos.
-     * @param {Array[string]} usuarios - Lista de UID de los médicos.
+     * @param {Usuario} usuario Instancia de usuario.
+     * @param {Event} e Evento del clic.
      */
-    const cargarDiagnosticos = async (usuarios) => {
-        const res = await verDiagnosticos(usuarios, firestore);
-        if (!res.success) {
-            setDiagnosticos([]);
-            setModoModal(2);
-            setModal({
-                mostrar: true, mensaje: res.error, icono: <CloseIcon />,
-                titulo: t("titErrCargarDiagnosticos"),
-            });
-        } else {
-            setDiagnosticos(res.data);
-        }
+    function manejadorClicCelda(usuario, e) {
+        e.stopPropagation();
+        dispatch({ type: "ABRIR_MODAL_VISUALIZACION", payload: usuario });
     };
 
-    /**
-     * Cuenta la cantidad de diagnósticos por médico.
-     * @param {Array[JSON]} diagnosticos - Lista de diagnósticos.
-     * @param {Array[JSON]} medicos - Lista de médicos.
-     */
-    const contarDiagnosticos = (diagnosticos, medicos) => {
-        const aux = {};
-
-        for (const i of diagnosticos) {
-            if (aux[i.medico] == undefined) {
-                aux[i.medico] = 1;
-            } else {
-                aux[i.medico] += 1;
-            }
-        }
-
-        for (let i = 0; i < medicos.length; i++) {
-            medicos[i].cantidad = aux[medicos[i].uid] || 0;
-        }
-
-        setDatos(formatearCeldas(medicos));
-    };
-
-    /**
-     * Formatea el rol, estado y elimina los usuarios eliminados.
-     * @param {Array} datos - Lista de datos
-     * @returns {Array}
-     */
-    const formatearCeldas = (datos) => {
-        const { uid } = usuario;
-        const aux = [];
-
-        for (let i = 0; i < datos.length; i++) {
-            if (datos[i].rol != "N/A") {
-                aux.push({
-                    uid: datos[i].uid, nombre: datos[i].nombre, correo: datos[i].correo,
-                    rol: datos[i].administrador ? t("txtAdministrador") : t("txtUsuario"),
-                    estado: datos[i].estado ? t("txtActivo") : t("txtInactivo"),
-                    registro: datos[i].fecha_registro,
-                    cantidad: datos[i].cantidad, ultimaConexion: datos[i].ultima_conexion,
-                    accion: datos[i].uid == uid ? "" : <Botonera instancia={datos[i]} />
-                });
-            }
-        }
-
-        return aux;
-    };
-
-    /**
-     * Manejador de clic en el botón de eliminar pacientes de la tabla.
-     * @param {Array} seleccionados - Lista de pacientes seleccionados.
-     */
-    const manejadorEliminar = (seleccionados) => {
-        setSeleccionados(seleccionados);
-        setModoModal(1);
-        setModal({
-            mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
-            mensaje: t("txtEliminarUsuarios")
-        });
-    };
-
-    /**
-     * Manejador del clic en una celda de la tabla.
-     * @param {JSON} dato - Instancia
-     */
-    const manejadorClicCelda = (dato) => {
-        const ejecutar = sessionStorage.getItem("ejecutar-callback");
-        if (ejecutar == "true" || ejecutar == null) {
-            const aux = { ...dato };
-            aux.estado = aux.estado == t("txtActivo") ? false : true;
-            setSeleccionado(aux);
-            setModoModal(4);
-            setModal({
-                mostrar: true, titulo: t("titDetallesUsuario"), mensaje: "", icono: <CloseIcon />
-            });
-        }
-    };
-
-    /**
-     * Manejador del botón derecho del modal.
-     */
-    const manejadorBtnModal = async () => {
-        switch (modoModal) {
-            case 0:
-                setCargando(true);
-                eliminarUsuarios([{ uid: seleccionado.uid, rol: seleccionado.administrador }]);
-                break;
-            case 1:
-                setCargando(true);
-                if (!verificarAutoeliminacion(seleccionados)) {
-                    eliminarUsuarios(seleccionados.map(s => ({ uid: s.uid, rol: s.rol == t("txtAdministrador") })));
+    const campos = useMemo(() => {
+        const CompAccion = (x) => (x.uid != usuario?.uid) ? (
+            <BotoneraTabla instancia={x} botones={[
+                {
+                    id: "editar", color: "primary", icono: <EditIcon />,
+                    txtAyuda: "txtAyudaBtnEditarUsuario", manejadorClic: manejadorBtnEditarFila
+                },
+                {
+                    id: "eliminar", color: "error", icono: <DeleteIcon />,
+                    txtAyuda: "txtAyudaBtnEliminarUsuario", manejadorClic: manejadorBtnEliminarFila
                 }
-                break;
-            case 3:
-                setCargando(true);
-                handleSubmit(actualizarUsuario)();
-        }
-
-        sessionStorage.setItem("ejecutar-callback", "true");
-        setModal({ ...modal, mostrar: false });
-    };
-
-    /**
-     * Recarga los datos de la página.
-     */
-    const manejadorRecargar = async (token = null) => {
-        const credencial = (token == null) ? usuario?.tokenFirebase : token;
-
-        if (!cargando) {
-            setCargando(true);
-        }
-
-        setDatos(null);
-        setUsuarios(null);
-        setDiagnosticos(null);
-        setSeleccionado(null);
-        setSeleccionados([]);
-        const usuarios = await cargarUsuarios(credencial);
-        cargarDiagnosticos(usuarios.map((x) => x.uid));
-    };
-
-    /**
-     * Actualiza los datos del usuario seleccionado.
-     */
-    const actualizarUsuario = async (nuevosDatos) => {
-        const res = (await desactivarUsuarios([{ uid: seleccionado.uid, rol: nuevosDatos.rol }], !nuevosDatos.estado, false))[0];
-
-        if (res.success) {
-            setSeleccionado(null);
-            cambiarValoresUsuario({ uid: "", nombre: "", correo: "", rol: false, estado: true });
-
-            manejadorRecargar();
-        } else {
-            setModoModal(2);
-            setModal({
-                mostrar: true, titulo: t("errTitActualizarUsuario"), icono: <CloseIcon />,
-                mensaje: t("errActualizarUsuario")
-            });
-            setCargando(false);
-        }
-    };
-
-    /**
-     * Verifica si el usuario está intentando autoeliminarse.
-     * @param {Array[String]} usuarios - Lista de correos de usuarios seleccionados.
-     * @returns Boolean
-     */
-    const verificarAutoeliminacion = (usuarios) => {
-        const res = usuarios.includes(usuario?.uid);
-        if (res) {
-            setTimeout(() => {
-                setModoModal(2);
-                setModal({
-                    mostrar: true, titulo: t("titAlerta"), icono: <CloseIcon />,
-                    mensaje: t("errAutoEliminado")
-                });
-                setCargando(false);
-            }, 500);
-        }
-
-        return res;
-    };
-
-    /**
-     * Desactiva los usuarios seleccionados.
-     * @param {Array[String]} usuarios - Lista de usuarios a desactivar.
-     * @param {Boolean} estado - Estado a establecer (true para activar, false para desactivar).
-     * @param {boolean} banear - Si es true, se eliminará permanentemente al usuario (solo para desactivación).
-     * @returns {Array[Object]}
-     */
-    const desactivarUsuarios = async (usuarios, estado = true, banear = false) => {
-        setCargando(true);
-
-        const peticiones = [];
-        const token = usuario?.tokenFirebase;
-
-        for (let i = 0; i < usuarios.length; i++) {
-            peticiones[i] = null;
-        }
-
-        usuarios.forEach((x, i) => {
-            const cuerpo = { desactivar: estado, administrador: x.rol, eliminado: banear };
-            let uid = encodeURIComponent(x.uid);
-            uid = uid.replaceAll(".", "%2E");
-            peticiones[i] = peticionApi(
-                `admin/usuarios/${uid}`, "PATCH", {}, cuerpo, token, navegacion.idioma, ""
-            );
-        });
-
-        for (let i = 0; i < peticiones.length; i++) {
-            peticiones[i] = await peticiones[i];
-        }
-
-        return peticiones;
-    };
-
-    /**
-     * Elimina los usuarios seleccionados y maneja la respuesta.
-     * @param {Array} usuarios - Lista de usuarios a eliminar.
-     */
-    const eliminarUsuarios = async (usuarios) => {
-        let exitoTodas = true;
-        let exitoAlgunas = false;
-        const res = await desactivarUsuarios(usuarios, true, true);
-
-        for (const i of res) {
-            exitoTodas &= i.success;
-            exitoAlgunas |= i.success;
-        }
-
-        if (exitoAlgunas) {
-            manejadorRecargar();
-
-            if (!exitoTodas) {
-                setModoModal(2);
-                setModal({
-                    mostrar: true, titulo: t("errTitEliminarAlgunosUsuarios"), icono: <CloseIcon />,
-                    mensaje: t("errEliminarAlgunosUsuarios")
-                });
-            }
-        } else {
-            setModoModal(2);
-            setModal({
-                mostrar: true, titulo: t("errTitEliminarUsuarios"), icono: <CloseIcon />,
-                mensaje: t("errEliminarUsuarios")
-            });
-            setCargando(false);
-        }
-    };
-
-    /**
-     * Manejador del botón de eliminar en cada registro de la tabla.
-     * @param {Object} instancia - Instancia del usuario.
-     */
-    const manejadorBtnEliminar = (instancia) => {
-        sessionStorage.setItem("ejecutar-callback", "false");
-        const rol = instancia.rol ? t("txtAdministrador").toLowerCase() : t("txtUsuario").toLocaleLowerCase();
-        setSeleccionado(instancia);
-        setModoModal(0);
-        setModal({
-            mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
-            mensaje: (
-                <Trans i18nKey="txtEliminarUsuario" values={{ instancia, rol }} components={{ 1: <br />, 3: <b />, 5: <b /> }}>
-                    ¿Estás seguro de querer eliminar al usuario {instancia.nombre} ({instancia.correo}) — {rol}?
-                    <br />
-                    <br />
-                    <b>ADVERTENCIA:</b> Se bloqueará su acceso a la aplicación <b>permanentemente</b>
-                </Trans>)
-        });
-    };
-
-    const cambiarValoresUsuario = (instancia) => {
-        setValue("uid", instancia.uid);
-        setValue("correo", instancia.correo);
-        setValue("nombre", instancia.nombre);
-        setValue("rol", instancia.administrador);
-        setValue("estado", instancia.estado);
-    };
-
-    /**
-     * Manejador del botón de editar en cada registro de la tabla.
-     * @param {Object} instancia - Instancia del usuario.
-     */
-    const manejadorBtnEditar = (instancia) => {
-        sessionStorage.setItem("ejecutar-callback", "false");
-        setSeleccionado(instancia);
-        cambiarValoresUsuario(instancia);
-        setModoModal(3);
-        setModal({
-            mostrar: true, titulo: t("titEditarUsuario"), mensaje: "", icono: <SaveIcon />
-        });
-    };
-
-    /**
-     * Manejador del botón de cancelar/cerrar en el modal
-     */
-    const manejadorBtnCancelar = () => {
-        sessionStorage.setItem("ejecutar-callback", "true");
-        setModal((x) => ({ ...x, mostrar: false }));
-    };
-
-    /**
-     * Botón de eliminar que se muestra en cada fila de la tabla.
-     * @param {Object} instancia - Instancia del usuario.
-     * @returns JSX.Element
-     */
-    const BtnEliminar = ({ instancia }) => {
-        return (
-            <Tooltip title={t("txtAyudaBtnEliminarUsuario")}>
-                <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => manejadorBtnEliminar(instancia)}>
-                    <DeleteIcon />
-                </Button>
-            </Tooltip>
-        );
-    };
-
-    /**
-     * Botón para editar los datos de un usuario que se muestra en cada fila de la tabla.
-     * @param {Object} instancia - Instancia del usuario.
-     * @returns JSX.Element
-     */
-    const BtnEditar = ({ instancia }) => {
-        return (
-            <Tooltip title={t("txtAyudaBtnEditarUsuario")}>
-                <Button
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                    onClick={() => manejadorBtnEditar(instancia)}>
-                    <EditIcon />
-                </Button>
-            </Tooltip>
-        );
-    };
-
-    /**
-     * Botonera de acciones para cada usuario.
-     * @param {Object} instancia - Instancia del usuario.
-     * @returns {JSX.Element}
-     */
-    const Botonera = ({ instancia }) => {
-        return (
-            <Stack direction="row" spacing={1}>
-                <BtnEliminar instancia={instancia} />
-                <BtnEditar instancia={instancia} />
-            </Stack>
-        );
-    };
-
-    const FormActualizarUsuario = useCallback(() => {
-        return (
-            <Stack spacing={2} width={tamForm}>
-                <Controller
-                    name="nombre"
-                    control={control}
-                    render={({ field }) => (
-                        <TextField
-                            label={t("txtNombre")}
-                            variant="outlined"
-                            disabled
-                            fullWidth
-                            {...field} />)} />
-                <Controller
-                    name="correo"
-                    control={control}
-                    render={({ field }) => (
-                        <TextField
-                            label={t("txtCorreoElectronico")}
-                            variant="outlined"
-                            disabled
-                            fullWidth
-                            {...field} />)} />
-                <Controller
-                    name="rol"
-                    control={control}
-                    render={({ field }) => (
-                        <TextField
-                            select
-                            label={t("txtRol")}
-                            variant="outlined"
-                            disabled={desactivarCampos}
-                            {...field}
-                            fullWidth>
-                            <MenuItem value={false}>
-                                {t("txtUsuario")}
-                            </MenuItem>
-                            <MenuItem value={true}>
-                                {t("txtAdministrador")}
-                            </MenuItem>
-                        </TextField>)} />
-                <Controller
-                    name="estado"
-                    control={control}
-                    render={({ field }) => (
-                        <TextField
-                            label={t("txtEstado")}
-                            variant="outlined"
-                            fullWidth
-                            select
-                            disabled={desactivarCampos}
-                            {...field}>
-                            <MenuItem value={false}>
-                                {t("txtInactivo")}
-                            </MenuItem>
-                            <MenuItem value={true}>
-                                {t("txtActivo")}
-                            </MenuItem>
-                        </TextField>)} />
-                {mostrarTxtAdvertencia ? <Typography variant="body2">
-                    ⚠️ <b>{t("txtAdvertenciaDesactivarUsuario")}</b>
-                </Typography> : null}
-            </Stack>
-        );
-    }, [control, desactivarCampos, tamForm, mostrarTxtAdvertencia]);
-
-    /**
-     * Componente que muestra los detalles del usuario seleccionado.
-     * @returns {JSX.Element}
-     */
-    const VerUsuario = () => {
-        dayjs.extend(customParseFormat);
-        return (
-            <Box>
-                {usuarioSeleccionado.map((x, i) => {
-                    let orientacion = numCols;
-                    let espaciado = (numCols == "column") ? 0 : 1;
-                    if (i == 2 || i == 3 || i == 5) {
-                        orientacion = "row";
-                        espaciado = 1;
-                    }
-                    return (
-                        <Stack
-                            direction={orientacion}
-                            spacing={espaciado}
-                            display="flex"
-                            justifyContent="start"
-                            key={i}
-                            width="100%"
-                            marginBottom="5px">
-                            <Typography variant="body1" fontWeight="bold">
-                                {x.nombre}:
-                            </Typography>
-                            {(x.nombre == t("txtRol")) ? <ChipRol rol={x.valor} /> : null}
-                            {(x.nombre == t("txtEstado")) ? <ChipEstado estado={x.valor} /> : null}
-                            {(![t("txtRol"), t("txtEstado")].includes(x.nombre)) ? (
-                                <Typography variant="body1">
-                                    {(i == 4 || i == 5) ? dayjs(x.valor, "DD/MM/YYYY hh:mm A").format(t("formatoFechaCompleta")) : x.valor}.
-                                </Typography>) : null}
-                        </Stack>
-                    );
-                })}
-            </Box>
-        );
-    };
-
-    /**
-     * Cuerpo del modal que se muestra al hacer clic en un usuario o en el botón de editar.
-     * @returns {JSX.Element}
-     */
-    const CuerpoModal = () => {
-        switch (modoModal) {
-            case 3:
-                return <FormActualizarUsuario />;
-            case 4:
-                return <VerUsuario />;
-        }
-    };
+            ]} />) : null;
+        const CompFechaRegistro = (x) => dayjs(x.fechaRegistro).format(t("formatoFechaHoraResumida"));
+        const CompFechaUltimoAcceso = (x) => dayjs(x.fechaUltimoAcceso).format(t("formatoFechaHoraResumida"));
+        const CompEstado = (x) => <ChipEstado valor={x.estado} />;
+        const CompRol = (x) => <ChipRol valor={x.esAdmin} />;
+        return [
+            { id: "uid", label: "ID", componente: null, ordenable: true },
+            { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
+            { id: "correo", label: t("txtCorreo"), componente: null, ordenable: true },
+            { id: "esAdmin", label: t("txtRol"), componente: CompRol, ordenable: true },
+            { id: "estado", label: t("txtEstado"), componente: CompEstado, ordenable: true },
+            { id: "fechaRegistro", label: t("txtFechaRegistro"), componente: CompFechaRegistro, ordenable: true },
+            { id: "fechaUltimoAcceso", label: t("txtUltimaConexion"), componente: CompFechaUltimoAcceso, ordenable: true },
+            { id: "cantidad", label: t("txtDiagnosticos"), componente: null, ordenable: true },
+            { id: "accion", label: t("txtAccion"), componente: CompAccion, ordenable: false }
+        ];
+    }, [usuario?.uid, t]);
 
     return (
         <MenuLayout>
-            {cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" width={width} height="85vh">
-                    <CircularProgress />
-                </Box>
-            ) : (
+            {mostrarPantallaCarga ? <PantallaCarga /> : (
                 <>
                     <TabHeader
-                        activarBtnAtras={false}
                         titulo={t("titListaUsuarios")}
-                        pestanas={listadoPestanas} />
+                        pestanas={listadoPestanas}
+                        activarBtnAtras={false} />
                     <Grid container columns={1} spacing={3} width="100%" sx={{ marginTop: "3vh" }}>
-                        <Grid display="flex" size={1} justifyContent="end">
+                        <Grid display="flex" size={1} justifyContent="begin">
                             <Tooltip title={t("txtAyudaBtnRecargar")}>
-                                <IconButton onClick={() => manejadorRecargar()}>
+                                <IconButton onClick={manejadorBtnRecargar}>
                                     <RefreshIcon />
                                 </IconButton>
                             </Tooltip>
                         </Grid>
                         <Grid size={1}>
                             <Datatable
-                                campos={campos}
                                 datos={datos}
-                                lblBusq={t("txtBusqUsuario")}
-                                activarBusqueda
+                                campos={campos}
                                 campoId="uid"
-                                terminoBusqueda={""}
+                                lblBusqueda={t("txtBusqUsuario")}
                                 lblSeleccion={t("txtSufijoUsuariosSelecs")}
-                                camposBusq={["nombre", "correo"]}
-                                cbClicCelda={manejadorClicCelda}
-                                cbAccion={manejadorEliminar}
                                 tooltipAccion={t("txtAyudaBtnEliminarUsuarios")}
-                                icono={<DeleteIcon />}
-                                campoOrdenInicial="nombre"
-                                dirOrden="asc"
-                                cargarInfoToda
-                            />
+                                activarBusqueda
+                                activarSeleccion
+                                camposBusqueda={["uid", "nombre", "correo"]}
+                                campoOrdenInicial="fechaRegistro"
+                                direccionOrdenInicial="desc"
+                                callbackClicCelda={manejadorClicCelda}
+                                callbackBtnAccion={manejadorBtnEliminar}
+                                icono={<DeleteIcon />} />
                         </Grid>
                     </Grid>
                 </>)}
+            <FormUsuario
+                mostrar={modalEdicion}
+                instancia={instancia}
+                manejadorBtn={manejadorBtnModalActualizar}
+                manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_EDICION" })} />
+            <PantallaUsuario
+                mostrar={modalVisualizacion}
+                instancia={instancia}
+                cantDiagnosticosAportados={diagnosticosAgrupadosPorUsuario[instancia?.uid]?.length || 0}
+                manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_VISUALIZACION" })} />
             <ModalDoble
-                abrir={modal.mostrar}
-                titulo={modal.titulo}
-                mensaje={modal.mensaje}
-                iconoBtnPrincipal={modal.icono}
-                iconoBtnSecundario={<CloseIcon />}
-                manejadorBtnPrimario={manejadorBtnModal}
-                manejadorBtnSecundario={manejadorBtnCancelar}
-                mostrarBtnSecundario={modoModal != 2 && modoModal != 4}
-                txtBtnSimple={txtBtnModal}
+                mostrar={modalEliminacion}
+                titulo={t("titAlerta")}
+                texto={!instancia ? t("txtEliminarUsuarios") : null}
+                txtBtnPrincipal={t("txtBtnEliminar")}
                 txtBtnSecundario={t("txtBtnCancelar")}
-                txtBtnSimpleAlt={t("txtBtnCerrar")}>
-                <CuerpoModal />
+                manejadorBtnPrincipal={manejadorBtnModalEliminacion}
+                manejadorBtnSecundario={() => dispatch({ type: "CERRAR_MODAL_ELIMINACION" })}
+                iconoBtnPrincipal={<DeleteIcon />}
+                iconoBtnSecundario={<CloseIcon />}>
+                {instancia ? (
+                    <Trans
+                        i18nKey="txtEliminarUsuario"
+                        values={{ instancia, rolUsuario }}
+                        components={{ 1: <br />, 3: <b />, 5: <b /> }} />
+                ) : null}
             </ModalDoble>
+            <ModalSimple
+                mostrar={modalError.mostrar}
+                titulo={t("tituloErr")}
+                texto={t(modalError.texto)}
+                txtBtn={t("txtBtnCerrar")}
+                manejadorBtn={() => dispatch({ type: "CERRAR_MODAL_ERROR" })}
+                iconoBtn={<CloseIcon />}/>
         </MenuLayout>
     );
 };
