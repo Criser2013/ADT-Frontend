@@ -1,125 +1,147 @@
-import { Button, Grid, Box, CircularProgress, Tooltip, Stack, TextField, MenuItem, Typography, IconButton } from "@mui/material";
+import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
-import { useAuth, useDiagnosticos, useUsuarios, useOperacionesUsuarios } from "../../hooks";
-
 import EditIcon from '@mui/icons-material/Edit';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import CloseIcon from '@mui/icons-material/Close';
-import SaveIcon from '@mui/icons-material/Save';
-import { ChipEstado, ChipRol } from "../../components/tabs/Chips";
-import { Trans, useTranslation } from "react-i18next";
-
-
-import { MenuLayout, TabHeader } from "../../components/layout";
-import { FormUsuario } from "../../components/forms";
-import PantallaUsuario from "../../components/usuarios/PantallaUsuario";
-import { PantallaCarga } from "../../components/layout";
 import { BotoneraTabla, Datatable } from "../../components/datatable";
-import { ModalDoble } from "../../components/modals";
+import { Button, Grid, Tooltip, Typography, IconButton } from "@mui/material";
+import { ChipEstado, ChipRol } from "../../components/tabs/Chips";
+import { FormUsuario } from "../../components/forms";
+import { MenuLayout, TabHeader } from "../../components/layout";
+import { ModalDoble, ModalSimple } from "../../components/modals";
+import { PantallaCarga } from "../../components/layout";
+import { PantallaUsuario } from "../../components/usuarios";
+import { Trans, useTranslation } from "react-i18next";
+import { useAuth, useUsuarios, useOperacionesUsuarios } from "../../hooks";
+import { useEffect, useMemo, useReducer } from "react";
+import { useNavigate } from "react-router-dom";
 
-// modalEdicion
-// modalVer
-// modalEliminacion
 
 const estadoInicial = {
     modalEdicion: false, modalEliminacion: false,
-    instancia: null, seleccionados: [], procesando: false,
+    instancia: null, seleccionados: null, procesando: false,
     modalError: { mostrar: false, texto: "" },
     modalVisualizacion: false
 };
 
-function reducer(state) {
-    switch (state.type) {
+function reducer(state, action) {
+    switch (action.type) {
         case "ABRIR_MODAL_EDICION":
-            return { ...state, modalEdicion: true, instancia: state.payload };
+            return { ...state, modalEdicion: true, instancia: action.payload };
+        case "ABRIR_MODAL_ELIMINACION_SINGULAR":
+            return { ...state, modalEliminacion: true, instancia: action.payload };
+        case "ABRIR_MODAL_ELIMINACION_MULTIPLE":
+            return { ...state, modalEliminacion: true, seleccionados: action.payload };
+        case "ABRIR_MODAL_ERROR":
+            return { ...state, modalError: { mostrar: true, texto: action.payload } };
+        case "ABRIR_MODAL_VISUALIZACION":
+            return { ...state, modalVisualizacion: true, instancia: action.payload };
         case "CERRAR_MODAL_EDICION":
             return { ...state, modalEdicion: false, instancia: null };
-
-        case "INICIAR_EDICION":
-            return { ...state, procesando: true, modalEdicion: false };
-        case "FINALIZAR_EDICION":
-            return { ...state, procesando: false, instancia: null };
-
-        case "ABRIR_MODAL_VISUALIZACION":
-            return { ...state, modalVisualizacion: true, instancia: state.payload };
-        case "CERRAR_MODAL_VISUALIZACION":
-            return { ...state, modalVisualizacion: false, instancia: null };
-
-        case "ABRIR_MODAL_ERROR":
-            return { ...state, modalError: { mostrar: true, texto: state.payload } };
+        case "CERRAR_MODAL_ELIMINACION":
+            return { ...state, modalEliminacion: false, seleccionados: null, instancia: null };
         case "CERRAR_MODAL_ERROR":
             return { ...state, modalError: { mostrar: false, texto: state.modalError.texto } };
-
-        case "CERRAR_MODAL_ELIMINACION":
-            return {
-                ...state, modalEliminacion: false, seleccionados: [], instancia: null
-            };
+        case "CERRAR_MODAL_VISUALIZACION":
+            return { ...state, modalVisualizacion: false, instancia: null };
+        case "FINALIZAR_CARGA_DATOS":
+            return { ...state, procesando: false, seleccionados: null, instancia: null };
+        case "FINALIZAR_EDICION":
+            return { ...state, procesando: false, instancia: null };
+        case "INICIAR_CARGA_DATOS":
+            return { ...state, procesando: true };
+        case "INICIAR_EDICION":
+            return { ...state, procesando: true, modalEdicion: false };
         default:
             return state;
     }
-}
+};
 
 /**
  * Página que muestra la lista de usuarios.
  * @returns {JSX.Element}
  */
 export default function VerUsuariosPage() {
-    const { usuario } = useAuth();
-
-
-    const { usuarios, error, manejadorCargaUsuarios } = useUsuarios(true);
-    const [state, dispatch] = useReducer(reducer, estadoInicial);
-
-    const { modalEdicion, modalEliminacion, instancia, seleccionados, procesando, modalError, modalVisualizacion } = state;
+    const navigate = useNavigate();
     const { editarUsuario, eliminarUsuarios, error } = useOperacionesUsuarios();
-
+    const { error: errorUsuario, manejadorCargaUsuarios, usuarios } = useUsuarios(true);
     const { t } = useTranslation();
+    const { usuario } = useAuth();
+    const [state, dispatch] = useReducer(reducer, estadoInicial);
+    const { modalEdicion, modalEliminacion, instancia, seleccionados, procesando, modalError, modalVisualizacion } = state;
     const listadoPestanas = [{ texto: t("titListaUsuarios"), url: "/usuarios" }];
-    const [cargando, setCargando] = useState(true);
-
-    const [datos, setDatos] = useState(null);
-
+    const mostrarPantallaCarga = !usuarios || procesando;
 
     useEffect(() => {
         document.title = t("titListaUsuarios");
     }, [t]);
 
+    useEffect(() => {
+        if (usuario?.rolVisible === false) {
+            navigate("/menu");
+        }
+    }, [usuario?.rolVisible, navigate]);
+
+    useEffect(() => {
+        if (error || errorUsuario) {
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error || errorUsuario });
+        }
+    }, [error, errorUsuario]);
 
     /**
-     * Cuenta la cantidad de diagnósticos por médico.
-     * @param {Array[JSON]} diagnosticos - Lista de diagnósticos.
-     * @param {Array[JSON]} medicos - Lista de médicos.
+     * @param {Usuario} usuario Instancia de usuario.
+     * @param {Event} e Evento del clic.
      */
-    /*const contarDiagnosticos = (diagnosticos, medicos) => {
-        const aux = {};
-
-        for (const i of diagnosticos) {
-            if (aux[i.medico] == undefined) {
-                aux[i.medico] = 1;
-            } else {
-                aux[i.medico] += 1;
-            }
-        }
-
-        for (let i = 0; i < medicos.length; i++) {
-            medicos[i].cantidad = aux[medicos[i].uid] || 0;
-        }
-
-        setDatos(formatearCeldas(medicos));
-    };*/
+    function manejadorBtnEditarFila(usuario, e) {
+        e.stopPropagation();
+        dispatch({ type: "ABRIR_MODAL_EDICION", payload: usuario });
+    };
 
     /**
-     * Manejador de clic en el botón de eliminar pacientes de la tabla.
-     * @param {Array} seleccionados - Lista de pacientes seleccionados.
+     * @param {Array<Usuario>} usuarios - Lista de pacientes seleccionados.
      */
-    const manejadorEliminar = (seleccionados) => {
-        setSeleccionados(seleccionados);
-        setModoModal(1);
-        setModal({
-            mostrar: true, titulo: t("titAlerta"), icono: <DeleteIcon />,
-            mensaje: t("txtEliminarUsuarios")
-        });
+    function manejadorBtnEliminar(usuarios) {
+        const esAutoEliminacion = usuarios.some((x) => x.uid == usuario?.uid);
+        if (esAutoEliminacion) {
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: t("errAutoEliminado") });
+        } else {
+            dispatch({ type: "ABRIR_MODAL_ELIMINACION_MULTIPLE", payload: usuarios.map((x) => x.uid) });
+        }
+    };
+
+    /**
+     * @param {Usuario} usuario Instancia de usuario.
+     * @param {Event} e Evento del clic.
+     */
+    function manejadorBtnEliminarFila(usuario, e) {
+        e.stopPropagation();
+        dispatch({ type: "ABRIR_MODAL_ELIMINACION_SINGULAR", payload: usuario });
+    };
+
+    async function manejadorBtnRecargar() {
+        dispatch({ type: "INICIAR_CARGA_DATOS" });
+        await manejadorCargaUsuarios();
+        dispatch({ type: "CERRAR_MODAL_EDICION" });
+    };
+
+
+    /**
+     * @param {Object} datos Datos del formulario de edición de usuario.
+     */
+    async function manejadorBtnModalActualizar(datos) {
+        dispatch({ type: "INICIAR_EDICION" });
+        const { success, error } = await editarUsuario(datos.uid, datos.rol, datos.estado);
+        if (success) {
+            await manejadorBtnRecargar();
+        } else {
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
+        }
+        dispatch({ type: "FINALIZAR_EDICION" });
+    };
+
+    async function manejadorBtnModalEliminacion() {
+        dispatch({ type: "INICIAR_ELIMINADO_USUARIOS" });
+        await eliminarUsuarios(seleccionados);
+        manejadorBtnRecargar();
     };
 
     /**
@@ -131,94 +153,20 @@ export default function VerUsuariosPage() {
         dispatch({ type: "ABRIR_MODAL_VISUALIZACION", payload: usuario });
     };
 
-    /**
-     * Recarga los datos de la página.
-     */
-    const manejadorRecargar = async (token = null) => {
-        const credencial = (token == null) ? usuario?.tokenFirebase : token;
-
-        if (!cargando) {
-            setCargando(true);
-        }
-
-        setDatos(null);
-        setUsuarios(null);
-        setDiagnosticos(null);
-        setSeleccionado(null);
-        setSeleccionados([]);
-        const usuarios = await cargarUsuarios(credencial);
-        cargarDiagnosticos(usuarios.map((x) => x.uid));
-    };
-
-    /**
-     * @param {Object} datos Datos del formulario de edición de usuario.
-     */
-    async function manejadorBtnActualizarUsuario(datos) {
-        dispatch({ type: "INICIAR_EDICION" });
-        const { success, error } = await editarUsuario(datos.uid, datos.rol, datos.estado);
-        if (success) {
-            manejadorRecargar();
-        } else {
-            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
-        }
-        dispatch({ type: "FINALIZAR_EDICION" });
-    };
-
-    /**
-     * Verifica si el usuario está intentando autoeliminarse.
-     * @param {Array[String]} usuarios - Lista de correos de usuarios seleccionados.
-     * @returns Boolean
-     */
-    const verificarAutoeliminacion = (usuarios) => {
-        const res = usuarios.includes(usuario?.uid);
-        if (res) {
-            setTimeout(() => {
-                setModoModal(2);
-                setModal({
-                    mostrar: true, titulo: t("titAlerta"), icono: <CloseIcon />,
-                    mensaje: t("errAutoEliminado")
-                });
-                setCargando(false);
-            }, 500);
-        }
-
-        return res;
-    };
-
-    /**
-     * Manejador del botón de editar en cada registro de la tabla.
-     * @param {Object} instancia - Instancia del usuario.
-     */
-    const manejadorBtnEditar = (instancia) => {
-        sessionStorage.setItem("ejecutar-callback", "false");
-        setSeleccionado(instancia);
-        setModoModal(3);
-        setModal({
-            mostrar: true, titulo: t("titEditarUsuario"), mensaje: "", icono: <SaveIcon />
-        });
-    };
-
-    async function manejadorBtnModalEliminacion() {
-        dispatch({ type: "INICIAR_ELIMINADO_USUARIOS" });
-        await eliminarUsuarios(seleccionados);
-        manejadorBtnRecargar();
-    }
-
-
     const campos = useMemo(() => {
-        const CompAccion = (x) => <BotoneraTabla instancia={x} botones={[
-            {
-                id: "editar", color: "primary", icono: <EditIcon />,
-                txtAyuda: "txtAyudaBtnEditarUsuario", manejadorClic: manejadorBtnEditar
-            },
-            {
-                id: "eliminar", color: "error", icono: <DeleteIcon />,
-                txtAyuda: "txtAyudaBtnEliminarUsuario", manejadorClic: manejadorBtnEliminar
-            }
-        ]} />;
+        const CompAccion = (x) => (x.uid == usuario?.uid) ? (
+            <BotoneraTabla instancia={x} botones={[
+                {
+                    id: "editar", color: "primary", icono: <EditIcon />,
+                    txtAyuda: "txtAyudaBtnEditarUsuario", manejadorClic: manejadorBtnEditarFila
+                },
+                {
+                    id: "eliminar", color: "error", icono: <DeleteIcon />,
+                    txtAyuda: "txtAyudaBtnEliminarUsuario", manejadorClic: manejadorBtnEliminarFila
+                }
+            ]} />) : null;
         const CompEstado = (x) => <ChipEstado valor={x.estado} />;
         const CompRol = (x) => <ChipRol valor={x.esAdmin} />;
-
         return [
             { id: "uid", label: t("txtUid"), componente: null },
             { id: "nombre", label: t("txtNombre"), componente: null },
@@ -230,17 +178,11 @@ export default function VerUsuariosPage() {
             { id: "cantidad", label: t("txtCantDiagnosticos"), componente: null },
             { id: "accion", label: t("txtAccion"), componente: CompAccion }
         ];
-    }, []);
-
-    useEffect(() => {
-        if (error) {
-            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
-        }
-    }, [error]);
+    }, [usuario?.uid, t]);
 
     return (
         <MenuLayout>
-            {cargando ? <PantallaCarga /> : (
+            {mostrarPantallaCarga ? <PantallaCarga /> : (
                 <>
                     <TabHeader
                         titulo={t("titListaUsuarios")}
@@ -249,7 +191,7 @@ export default function VerUsuariosPage() {
                     <Grid container columns={1} spacing={3} width="100%" sx={{ marginTop: "3vh" }}>
                         <Grid display="flex" size={1} justifyContent="end">
                             <Tooltip title={t("txtAyudaBtnRecargar")}>
-                                <IconButton onClick={() => manejadorRecargar()}>
+                                <IconButton onClick={manejadorBtnRecargar}>
                                     <RefreshIcon />
                                 </IconButton>
                             </Tooltip>
@@ -268,15 +210,14 @@ export default function VerUsuariosPage() {
                                 campoOrdenInicial="fechaRegistro"
                                 direccionOrdenInicial="asc"
                                 callbackClicCelda={manejadorClicCelda}
-                                callbackBtnAccion={manejadorEliminar}
-                                icono={<DeleteIcon />} />
+                                callbackBtnAccion={manejadorBtnEliminar} />
                         </Grid>
                     </Grid>
                 </>)}
             <FormUsuario
                 mostrar={modalEdicion}
                 instancia={instancia}
-                manejadorBtn={manejadorBtnActualizarUsuario}
+                manejadorBtn={manejadorBtnModalActualizar}
                 manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_EDICION" })} />
             <PantallaUsuario
                 mostrar={modalVisualizacion}
@@ -302,6 +243,13 @@ export default function VerUsuariosPage() {
                     </Trans>
                 ) : null}
             </ModalDoble>
+            <ModalSimple
+                mostrar={modalError.mostrar}
+                titulo={t("titErr")}
+                texto={modalError.texto}
+                txtBtn={t("txtBtnCerrar")}
+                manejadorCierre={() => dispatch({ type: "CERRAR_MODAL_ERROR" })}
+                iconoBtn={<CloseIcon />}/>
         </MenuLayout>
     );
 };

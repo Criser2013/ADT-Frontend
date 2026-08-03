@@ -70,7 +70,7 @@ export default function VerDiagnosticosPage() {
     const navigate = useNavigate();
     const { eliminarDiagnosticos, validarDiagnostico } = useOperacionesDiagnosticos();
     const { usuario } = useAuth();
-    const { cantDiagnosticosNoValidados, diagnosticos, diagnosticosCargados,
+    const { cantDiagnosticosNoValidados, diagnosticos,
         error, manejadorCargaDiagnosticos } = useDiagnosticos(
             usuario?.rolVisible, usuario?.uid, null, true
         );
@@ -80,7 +80,7 @@ export default function VerDiagnosticosPage() {
     const listadoPestanas = [
         { texto: usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos"), url: "/diagnosticos" }
     ];
-    const mostrarPantallaCarga = procesando || !diagnosticosCargados;
+    const mostrarPantallaCarga = procesando || !diagnosticos;
 
     useEffect(() => {
         document.title = usuario?.rolVisible ? t("txtDatosRecolectados") : t("txtHistorialDiagnosticos");
@@ -111,9 +111,12 @@ export default function VerDiagnosticosPage() {
 
     async function manejadorBtnModalEliminacion() {
         dispatch({ type: "INICIAR_ELIMINADO_INSTANCIAS" });
-        await eliminarDiagnosticos(
+        const { success, error } = await eliminarDiagnosticos(
             Array.isArray(diagnosticosSeleccionados) ? diagnosticosSeleccionados : instancia
         );
+        if (!success) {
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
+        }
         manejadorBtnRecargar();
     };
 
@@ -140,9 +143,11 @@ export default function VerDiagnosticosPage() {
      */
     async function manejadorBtnValidar({ diagnosticoMedico }) {
         dispatch({ type: "INICIAR_VALIDACION_INSTANCIA" });
-        const { success } = await validarDiagnostico(instancia, diagnosticoMedico);
+        const { success, error } = await validarDiagnostico(instancia, diagnosticoMedico);
         if (success) {
             manejadorBtnRecargar();
+        } else {
+            dispatch({ type: "ABRIR_MODAL_ERROR", payload: error });
         }
         dispatch({ type: "FINALIZAR_VALIDACION_INSTANCIA" });
     };

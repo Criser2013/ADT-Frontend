@@ -281,9 +281,9 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
 
     const value = useMemo(() => ({
         diagnosticos: diagnosticosMapeados, error, manejadorCargaDiagnosticos,
-        cantDiagnosticosNoValidados, diagnosticosCargados: diagnosticos !== null,
+        cantDiagnosticosNoValidados
     }), [diagnosticosMapeados, error, manejadorCargaDiagnosticos,
-        cantDiagnosticosNoValidados, diagnosticos]);
+        cantDiagnosticosNoValidados]);
 
     return value;
 };

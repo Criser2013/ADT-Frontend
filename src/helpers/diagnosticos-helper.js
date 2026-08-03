@@ -73,20 +73,12 @@ export default class DiagnosticosHelper {
     async eliminarDiagnosticos(ids) {
         let error = null;
         let success = true;
-        const pets = [];
+        let pets = [];
 
         ids.forEach((id) => {
             pets.push(this.#eliminarDiagnostico(id));
         });
-
-        for (const pet of pets) {
-            const res = await pet;
-            success &&= res.success;
-            if (!res.success) {
-                error = res.error;
-            }
-        };
-
+        pets = await Promise.all(pets);
         return { success, error };
     }
 
