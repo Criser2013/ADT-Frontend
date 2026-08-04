@@ -1,5 +1,6 @@
 import { CAMPOS_BIN, CAMPOS_NUM, COMORBILIDADES, INTERVALOS_PREPROCESAMIENTO } from "../constants";
 
+
 /**
  * Transforma los datos de comorbilidades codificados como one-hot a un Arrray.
  * @param {JSON} datos - JSON con las comorbilidades codificadas como one-hot.
@@ -162,7 +163,7 @@ export function obtenerDatosPorMes(datos, clave, fechaInicio, fechaFinal) {
 
     datos.forEach((x) => {
         const mesInstancia = x[clave].get("month");
-        if (x[clave].isAfter(fechaInicio) && x[clave].isBefore(fechaFinal)) {
+        if (x[clave] >= fechaInicio && x[clave] <= fechaFinal) {
             mapeo[meses[mesInstancia]] += 1;
         }
     });

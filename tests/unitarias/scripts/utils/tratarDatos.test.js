@@ -1,4 +1,5 @@
 import { jest, beforeEach, expect, describe, test } from '@jest/globals';
+import dayjs from "dayjs";
 import Diagnostico from "../../../../src/models/Diagnostico";
 import ExplicacionLime from "../../../../src/models/ExplicacionLime";
 import { detTextoPersona, evaluarIntervalo, convertirDiagnosticoExportable, decoderOtraEnfermedad, procBool, obtenerDatosPorMes } from "../../../../src/utils/TratarDatos";
@@ -230,38 +231,28 @@ describe("Validar la función 'detTextoPersona'", () => {
     });
 });
 
-
 describe("Validar la función 'obtenerDatosPorMes'", () => {
-    test("CP - 85", () => {
-        const datos = [
-            { fecha: "01-02-2023" },
-            { fecha: "15-03-2023" },
-            { fecha: "20-04-2023" },
-            { fecha: "05-05-2023" }
-        ];
-        const clave = "fecha";
-        const numMesesAtras = 3;
-        const fechaActual = dayjs(new Date(2023, 4, 1));
-        const res = obtenerDatosPorMes(datos, clave, numMesesAtras, fechaActual);
+    // --------------------------- Parámetros -----------------------
+    const params1 = { datos: [
+        { fecha: dayjs(new Date(2023, 1, 1)) },
+        { fecha: dayjs(new Date(2023, 2, 15)) },
+        { fecha: dayjs(new Date(2023, 3, 20)) },
+        { fecha: dayjs(new Date(2023, 4, 5)) }
+    ], clave: "fecha", fechaInicio: dayjs(new Date(2023, 1, 1)), fechaFinal: dayjs(new Date(2023, 4, 30)) };
+    const params2 = { datos: [
+        { fecha: dayjs(new Date(2023, 0, 1)) },
+        { fecha: dayjs(new Date(2023, 1, 15)) },
+        { fecha: dayjs(new Date(2023, 2, 20)) }
+    ], clave: "fecha", fechaInicio: dayjs(new Date(2023, 1, 1)), fechaFinal: dayjs(new Date(2023, 3, 30)) };
 
-        expect(res).toEqual({
-            "Febrero": 1, "Marzo": 1, "Abril": 1, "Mayo": 1
-        });
-    });
+    const res1 = { "txtFebrero": 1, "txtMarzo": 1, "txtAbril": 1, "txtMayo": 1 };
+    const res2 = { "txtFebrero": 1, "txtMarzo": 1, "txtAbril": 0 };
 
-    test("CP - 86", () => {
-        const datos = [
-            { fecha: { toDate: () => new Date(2023,0,1)} },
-            { fecha: { toDate: () => new Date(2023,1,15)} },
-            { fecha: { toDate: () => new Date(2023,2,20)} }
-        ];
-        const clave = "fecha";
-        const numMesesAtras = 2;
-        const fechaActual = dayjs(new Date(2023, 3, 1));
-        const res = obtenerDatosPorMes(datos, clave, numMesesAtras, fechaActual);
-
-        expect(res).toEqual({
-            "Febrero": 1, "Marzo": 1, "Abril": 0
-        });
+    test.each([
+        ["85", params1, res1],
+        ["86", params2, res2]
+    ])("CP - %s", (idPrueba, params, resEsperada) => {
+        const res = obtenerDatosPorMes(params.datos, params.clave, params.fechaInicio, params.fechaFinal);
+        expect(res).toEqual(resEsperada);
     });
 });
