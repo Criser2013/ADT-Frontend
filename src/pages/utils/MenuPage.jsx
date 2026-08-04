@@ -2,8 +2,7 @@ import { MenuLayout } from "../../components/layout";
 import { useAuth } from "../../hooks";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { MenuUsuario } from "../../components/menu";
-//import MenuAdministrador from "../../components/menu/MenuAdministrador";
+import { MenuAdministrador, MenuUsuario } from "../../components/menu";
 
 /**
  * Página del menú principal de la aplicación.
@@ -22,7 +21,7 @@ export default function MenuPage() {
             {!usuario?.rolVisible ? (
                 <MenuUsuario />
             ) : (
-                "prueba pro"/*<MenuAdministrador />*/
+                <MenuAdministrador />
             )}
         </MenuLayout>
     );

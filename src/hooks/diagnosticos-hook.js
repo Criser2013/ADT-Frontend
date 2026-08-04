@@ -130,6 +130,7 @@ export function useDiagnostico(id, traerInfoPersona = false) {
         , [paciente, usuario, usuarioAutenticado?.rolVisible]);
 
     const manejadorCargaDiagnostico = useCallback(async () => {
+        setError(null);
         const { success, data, error } = await verDiagnostico(id);
         if (success) {
             setDiagnostico(data);
@@ -207,7 +208,7 @@ export function useDiagnostico(id, traerInfoPersona = false) {
  */
 export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPersona = false) {
     const { helperListo: pacientesListo, manejadorCargaPacientes, mapeoPacientes, error: errorPacientes } = usePacientes(false);
-    const { helperListo: usuariosListo, manejadorCargaUsuarios, mapeoUsuarios, error: errorUsuarios } = useUsuarios(false, false);
+    const { helperListo: usuariosListo, manejadorCargaUsuarios, mapeoUsuarios, error: errorUsuarios } = useUsuarios(false);
     const { usuario } = useAuth();
     const { verDiagnosticos, helperListo: diagnosticosListo } = useOperacionesDiagnosticos();
     const [diagnosticos, setDiagnosticos] = useState(null);
@@ -248,6 +249,7 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
     const manejadorCargaDiagnosticos = useCallback(async (tipo, verTodos, uid, fecha) => {
         let pets = [];
 
+        setError(null);
         if (traerInfoPersona) {
             pets.push(tipo == "paciente" ? manejadorCargaPacientes() : manejadorCargaUsuarios());
         }

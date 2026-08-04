@@ -92,6 +92,7 @@ export function useUsuario(id, cargaAutomatica = true) {
     const [usuario, setUsuario] = useState(null);
 
     const manejadorCargaUsuario = useCallback(async () => {
+        setError(null);
         const { success, data, error } = await verUsuario(id, i18n.language.split("-")[0]);
         if (success) {
             setUsuario(data);
@@ -149,6 +150,7 @@ export function useUsuarios(cargaAutomatica = true) {
     }, [usuarios]);
 
     const manejadorCargaUsuarios = useCallback(async () => {
+        setError(null);
         const { success, data, error } = await verUsuarios(i18n.language.split("-")[0]);
         if (success) {
             setUsuarios(data);

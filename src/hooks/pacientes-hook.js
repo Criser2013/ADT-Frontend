@@ -100,6 +100,7 @@ export function usePaciente(id, cargaAutomatica = true) {
     const [paciente, setPaciente] = useState(null);
 
     const manejadorCargaPaciente = useCallback(async () => {
+        setError(null);
         const { success, data, error, cancelled } = await verPaciente(id);
         if (success) {
             setPaciente(data);
@@ -163,6 +164,7 @@ export function usePacientes(cargaAutomatica = true) {
     }, [pacientes]);
 
     const manejadorCargaPacientes = useCallback(async () => {
+        setError(null);
         const { success, error, data, cancelled } = await cargarDatos();
         if (success) {
             setPacientes(data);

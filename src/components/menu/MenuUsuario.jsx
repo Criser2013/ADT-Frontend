@@ -105,24 +105,44 @@ export default function MenuUsuario() {
                             </Typography>
                             <Divider sx={{ padding: "1vh 0vw" }} />
                         </Grid>
-                        <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
+                        <Grid
+                            size={1}
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            padding="2vh 0vh 0vw 0vw">
                             <TarjetaMenuPrincipal
                                 titulo={t("txtDiagnosticosMes")}
                                 valor={diagnosticosMesActual}
                                 icono={<DiagnosticoIcono sx={{ fontSize: "4.5vh" }} />}
                                 altura="100%"/>
                         </Grid>
-                        <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
+                        <Grid
+                            size={1}
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            padding="2vh 0vh 0vw 0vw">
                             <TarjetaMenuPrincipal
                                 titulo={t("txtPacientesMes")}
                                 valor={pacientesMesActual}
                                 icono={<PersonIcon sx={{ fontSize: "4.5vh" }} />}
                                 altura="100%"/>
                         </Grid>
-                        <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vw">
+                        <Grid
+                            size={1}
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            padding="0vh 1.5vw">
                             <GraficoBarras titulo={t("titGraficoBarrasMenu")} datos={datosGraficoBarras} />
                         </Grid>
-                        <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vw">
+                        <Grid
+                            size={1}
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            padding="0vh 1.5vw">
                             <GraficoPastel titulo={t("titGraficoPastelMenuUsuario")} datos={datosGraficoPastel} />
                         </Grid>
                     </Grid>

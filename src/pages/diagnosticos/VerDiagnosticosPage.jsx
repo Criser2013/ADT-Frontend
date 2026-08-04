@@ -72,7 +72,7 @@ export default function VerDiagnosticosPage() {
     const { usuario } = useAuth();
     const { cantDiagnosticosNoValidados, diagnosticos, diagnosticosCargados,
         error, manejadorCargaDiagnosticos } = useDiagnosticos(
-            true, usuario?.rolVisible, usuario?.uid, null, true
+            usuario?.rolVisible, usuario?.uid, null, true
         );
     const { t } = useTranslation();
     const [state, dispatch] = useReducer(reducer, estadoInicial);

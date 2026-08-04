@@ -59,6 +59,10 @@ export default class Usuario {
         return this.#fechaRegistro;
     }
 
+    get fechaRegistroDayJs() {
+        return dayjs(this.#fechaRegistro);
+    }
+
     get fechaUltimoAcceso() {
         return this.#fechaUltimoAcceso;
     }
