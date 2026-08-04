@@ -1,7 +1,7 @@
 import { jest, beforeEach, expect, describe, test } from '@jest/globals';
 import Diagnostico from "../../../../src/models/Diagnostico";
 import ExplicacionLime from "../../../../src/models/ExplicacionLime";
-import { detTextoPersona, evaluarIntervalo, convertirDiagnosticoExportable, decoderOtraEnfermedad, procBool } from "../../../../src/utils/TratarDatos";
+import { detTextoPersona, evaluarIntervalo, convertirDiagnosticoExportable, decoderOtraEnfermedad, procBool, obtenerDatosPorMes } from "../../../../src/utils/TratarDatos";
 
 describe("Validar la función 'decoderOtraEnfermedad'", () => {
     // --------------------------- Parámetros -----------------------
@@ -227,5 +227,41 @@ describe("Validar la función 'detTextoPersona'", () => {
     ])("CP - %s", (idPrueba, params, resEsperada) => {
         const res = detTextoPersona(params[0], params[1], func);
         expect(res).toEqual(resEsperada);
+    });
+});
+
+
+describe("Validar la función 'obtenerDatosPorMes'", () => {
+    test("CP - 85", () => {
+        const datos = [
+            { fecha: "01-02-2023" },
+            { fecha: "15-03-2023" },
+            { fecha: "20-04-2023" },
+            { fecha: "05-05-2023" }
+        ];
+        const clave = "fecha";
+        const numMesesAtras = 3;
+        const fechaActual = dayjs(new Date(2023, 4, 1));
+        const res = obtenerDatosPorMes(datos, clave, numMesesAtras, fechaActual);
+
+        expect(res).toEqual({
+            "Febrero": 1, "Marzo": 1, "Abril": 1, "Mayo": 1
+        });
+    });
+
+    test("CP - 86", () => {
+        const datos = [
+            { fecha: { toDate: () => new Date(2023,0,1)} },
+            { fecha: { toDate: () => new Date(2023,1,15)} },
+            { fecha: { toDate: () => new Date(2023,2,20)} }
+        ];
+        const clave = "fecha";
+        const numMesesAtras = 2;
+        const fechaActual = dayjs(new Date(2023, 3, 1));
+        const res = obtenerDatosPorMes(datos, clave, numMesesAtras, fechaActual);
+
+        expect(res).toEqual({
+            "Febrero": 1, "Marzo": 1, "Abril": 0
+        });
     });
 });

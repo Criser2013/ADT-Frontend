@@ -214,7 +214,7 @@ export default function MenuAdministrador() {
                 </Box>
             ) : (
                 <Grid columns={numCols} container spacing={2}>
-                    <AdvertenciaEspacio rol={1001} cantidadDiagnosticos={cantDiagnosticos} />
+                    <AdvertenciaEspacio numDiagnosticos={cantDiagnosticos} />
                     <Grid size={4}>
                         <Typography variant="h4" fontStyle="bold" align="left">
                             {t("txtBienvenida", { nombre: usuario?.nombre })}
@@ -258,12 +258,12 @@ export default function MenuAdministrador() {
                 </Grid>
             )}
             <ModalSimple
-                abrir={modal.mostrar}
-                mensaje={modal.mensaje}
-                titulo={modal.titulo}
+                mostrar={modal.mostrar}
+                titulo={t("tituloErr")}
+                texto={modal.mensaje}
                 txtBtn={t("txtBtnCerrar")}
-                iconoBtn={<CloseIcon />}
-                manejadorBtnModal={manejadorBtnModal} />
+                manejadorBtn={manejadorBtnModal}
+                iconoBtn={<CloseIcon />}/>
         </>
     );
 };

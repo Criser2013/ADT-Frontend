@@ -138,3 +138,34 @@ export function detTextoPersona(rol, nombre, t) {
         return nombre;
     }
 };
+
+/**
+ * Obtiene un objeto con la cantidad de datos por mes.
+ * @param {Array<Object>} datos - Datos con fechas a filtrar.
+ * @param {String} clave - Clave del objeto que contiene la fecha.
+ * @param {Dayjs} fechaInicio - Fecha de inicio para calcular los meses.
+ * @param {Dayjs} fechaFinal - Fecha final para calcular los meses.
+ * @returns {Object} Objeto con la cantidad de datos por mes, donde las claves son los nombres de 
+ * los meses y los valores son la cantidad de datos.
+ */
+export function obtenerDatosPorMes(datos, clave, fechaInicio, fechaFinal) {
+    const mapeo = {};
+    const mesesDiferencia = fechaFinal.diff(fechaInicio, "month");
+    const mesInicio = fechaInicio.get("month");
+    const meses = ["txtEnero", "txtFebrero", "txtMarzo", "txtAbril", "txtMayo", "txtJunio",
+        "txtJulio", "txtAgosto", "txtSeptiembre", "txtOctubre", "txtNoviembre", "txtDiciembre"
+    ];
+
+    for (let i = 0; i < mesesDiferencia + 1; i++) {
+        mapeo[meses[(mesInicio + i) % 12]] = 0;
+    }
+
+    datos.forEach((x) => {
+        const mesInstancia = x[clave].get("month");
+        if (x[clave].isAfter(fechaInicio) && x[clave].isBefore(fechaFinal)) {
+            mapeo[meses[mesInstancia]] += 1;
+        }
+    });
+
+    return mapeo;
+};
