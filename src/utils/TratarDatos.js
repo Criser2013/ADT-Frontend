@@ -1,4 +1,4 @@
-import { CAMPOS_BIN, CAMPOS_NUM, COMORBILIDADES, INTERVALOS_PREPROCESAMIENTO } from "../constants";
+import { CAMPOS_BIN, CAMPOS_NUM, COMORBILIDADES, INTERVALOS_PREPROCESAMIENTO, TXT_MESES } from "../constants";
 
 
 /**
@@ -153,20 +153,44 @@ export function obtenerDatosPorMes(datos, clave, fechaInicio, fechaFinal) {
     const mapeo = {};
     const mesesDiferencia = fechaFinal.diff(fechaInicio, "month");
     const mesInicio = fechaInicio.get("month");
-    const meses = ["txtEnero", "txtFebrero", "txtMarzo", "txtAbril", "txtMayo", "txtJunio",
-        "txtJulio", "txtAgosto", "txtSeptiembre", "txtOctubre", "txtNoviembre", "txtDiciembre"
-    ];
 
     for (let i = 0; i < mesesDiferencia + 1; i++) {
-        mapeo[meses[(mesInicio + i) % 12]] = 0;
+        mapeo[(mesInicio + i) % 12] = 0;
     }
 
     datos.forEach((x) => {
         const mesInstancia = x[clave].get("month");
         if (x[clave] >= fechaInicio && x[clave] <= fechaFinal) {
-            mapeo[meses[mesInstancia]] += 1;
+            mapeo[mesInstancia] += 1;
         }
     });
 
     return mapeo;
+};
+
+/**
+ * Establece los textos de los meses en un objeto.
+ * @param {Object} datos Objeto con la cantidad de datos por mes, donde las claves son los índices 
+ * de los meses (0-11) y los valores son la cantidad de datos.
+ * @param {Function} t Función para traducir los textos.
+ * @returns {Object} Objeto con los nombres de los meses como claves y la cantidad de datos como valores.
+ */
+export function establecerTextoMeses(datos, t) {
+    const res = {};
+    for (const i in datos) {
+        res[t(TXT_MESES[i])] = datos[i];
+    }
+
+    return res;
+};
+
+/**
+ * Obtiene los datos del mes actual.
+ * @param {Object} datos Objeto con la cantidad de datos por mes, donde las claves son los índices 
+ * de los meses (0-11) y los valores son la cantidad de datos.
+ * @returns {Number} Cantidad de datos del mes actual.
+ */
+export function obtenerDatosMesActual(datos) {
+    const tam = Object.keys(datos).length;
+    return tam > 0 ? datos[Object.keys(datos)[tam - 1]] : 0;
 };

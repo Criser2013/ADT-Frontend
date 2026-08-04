@@ -95,6 +95,10 @@ export default class Diagnostico {
         return dayjs(this.fecha).format("DD-MM-YYYY");
     }
 
+    get fechaDayJs() {
+        return dayjs(this.fecha);
+    }
+
     get idCompuesto() {
         return `${this.id}-${this.usuario}`;
     }

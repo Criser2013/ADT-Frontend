@@ -245,8 +245,8 @@ describe("Validar la función 'obtenerDatosPorMes'", () => {
         { fecha: dayjs(new Date(2023, 2, 20)) }
     ], clave: "fecha", fechaInicio: dayjs(new Date(2023, 1, 1)), fechaFinal: dayjs(new Date(2023, 3, 30)) };
 
-    const res1 = { "txtFebrero": 1, "txtMarzo": 1, "txtAbril": 1, "txtMayo": 1 };
-    const res2 = { "txtFebrero": 1, "txtMarzo": 1, "txtAbril": 0 };
+    const res1 = { 1: 1, 2: 1, 3: 1, 4: 1 };
+    const res2 = { 1: 1, 2: 1, 3: 0 };
 
     test.each([
         ["85", params1, res1],

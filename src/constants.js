@@ -69,7 +69,9 @@ export const INTERVALOS_PREPROCESAMIENTO = {
         [-Infinity, 50, 9], [210, Infinity, 10]
     ]
 };
-
+const TXT_MESES = ["txtEnero", "txtFebrero", "txtMarzo", "txtAbril", "txtMayo", "txtJunio",
+    "txtJulio", "txtAgosto", "txtSeptiembre", "txtOctubre", "txtNoviembre", "txtDiciembre"
+];
 
 
 export const AES_KEY = import.meta.env.VITE_CLAVE_AES || "1234567890123456"; // Clave de 16 caracteres para AES-128
