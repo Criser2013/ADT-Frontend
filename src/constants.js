@@ -69,7 +69,7 @@ export const INTERVALOS_PREPROCESAMIENTO = {
         [-Infinity, 50, 9], [210, Infinity, 10]
     ]
 };
-const TXT_MESES = ["txtEnero", "txtFebrero", "txtMarzo", "txtAbril", "txtMayo", "txtJunio",
+export const TXT_MESES = ["txtEnero", "txtFebrero", "txtMarzo", "txtAbril", "txtMayo", "txtJunio",
     "txtJulio", "txtAgosto", "txtSeptiembre", "txtOctubre", "txtNoviembre", "txtDiciembre"
 ];
 

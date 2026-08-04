@@ -4,20 +4,20 @@ import PersonIcon from '@mui/icons-material/Person';
 import TarjetaMenuPrincipal from "./TarjetaMenuPrincipal";
 import { Box, CircularProgress, Divider, Grid, Typography } from "@mui/material";
 import { DiagnosticoIcono } from "../icons/IconosSidebar";
+import { establecerTextoMeses, obtenerDatosMesActual, obtenerDatosPorMes } from "../../utils/TratarDatos";
 import { GraficoBarras, GraficoPastel } from "../charts";
 import { ModalSimple } from "../modals";
-import { establecerTextoMeses, obtenerDatosMesActual, obtenerDatosPorMes } from "../../utils/TratarDatos";
+import { PantallaCarga } from "../layout";
 import { Timestamp } from "firebase/firestore";
 import { useAuth, useDiagnosticos, usePacientes } from "../../hooks";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 
-let fechaInicio = dayjs().subtract(4, "month").set("date", 1).set("hour", 0).set("minute", 0).
+const fechaInicio = dayjs().subtract(4, "month").set("date", 1).set("hour", 0).set("minute", 0).
     set("second", 0).set("millisecond", 0);
 const fechaFinal = dayjs();
 const fechaTimestamp = Timestamp.fromDate(fechaInicio.toDate());
-
 
 /**
  * Menú principal para los usuarios. Muestra la cantidad de pacientes y diagnósticos registrados este mes y
@@ -32,13 +32,13 @@ export default function MenuUsuario() {
     const [modal, setModal] = useState({ mostrar: false, texto: "" });
     const diagnosticosPorMes = useMemo(() => {
         const datos = obtenerDatosPorMes(
-            diagnosticos, "fechaDayJs", fechaInicio, fechaFinal
+            diagnosticos ? diagnosticos : [], "fechaDayJs", fechaInicio, fechaFinal
         );
         return establecerTextoMeses(datos, t);
     }, [diagnosticos, t]);
     const pacientesPorMes = useMemo(() => {
         const datos = obtenerDatosPorMes(
-            pacientes, "fechaCreacionFormateada", fechaInicio, fechaFinal
+            pacientes ? pacientes : [], "fechaCreacionFormateada", fechaInicio, fechaFinal
         );
         return establecerTextoMeses(datos, t);
     }, [pacientes, t]);
