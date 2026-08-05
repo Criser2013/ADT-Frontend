@@ -28,13 +28,12 @@ import { validarNombre, validarNumero, validarTelefono } from "../../utils/Valid
  * @param {Paciente|null} paciente Objeto Paciente a cargar en el formulario. Solo 
  * se provee si es para editar un paciente existente. Si es null, se asume que es para añadir 
  * un nuevo paciente.
- * @param {String} url URL de la ruta a la que se redirige al hacer click en el botón de retroceder.
  * @param {String} titulo Título de la pestaña actual
  * @param {Array<Object>} pestanas Lista de pestañas con objetos de la forma { texto: String, url: String }.
  * @param {String} tooltip Texto ayuda para el botón de retroceso.
  * @returns {JSX.Element}
  */
-export default function FormPaciente({ url, titulo, pestanas, tooltip, paciente = null, esModificar = false }) {
+export default function FormPaciente({ titulo, pestanas, tooltip, paciente = null, esModificar = false }) {
     const navigate = useNavigate();
     const { anadirPaciente, editarPaciente } = useOperacionesPacientes();
     const { t } = useTranslation();
@@ -112,7 +111,6 @@ export default function FormPaciente({ url, titulo, pestanas, tooltip, paciente 
     return cargando ? <PantallaCarga /> : (
         <>
             <TabHeader
-                url={url}
                 titulo={titulo}
                 pestanas={pestanas}
                 tooltip={tooltip}

@@ -1,10 +1,11 @@
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { Button, Grid, Box, CircularProgress, Tooltip, IconButton } from "@mui/material";
+import { BotoneraTabla, Datatable } from "../../components/datatable";
 import { ChipSexo } from "../../components/tabs/Chips";
-import { Datatable } from "../../components/datatable";
 import { MenuLayout, PantallaCarga } from "../../components/layout";
 import { ModalDoble, ModalSimple } from "../../components/modals";
 import { TabHeader } from "../../components/layout";
@@ -95,7 +96,7 @@ export default function VerPacientesPage() {
         { id: "cedula", label: t("txtCedula"), componente: null, ordenable: true },
         { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
         { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo valor={x.sexo} />, ordenable: true },
-        { id: "edad", label: t("txtCampoEdad"), componente: null, ordenable: true },
+        { id: "edad", label: t("edad"), componente: null, ordenable: true },
         { id: "telefono", label: t("txtTelefono"), componente: null, ordenable: true },
         { id: "accion", label: t("txtAccion"), componente: (x) => (
             <BotoneraTabla instancia={x} botones={[

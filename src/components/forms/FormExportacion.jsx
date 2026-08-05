@@ -80,7 +80,7 @@ export default function FormExportacion({ diagnosticos, mostrar = false, manejad
         <>
             <ModalDoble
                 mostrar={mostrar}
-                titulo={t("txtSelecArchivo")}
+                titulo={t("titExportar")}
                 txtBtnPrincipal={t("txtBtnExportar")}
                 txtBtnSecundario={t("txtBtnCancelar")}
                 manejadorBtnPrincipal={handleSubmit(manejadorExportar)}

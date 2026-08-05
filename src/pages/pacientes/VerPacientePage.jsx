@@ -37,7 +37,7 @@ export default function VerPacientePage() {
             id: "fechaNacimiento", titulo: t("txtFechaNacimiento"),
             valor: paciente?.fechaNacimientoFormateada.format(t("formatoFechaCompletaSinHora"))
         },
-        { id: "edad", titulo: t("txtCampoEdad"), valor: `${paciente?.edad} ${t("txtSufijoEdad")}` },
+        { id: "edad", titulo: t("edad"), valor: `${paciente?.edad} ${t("txtSufijoEdad")}` },
         { id: "telefono", titulo: t("txtTelefono"), valor: paciente?.telefono },
         { id: "sexo", titulo: t("txtCampoSexo"), valor: paciente?.sexo }
     ];

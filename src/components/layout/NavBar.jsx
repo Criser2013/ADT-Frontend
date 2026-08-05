@@ -1,7 +1,6 @@
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArticleIcon from '@mui/icons-material/Article';
-import MenuContext from "../../contexts/MenuContext";
 import MenuIcon from "@mui/icons-material/Menu";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import {
