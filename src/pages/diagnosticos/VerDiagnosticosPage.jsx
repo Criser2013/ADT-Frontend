@@ -72,7 +72,7 @@ export default function VerDiagnosticosPage() {
     const { usuario } = useAuth();
     const { cantDiagnosticosNoValidados, diagnosticos, diagnosticosCargados,
         error, manejadorCargaDiagnosticos } = useDiagnosticos(
-            true, usuario?.rolVisible, usuario?.uid, null, true
+            usuario?.rolVisible, usuario?.uid, null, true
         );
     const { t } = useTranslation();
     const [state, dispatch] = useReducer(reducer, estadoInicial);
@@ -212,7 +212,9 @@ export default function VerDiagnosticosPage() {
                         pestanas={listadoPestanas}
                         activarBtnAtras={false} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh" }}>
-                        <AdvertenciaEspacio numDiagnosticos={diagnosticos?.length} />
+                        <Grid size={1}>
+                            <AdvertenciaEspacio numDiagnosticos={diagnosticos?.length} />
+                        </Grid>
                         <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
                             <Tooltip title={t("txtAyudaBtnRecargar")}>
                                 <IconButton onClick={manejadorBtnRecargar}>

@@ -80,6 +80,12 @@ export default class Paciente {
         );
     }
 
+    get fechaCreacionFormateada() {
+        return dayjs(
+            this.fechaCreacion, "DD-MM-YYYY"
+        ).toDate();
+    }
+
     /**
      * @param {Object} json JSON con los datos del paciente.
      * @returns {Paciente} Una instancia de la clase Paciente creada a partir de un objeto JSON.

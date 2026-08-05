@@ -316,5 +316,17 @@
     "txtBtnReiniciar": "Reiniciar",
     "txtAyudaBtnReiniciar": "Reinicia el formulario colocando los datos actuales del paciente.",
     "errDiagnosticar": "Se ha producido un error al generar el diagnóstico. Por favor, inténtalo de nuevo más tarde.",
-    "txtCamposSignificativos": "Campos significativos para el diagnóstico"
+    "txtCamposSignificativos": "Campos significativos para el diagnóstico",
+    "txtEnero": "Enero",
+    "txtFebrero": "Febrero",
+    "txtMarzo": "Marzo",
+    "txtAbril": "Abril",
+    "txtMayo": "Mayo",
+    "txtJunio": "Junio",
+    "txtJulio": "Julio",
+    "txtAgosto": "Agosto",
+    "txtSeptiembre": "Septiembre",
+    "txtOctubre": "Octubre",
+    "txtNoviembre": "Noviembre",
+    "txtDiciembre": "Diciembre"
 }

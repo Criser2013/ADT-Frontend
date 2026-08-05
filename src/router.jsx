@@ -31,13 +31,6 @@ export default function Router() {
                 <Route path="/diagnosticos/paciente" element={<DiagnosticoPacientePage />} />
                 <Route path="/diagnosticos/anonimo" element={<DiagnosticoAnonimoPage />} />
                 <Route path="/usuarios" element={<VerUsuariosPage />} />
-                {/*
-                <Route path="/menu" element={
-                    <DriveProvider>
-                        <MenuPage />
-                    </DriveProvider>
-                } />
-                */}
                 <Route path="*" element={
                     <Navigate to={"/404"} replace />
                 } />

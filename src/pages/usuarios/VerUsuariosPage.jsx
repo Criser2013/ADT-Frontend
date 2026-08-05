@@ -41,7 +41,7 @@ function reducer(state, action) {
         case "CERRAR_MODAL_ELIMINACION":
             return { ...state, modalEliminacion: false };
         case "CERRAR_MODAL_ERROR":
-            return { ...state, modalError: { mostrar: false, ...state.modalError } };
+            return { ...state, modalError: { ...state.modalError, mostrar: false } };
         case "CERRAR_MODAL_VISUALIZACION":
             return { ...state, modalVisualizacion: false };
         case "FINALIZAR_CARGA_DATOS":

@@ -316,5 +316,17 @@
     "txtBtnReiniciar": "Reset",
     "txtAyudaBtnReiniciar": "Reset the form with the current patient data.",
     "errDiagnosticar": "Something went wrong while generating the diagnosis. Please try again later.",
-    "txtCamposSiginificativos": "Significant fields for the diagnosis"
+    "txtCamposSiginificativos": "Significant fields for the diagnosis",
+    "txtEnero": "January",
+    "txtFebrero": "February",
+    "txtMarzo": "March",
+    "txtAbril": "April",
+    "txtMayo": "May",
+    "txtJunio": "June",
+    "txtJulio": "July",
+    "txtAgosto": "August",
+    "txtSeptiembre": "September",
+    "txtOctubre": "October",
+    "txtNoviembre": "November",
+    "txtDiciembre": "December"
 }

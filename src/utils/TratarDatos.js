@@ -1,4 +1,5 @@
-import { CAMPOS_BIN, CAMPOS_NUM, COMORBILIDADES, INTERVALOS_PREPROCESAMIENTO } from "../constants";
+import { CAMPOS_BIN, CAMPOS_NUM, COMORBILIDADES, INTERVALOS_PREPROCESAMIENTO, TXT_MESES } from "../constants";
+
 
 /**
  * Transforma los datos de comorbilidades codificados como one-hot a un Arrray.
@@ -137,4 +138,58 @@ export function detTextoPersona(rol, nombre, t) {
     } else {
         return nombre;
     }
+};
+
+/**
+ * Obtiene un objeto con la cantidad de datos por mes.
+ * @param {Array<Object>} datos Datos con fechas a filtrar.
+ * @param {String} clave Clave del objeto que contiene la fecha.
+ * @param {Dayjs} fechaInicio Fecha de inicio para calcular los meses.
+ * @param {Dayjs} fechaFinal Fecha final para calcular los meses.
+ * @returns {Object} Objeto con la cantidad de datos por mes, donde las claves son los nombres de 
+ * los meses y los valores son la cantidad de datos.
+ */
+export function obtenerDatosPorMes(datos, clave, fechaInicio, fechaFinal) {
+    const mapeo = {};
+    const mesesDiferencia = fechaFinal.diff(fechaInicio, "month");
+    const mesInicio = fechaInicio.get("month");
+
+    for (let i = 0; i < mesesDiferencia + 1; i++) {
+        mapeo[(mesInicio + i) % 12] = 0;
+    }
+
+    datos.forEach((x) => {
+        const mesInstancia = x[clave].getMonth();
+        if (x[clave] >= fechaInicio && x[clave] <= fechaFinal) {
+            mapeo[mesInstancia] += 1;
+        }
+    });
+
+    return mapeo;
+};
+
+/**
+ * Establece los textos de los meses en un objeto.
+ * @param {Object} datos Objeto con la cantidad de datos por mes, donde las claves son los índices 
+ * de los meses (0-11) y los valores son la cantidad de datos.
+ * @param {Function} t Función para traducir los textos.
+ * @returns {Object} Objeto con los nombres de los meses como claves y la cantidad de datos como valores.
+ */
+export function establecerTextoMeses(datos, t) {
+    const res = {};
+    for (const i in datos) {
+        res[t(TXT_MESES[i])] = datos[i];
+    }
+    return res;
+};
+
+/**
+ * Obtiene los datos del mes actual.
+ * @param {Object} datos Objeto con la cantidad de datos por mes, donde las claves son los índices 
+ * de los meses (0-11) y los valores son la cantidad de datos.
+ * @returns {Number} Cantidad de datos del mes actual.
+ */
+export function obtenerDatosMesActual(datos) {
+    const tam = Object.keys(datos).length;
+    return tam > 0 ? datos[Object.keys(datos)[tam - 1]] : 0;
 };
