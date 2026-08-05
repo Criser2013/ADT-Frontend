@@ -3,8 +3,10 @@ import ClearIcon from "@mui/icons-material/Clear";
 import SearchIcon from "@mui/icons-material/Search";
 import { buscar } from "../../utils/Busqueda";
 import { Button, IconButton, InputAdornment, Stack, TextField, Toolbar, Tooltip, Typography } from "@mui/material";
+import { Controller, useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { useForm, Controller } from "react-hook-form";
 
 const valoresPredet = { busqueda: "" };
 
@@ -26,15 +28,14 @@ export default function CuadroBusqueda({
     tooltipBtnAccion, manejadorBtnAccion, setDatosVisibles, iconoBtnAccion
 }) {
     const { t } = useTranslation();
-    const { getValues, control, handleSubmit, reset, watch } = useForm({
+    const { getValues, control, handleSubmit, reset, setValue } = useForm({
         defaultValues: valoresPredet, mode: "onBlur"
     });
-    const texto = watch("busqueda");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const textoBusqueda = searchParams.get("buscar") || "";
 
     function manejadorBusqueda() {
-        const texto = getValues("busqueda");
-        const res = buscar(datos, texto, camposBusqueda);
-        setDatosVisibles(res);
+        setSearchParams({ buscar: getValues("busqueda") });
     };
 
     /**
@@ -49,8 +50,16 @@ export default function CuadroBusqueda({
 
     function manejadorBtnLimpiar() {
         setDatosVisibles(datos);
+        setSearchParams({});
         reset(valoresPredet);
     };
+
+    useEffect(() => {
+        const texto = searchParams.get("buscar") || "";
+        const res = buscar(datos, texto, camposBusqueda);
+        setDatosVisibles(res);
+        setValue("busqueda", texto);
+    }, [searchParams, camposBusqueda, datos, setDatosVisibles, setValue]);
 
     return (
         <Toolbar
@@ -109,7 +118,7 @@ export default function CuadroBusqueda({
                                 slotProps={{
                                     input: {
                                         endAdornment:
-                                            (texto.length > 0) ? (
+                                            (textoBusqueda.length > 0) ? (
                                                 <InputAdornment position="end">
                                                     <Tooltip title={t("txtVaciarBusq")}>
                                                         <IconButton onClick={manejadorBtnLimpiar}>
