@@ -1,9 +1,8 @@
-import MenuContext from "../../contexts/MenuContext";
 import NavBar from "./NavBar";
 import Sidebar from "./Sidebar";
+import { Box, CircularProgress, Toolbar } from "@mui/material";
 import { useAuth } from "../../hooks";
 import { useState } from "react";
-import { Box, CircularProgress, Toolbar, useTheme, useMediaQuery } from "@mui/material";
 
 
 /**
@@ -12,13 +11,11 @@ import { Box, CircularProgress, Toolbar, useTheme, useMediaQuery } from "@mui/ma
  * @returns {JSX.Element}
  */
 export default function MenuLayout({ children }) {
-    const theme = useTheme();
-    const escritorio = useMediaQuery(theme.breakpoints.up("md"));
     const { cargando } = useAuth();
-    const [mostrarMenu, setMostrarMenu] = useState(escritorio);
+    const [mostrarMenu, setMostrarMenu] = useState(false);
 
     return (
-        <MenuContext value={{ mostrarMenu, setMostrarMenu }}>
+        <>
             {cargando ? (
                 <Box
                     display="flex"
@@ -35,8 +32,8 @@ export default function MenuLayout({ children }) {
                     marginLeft={{
                         xs: "0px", md: mostrarMenu ? "240px" : "0px"
                     }}>
-                    <NavBar />
-                    <Sidebar />
+                    <NavBar mostrarMenu={mostrarMenu} setMostrarMenu={setMostrarMenu} />
+                    <Sidebar mostrarMenu={mostrarMenu} setMostrarMenu={setMostrarMenu} />
                     <Box component="main"
                         sx={{
                             paddingTop: "2vh",
@@ -47,6 +44,6 @@ export default function MenuLayout({ children }) {
                         {children}
                     </Box>
                 </Box>)}
-        </MenuContext>
+        </>
     );
 }
