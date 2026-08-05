@@ -2,7 +2,7 @@ import { jest, beforeEach, expect, describe, test } from '@jest/globals';
 import dayjs from "dayjs";
 import Diagnostico from "../../../../src/models/Diagnostico";
 import ExplicacionLime from "../../../../src/models/ExplicacionLime";
-import { detTextoPersona, evaluarIntervalo, convertirDiagnosticoExportable, decoderOtraEnfermedad, procBool, obtenerDatosPorMes } from "../../../../src/utils/TratarDatos";
+import { obtenerDatosMesActual, detTextoPersona, establecerTextoMeses, evaluarIntervalo, convertirDiagnosticoExportable, decoderOtraEnfermedad, procBool, obtenerDatosPorMes } from "../../../../src/utils/TratarDatos";
 
 describe("Validar la función 'decoderOtraEnfermedad'", () => {
     // --------------------------- Parámetros -----------------------
@@ -207,13 +207,11 @@ describe("Validar la función 'detTextoPersona'", () => {
         };
         return textos[x] || x;
     };
-
     // --------------------------- Parámetros -----------------------
     const params1 = ["paciente", "paciente eliminado"];
     const params2 = ["paciente", "paciente anónimo"];
     const params3 = ["usuario", "usuario eliminado"];
     const params4 = ["usuario", "Juan Pérez"];
-
     // --------------------------- Resultados esperados -----------------------
     const res1 = "Paciente Eliminado";
     const res2 = "Paciente Anónimo";
@@ -233,18 +231,22 @@ describe("Validar la función 'detTextoPersona'", () => {
 
 describe("Validar la función 'obtenerDatosPorMes'", () => {
     // --------------------------- Parámetros -----------------------
-    const params1 = { datos: [
-        { fecha: dayjs(new Date(2023, 1, 1)) },
-        { fecha: dayjs(new Date(2023, 2, 15)) },
-        { fecha: dayjs(new Date(2023, 3, 20)) },
-        { fecha: dayjs(new Date(2023, 4, 5)) }
-    ], clave: "fecha", fechaInicio: dayjs(new Date(2023, 1, 1)), fechaFinal: dayjs(new Date(2023, 4, 30)) };
-    const params2 = { datos: [
-        { fecha: dayjs(new Date(2023, 0, 1)) },
-        { fecha: dayjs(new Date(2023, 1, 15)) },
-        { fecha: dayjs(new Date(2023, 2, 20)) }
-    ], clave: "fecha", fechaInicio: dayjs(new Date(2023, 1, 1)), fechaFinal: dayjs(new Date(2023, 3, 30)) };
-
+    const params1 = {
+        datos: [
+            { fecha: new Date(2023, 1, 1) },
+            { fecha: new Date(2023, 2, 15) },
+            { fecha: new Date(2023, 3, 20) },
+            { fecha: new Date(2023, 4, 5) }
+        ], clave: "fecha", fechaInicio: dayjs(new Date(2023, 1, 1)), fechaFinal: dayjs(new Date(2023, 4, 30))
+    };
+    const params2 = {
+        datos: [
+            { fecha: new Date(2023, 0, 1) },
+            { fecha: new Date(2023, 1, 15) },
+            { fecha: new Date(2023, 2, 20) }
+        ], clave: "fecha", fechaInicio: dayjs(new Date(2023, 1, 1)), fechaFinal: dayjs(new Date(2023, 3, 30))
+    };
+    // --------------------------- Resultados esperados -----------------------
     const res1 = { 1: 1, 2: 1, 3: 1, 4: 1 };
     const res2 = { 1: 1, 2: 1, 3: 0 };
 
@@ -254,5 +256,23 @@ describe("Validar la función 'obtenerDatosPorMes'", () => {
     ])("CP - %s", (idPrueba, params, resEsperada) => {
         const res = obtenerDatosPorMes(params.datos, params.clave, params.fechaInicio, params.fechaFinal);
         expect(res).toEqual(resEsperada);
+    });
+});
+
+describe("Validar la función 'establecerTextoMeses'", () => {
+    test("CP - 81", () => {
+        const func = (x) => {
+            const claves = { "txtEnero": "Enero", "txtFebrero": "Febrero", "txtMarzo": "Marzo" };
+            return (x in claves) ? claves[x] : x;
+        };
+        const res = establecerTextoMeses({ 0: 5, 1: 10, 2: 15 }, func);
+        expect(res).toEqual({ "Enero": 5, "Febrero": 10, "Marzo": 15 });
+    });
+});
+
+describe("Validar la función 'obtenerDatosMesActual'", () => {
+    test("CP - 82", () => {
+        const res = obtenerDatosMesActual({ "txtEnero": 5, "txtFebrero": 10, "txtMarzo": 15 });
+        expect(res).toEqual(15);
     });
 });

@@ -83,7 +83,7 @@ export default class Paciente {
     get fechaCreacionFormateada() {
         return dayjs(
             this.fechaCreacion, "DD-MM-YYYY"
-        );
+        ).toDate();
     }
 
     /**

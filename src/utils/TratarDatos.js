@@ -142,10 +142,10 @@ export function detTextoPersona(rol, nombre, t) {
 
 /**
  * Obtiene un objeto con la cantidad de datos por mes.
- * @param {Array<Object>} datos - Datos con fechas a filtrar.
- * @param {String} clave - Clave del objeto que contiene la fecha.
- * @param {Dayjs} fechaInicio - Fecha de inicio para calcular los meses.
- * @param {Dayjs} fechaFinal - Fecha final para calcular los meses.
+ * @param {Array<Object>} datos Datos con fechas a filtrar.
+ * @param {String} clave Clave del objeto que contiene la fecha.
+ * @param {Dayjs} fechaInicio Fecha de inicio para calcular los meses.
+ * @param {Dayjs} fechaFinal Fecha final para calcular los meses.
  * @returns {Object} Objeto con la cantidad de datos por mes, donde las claves son los nombres de 
  * los meses y los valores son la cantidad de datos.
  */
@@ -159,7 +159,7 @@ export function obtenerDatosPorMes(datos, clave, fechaInicio, fechaFinal) {
     }
 
     datos.forEach((x) => {
-        const mesInstancia = x[clave].get("month");
+        const mesInstancia = x[clave].getMonth();
         if (x[clave] >= fechaInicio && x[clave] <= fechaFinal) {
             mapeo[mesInstancia] += 1;
         }
@@ -180,7 +180,6 @@ export function establecerTextoMeses(datos, t) {
     for (const i in datos) {
         res[t(TXT_MESES[i])] = datos[i];
     }
-
     return res;
 };
 

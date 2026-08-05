@@ -19,6 +19,8 @@ import { useTranslation } from "react-i18next";
 const fechaInicio = dayjs().subtract(4, "month").set("date", 1).set("hour", 0).set("minute", 0).
     set("second", 0).set("millisecond", 0);
 const fechaFinal = dayjs();
+const paddingTarjetas = "2vh 0vh 0vw 0vw";
+const paddingGraficos = "0vh 1.5vw";
 
 /**
  * Menú principal para los administradores. Muestra la cantidad de diagnósticos y usuarios nuevos.
@@ -30,18 +32,14 @@ export default function MenuAdministrador() {
     const { usuarios, error: errorUsuarios } = useUsuarios(true);
     const { t } = useTranslation();
     const [modal, setModal] = useState({ mostrar: false, texto: "" });
-    const diagnosticosPorMes = useMemo(() => {
-        const datos = obtenerDatosPorMes(
-            diagnosticos ? diagnosticos : [], "fechaDayJs", fechaInicio, fechaFinal
-        );
-        return establecerTextoMeses(datos, t);
-    }, [diagnosticos, t]);
-    const usuariosPorMes = useMemo(() => {
-        const datos = obtenerDatosPorMes(
-            usuarios ? usuarios : [], "fechaRegistroDayJs", fechaInicio, fechaFinal
-        );
-        return establecerTextoMeses(datos, t);
-    }, [usuarios, t]);
+    const diagnosticosPorMes = useMemo(() =>
+        obtenerDatosPorMes(
+            diagnosticos ? diagnosticos : [], "fecha", fechaInicio, fechaFinal
+        ), [diagnosticos]);
+    const usuariosPorMes = useMemo(() =>
+        obtenerDatosPorMes(
+            usuarios ? usuarios : [], "fechaRegistro", fechaInicio, fechaFinal
+        ), [usuarios]);
     const diagnosticosMesActual = useMemo(() =>
         obtenerDatosMesActual(diagnosticosPorMes)
         , [diagnosticosPorMes]);
@@ -49,16 +47,18 @@ export default function MenuAdministrador() {
         obtenerDatosMesActual(usuariosPorMes)
         , [usuariosPorMes]);
     const datosGraficoBarras = useMemo(() => {
+        const diagnosticos = establecerTextoMeses(diagnosticosPorMes, t);
+        const usuarios = establecerTextoMeses(usuariosPorMes, t);
         return {
             datasets: [
                 {
                     label: t("txtDiagnosticosRealizados"),
-                    data: diagnosticosPorMes,
+                    data: diagnosticos,
                     backgroundColor: 'rgba(255, 99, 132, 0.5)'
                 },
                 {
                     label: t("txtNuevosUsuarios"),
-                    data: usuariosPorMes,
+                    data: usuarios,
                     backgroundColor: 'rgba(54, 162, 235, 0.5)'
                 }
             ]
@@ -110,19 +110,21 @@ export default function MenuAdministrador() {
         <>
             {mostrarPantallaCarga ? <PantallaCarga /> : (
                 <Grid columns={{ xs: 1, sm: 2, md: 4 }} container spacing={2}>
-                    <AdvertenciaEspacio numDiagnosticos={numDiagnosticos} />
                     <Grid size={4}>
                         <Typography variant="h4" fontStyle="bold" align="left">
                             {t("txtBienvenida", { nombre: usuario?.nombre })}
                         </Typography>
                         <Divider sx={{ padding: "1vh 0vw" }} />
                     </Grid>
+                    <Grid size={4}>
+                        <AdvertenciaEspacio numDiagnosticos={numDiagnosticos} />
+                    </Grid>
                     <Grid
                         size={1}
                         display="flex"
                         justifyContent="center"
                         alignItems="center"
-                        padding="2vh 0vh 0vw 0vw">
+                        padding={paddingTarjetas}>
                         <TarjetaMenuPrincipal
                             titulo={t("txtDiagnosticosMes")}
                             valor={diagnosticosMesActual}
@@ -134,7 +136,7 @@ export default function MenuAdministrador() {
                         display="flex"
                         justifyContent="center"
                         alignItems="center"
-                        padding="2vh 0vh 0vw 0vw">
+                        padding={paddingTarjetas}>
                         <TarjetaMenuPrincipal
                             titulo={t("txtUsuariosMes")}
                             valor={usuariosMesActual}
@@ -146,7 +148,7 @@ export default function MenuAdministrador() {
                         display="flex"
                         justifyContent="center"
                         alignItems="center"
-                        padding="2vh 0vh 0vw 0vw">
+                        padding={paddingTarjetas}>
                         <TarjetaMenuPrincipal
                             titulo={t("txtDiagnosticosRecolectados")}
                             valor={numDiagnosticos}
@@ -158,7 +160,7 @@ export default function MenuAdministrador() {
                         display="flex"
                         justifyContent="center"
                         alignItems="center"
-                        padding="2vh 0vh 0vw 0vw">
+                        padding={paddingTarjetas}>
                         <TarjetaMenuPrincipal
                             titulo={t("txtDiagnosticosValidos")}
                             valor={numDiagnosticosValidados}
@@ -170,7 +172,7 @@ export default function MenuAdministrador() {
                         display="flex"
                         justifyContent="center"
                         alignItems="center"
-                        padding="0vh 1.5vw">
+                        padding={paddingGraficos}>
                         <GraficoBarras titulo={t("titGraficoBarrasMenu")} datos={datosGraficoBarras} />
                     </Grid>
                     <Grid
@@ -179,7 +181,7 @@ export default function MenuAdministrador() {
                         justifyContent="center"
                         alignItems="center"
                         height="40vh"
-                        padding="0vh 1.5vw">
+                        padding={paddingGraficos}>
                         <GraficoPastel titulo={t("titGraficoPastelMenuAdmin")} datos={datosGraficoPastel} />
                     </Grid>
                 </Grid>

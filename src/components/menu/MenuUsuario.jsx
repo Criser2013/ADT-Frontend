@@ -18,6 +18,8 @@ const fechaInicio = dayjs().subtract(4, "month").set("date", 1).set("hour", 0).s
     set("second", 0).set("millisecond", 0);
 const fechaFinal = dayjs();
 const fechaTimestamp = Timestamp.fromDate(fechaInicio.toDate());
+const paddingTarjetas = "2vh 0vh 0vw 0vw";
+const paddingGraficos = "0vh 1.5vw";
 
 /**
  * Menú principal para los usuarios. Muestra la cantidad de pacientes y diagnósticos registrados este mes y
@@ -30,35 +32,33 @@ export default function MenuUsuario() {
     const { pacientes, error: errorPacientes } = usePacientes(true);
     const { t } = useTranslation();
     const [modal, setModal] = useState({ mostrar: false, texto: "" });
-    const diagnosticosPorMes = useMemo(() => {
-        const datos = obtenerDatosPorMes(
-            diagnosticos ? diagnosticos : [], "fechaDayJs", fechaInicio, fechaFinal
-        );
-        return establecerTextoMeses(datos, t);
-    }, [diagnosticos, t]);
-    const pacientesPorMes = useMemo(() => {
-        const datos = obtenerDatosPorMes(
+    const diagnosticosPorMes = useMemo(() =>
+        obtenerDatosPorMes(
+            diagnosticos ? diagnosticos : [], "fecha", fechaInicio, fechaFinal
+        ), [diagnosticos]);
+    const pacientesPorMes = useMemo(() =>
+        obtenerDatosPorMes(
             pacientes ? pacientes : [], "fechaCreacionFormateada", fechaInicio, fechaFinal
-        );
-        return establecerTextoMeses(datos, t);
-    }, [pacientes, t]);
+        ), [pacientes]);
     const diagnosticosMesActual = useMemo(() =>
         obtenerDatosMesActual(diagnosticosPorMes)
-    , [diagnosticosPorMes]);
-    const pacientesMesActual = useMemo(() => 
+        , [diagnosticosPorMes]);
+    const pacientesMesActual = useMemo(() =>
         obtenerDatosMesActual(pacientesPorMes)
-    , [pacientesPorMes]);
+        , [pacientesPorMes]);
     const datosGraficoBarras = useMemo(() => {
+        const diagnosticos = establecerTextoMeses(diagnosticosPorMes, t);
+        const pacientes = establecerTextoMeses(pacientesPorMes, t);
         return {
             datasets: [
                 {
                     label: t("txtDiagnosticosRealizados"),
-                    data: diagnosticosPorMes,
+                    data: diagnosticos,
                     backgroundColor: 'rgba(255, 99, 132, 0.5)'
                 },
                 {
                     label: t("txtNuevosPacientes"),
-                    data: pacientesPorMes,
+                    data: pacientes,
                     backgroundColor: 'rgba(54, 162, 235, 0.5)'
                 }
             ]
@@ -110,31 +110,31 @@ export default function MenuUsuario() {
                             display="flex"
                             justifyContent="center"
                             alignItems="center"
-                            padding="2vh 0vh 0vw 0vw">
+                            padding={paddingTarjetas}>
                             <TarjetaMenuPrincipal
                                 titulo={t("txtDiagnosticosMes")}
                                 valor={diagnosticosMesActual}
                                 icono={<DiagnosticoIcono sx={{ fontSize: "4.5vh" }} />}
-                                altura="100%"/>
+                                altura="100%" />
                         </Grid>
                         <Grid
                             size={1}
                             display="flex"
                             justifyContent="center"
                             alignItems="center"
-                            padding="2vh 0vh 0vw 0vw">
+                            padding={paddingTarjetas}>
                             <TarjetaMenuPrincipal
                                 titulo={t("txtPacientesMes")}
                                 valor={pacientesMesActual}
                                 icono={<PersonIcon sx={{ fontSize: "4.5vh" }} />}
-                                altura="100%"/>
+                                altura="100%" />
                         </Grid>
                         <Grid
                             size={1}
                             display="flex"
                             justifyContent="center"
                             alignItems="center"
-                            padding="0vh 1.5vw">
+                            padding={paddingGraficos}>
                             <GraficoBarras titulo={t("titGraficoBarrasMenu")} datos={datosGraficoBarras} />
                         </Grid>
                         <Grid
@@ -142,7 +142,7 @@ export default function MenuUsuario() {
                             display="flex"
                             justifyContent="center"
                             alignItems="center"
-                            padding="0vh 1.5vw">
+                            padding={paddingGraficos}>
                             <GraficoPastel titulo={t("titGraficoPastelMenuUsuario")} datos={datosGraficoPastel} />
                         </Grid>
                     </Grid>

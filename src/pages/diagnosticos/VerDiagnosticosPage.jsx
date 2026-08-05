@@ -212,7 +212,9 @@ export default function VerDiagnosticosPage() {
                         pestanas={listadoPestanas}
                         activarBtnAtras={false} />
                     <Grid container columns={1} spacing={3} sx={{ marginTop: "3vh" }}>
-                        <AdvertenciaEspacio numDiagnosticos={diagnosticos?.length} />
+                        <Grid size={1}>
+                            <AdvertenciaEspacio numDiagnosticos={diagnosticos?.length} />
+                        </Grid>
                         <Grid size={1} display="flex" justifyContent="space-between" alignItems="center">
                             <Tooltip title={t("txtAyudaBtnRecargar")}>
                                 <IconButton onClick={manejadorBtnRecargar}>

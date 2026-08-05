@@ -85,9 +85,9 @@ describe("Pruebas para la clase Paciente", () => {
                 true, ["Diabetes Mellitus", "Hipertensión arterial"]
             );
 
-            expect(paciente.edad).toBe(26);
+            expect(paciente.edad).toEqual(26);
             expect(paciente.fechaNacimientoFormateada.format("DD-MM-YYYY")).toBe("01-01-2000");
-            expect(paciente.fechaCreacionFormateada.format("DD-MM-YYYY")).toBe("07-06-2026");
+            expect(paciente.fechaCreacionFormateada).toEqual(new Date("2026-06-07"));
             expect(paciente.comorbilidadesCodificadas).toEqual({
                 "Diabetes Mellitus": 1, "Hipertensión arterial": 1,
                 "Enfermedad vascular": 0, "Trombofilia": 0,
