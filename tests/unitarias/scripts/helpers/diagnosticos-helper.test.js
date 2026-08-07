@@ -1,7 +1,6 @@
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
 import ExplicacionLime from "../../../../src/models/ExplicacionLime";
 
-
 jest.unstable_mockModule("firebase/firestore", () => ({
     Timestamp: {
         toDate: jest.fn((timestamp) => timestamp),
@@ -20,8 +19,10 @@ jest.unstable_mockModule("../../../../src/services/Firestore", () => ({
 }));
 
 const { peticionApi } = await import("../../../../src/services/Api");
-const { cambiarDiagnostico, eliminarDiagnostico, verDiagnostico, verDiagnosticos, verDiagnosticosPorMedico } = await import("../../../../src/services/Firestore");
-const firebase = await import("firebase/firestore");
+const {
+    cambiarDiagnostico, eliminarDiagnostico, verDiagnostico,
+    verDiagnosticos, verDiagnosticosPorMedico } = await import("../../../../src/services/Firestore");
+const { Timestamp } = await import("firebase/firestore");
 const Diagnostico = (await import("../../../../src/models/Diagnostico")).default;
 const DiagnosticosHelper = (await import("../../../../src/helpers/diagnosticos-helper")).default;
 
@@ -32,11 +33,9 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
             "id", "medicoId", "pacienteId", [], new Date("2026-04-23"),
             0, false, { tos: false }, { wbc: 12300 }
         );
-
         // ---------------------- Respuestas esperadas ----------------------
         const res1 = { success: true };
         const res2 = { success: false, error: "Error al diagnosticar" };
-
         // ---------------------- Mocks ----------------------
         const mocks1 = {
             peticionApi: {
@@ -93,11 +92,9 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
             new Date("2026-04-23"), 0, false, { tos: false }, { wbc: 12300 },
             true, null, 0.6, new ExplicacionLime([{ campo: "edad", contribucion: 0.2 }])
         );
-
         // ---------------------- Respuestas esperadas ----------------------
         const res1 = { success: true, data: expect.any(Diagnostico) };
         const res2 = { success: false, error: "Error al validar" };
-
         // ---------------------- Mocks ----------------------
         const mock1 = {
             success: true,
@@ -114,15 +111,12 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
             ["191", mock2, param2, res2]
         ])("CP - %s", async (idPrueba, mock, params, resEsperada) => {
             cambiarDiagnostico.mockResolvedValue(mock);
-
             const helper = new DiagnosticosHelper("token", {});
             const res = await helper.validarDiagnostico(params, true);
-
             expect(res).toEqual(resEsperada);
             expect(cambiarDiagnostico).toHaveBeenCalledWith(
                 params.id, params.usuario, expect.any(Object), expect.any(Object)
             );
-
             if (resEsperada.success) {
                 expect(res.data.validado).toEqual(true);
             }
@@ -132,18 +126,16 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
     describe("Validar el método 'cargarDiagnostico'", () => {
         // ---------------------- Parámetros ----------------------
         const param = "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjjj-jlasdo1212kl1jlasdo1212kl11"
-
         // ---------------------- Respuestas esperadas ----------------------
         const res1 = { success: true, data: expect.any(Diagnostico) };
         const res2 = { success: false, error: "Error al cargar" };
-
         // ---------------------- Mocks ----------------------
         const mocks1 = {
             success: true, data: {
                 id: "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjjj",
                 usuario: "jlasdo1212kl1jlasdo1212kl11",
                 otraEnfermedad: false, paciente: "pacienteId",
-                fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")),
+                fecha: Timestamp.fromDate(new Date("2026-04-23")),
                 probabilidad: 0.5, explicacion: [{ campo: "edad", contribucion: 0.2 }],
                 diagnosticoModelo: true, diagnosticoMedico: false,
                 comorbilidades: [], tos: true, wbc: 12300
@@ -160,10 +152,8 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
             ["179", mocks2, param, res2]
         ])("CP - %s", async (idPrueba, mocks, params, resEsperada) => {
             verDiagnostico.mockResolvedValue(mocks);
-
             const helper = new DiagnosticosHelper("token", {});
             const res = await helper.cargarDiagnostico(params);
-
             expect(res).toEqual(resEsperada);
             expect(verDiagnostico).toHaveBeenCalledWith(
                 "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjjj", "jlasdo1212kl1jlasdo1212kl11", {}
@@ -179,14 +169,12 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
             }
         };
         const params2 = {
-            params: { uid: "jlasdo1212kl1jlasdo1212kl11", fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")) },
+            params: { uid: "jlasdo1212kl1jlasdo1212kl11", fecha: Timestamp.fromDate(new Date("2026-04-23")) },
             cargarTodos: false
         };
-
         // ---------------------- Respuestas esperadas ----------------------
         const res1 = { success: true, data: expect.arrayOf(expect.any(Diagnostico)) }
         const res2 = { success: true, data: expect.arrayOf(expect.any(Diagnostico)) };
-
         // ---------------------- Mocks ----------------------
         const mocks2 = {
             verDiagnosticosPorMedico: {
@@ -195,7 +183,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
                         id: "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj1",
                         usuario: "jlasdo1212kl1jlasdo1212kl11",
                         otraEnfermedad: false, paciente: "pacienteId",
-                        fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")),
+                        fecha: Timestamp.fromDate(new Date("2026-04-23")),
                         probabilidad: 0.5, explicacion: [{ campo: "edad", contribucion: 0.2 }],
                         diagnosticoModelo: true, diagnosticoMedico: false,
                         comorbilidades: [], tos: true, wbc: 12300
@@ -204,7 +192,7 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
                         id: "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj2",
                         usuario: "jlasdo1212kl1jlasdo1212kl11",
                         otraEnfermedad: false, paciente: "pacienteId",
-                        fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")),
+                        fecha: Timestamp.fromDate(new Date("2026-04-23")),
                         probabilidad: 0.5, explicacion: [{ campo: "edad", contribucion: 0.2 }],
                         diagnosticoModelo: true, diagnosticoMedico: false,
                         comorbilidades: [], tos: true, wbc: 12300
@@ -215,29 +203,12 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
         const mocks1 = {
             verDiagnosticos: {
                 success: true, data: [
-                    {
-                        id: "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj1",
-                        usuario: "jlasdo1212kl1jlasdo1212kl11",
-                        otraEnfermedad: false, paciente: "pacienteId",
-                        fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")),
-                        probabilidad: 0.5, explicacion: [{ campo: "edad", contribucion: 0.2 }],
-                        diagnosticoModelo: true, diagnosticoMedico: false,
-                        comorbilidades: [], tos: true, wbc: 12300
-                    },
-                    {
-                        id: "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj2",
-                        usuario: "jlasdo1212kl1jlasdo1212kl11",
-                        otraEnfermedad: false, paciente: "pacienteId",
-                        fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")),
-                        probabilidad: 0.5, explicacion: [{ campo: "edad", contribucion: 0.2 }],
-                        diagnosticoModelo: true, diagnosticoMedico: false,
-                        comorbilidades: [], tos: true, wbc: 12300
-                    },
+                    ...mocks2.verDiagnosticosPorMedico.data,
                     {
                         id: "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj3",
                         usuario: "jlasdo1212kl1jlasdo1212kl12",
                         otraEnfermedad: false, paciente: "pacienteId",
-                        fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")),
+                        fecha: Timestamp.fromDate(new Date("2026-04-23")),
                         probabilidad: 0.5, explicacion: [{ campo: "edad", contribucion: 0.2 }],
                         diagnosticoModelo: true, diagnosticoMedico: false,
                         comorbilidades: [], tos: true, wbc: 12300
@@ -262,7 +233,6 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
 
             const helper = new DiagnosticosHelper("token", {});
             const res = await helper.cargarDiagnosticos(params.cargarTodos, params.params);
-
             expect(res).toEqual(resEsperada);
 
             if (params.cargarTodos) {
@@ -291,11 +261,9 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
                 "1fffffff-3ggg-4hhh-5iii-6jjjjjjjjjj2-jlasdo1212kl1jlasdo1212kl11"
             ]
         };
-
         // ---------------------- Respuestas esperadas ----------------------
         const res1 = { success: true, error: null };
         const res2 = { success: false, error: "Error al eliminar" };
-
         // ---------------------- Mocks ----------------------
         const mock1 = jest.fn().mockResolvedValue({ success: true });
         const mock2 = jest.fn().mockResolvedValueOnce({ success: true }).
@@ -311,10 +279,8 @@ describe("Validar los métodos de la clase DiagnosticosHelper", () => {
         ])("CP - %s", async (idPrueba, mock, params, resEsperada) => {
             eliminarDiagnostico.mockImplementation(mock);
             verDiagnosticos.mockResolvedValue({ success: true, data: [] });
-
             const helper = new DiagnosticosHelper("token", {});
             const res = await helper.eliminarDiagnosticos(params.compuesto);
-
             expect(res).toEqual(resEsperada);
             expect(eliminarDiagnostico).toHaveBeenCalledTimes(params.id.length);
             for (let i = 0; i < params.id.length; i++) {

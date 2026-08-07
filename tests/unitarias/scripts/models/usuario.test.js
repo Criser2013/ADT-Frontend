@@ -1,5 +1,5 @@
-import { jest, expect, describe, test } from "@jest/globals";
 import Usuario from "../../../../src/models/Usuario";
+import { jest, expect, describe, test } from "@jest/globals";
 
 describe("Validar los métodos de la clase 'Usuario'", () => {
     describe("Validar los getters de la clase 'Usuario'", () => {

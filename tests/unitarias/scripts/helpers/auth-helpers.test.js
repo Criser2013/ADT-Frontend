@@ -8,7 +8,6 @@ jest.unstable_mockModule('../../../../src/services/Autenticacion', () => ({
     guardarCredsOAuth: jest.fn()
 }));
 
-
 const authService = await import('../../../../src/services/Autenticacion');
 const { iniciarSesion } = await import('../../../../src/helpers/auth-helper');
 
@@ -16,13 +15,11 @@ describe("Validar la función 'iniciarSesion'", () => {
     // -------------------------- Parámetros ---------------------------
     const params1 = { firebase: "firebaseAuth", permisos: ["scope1", "scope2"], usuario: null, idioma: "es" };
     const params2 = { firebase: "firebaseAuth", permisos: ["scope3", "scope4"], usuario: null, idioma: "es" };
-
     // -------------------------- Respuestas esperadas ---------------------------
     const res1 = { success: true, usuario: { uid: "123" }, rol: false, tiempoExpiracion: 1000, accessToken: "token" };
     const res2 = { success: false, error: "errIniciarSesion" };
     const res3 = { success: false, error: "errPermisos" };
     const res4 = { success: false, error: "errVerificarRegistro" };
-
     // -------------------------- Mocks ---------------------------
     const mockInicioSesion1 = {
         success: true, res: {
@@ -45,7 +42,6 @@ describe("Validar la función 'iniciarSesion'", () => {
         }
     };
     const mockInicioSesion2 = { success: false, error: "errIniciarSesion" };
-
     const mockRegistrar1 = { success: true };
     const mockRegistrar2 = { success: false };
 
@@ -61,9 +57,7 @@ describe("Validar la función 'iniciarSesion'", () => {
     ])("CP - %s", async (idPrueba, mocks, params, resEsperada, errorPermisos, errorRegistro) => {
         authService.iniciarSesionGoogle.mockResolvedValue(mocks.login);
         authService.registrarUsuario.mockResolvedValue(mocks.registrar);
-
         const res = await iniciarSesion(params.firebase, params.permisos, params.usuario);
-
         expect(res).toEqual(resEsperada);
         expect(authService.iniciarSesionGoogle).toHaveBeenCalledTimes(1);
         expect(authService.iniciarSesionGoogle).toHaveBeenCalledWith(params.firebase, params.permisos, params.usuario);

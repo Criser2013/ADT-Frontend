@@ -7,7 +7,7 @@ jest.unstable_mockModule("firebase/firestore", () => ({
     }
 }));
 
-const firebase = await import("firebase/firestore");
+const { Timestamp } = await import("firebase/firestore");
 const { Diagnostico, ExplicacionLime } = await import("../../../../src/models");
 
 const sintomasBinarios = {
@@ -32,7 +32,6 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
                 "1", "1", "1", comorbilidades,
                 new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos
             );
-
             expect(diag.comorbilidadesCodificadas).toEqual({
                 "Diabetes Mellitus": 1, "Hipertensión arterial": 1,
                 "Enfermedad vascular": 0, "Trombofilia": 0,
@@ -52,7 +51,8 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
             const diag = new Diagnostico(
                 "1", "1", "1", comorbilidades, new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos
             );
-            const respuesta = {
+            const res = diag.toJsonApi();
+            expect(res).toEqual({
                 edad: 60, sexo: 0, bebedor: 0, fumador: 0, proc_quirurgico_traumatismo: 0,
                 viaje_prolongado: 0, tos: 0, fiebre: 0, crepitaciones: 0, dolor_toracico: 1,
                 malignidad: 0, hemoptisis: 0, disnea: 1, sibilancias: 0, derrame: 0,
@@ -63,20 +63,13 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
                 hematologica: 0, vascular: 0, pulmonar: 0, renal: 0, cardiaca: 0, enfermedad_coronaria: 0,
                 endocrina: 0, gastrointestinal: 0, urologica: 0, neurologica: 0, trombofilia: 0, vih: 0,
                 diabetes_mellitus: 1, hepatopatia_cronica: 0, hipertension_arterial: 1
-            };
-
-            const res = diag.toJsonApi();
-            expect(res).toEqual(respuesta);
+            });
         });
     });
 
-    describe("Validar el método 'validar", () => {
-        // ---------------------- Parámetros -------------------------
-        const params = 1;
-
+    describe("Validar el método 'validar'", () => {
         // ---------------------- Resultados esperados -------------------------
         const resEsperada = { diagMedico: 1, validado: true };
-
         // ---------------------- Mocks -------------------------
         const inst1 = new Diagnostico(
             "1", "1", "1", comorbilidades, new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos
@@ -87,8 +80,8 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
         );
 
         test.each([
-            ["167", inst1, params, resEsperada],
-            ["168", inst2, params, resEsperada]
+            ["167", inst1, 1, resEsperada],
+            ["168", inst2, 1, resEsperada]
         ])("CP - %s", (idPrueba, instancia, params, resEsperada) => {
             if (instancia.validado) {
                 expect(() => instancia.validar(params)).toThrow("El diagnóstico ya ha sido validado previamente.");
@@ -107,19 +100,12 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
                 "1", "1", "1", comorbilidades, Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos
             );
             const resEsperada = {
-                sexo: 0,
-                otraEnfermedad: true,
-                fecha: expect.any(Object),
-                paciente: "1",
-                diagnosticoModelo: null,
-                diagnosticoMedico: null,
-                probabilidad: null,
+                sexo: 0, otraEnfermedad: true, fecha: expect.any(Object), paciente: "1",
+                diagnosticoModelo: null, diagnosticoMedico: null, probabilidad: null,
                 explicacion: undefined,
                 comorbilidades: ["Hipertensión arterial", "Enfermedad hematológica"],
-                ...sintomasBinarios,
-                ...sintomasNumericos
+                ...sintomasBinarios, ...sintomasNumericos
             };
-
             const res = inst.toJson();
             expect(res).toStrictEqual(resEsperada);
         });
@@ -129,7 +115,7 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
         test("CP - 170", () => {
             const json = {
                 id: "1", usuario: "1", paciente: "1", comorbilidades: ["Hipertensión arterial", "Enfermedad hematológica"],
-                fecha: firebase.Timestamp.fromDate(new Date("2026-04-23")), otraEnfermedad: true,
+                fecha: Timestamp.fromDate(new Date("2026-04-23")), otraEnfermedad: true,
                 diagnosticoModelo: 1, diagnosticoMedico: 0, probabilidad: 0.5,
                 explicacion: [{ campo: "edad", contribucion: 0.5 }],
                 sexo: 0, fumador: false, bebedor: false, tos: false, fiebre: false,
@@ -174,12 +160,12 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
     describe("Validar los getters de la clase", () => {
         test("CP - 171", () => {
             const inst = new Diagnostico(
-                "1", "1", "1", comorbilidades, new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos,
+                "1", "1", "1", comorbilidades,
+                new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos,
                 true, false, 0.5, new ExplicacionLime([{ campo: "edad", contribucion: 0.5 }]),
                 "Usuario 1", "Paciente 1", "1234567890"
 
             );
-
             expect(inst.edad).toEqual(60);
             expect(inst.idCompuesto).toEqual("1-1");
             expect(inst.fechaFormateada).toEqual("23-04-2026");
@@ -203,7 +189,8 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
     describe("Validar el método 'cambiarDatosPersonas'", () => {
         test("CP - 194", () => {
             const inst = new Diagnostico(
-                "idDiagnostico", "isUsuario", "1", comorbilidades, new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos
+                "idDiagnostico", "isUsuario", "1", comorbilidades, new Date("2026-04-23"), 0,
+                true, sintomasBinarios, sintomasNumericos
             );
             inst.cambiarDatosPersonas("idUsuarioNuevo", "idPacienteNuevo", "cedula");
             expect(inst.nombreUsuario).toEqual("idUsuarioNuevo");
@@ -213,21 +200,14 @@ describe("Validar los métodos de la clase 'Diagnostico'", () => {
     });
 
     describe("Validar el método mostrarId", () => {
-        // ---------------------- Parámetros -----------------------
-        const param1 = true;
-        const param2 = false;
-        // ---------------------- Resultados esperados ----------------
-        const res1 = "idDiagnostico-idUsuario";
-        const res2 = "idDiagnostico";
-        // ---------------------- Mock ----------------------
         const inst = new Diagnostico(
-            "idDiagnostico", "idUsuario", "1", comorbilidades, new Date("2026-04-23"), 0, true, sintomasBinarios, sintomasNumericos,
-            "Usuario", "paciente", "cedula"
+            "idDiagnostico", "idUsuario", "1", comorbilidades, new Date("2026-04-23"), 0,
+            true, sintomasBinarios, sintomasNumericos, "Usuario", "paciente", "cedula"
         );
 
         test.each([
-            ["196", param1, res1],
-            ["197", param2, res2]
+            ["196", true, "idDiagnostico-idUsuario"],
+            ["197", false, "idDiagnostico"]
         ])("CP - %s", (idPrueba, param, resEsperada) => {
             const res = inst.mostrarId(param);
             expect(res).toBe(resEsperada);
