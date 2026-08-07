@@ -78,12 +78,13 @@ export default function VerDiagnosticoPage() {
     }, [usuarioAutenticado, persona, diagnostico, t, textoPersona]);
 
     useEffect(() => {
-        if (error == "errIdInvalido") {
+        if (["errIdInvalido", "accesoDenegado"].includes(error)) {
             navigate("/diagnosticos");
+            return;
         } else if (error) {
             setModalError({ mostrar: true, texto: error });
         }
-    }, [error, navigate]);
+    }, [usuarioAutenticado?.uid, error, navigate, id]);
 
     async function manejadorBtnBorrar() {
         setModalEliminacion(false);

@@ -37,7 +37,6 @@ export default function EditarPacientePage() {
     return (
         <MenuLayout>
             <FormPaciente
-                url={`/pacientes/${id}`}
                 titulo={t("titEditarPaciente")}
                 pestanas={listadoPestanas}
                 tooltip={t("txtVolverAtras")}

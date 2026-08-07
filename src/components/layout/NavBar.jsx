@@ -1,7 +1,6 @@
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArticleIcon from '@mui/icons-material/Article';
-import MenuContext from "../../contexts/MenuContext";
 import MenuIcon from "@mui/icons-material/Menu";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import {
@@ -11,18 +10,19 @@ import {
 import { BtnTema, PopOverAuth } from "../layout";
 import { SelectIdioma } from "../selects";
 import { useAuth } from "../../hooks";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../constants";
 
 
 /**
  * Barra de navegación que se muestra en las pewstañas que requieren autenticación.
+ * @param {Boolean} mostrarMenu Indica si el menú lateral se muestra o no.
+ * @param {import("react").SetStateAction<Boolean>} setMostrarMenu Función que cambia el estado de mostrarMenu.
  * @returns {JSX.Element}
  */
-export default function Navbar() {
+export default function Navbar({ mostrarMenu, setMostrarMenu }) {
     const { autenticado, usuario } = useAuth();
-    const { mostrarMenu, setMostrarMenu } = useContext(MenuContext);
     const { t } = useTranslation();
     const [urlImg, setUrlImg] = useState("");
     const [popOver, setPopOver] = useState(null);

@@ -1,5 +1,4 @@
 import HomeIcon from "@mui/icons-material/Home";
-import MenuContext from "../../contexts/MenuContext";
 import PeopleIcon from '@mui/icons-material/People';
 import {
     Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
@@ -10,7 +9,7 @@ import {
     DatosIcono
 } from "../icons/IconosSidebar";
 import { useAuth } from "../../hooks";
-import { useContext, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@mui/material/styles";
@@ -18,14 +17,15 @@ import { useTheme } from "@mui/material/styles";
 
 /**
  * Menú de navegación lateral de las pestañas de autenticación.
+ * @param {Boolean} mostrarMenu Indica si el menú lateral se muestra o no.
+ * @param {import("react").SetStateAction<Boolean>} setMostrarMenu Función que cambia el estado de mostrarMenu.
  * @returns {JSX.Element}
  */
-export default function Sidebar() {
+export default function Sidebar({ mostrarMenu, setMostrarMenu }) {
     const navigate = useNavigate();
     const theme = useTheme();
     const { usuario } = useAuth();
     const { t } = useTranslation();
-    const { mostrarMenu, setMostrarMenu } = useContext(MenuContext);
     const urlUsuarios = [
         { txt: t("titMenu"), icono: <HomeIcon />, ruta: "/menu" },
         { txt: t("txtPacientes"), icono: <ListPacienteIcono />, ruta: "/pacientes" },
@@ -41,44 +41,47 @@ export default function Sidebar() {
     const filas = usuario?.rolVisible ? urlAdmin : urlUsuarios;
     const escritorio = useMediaQuery(theme.breakpoints.up("md"));
 
+    /**
+     * @param {String} url Ruta a la que se redirige al usuario.
+     */
+    const manejadorClicMenu = useCallback((url) => {
+        navigate(url);
+    }, [navigate]);
+
+    function manejadorCierreMenu() {
+        setMostrarMenu(false);
+    };
+
     useEffect(() => {
         setMostrarMenu(escritorio);
     }, [escritorio, setMostrarMenu]);
 
-    /**
-     * @param {String} url Ruta a la que se redirige al usuario.
-     */
-    function manejadorClicMenu(url) {
-        setMostrarMenu(false);
-        navigate(url);
-    };
-
     return (
-        <Drawer
-            variant={escritorio ? "persistent" : "temporary"}
-            open={mostrarMenu}
-            onClose={() => setMostrarMenu(false)}
-            sx={{
-                // Se encarga de cerrar el menú en tablets o computadores. No se usa en móviles.
-                display: mostrarMenu, width: 240, flexShrink: 0,
-                [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
-            }}
-            anchor="left">
-            <Toolbar />
-            <Box sx={{ overflow: "auto" }}>
-                <List>
-                    {filas.map((x) => (
-                        <ListItem key={x.txt} disablePadding>
-                            <ListItemButton onClick={() => manejadorClicMenu(x.ruta)}>
-                                <ListItemIcon>
-                                    {x.icono}
-                                </ListItemIcon>
-                                <ListItemText primary={x.txt} />
-                            </ListItemButton>
-                        </ListItem>
-                    ))}
-                </List>
-            </Box>
-        </Drawer>
+        mostrarMenu ? (
+            <Drawer
+                open
+                variant={escritorio ? "persistent" : "temporary"}
+                onClose={manejadorCierreMenu}
+                sx={{
+                    width: 240, flexShrink: 0,
+                    [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
+                }}
+                anchor="left">
+                <Toolbar />
+                <Box sx={{ overflow: "auto" }}>
+                    <List>
+                        {filas.map((x) => (
+                            <ListItem key={x.txt} disablePadding>
+                                <ListItemButton onClick={() => manejadorClicMenu(x.ruta)}>
+                                    <ListItemIcon>
+                                        {x.icono}
+                                    </ListItemIcon>
+                                    <ListItemText primary={x.txt} />
+                                </ListItemButton>
+                            </ListItem>
+                        ))}
+                    </List>
+                </Box>
+            </Drawer>) : null
     );
 };

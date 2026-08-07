@@ -130,7 +130,6 @@ export function useDiagnostico(id, traerInfoPersona = false) {
         , [paciente, usuario, usuarioAutenticado?.rolVisible]);
 
     const manejadorCargaDiagnostico = useCallback(async () => {
-        setError(null);
         const { success, data, error } = await verDiagnostico(id);
         if (success) {
             setDiagnostico(data);
@@ -169,13 +168,17 @@ export function useDiagnostico(id, traerInfoPersona = false) {
 
     useEffect(() => {
         const res = validarId(id.replace(/-\w{28}$/, ""));
+        const uid = id.substring(37);
         if (!res) {
             setError("errIdInvalido");
+            return;
+        } else if ((uid != usuarioAutenticado?.uid) && !usuarioAutenticado?.rolVisible) {
+            setError("accesoDenegado");
             return;
         } else if (res && diagnosticosListo) {
             manejadorCargaDiagnostico();
         }
-    }, [diagnosticosListo, id, manejadorCargaDiagnostico]);
+    }, [diagnosticosListo, id, manejadorCargaDiagnostico, usuarioAutenticado]);
 
     useEffect(() => {
         if (errorPaciente) {
@@ -248,8 +251,6 @@ export function useDiagnosticos(verTodos, uid = null, fecha = null, traerInfoPer
      */
     const manejadorCargaDiagnosticos = useCallback(async (tipo, verTodos, uid, fecha) => {
         let pets = [];
-
-        setError(null);
         if (traerInfoPersona) {
             pets.push(tipo == "paciente" ? manejadorCargaPacientes() : manejadorCargaUsuarios());
         }

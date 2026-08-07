@@ -1,8 +1,9 @@
+import { MenuAdministrador, MenuUsuario } from "../../components/menu";
 import { MenuLayout } from "../../components/layout";
 import { useAuth } from "../../hooks";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { MenuAdministrador, MenuUsuario } from "../../components/menu";
+
 
 /**
  * Página del menú principal de la aplicación.

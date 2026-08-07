@@ -1,14 +1,15 @@
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { Button, Grid, Box, CircularProgress, Tooltip, IconButton } from "@mui/material";
+import { BotoneraTabla, Datatable } from "../../components/datatable";
 import { ChipSexo } from "../../components/tabs/Chips";
-import { Datatable } from "../../components/datatable";
 import { MenuLayout, PantallaCarga } from "../../components/layout";
 import { ModalDoble, ModalSimple } from "../../components/modals";
 import { TabHeader } from "../../components/layout";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOperacionesPacientes, usePacientes } from "../../hooks";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -27,52 +28,9 @@ export default function VerPacientesPage() {
     const [modalEliminacion, setModalEliminacion] = useState(false);
     const [modalError, setModalError] = useState({ mostrar: false, texto: "" });
     const [pacientesSeleccionados, setPacientesSeleccionados] = useState([]);
-    const campos = useMemo(() => [
-        { id: "cedula", label: t("txtCedula"), componente: null, ordenable: true },
-        { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
-        { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo valor={x.sexo} />, ordenable: true },
-        { id: "edad", label: t("txtCampoEdad"), componente: null, ordenable: true },
-        { id: "telefono", label: t("txtTelefono"), componente: null, ordenable: true },
-    ], [t]);
+    const [instancia, setInstancia] = useState(null);
     const listadoPestanas = [{ texto: t("titListaPacientes"), url: "/pacientes" }];
     const mostrarPantallaCarga = cargando || !pacientes;
-
-    async function manejadorBtnRecargar() {
-        setCargando(true);
-        setModalEliminacion(false);
-        setModalError((x) => ({ ...x, mostrar: false }));
-        setPacientesSeleccionados([]);
-        await manejadorCargaPacientes();
-        setCargando(false);
-    };
-
-    /**
-     * @param {Array<Paciente>} pacientes Lista de pacientes seleccionados.
-     */
-    function manejadorBtnEliminar(pacientes) {
-        setPacientesSeleccionados(pacientes.map((x) => x.id));
-        setModalEliminacion(true);
-    };
-
-    async function manejadorBtnModalEliminacion() {
-        setModalEliminacion(false);
-        setCargando(true);
-        await borrarPacientes(pacientesSeleccionados);
-    };
-
-    /**
-     * @param {Array<String>} idsPacientes Arreglo con los IDs de pacientes a eliminar.
-     */
-    async function borrarPacientes(idsPacientes) {
-        const { success, error } = await eliminarPacientes(idsPacientes);
-        if (!success) {
-            setModalError({ mostrar: true, texto: error });
-            setCargando(false);
-        } else {
-            setPacientesSeleccionados([]);
-            await manejadorCargaPacientes();
-        }
-    };
 
     useEffect(() => {
         document.title = t("titListaPacientes");
@@ -83,6 +41,76 @@ export default function VerPacientesPage() {
             setModalError({ mostrar: true, texto: error });
         }
     }, [error]);
+
+    async function manejadorBtnRecargar() {
+        setCargando(true);
+        setModalEliminacion(false);
+        setModalError((x) => ({ ...x, mostrar: false }));
+        setPacientesSeleccionados([]);
+        setInstancia(null);
+        await manejadorCargaPacientes();
+        setCargando(false);
+    };
+
+    /**
+     * @param {Paciente} paciente Instancia de paciente
+     * @param {Event} e Evento del clic. 
+     */
+    const manejadorBtnEditarFila = useCallback((paciente, e) => {
+        e.stopPropagation();
+        navigate(`/pacientes/${paciente.id}/editar`);
+    }, [navigate]);
+
+    /**
+     * @param {Array<Paciente>} pacientes Lista de pacientes seleccionados.
+     */
+    function manejadorBtnEliminar(pacientes) {
+        setPacientesSeleccionados(pacientes.map((x) => x.id));
+        setModalEliminacion(true);
+    };
+
+    /**
+     * @param {Paciente} paciente Instancia de paciente
+     * @param {Event} e Evento del clic. 
+     */
+    const manejadorBtnEliminarFila = useCallback((paciente, e) => {
+        e.stopPropagation();
+        setInstancia(paciente.id);
+        setModalEliminacion(true);
+    }, [setInstancia, setModalEliminacion]);
+
+    async function manejadorBtnModalEliminacion() {
+        setModalEliminacion(false);
+        setCargando(true);
+        const idsPacientes = instancia ? instancia : pacientesSeleccionados;
+        const { success, error } = await eliminarPacientes(idsPacientes);
+        if (!success) {
+            setModalError({ mostrar: true, texto: error });
+            setCargando(false);
+        } else {
+            await manejadorBtnRecargar();
+        }
+    };
+
+    const campos = useMemo(() => [
+        { id: "cedula", label: t("txtCedula"), componente: null, ordenable: true },
+        { id: "nombre", label: t("txtNombre"), componente: null, ordenable: true },
+        { id: "sexo", label: t("txtCampoSexo"), componente: (x) => <ChipSexo valor={x.sexo} />, ordenable: true },
+        { id: "edad", label: t("edad"), componente: null, ordenable: true },
+        { id: "telefono", label: t("txtTelefono"), componente: null, ordenable: true },
+        { id: "accion", label: t("txtAccion"), componente: (x) => (
+            <BotoneraTabla instancia={x} botones={[
+                {
+                    id: "editar", color: "primary", icono: <EditIcon />,
+                    txtAyuda: "txtAyudaBtnEditarPaciente", manejadorClic: manejadorBtnEditarFila
+                },
+                {
+                    id: "eliminar", color: "error", icono: <DeleteIcon />,
+                    txtAyuda: "txtAyudaEliminarPaciente", manejadorClic: manejadorBtnEliminarFila
+                }
+            ]} />
+        )}
+    ], [t, manejadorBtnEditarFila, manejadorBtnEliminarFila]);
 
     return (
         <MenuLayout>

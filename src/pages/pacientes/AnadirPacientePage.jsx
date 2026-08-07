@@ -22,7 +22,6 @@ export default function AnadirPacientePage() {
     return (
         <MenuLayout>
             <FormPaciente
-                url="/pacientes"
                 titulo={t("titAnadirPaciente")}
                 pestanas={listadoPestanas}
                 tooltip={t("txtAtrasDatosPaciente")} />
