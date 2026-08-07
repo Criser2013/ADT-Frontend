@@ -25,7 +25,7 @@ export default function Header({
 }) {
 
     /**
-     * @param {Event} e 
+     * @param {Event} e Evento del clic.
      */
     function seleccionarTodo(e) {
         if (e.target.checked) {

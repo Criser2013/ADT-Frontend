@@ -10,11 +10,11 @@ import { ContComorbilidades } from "../../components/diagnosticos";
 import { MenuLayout, PantallaCarga, TabHeader } from "../../components/layout";
 import { ModalSimple, ModalDoble } from "../../components/modals";
 import { BtnFlotante, PopOver } from "../../components/tabs";
+import { Paciente } from "../../models";
 import { useEffect, useState } from "react";
 import { usePaciente, useOperacionesPacientes } from "../../hooks";
 import { useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Paciente } from "../../models";
 
 
 /**

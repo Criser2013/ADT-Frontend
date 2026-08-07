@@ -3,8 +3,8 @@ import { CAMPOS_BIN, CAMPOS_NUM, COMORBILIDADES, INTERVALOS_PREPROCESAMIENTO, TX
 
 /**
  * Transforma los datos de comorbilidades codificados como one-hot a un Arrray.
- * @param {JSON} datos - JSON con las comorbilidades codificadas como one-hot.
- * @returns {Array}
+ * @param {Object} datos JSON con las comorbilidades codificadas como one-hot.
+ * @returns {Array<String>}
  */
 export function decoderOtraEnfermedad(datos) {
     const aux = [];
@@ -14,25 +14,6 @@ export function decoderOtraEnfermedad(datos) {
         }
     }
     return aux;
-};
-
-/**
- * Valida que los datos de un array cumplan con una condición.
- * @param {Array} array - Array de datos a validar.
- * @param {Function} funcEval - Función para evaluar cada elemento del array.
- * @param {Function} funcVal - Función para validar el resultado de la evaluación.
- * @returns {Boolean}
- */
-export function validarArray(array, funcEval, funcVal, callback) {
-    const errores = [];
-    array.forEach((x) => {
-        errores.push(funcEval(x));
-    });
-
-    const res = errores.every(funcVal);
-    callback(errores);
-
-    return res;
 };
 
 /**

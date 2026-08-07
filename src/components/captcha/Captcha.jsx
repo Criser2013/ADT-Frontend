@@ -6,6 +6,7 @@ import { useAppConfig, useIdioma, useTema } from "../../hooks";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+
 /**
  * Casilla de verificación de captcha para validar que el usuario no es un robot. Valida 
  * la respuesta del captcha con el backend y establece el estado de aceptación del captcha.
@@ -66,16 +67,14 @@ export default function Captcha({ setCarga, setCaptchaAceptado }) {
                 onChange={manejadorCambiosCaptcha}
                 sitekey={reCAPTCHA}
                 hl={idioma}
-                ref={captcha}
-            />
+                ref={captcha}/>
             <ModalSimple
                 mostrar={modal.mostrar}
                 titulo={t("tituloErr")}
                 texto={modal.mensaje}
                 txtBtn={t("txtBtnCerrar")}
                 manejadorBtn={manejadorBtnModal}
-                iconoBtn={<CloseIcon />}
-            />
+                iconoBtn={<CloseIcon />}/>
         </>
     );
 };

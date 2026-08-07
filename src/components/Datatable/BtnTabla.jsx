@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
  * @param {JSX.Element|null} icono Icono que se mostrará en el botón. Por defecto es null.
  * @returns {JSX.Element}
  */
-export default function BtnValidacion({ instancia, manejadorBtn, txtAyuda, color = "primary", icono = null }) {
+export default function BtnTabla({ instancia, manejadorBtn, txtAyuda, color = "primary", icono = null }) {
     const { t } = useTranslation();
     return (
         <Tooltip title={t(txtAyuda)}>
