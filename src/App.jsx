@@ -1,4 +1,6 @@
 import CloseIcon from "@mui/icons-material/Close";
+import dayjs from "dayjs";
+import i18next from "i18next";
 import LogoutIcon from "@mui/icons-material/Logout";
 import Router from "./router";
 import UpdateIcon from '@mui/icons-material/Update';
@@ -17,17 +19,22 @@ import { useTranslation } from "react-i18next";
 export default function App() {
     const { cerrarSesion, error, iniciarSesion, requiereRefresco, usuario } = useAuth();
     const { t } = useTranslation();
-    const [modalSimple, setModalSimple] = useState({
-        mostrar: false, mensaje: ""
-    });
+    const [modalSimple, setModalSimple] = useState({ mostrar: false, texto: "" });
     const [modalDoble, setModalDoble] = useState({
-        mostrar: false, mensaje: "", titulo: "", txtBtn: "", icono: null
+        mostrar: false, texto: "", titulo: "", txtBtn: "", icono: null
     });
+
+    useEffect(() => {
+        import("dayjs/locale/es").then(() => {
+            const idioma = i18next.language.split("-")[0];
+            dayjs.locale(idioma ? idioma : "es");
+        });
+    }, []);
 
     useEffect(() => {
         if (requiereRefresco) {
             setModalDoble({
-                mostrar: true, titulo: t("titModalSesionCaducada"), mensaje: t("txtModalSesionCaducada"),
+                mostrar: true, titulo: t("titModalSesionCaducada"), texto: t("txtModalSesionCaducada"),
                 txtBtn: t("txtBtnExtenderSesion"), icono: <UpdateIcon />
             });
         }
@@ -36,10 +43,10 @@ export default function App() {
     useEffect(() => {
         if (error && error != "errPermisos") {
             const params = usuario ? { usuario: usuario.nombre, correo: usuario.correo } : {};
-            setModalSimple({ mostrar: true, mensaje: t(error, params) });
+            setModalSimple({ mostrar: true, texto: t(error, params) });
         } else if (error == "errPermisos") {
             setModalDoble({ 
-                mostrar: true, mensaje: t("txtModalPermisos"), titulo: t("titModalPermisos"),
+                mostrar: true, texto: t("txtModalPermisos"), titulo: t("titModalPermisos"),
                 txtBtn: t("txtBtnPermisos"), icono: <IconoPermisos />
             });
         }
@@ -67,7 +74,7 @@ export default function App() {
             <ModalDoble
                 mostrar={modalDoble.mostrar}
                 titulo={modalDoble.titulo}
-                texto={modalDoble.mensaje}
+                texto={modalDoble.texto}
                 txtBtnPrincipal={modalDoble.txtBtn}
                 txtBtnSecundario={t("txtBtnCerrarSesion")}
                 manejadorBtnPrincipal={manejadorBtnAutenticar}
@@ -79,7 +86,7 @@ export default function App() {
             <ModalSimple
                 mostrar={modalSimple.mostrar}
                 titulo={t("tituloErr")}
-                texto={modalSimple.mensaje}
+                texto={modalSimple.texto}
                 txtBtn={t("txtBtnCerrar")}
                 manejadorBtn={() => setModalSimple((x) => ({ ...x, mostrar: false }))}
                 iconoBtn={<CloseIcon />}
