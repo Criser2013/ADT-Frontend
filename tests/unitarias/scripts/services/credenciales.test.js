@@ -7,19 +7,16 @@ jest.unstable_mockModule("../../../../src/services/Api", () => {
 })
 
 const { peticionApi } = await import("../../../../src/services/Api");
-const { cargarCredencialesServidor, cargarCredencialesCache, almacenarCredencialesCache } = await import("../../../../src/services/Credenciales");
+const {
+    cargarCredencialesServidor, cargarCredencialesCache, almacenarCredencialesCache
+} = await import("../../../../src/services/Credenciales");
 
 
 describe("Validar la función 'cargarCredencialesServidor'", () => {
-    const params1 = new AbortController();
-    const params2 = new AbortController();
-    const params3 = new AbortController();
-
     // ------------------------- Respuestas esperadas --------------------------
     const res1 = { success: false, error: "No se ha podido cargar las credenciales del servidor." };
     const res2 = { success: true, data: { firebase: { appId: "id" }, recaptcha: "recaptcha", scopesDrive: "scope" } };
     const res3 = { success: false, error: "La petición de credenciales ha sido cancelada." };
-
     // ------------------------- Mocks --------------------------
     const mock1 = { success: false };
     const mock2 = { success: true, data: { appId: "id", driveScopes: "scope", reCAPTCHA: "recaptcha" } };
@@ -35,21 +32,19 @@ describe("Validar la función 'cargarCredencialesServidor'", () => {
     });
 
     test.each([
-        ["104", mock1, params1, res1],
-        ["105", mock2, params2, res2],
-        ["164", mock3, params3, res3]
-    ])("CP - %s", async (idPrueba, mock, params, resEsperada) => {
+        ["104", mock1, new AbortController(), res1, false],
+        ["105", mock2, new AbortController(), res2, false],
+        ["164", mock3, new AbortController(), res3, true]
+    ])("CP - %s", async (idPrueba, mock, params, resEsperada, abortarPeticion) => {
         peticionApi.mockResolvedValue(mock);
 
         const pet = cargarCredencialesServidor(params);
-
         jest.runAllTimersAsync();
 
-        if (idPrueba == "164") {
+        if (abortarPeticion) {
             params.abort();
         }
         const res = await pet
-
         expect(res).toEqual(resEsperada);
         expect(peticionApi).toHaveBeenCalledTimes(idPrueba === "104" ? 5 : 1);
         expect(peticionApi).toHaveBeenCalledWith(
@@ -61,7 +56,6 @@ describe("Validar la función 'cargarCredencialesServidor'", () => {
 describe("Validar la función 'almacenarCredencialesCache'", () => {
     test("CP - 106", () => {
         jest.spyOn(Storage.prototype, "setItem").mockImplementation(jest.fn());
-
         const res = almacenarCredencialesCache({ appId: "id" }, "recaptcha", ["scope1", "scope2"]);
         expect(res).toBe(true);
         expect(sessionStorage.setItem).toHaveBeenCalledTimes(3);
@@ -75,7 +69,6 @@ describe("Validar la función 'cargarCredencialesCache'", () => {
     // ------------------------- Respuestas esperadas --------------------------
     const res1  = { success: true, firebase: {credenciales: "credenciales"}, recaptcha: "recaptcha", scopesDrive: ["scope1", "scope2"] };
     const res2 = { success: false };
-
     // ------------------------- Mocks --------------------------
     const mock1 = (x) => ({
         "session-credenciales-firebase": JSON.stringify({credenciales: "credenciales"}),
@@ -97,7 +90,6 @@ describe("Validar la función 'cargarCredencialesCache'", () => {
         ["108", mock2, res2]
     ])("CP - %s", (idPrueba, mock, resEsperada) => {
         jest.spyOn(Storage.prototype, "getItem").mockImplementation(mock);
-
         const jsonParseSpy = jest.spyOn(JSON, "parse");
 
         const res = cargarCredencialesCache();

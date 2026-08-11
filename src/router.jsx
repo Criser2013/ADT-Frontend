@@ -11,6 +11,7 @@ import {
 import { VerUsuariosPage } from "./pages/usuarios";
 import { MenuPage, Page404 } from "./pages/utils";
 
+
 /**
  * Enrutador principal de la aplicación que define las rutas y páginas.
  * @returns {JSX.Element}

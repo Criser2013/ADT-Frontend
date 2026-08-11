@@ -1,5 +1,5 @@
 import { jest, expect, describe, beforeEach, test } from "@jest/globals";
-import { Usuario } from "../../../../src/models";
+import Usuario from "../../../../src/models/Usuario";
 
 jest.unstable_mockModule("../../../../src/services/Api", () => ({
     peticionApi: jest.fn()
@@ -12,7 +12,6 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
     describe("Validar el método 'cargarUsuario'", () => {
         // ---------------------- Parámetros ----------------------
         const param = "174"
-
         // ---------------------- Respuestas esperadas ----------------------
         const res1 = {
             success: true, data: new Usuario(
@@ -32,7 +31,6 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
             peticionApi.mockResolvedValue(mock);
             const helper = new UsuariosHelper("token");
             const res = await helper.cargarUsuario(idPrueba, "es");
-
             expect(res).toEqual(resObtenida);
             expect(peticionApi).toHaveBeenCalledWith(
                 `admin/usuarios/${idPrueba}`, "GET", {}, null, "token", "es",
@@ -50,7 +48,6 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
                 )]
         };
         const res2 = { success: false, error: "Error al cargar los usuarios" };
-
         // ---------------------- Mocks ----------------------
         const mock1 = {
             success: true, data: {
@@ -61,7 +58,6 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
             }
         };
         const mock2 = { success: false, error: "Error al cargar los usuarios" };
-
 
         beforeEach(() => {
             jest.clearAllMocks();
@@ -74,7 +70,6 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
             peticionApi.mockResolvedValue(mock);
             const helper = new UsuariosHelper("token");
             const res = await helper.cargarUsuarios("es");
-
             expect(res).toEqual(resEsperada);
             expect(peticionApi).toHaveBeenCalledWith(
                 "admin/usuarios", "GET", {}, null, "token", "es",
@@ -86,11 +81,9 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
     describe("Validar el método 'eliminarUsuarios'", () => {
         // ---------------------- Parámetros ----------------------
         const param = [{ uid: "174", nombre: "Usuario de prueba", esAdmin: true }, { uid: "175", nombre: "Usuario de prueba 2", esAdmin: false }];
-
         // ---------------------- Respuestas esperadas ----------------------
         const res1 = { success: true, error: null };
         const res2 = { success: false, error: "Error al desactivar el usuario" };
-
         // ---------------------- Mocks ----------------------
         const mocks1 = [{ success: true }, { success: true }];
         const mocks2 = [{ success: true }, { success: false, error: "Error al desactivar el usuario" }];
@@ -108,8 +101,8 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
             }
             const helper = new UsuariosHelper("token");
             const res = await helper.eliminarUsuarios(params, "es");
-
             expect(res).toEqual(resEsperada);
+            expect(peticionApi).toHaveBeenCalledTimes(params.length);
             for (let i = 1; i < params.length; i++) {
                 expect(peticionApi).toHaveBeenCalledWith(
                     `admin/usuarios/${params[i].uid}`, "PATCH", {}, {
@@ -117,14 +110,12 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
                 }, "token", "es", ""
                 );
             }
-            expect(peticionApi).toHaveBeenCalledTimes(params.length);
         });
     });
 
     describe("Validar el método 'modificarUsuario'", () => {
         // ---------------------- Parámetros ----------------------
         const param = { id: "174", rol: true, desactivar: true };
-
         // ---------------------- Respuestas esperadas ----------------------
         const res1 = { success: true };
         const res2 = { success: false, error: "Error al modificar el usuario" };
@@ -140,7 +131,6 @@ describe("Validar los métodos de la clase 'UsuariosHelper'", () => {
             peticionApi.mockResolvedValue(mock);
             const helper = new UsuariosHelper("token");
             const res = await helper.modificarUsuario(params.id, params.rol, params.desactivar, "es");
-
             expect(res).toEqual(resEsperada);
             expect(peticionApi).toHaveBeenCalledWith(
                 `admin/usuarios/${params.id}`, "PATCH", {}, {

@@ -1,10 +1,10 @@
-import dayjs from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
+import dayjs from "dayjs";
 import RestoreIcon from '@mui/icons-material/Restore';
 import SaveIcon from '@mui/icons-material/Save';
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import {
-    Grid, Typography, TextField, Button, MenuItem, Tooltip
+    Button, Grid, Typography, TextField, MenuItem, Tooltip
 } from "@mui/material";
 import { Check } from "../tabs";
 import { COMORBILIDADES } from "../../constants";
@@ -15,8 +15,8 @@ import { Paciente } from "../../models";
 import { PantallaCarga, TabHeader } from "../layout";
 import { SelectChip } from "../selects";
 import { useCallback, useEffect, useState } from "react";
-import { useOperacionesPacientes } from "../../hooks";
 import { useNavigate } from "react-router";
+import { useOperacionesPacientes } from "../../hooks";
 import { useTranslation } from "react-i18next";
 import { v6 } from "uuid";
 import { validarNombre, validarNumero, validarTelefono } from "../../utils/Validadores";

@@ -1,8 +1,11 @@
-import { jest, beforeEach, expect, describe, test } from '@jest/globals';
 import dayjs from "dayjs";
 import Diagnostico from "../../../../src/models/Diagnostico";
 import ExplicacionLime from "../../../../src/models/ExplicacionLime";
-import { obtenerDatosMesActual, detTextoPersona, establecerTextoMeses, evaluarIntervalo, convertirDiagnosticoExportable, decoderOtraEnfermedad, procBool, obtenerDatosPorMes } from "../../../../src/utils/TratarDatos";
+import { jest, beforeEach, expect, describe, test } from '@jest/globals';
+import {
+    obtenerDatosMesActual, detTextoPersona, establecerTextoMeses, evaluarIntervalo,
+    convertirDiagnosticoExportable, decoderOtraEnfermedad, procBool, obtenerDatosPorMes
+} from "../../../../src/utils/TratarDatos";
 
 describe("Validar la función 'decoderOtraEnfermedad'", () => {
     // --------------------------- Parámetros -----------------------
@@ -20,7 +23,6 @@ describe("Validar la función 'decoderOtraEnfermedad'", () => {
         "Enfermedad coronaria": 0, "Enfermedad endocrina": 0,
         "Enfermedad gastrointestinal": 0, "Enfermedad urológica": 0
     };
-
     // --------------------------- Resultados esperados -----------------------
     const res1 = ["Enfermedad vascular", "Diabetes Mellitus"];
     const res2 = [];
@@ -40,15 +42,10 @@ describe("Validar la función 'evaluarIntervalo'", () => {
     const params2 = { valor: 12, intervalos: [[-Infinity, 15, 3], [15, 20, 2], [21, Infinity, 1]] };
     const params3 = { valor: 20, intervalos: [[19, Infinity, 4], [10, 19, 1]] };
 
-    // --------------------------- Resultados esperados -----------------------
-    const res1 = 1;
-    const res2 = 3;
-    const res3 = 4;
-
     test.each([
-        ["62", params1, res1],
-        ["63", params2, res2],
-        ["64", params3, res3]
+        ["62", params1, 1],
+        ["63", params2, 3],
+        ["64", params3, 4]
     ])("CP - %s", (id, params, resEsperada) => {
         const res = evaluarIntervalo(params.valor, params.intervalos);
         expect(res).toEqual(resEsperada);
@@ -67,21 +64,24 @@ describe("Validar la función 'procBool'", () => {
 
 describe("Validar la función 'convertirDiagnosticoExportable'", () => {
     // --------------------------- Parámetros -----------------------
-    const instancia = new Diagnostico("ID", "Usuario Test", "1f073a07-6630-6d90-ac94-34c18cc96549",
+    const instancia = new Diagnostico(
+        "ID", "Usuario Test", "1f073a07-6630-6d90-ac94-34c18cc96549",
         ["Enfermedad hematológica", "Hipertensión arterial"],
-        new Date("2023-10-01T00:00:00Z"), 0, true, {
-        bebedor: false, fumador: false,
-        proc_quirurgico_traumatismo: false, viaje_prolongado: false,
-        tos: false, fiebre: false, crepitaciones: false,
-        dolor_toracico: true, malignidad: false, hemoptisis: false,
-        disnea: true, sibilancias: false, derrame: false,
-        TEP_TVP_previo: false, edema_de_m_inferiores: false, sintomas_disautonomicos: false,
-        inmovilidad_de_m_inferiores: false, soplos: false,
-    }, {
-        presion_sistolica: 129, presion_diastolica: 93, frecuencia_respiratoria: 26,
-        frecuencia_cardiaca: 128, edad: 60,
-        saturacion_de_la_sangre: 80, plt: 211100, hb: 13.8, wbc: 12300,
-    }, true, null, 0.5, new ExplicacionLime([{ "VIH": 51.85, "Hepatopatía crónica": -48.2 }]),
+        new Date("2023-10-01T00:00:00Z"), 0, true,
+        {
+            bebedor: false, fumador: false,
+            proc_quirurgico_traumatismo: false, viaje_prolongado: false,
+            tos: false, fiebre: false, crepitaciones: false,
+            dolor_toracico: true, malignidad: false, hemoptisis: false,
+            disnea: true, sibilancias: false, derrame: false,
+            TEP_TVP_previo: false, edema_de_m_inferiores: false, sintomas_disautonomicos: false,
+            inmovilidad_de_m_inferiores: false, soplos: false,
+        },
+        {
+            presion_sistolica: 129, presion_diastolica: 93, frecuencia_respiratoria: 26,
+            frecuencia_cardiaca: 128, edad: 60,
+            saturacion_de_la_sangre: 80, plt: 211100, hb: 13.8, wbc: 12300,
+        }, true, null, 0.5, new ExplicacionLime([{ "VIH": 51.85, "Hepatopatía crónica": -48.2 }]),
         "Usuario", "Paciente", "123456789", "N/A"
     );
     const params1 = { esAdmin: false, preprocesar: false, idioma: "es" };
@@ -97,7 +97,8 @@ describe("Validar la función 'convertirDiagnosticoExportable'", () => {
         "TEP - TVP previo": 0, "Edema de miembros inferiores": 0, "Síntomas disautonómicos": 0,
         "Inmovilidad de miembros inferiores": 0, "Otra enfermedad": 1, "Soplos": 0,
         "Presión sistólica": 129, "Presión diastólica": 93, "Frecuencia respiratoria": 26,
-        "Frecuencia cardíaca": 128, "Saturación de la sangre (SO2)": 80, "Conteo de plaquetas": 211100, "Hemoglobina": 13.8, "Conteo glóbulos blancos": 12300,
+        "Frecuencia cardíaca": 128, "Saturación de la sangre (SO2)": 80, "Conteo de plaquetas": 211100,
+        "Hemoglobina": 13.8, "Conteo glóbulos blancos": 12300,
         "Enfermedad hematológica": 1, "Enfermedad vascular": 0,
         "Enfermedad pulmonar": 0, "Enfermedad renal": 0,
         "Enfermedad cardíaca": 0, "Enfermedad coronaria": 0,
@@ -117,7 +118,8 @@ describe("Validar la función 'convertirDiagnosticoExportable'", () => {
         "TEP - TVP previo": 0, "Edema de miembros inferiores": 0, "Síntomas disautonómicos": 0,
         "Inmovilidad de miembros inferiores": 0, "Otra enfermedad": 1, "Soplos": 0,
         "Presión sistólica": 4, "Presión diastólica": 6, "Frecuencia respiratoria": 3,
-        "Frecuencia cardíaca": 4, "Saturación de la sangre (SO2)": 7, "Conteo de plaquetas": 4, "Hemoglobina": 4, "Conteo glóbulos blancos": 3,
+        "Frecuencia cardíaca": 4, "Saturación de la sangre (SO2)": 7, "Conteo de plaquetas": 4,
+        "Hemoglobina": 4, "Conteo glóbulos blancos": 3,
         "Enfermedad hematológica": 1, "Enfermedad vascular": 0,
         "Enfermedad pulmonar": 0, "Enfermedad renal": 0,
         "Enfermedad cardíaca": 0, "Enfermedad coronaria": 0,
@@ -125,7 +127,8 @@ describe("Validar la función 'convertirDiagnosticoExportable'", () => {
         "Enfermedad urológica": 0, "Enfermedad neurológica": 0,
         "Trombofilia": 0, "VIH": 0,
         "Diabetes Mellitus": 0, "Hepatopatía crónica": 0, "Hipertensión arterial": 1,
-        "Diagnóstico médico": "N/A", "ID": "ID-Usuario Test", "Usuario": "Usuario Test", "Fecha": "10/1/2023", "Diagnóstico modelo": 1
+        "Diagnóstico médico": "N/A", "ID": "ID-Usuario Test", "Usuario": "Usuario Test", "Fecha": "10/1/2023",
+        "Diagnóstico modelo": 1
     };
 
     beforeEach(() => {

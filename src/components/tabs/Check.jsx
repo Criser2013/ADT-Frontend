@@ -1,5 +1,6 @@
 import { Checkbox, FormControlLabel, FormGroup } from "@mui/material";
 
+
 /**
  * Checkbox con etiqueta.
  * @param {Boolean} marcado Estado del checkbox

@@ -2,8 +2,8 @@ import { DRIVE_API_URL, DRIVE_UPLOAD_API_URL } from "../constants";
 
 /**
  * Determina el tipo de error basado en la respuesta HTTP y el cuerpo de la respuesta.
- * @param {Response} codigoPet - Respuesta de la petición HTTP.
- * @param {JSON} contenido - Cuerpo de la respuesta en formato JSON o ArrayBuffer si se trata de una respuesta binaria.
+ * @param {Response} codigoPet Respuesta de la petición HTTP.
+ * @param {JSON} contenido Cuerpo de la respuesta en formato JSON o ArrayBuffer si se trata de una respuesta binaria.
  * @returns {Object} Resultado de la operación con las claves:
  * - "success" (Boolean) - Indica si la operación fue exitosa o no.
  * - "data" (JSON|String) - Contiene la respuesta de la API de Google Drive si la operación fue exitosa, de lo contrario es null.
@@ -48,9 +48,9 @@ export function clasificarError(codigoPet, contenido) {
  * - "name" (string) - Nombre del archivo.
  * - "mimeType" (string) - Tipo MIME del archivo.
  * - "kind" (string) - Tipo de archivo.
- * @param {String} token - Token OAuth de Google.
- * @param {String} params - Parámetros de consulta de la URL codificados.
- * @param {AbortController} controlador - Controlador de la petición para poder cancelarla si es necesario.
+ * @param {String} token Token OAuth de Google.
+ * @param {String} params Parámetros de consulta de la URL codificados.
+ * @param {AbortController} controlador Controlador de la petición para poder cancelarla si es necesario.
  * @returns {Object} Resultado de la operación con las claves:
  * - "success" (Boolean) - Indica si la operación fue exitosa o no.
  * - "data" (JSON) - Contiene la respuesta de la API de Google Drive si la operación fue exitosa, de lo contrario es null.
@@ -79,10 +79,10 @@ export async function buscarArchivo(token, params, controlador = null) {
 /**
  * Crea un archivo de Google Drive a partir de los metadatos.
  * No sube contenido al mismo. Para crear una carpeta coloque 
- * @param {String} token - Token OAuth de Google.
- * @param {Object} contenido - Metadatos del archivo a crear.
- * @param {Boolean} esCarpeta - Indicador si el archivo es una carpeta.
- * @param {AbortController} controlador - Controlador de la petición para poder cancelarla si es necesario.
+ * @param {String} token Token OAuth de Google.
+ * @param {Object} contenido Metadatos del archivo a crear.
+ * @param {Boolean} esCarpeta Indicador si el archivo es una carpeta.
+ * @param {AbortController} controlador Controlador de la petición para poder cancelarla si es necesario.
  * @returns {Object} Resultado de la operación con las claves:
  * - "success" (Boolean) - Indica si la operación fue exitosa o no.
  * - "data" (JSON) - Contiene los metadatos del archivo creado si la operación fue exitosa, de lo contrario es null.
@@ -115,11 +115,11 @@ export async function crearArchivo(token, contenido, esCarpeta = false, controla
 
 /**
  * Sube un archivo a Google Drive.
- * @param {String} token - Token OAuth de Google.
- * @param {String} idArchivo - ID del archivo de Drive.
- * @param {File|Blob|Uint8Array} contenido - Archivo a subir.
- * @param {String} mimeType - Tipo MIME del archivo.
- * @param {AbortController} controlador - Controlador de la petición para poder cancelarla si es necesario.
+ * @param {String} token Token OAuth de Google.
+ * @param {String} idArchivo ID del archivo de Drive.
+ * @param {File|Blob|Uint8Array} contenido Archivo a subir.
+ * @param {String} mimeType Tipo MIME del archivo.
+ * @param {AbortController} controlador Controlador de la petición para poder cancelarla si es necesario.
  * @returns {Object} Resultado de la operación con las claves:
  * - "success" (Boolean) - Indica si la operación fue exitosa o no.
  * - "data" (JSON) - Contiene los metadatos del archivo subido si la operación fue exitosa, de lo contrario es null.
@@ -149,9 +149,9 @@ export async function subirArchivo(token, idArchivo, contenido, mimeType = "appl
 /**
  * Descarga un archivo de Google Drive.
  * La clave "data" del JSON de respuesta es un ArrayBuffer que contiene el archivo.
- * @param {String} token - Token OAuth de Google.
- * @param {String} idArchivo - ID del archivo a descargar.
- * @param {AbortController} controlador - Controlador de la petición para poder cancelarla si es necesario.
+ * @param {String} token Token OAuth de Google.
+ * @param {String} idArchivo ID del archivo a descargar.
+ * @param {AbortController} controlador Controlador de la petición para poder cancelarla si es necesario.
  * @returns {Object} Resultado de la operación con las claves:
  * - "success" (boolean) - Indica si la operación fue exitosa o no.
  * - "data" (ArrayBuffer) - Contiene el archivo descargado si la operación fue exitosa, de lo contrario es null.

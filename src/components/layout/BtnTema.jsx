@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import useTema, { temaClaro } from "../../hooks/tema-hook";
 import { useTranslation } from "react-i18next";
 
+
 /**
  * Botón para cambiar el tema de la aplicación.
  * @param {String} color Color del botón (default, primary, secondary, inherit, etc).

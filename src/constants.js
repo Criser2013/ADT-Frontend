@@ -1,17 +1,14 @@
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+export const CANT_LIM_DIAGNOSTICOS = parseInt(import.meta.env.VITE_CANT_LIM_DIAGNOSTICOS) || 1500;
 export const DRIVE_API_URL = import.meta.env.VITE_DRIVE_API_URL || "https://www.googleapis.com/drive/v3";
 export const DRIVE_UPLOAD_API_URL = import.meta.env.VITE_DRIVE_UPLOAD_API_URL || "https://www.googleapis.com/upload/drive/v3";
 export const DRIVE_FILENAME = import.meta.env.VITE_DRIVE_FILENAME || "HADT - Pacientes.xlsx";
 export const DRIVE_FOLDER_NAME = import.meta.env.VITE_DRIVE_FOLDER_NAME || "HADT: Herramienta para apoyar el diagnóstico de TEP";
-export const URL_MANUAL_USUARIO = import.meta.env.VITE_URL_MANUAL_USUARIO || "https://www.youtube.com";
-export const URL_MANUAL_ADMIN = import.meta.env.VITE_URL_MANUAL_ADMIN || "https://www.google.com";
-export const CANT_LIM_DIAGNOSTICOS = parseInt(import.meta.env.VITE_CANT_LIM_DIAGNOSTICOS) || 1500;
-export const SEXOS = [
-    { texto: "txtSelecSexo", val: 2 },
-    { texto: "txtMasculino", val: 0 },
-    { texto: "txtFemenino", val: 1 }
-];
-export const URL_CONDICIONES = import.meta.env.VITE_URL_CONDICIONES || "https://google.com";
+
+export const AES_KEY = import.meta.env.VITE_CLAVE_AES;
+export const URL_CONDICIONES = import.meta.env.VITE_URL_CONDICIONES;
+export const URL_MANUAL_USUARIO = import.meta.env.VITE_URL_MANUAL_USUARIO;
+export const URL_MANUAL_ADMIN = import.meta.env.VITE_URL_MANUAL_ADMIN;
 export const CAMPOS_BIN = [
     "fumador", "bebedor", "tos", "fiebre", "crepitaciones",
     "dolor_toracico", "malignidad", "hemoptisis", "disnea", "sibilancias",
@@ -27,7 +24,6 @@ export const COMORBILIDADES = ["Enfermedad vascular", "Trombofilia", "Enfermedad
     "Diabetes Mellitus", "Hipertensión arterial", "Hepatopatía crónica", "Enfermedad hematológica", "VIH", "Enfermedad cardíaca",
     "Enfermedad coronaria", "Enfermedad endocrina", "Enfermedad gastrointestinal", "Enfermedad urológica", "Enfermedad neurológica",
 ];
-
 export const INTERVALOS_PREPROCESAMIENTO = {
     edad: [[0, 20, 0], [20, 41, 1], [41, 61, 2], [61, 81, 3], [81, Infinity, 4]],
     frecuencia_cardiaca: [
@@ -69,9 +65,12 @@ export const INTERVALOS_PREPROCESAMIENTO = {
         [-Infinity, 50, 9], [210, Infinity, 10]
     ]
 };
-export const TXT_MESES = ["txtEnero", "txtFebrero", "txtMarzo", "txtAbril", "txtMayo", "txtJunio",
+export const SEXOS = [
+    { texto: "txtSelecSexo", val: 2 },
+    { texto: "txtMasculino", val: 0 },
+    { texto: "txtFemenino", val: 1 }
+];
+export const TXT_MESES = [
+    "txtEnero", "txtFebrero", "txtMarzo", "txtAbril", "txtMayo", "txtJunio",
     "txtJulio", "txtAgosto", "txtSeptiembre", "txtOctubre", "txtNoviembre", "txtDiciembre"
 ];
-
-
-export const AES_KEY = import.meta.env.VITE_CLAVE_AES || "1234567890123456"; // Clave de 16 caracteres para AES-128

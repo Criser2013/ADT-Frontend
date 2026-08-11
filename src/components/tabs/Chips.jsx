@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useTema } from "../../hooks";
 import { useTranslation } from "react-i18next";
 
+
 /**
  * Chip para mostrar el rol del usuario.
  * @param {String} valor Rol del usuario.

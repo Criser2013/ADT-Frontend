@@ -5,7 +5,7 @@ import {
 } from 'chart.js';
 import { useMediaQuery, useTheme } from "@mui/material";
 import { useMemo } from "react";
-import { useTema } from "../../hooks/";
+import { useTema } from "../../hooks";
 
 ChartJS.register(
     CategoryScale, LinearScale, BarElement,

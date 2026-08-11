@@ -1,16 +1,13 @@
-import { jest, beforeEach, afterAll, expect, describe, test } from '@jest/globals';
 import { AES_KEY } from "../../../../src/constants";
+import { jest, beforeEach, afterAll, expect, describe, test } from '@jest/globals';
 
 const mockSetDefaultLanguage = jest.fn();
 const mockAddScope = jest.fn();
-
 const mockProviderInstance = {
     setDefaultLanguage: mockSetDefaultLanguage,
     addScope: mockAddScope
 };
-
 const GoogleAuthProvider = jest.fn(() => mockProviderInstance);
-
 GoogleAuthProvider.credentialFromResult = jest.fn();
 
 jest.unstable_mockModule("firebase/auth", () => ({
@@ -35,8 +32,10 @@ jest.unstable_mockModule("i18next", () => ({
 const firebaseAuth = await import("firebase/auth");
 const { AES, enc } = await import("crypto-js");
 const i18n = await import("i18next");
-
-const { manejadorErroresAuth, guardarCredsOAuth, borrarCredsOAuth, cargarCredsOAuth, verRolUsuario, registrarUsuario, cerrarSesion, iniciarSesionGoogle } = await import('../../../../src/services/Autenticacion');
+const {
+    manejadorErroresAuth, guardarCredsOAuth, borrarCredsOAuth, cargarCredsOAuth,
+    verRolUsuario, registrarUsuario, cerrarSesion, iniciarSesionGoogle
+} = await import('../../../../src/services/Autenticacion');
 
 describe("Validar la funcion 'manejadorErroresAuth", () => {
     // ------------------------- Parámetros ---------------------------
@@ -45,8 +44,6 @@ describe("Validar la funcion 'manejadorErroresAuth", () => {
     const params3 = { code: "auth/user-mismatch" };
     const params4 = { code: "auth/user-disabled" };
     const params5 = { code: "errIniciarSesion" };
-
-    let replaceSpy;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -59,17 +56,10 @@ describe("Validar la funcion 'manejadorErroresAuth", () => {
         ["107", "/diagnostico", params3, "errSesionIniciada", false],
         ["108", "/diagnostico", params4, "errUsuarioBaneado", false],
         ["109", "/diagnostico", params5, "errIniciarSesion", false]
-    ])(
-        "CP - %s",
-        (idPrueba, pathname, params, resEsperada, debeRedirigir) => {
-            const mockLocation = {
-                pathname: pathname,
-                replace: jest.fn()
-            };
-
+    ])("CP - %s", (idPrueba, pathname, params, resEsperada, debeRedirigir) => {
+            const mockLocation = { pathname: pathname, replace: jest.fn() };
             const res = manejadorErroresAuth(params, mockLocation);
-
-            expect(res).toBe(resEsperada);
+            expect(res).toEqual(resEsperada);
 
             if (debeRedirigir) {
                 expect(mockLocation.replace).toHaveBeenCalledWith("/");
@@ -82,22 +72,18 @@ describe("Validar la funcion 'manejadorErroresAuth", () => {
 
 describe("Validar la funcion 'guardarCredsOAuth", () => {
     test("CP - 110", () => {
+        const mockSessionStorage = jest.spyOn(Storage.prototype, "setItem");
+        mockSessionStorage.mockImplementation(jest.fn());
         const params = {
-            accessToken: "token",
-            expires: 3600,
-            scopesDrive: ["scope1", "scope2"]
+            accessToken: "token", expires: 3600, scopesDrive: ["scope1", "scope2"]
         };
-
-        jest.spyOn(Storage.prototype, "setItem").mockImplementation(jest.fn());
-
         const res = guardarCredsOAuth(params);
-
         expect(AES.encrypt).toHaveBeenCalledTimes(1);
         expect(AES.encrypt).toHaveBeenCalledWith(JSON.stringify(params), AES_KEY);
         expect(sessionStorage.setItem).toHaveBeenCalledTimes(1);
         expect(sessionStorage.setItem).toHaveBeenCalledWith("session-tokens", "encryptedData")
 
-        jest.spyOn(Storage.prototype, "setItem").mockRestore();
+        mockSessionStorage.mockRestore();
     });
 });
 
@@ -156,7 +142,9 @@ describe("Validar la función 'cargarCredencialesOAuth'", () => {
 
 describe("Validar la función 'verRolUsuario'", () => {
     test("CP - 114", async () => {
-        const res = await verRolUsuario({ nombre: "usuario", getIdTokenResult: jest.fn().mockResolvedValue({ claims: { admin: true } }) });
+        const res = await verRolUsuario({
+            nombre: "usuario", getIdTokenResult: jest.fn().mockResolvedValue({ claims: { admin: true } })
+        });
 
         expect(res).toBe(true);
     });
@@ -164,24 +152,30 @@ describe("Validar la función 'verRolUsuario'", () => {
 
 describe("Validar la función 'registrarUsuario'", () => {
     // -------------------------- Parámetros ---------------------------
-    const params1 = { getIdTokenResult: jest.fn().mockResolvedValue({ claims: { admin: true } }), metadata: { createdAt: "2024-01-01", lastLoginAt: "2024-01-02" } };
-    const params2 = { getIdTokenResult: jest.fn().mockResolvedValue({ claims: {} }), uid: "123", metadata: { createdAt: "2024-01-01", lastLoginAt: "2024-01-01" } };
-
+    const params1 = {
+        getIdTokenResult: jest.fn().mockResolvedValue({ claims: { admin: true } }),
+        metadata: { createdAt: "2024-01-01", lastLoginAt: "2024-01-02" }
+    };
+    const params2 = {
+        getIdTokenResult: jest.fn().mockResolvedValue({ claims: {} }),
+        uid: "123",
+        metadata: { createdAt: "2024-01-01", lastLoginAt: "2024-01-01" }
+    };
     // -------------------------- Resultado esperado ---------------------------
     const res = { success: true };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-        global.fetch = jest.fn();
+        jest.clearAllMocks(); 
     });
 
     test.each([
         ["115", null, params1, res],
         ["116", res, params2, res]
     ])("CP - %s", async (idPrueba, mock, param, resEsperada) => {
-        global.fetch.mockResolvedValueOnce({ json: () => Promise.resolve(mock), ok: true });
+        global.fetch = jest.fn().mockResolvedValueOnce({
+            json: () => Promise.resolve(mock), ok: true
+        });
         const res = await registrarUsuario(param, "es");
-
         expect(res).toEqual(resEsperada);
 
         if (!mock) {
@@ -196,7 +190,6 @@ describe("Validar la función 'cerrarSesion'", () => {
     // -------------------------- Parámetros ---------------------------
     const params1 = { firebase: "firebase", tareaRefresco: 1 };
     const params2 = { firebase: "firebase", tareaRefresco: null };
-
     // -------------------------- Resultado esperado ---------------------------
     const res1 = { success: true };
     const res2 = { success: false, error: "errCerrarSesion" };
@@ -210,7 +203,6 @@ describe("Validar la función 'cerrarSesion'", () => {
         ["118", params2, res1, false],
         ["119", params1, res2, true]
     ])("CP - %s", async (idPrueba, params, resEsperada, lanzaExcepcion) => {
-
         if (lanzaExcepcion) {
             firebaseAuth.signOut.mockImplementation(() => { throw new Error("Error al cerrar sesión") });
         } else {
@@ -218,9 +210,7 @@ describe("Validar la función 'cerrarSesion'", () => {
         }
 
         const res = await cerrarSesion(params.firebase, params.tareaRefresco);
-
         expect(res).toEqual(resEsperada);
-
         expect(firebaseAuth.signOut).toHaveBeenCalledTimes(1);
         expect(firebaseAuth.signOut).toHaveBeenCalledWith(params.firebase);
     });
@@ -230,7 +220,6 @@ describe("Validar la función 'iniciarSesionGoogle'", () => {
     // -------------------------- Parámetros ---------------------------
     const params1 = { firebaseAuth: "firebase", permisos: ["scope1", "scope2"], usuario: null };
     const params2 = { firebaseAuth: "firebase", permisos: ["scope1", "scope2"], usuario: { uid: "123" } };
-
     // -------------------------- Respuestas esperadas ---------------------------
     const res1 = {
         success: true, res: {
@@ -252,7 +241,6 @@ describe("Validar la función 'iniciarSesionGoogle'", () => {
         }
     }
     const res2 = { success: false, error: "errIniciarSesion" };
-
     // -------------------------- Mocks ---------------------------
     const mockProvider = () => ({
         _tokenResponse: {
@@ -260,7 +248,6 @@ describe("Validar la función 'iniciarSesionGoogle'", () => {
             rawUserInfo: JSON.stringify({ granted_scopes: ["scope1", "scope2"] })
         }
     });
-
     const mockLogin1 = () => Promise.resolve({
         user: { uid: "123" },
         _tokenResponse: {
@@ -291,8 +278,6 @@ describe("Validar la función 'iniciarSesionGoogle'", () => {
         firebaseAuth.reauthenticateWithPopup.mockImplementation(mockAuth);
 
         const res = await iniciarSesionGoogle(params.firebaseAuth, params.permisos, params.usuario, "es");
-
-
         expect(res).toEqual(resEsperada);
         expect(firebaseAuth.GoogleAuthProvider).toHaveBeenCalledTimes(1);
         expect(mockSetDefaultLanguage).toHaveBeenCalledTimes(1);

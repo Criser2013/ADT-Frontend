@@ -1,5 +1,5 @@
-import { utils, writeXLSX, read, writeFile } from "xlsx";
 import { COMORBILIDADES } from "../constants";
+import { utils, writeXLSX, read, writeFile } from "xlsx";
 import { validarFecha, validarId, validarNombre, validarNumero, validarTelefono } from "./Validadores";
 
 /**

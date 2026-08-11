@@ -10,13 +10,14 @@ import { Check } from "../../components/tabs";
 import { PantallaCarga } from "../../components/layout";
 import { SelectIdioma } from "../../components/selects";
 import { Trans } from "react-i18next";
+import { temaClaro } from "../../hooks/tema-hook";
+import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../constants";
 import { useAuth } from "../../hooks";
 import { useEffect, useState } from "react";
 import { useIdioma, useTema } from "../../hooks";
 import { useNavigate } from "react-router-dom";
-import { temaClaro } from "../../hooks/tema-hook";
 import { useTranslation } from "react-i18next";
-import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../constants";
+
 
 /**
  * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.

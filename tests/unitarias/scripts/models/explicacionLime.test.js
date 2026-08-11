@@ -1,5 +1,5 @@
-import { jest, expect, describe, test } from "@jest/globals";
 import ExplicacionLime from "../../../../src/models/ExplicacionLime";
+import { jest, expect, describe, test } from "@jest/globals";
 
 describe("Validar los métodos de la clase 'ExplicacionLime'", () => {
     describe("Validar el método 'toJson'", () => {
