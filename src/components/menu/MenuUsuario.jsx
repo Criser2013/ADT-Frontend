@@ -1,23 +1,25 @@
-import { Grid, Box, CircularProgress, Typography, Divider } from "@mui/material";
-import { useMemo, useState, useEffect, useCallback } from "react";
-import { useNavegacion } from "../../contexts/NavegacionContext";
-import { useDrive } from "../../contexts/DriveContext";
-import { useAuth } from "../../contexts/AuthContext";
-import { useCredenciales } from "../../contexts/CredencialesContext";
-import { verDiagnosticosPorMedico } from "../../firestore/diagnosticos-collection";
-import { obtenerDatosPorMes, obtenerDatosMesActual } from "../../utils/Fechas";
-import ModalSimple from "../modals/ModalSimple";
-import TarjetaMenuPrincipal from "./TarjetaMenuPrincipal";
-import GraficoBarras from "../charts/GraficoBarras";
-import GraficoPastel from "../charts/GraficoPastel";
-import { DiagnosticoIcono } from "../icons/IconosSidebar";
-import PersonIcon from '@mui/icons-material/Person';
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
+import PersonIcon from '@mui/icons-material/Person';
+import TarjetaMenuPrincipal from "./TarjetaMenuPrincipal";
+import { Box, CircularProgress, Divider, Grid, Typography } from "@mui/material";
+import { DiagnosticoIcono } from "../icons/IconosSidebar";
+import { establecerTextoMeses, obtenerDatosMesActual, obtenerDatosPorMes } from "../../utils/TratarDatos";
+import { GraficoBarras, GraficoPastel } from "../charts";
+import { ModalSimple } from "../modals";
+import { PantallaCarga } from "../layout";
 import { Timestamp } from "firebase/firestore";
+import { useAuth, useDiagnosticos, usePacientes } from "../../hooks";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AES, enc } from "crypto-js";
-import { AES_KEY } from "../../../constants";
+
+
+const fechaInicio = dayjs().subtract(4, "month").set("date", 1).set("hour", 0).set("minute", 0).
+    set("second", 0).set("millisecond", 0);
+const fechaFinal = dayjs();
+const fechaTimestamp = Timestamp.fromDate(fechaInicio.toDate());
+const paddingTarjetas = "2vh 0vh 0vw 0vw";
+const paddingGraficos = "0vh 1.5vw";
 
 /**
  * Menú principal para los usuarios. Muestra la cantidad de pacientes y diagnósticos registrados este mes y
@@ -25,230 +27,133 @@ import { AES_KEY } from "../../../constants";
  * @returns {JSX.Element}
  */
 export default function MenuUsuario() {
-    const auth = useAuth();
-    const { firestore } = useCredenciales();
-    const navegacion = useNavegacion();
+    const { usuario } = useAuth();
+    const { diagnosticos, error: errorDiagnosticos } = useDiagnosticos(false, usuario?.uid, fechaTimestamp, false);
+    const { pacientes, error: errorPacientes } = usePacientes(true);
     const { t } = useTranslation();
-    const drive = useDrive();
-    const [cargando, setCargando] = useState(true);
-    const [pacientes, setPacientes] = useState(null);
-    const [diagnosticos, setDiagnosticos] = useState(null);
-    const [datos, setDatos] = useState(null);
-    const [datosPacientes, setDatosPacientes] = useState(null);
-    const [datosDiagnosticos, setDatosDiagnosticos] = useState(null);
-    const [modal, setModal] = useState({ mostrar: false, mensaje: "", titulo: "" });
-    const fechaActual = useMemo(() => dayjs(), []);
-    const numCols = useMemo(() => {
-        const { orientacion, dispositivoMovil, ancho } = navegacion;
-        return (dispositivoMovil && orientacion == "vertical") || (!dispositivoMovil && (ancho <= 700)) ? 1 : 2;
-    }, [navegacion]);
-    const diagnosticosMesActual = useMemo(() => obtenerDatosMesActual(datosDiagnosticos, fechaActual, navegacion.idioma)
-    , [datosDiagnosticos, fechaActual, navegacion.idioma]);
-    const pacientesMesActual = useMemo(() => obtenerDatosMesActual(datosPacientes, fechaActual, navegacion.idioma)
-    , [datosPacientes, fechaActual, navegacion.idioma]);
-    const propSexoPacientes = useMemo(() => {
-        const res = { Masculino: 0, Femenino: 0 };
-
-        if (pacientes != null) {
+    const [modal, setModal] = useState({ mostrar: false, texto: "" });
+    const diagnosticosPorMes = useMemo(() =>
+        obtenerDatosPorMes(
+            diagnosticos ? diagnosticos : [], "fecha", fechaInicio, fechaFinal
+        ), [diagnosticos]);
+    const pacientesPorMes = useMemo(() =>
+        obtenerDatosPorMes(
+            pacientes ? pacientes : [], "fechaCreacionFormateada", fechaInicio, fechaFinal
+        ), [pacientes]);
+    const diagnosticosMesActual = useMemo(() =>
+        obtenerDatosMesActual(diagnosticosPorMes)
+        , [diagnosticosPorMes]);
+    const pacientesMesActual = useMemo(() =>
+        obtenerDatosMesActual(pacientesPorMes)
+        , [pacientesPorMes]);
+    const datosGraficoBarras = useMemo(() => {
+        const diagnosticos = establecerTextoMeses(diagnosticosPorMes, t);
+        const pacientes = establecerTextoMeses(pacientesPorMes, t);
+        return {
+            datasets: [
+                {
+                    label: t("txtDiagnosticosRealizados"),
+                    data: diagnosticos,
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)'
+                },
+                {
+                    label: t("txtNuevosPacientes"),
+                    data: pacientes,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                }
+            ]
+        };
+    }, [diagnosticosPorMes, pacientesPorMes, t]);
+    const datosGraficoPastel = useMemo(() => {
+        const datos = { masculino: 0, femenino: 0 };
+        if (pacientes) {
             pacientes.forEach((x) => {
                 if (x.sexo == 0) {
-                    res.Masculino++;
+                    datos.masculino++;
                 } else {
-                    res.Femenino++;
+                    datos.femenino++;
                 }
             });
         }
-
         return {
-            labels: [t("txtMasculino"), t("txtFemenino")], datasets: [{
-                label: t("txtNumPacientes"), data: [res.Masculino, res.Femenino], backgroundColor: [
-                    '#263b9886', '#f3736c96'
-                ]
+            labels: [t("txtMasculino"), t("txtFemenino")],
+            datasets: [{
+                label: t("txtNumPacientes"),
+                data: [datos.masculino, datos.femenino],
+                backgroundColor: ['#263b9886', '#f3736c96']
             }]
         };
-    }, [pacientes, navegacion.idioma]);
-
-    /**
-     * Carga el token de sesión y comienza a descargar el archivo de pacientes.
-     */
-    useEffect(() => {
-        const token = sessionStorage.getItem("session-tokens");
-        if (token != null) {
-            const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
-            drive.setToken(tokens.accessToken);
-        } else if (auth.tokenDrive != null) {
-            drive.setToken(auth.tokenDrive);
-        }
-    }, [auth.tokenDrive]);
-
-    /**
-     * Carga los diagnósticos y los pacientes dependiendo del rol del usuario.
-     */
-    useEffect(() => {
-        const descargar = sessionStorage.getItem("descargando-drive");
-        const { uid } = auth.authInfo;
-
-        if (uid != null && drive.token != null && (descargar == null || descargar == "false") && firestore != null) {
-            sessionStorage.setItem("descargando-drive", "true");
-            cargarPacientes();
-            cargarDiagnosticos(uid, firestore);
-        }
-    }, [auth.authInfo, drive.token, firestore]);
-
-     /**
-     * Actualiza el gráfico de barras con los datos de diagnósticos y usuarios.
-     * @param {Array} diagnosticos - Lista de diagnósticos
-     * @param {Array} pacientes - Lista de pacientes
-     */
-    const actualizarGraficoBarras = (diagnosticos, pacientes) => {
-        const diagnosticosMensuales = obtenerDatosPorMes(diagnosticos, "fecha", 4, fechaActual, "DD-MM-YYYY", navegacion.idioma);
-        const pacientesMensuales = obtenerDatosPorMes(pacientes, "fechaCreacion", 4, fechaActual, "DD-MM-YYYY", navegacion.idioma);
-        const json = {
-            datasets: [
-                formatearDatosGrafico(diagnosticosMensuales, 'rgba(255, 99, 132, 0.5)', t("txtDiagnosticosRealizados")),
-                formatearDatosGrafico(pacientesMensuales, 'rgba(54, 162, 235, 0.5)', t("txtNuevosPacientes")),
-            ]
-        };
-
-        setDatosDiagnosticos(diagnosticosMensuales);
-        setDatosPacientes(pacientesMensuales);
-        setDatos(json);
-    };
-
-    /**
-     * Una vez se cargan los diagnósticos y los pacientes, formatea las celdas.
-     */
-    useEffect(() => {
-        if (!!diagnosticos && !!pacientes && datos == null) {
-           actualizarGraficoBarras(diagnosticos, pacientes);
-           setCargando(false);
-        }
-    }, [diagnosticos, pacientes, datos, fechaActual]);
+    }, [pacientes, t]);
+    const mostrarPantallaCarga = !pacientes || !diagnosticos;
 
     useEffect(() => {
-        if (diagnosticos != null && pacientes != null) {
-            actualizarGraficoBarras(diagnosticos, pacientes);
+        if (errorDiagnosticos) {
+            setModal({ mostrar: true, texto: errorDiagnosticos });
+        } else if (errorPacientes) {
+            setModal({ mostrar: true, texto: errorPacientes });
         }
-    }, [navegacion.idioma]);
-
-    useEffect(() => {
-        const descargar = sessionStorage.getItem("descargando-drive");
-        if (drive.datos != null && (descargar == "false")) {
-            setPacientes(drive.datos);
-        }
-    }, [drive.datos]);
-
-    /**
-     * Formatea los datos del gráfico para que sean compatibles con Chart.js.
-     * @param {JSON|Array} datos - Datos del gráfico, debe ser de un tipo compatible con Chart.js.
-     * @param {String} color - Color de las barras del gráfico.
-     * @param {String} etiqueta - Etiqueta de la serie de datos.
-     * @returns {JSON}
-     */
-    const formatearDatosGrafico = (datos, color, etiqueta) => {
-        return {
-            label: etiqueta, data: datos, backgroundColor: color,
-        };
-    };
-
-    /**
-     * Carga los datos de los pacientes desde Drive
-     */
-    const cargarPacientes = async () => {
-        const res = await drive.cargarDatos();
-        if (!res.success) {
-            setDatosPacientes([]);
-            setModal({
-                mostrar: true, mensaje: res.error,
-                titulo: t("errTitCargarDatosPacientes"),
-            });
-        }
-    };
-
-    /**
-     * Carga los datos de los diagnósticos.
-     * @param {String} uid - UID del usuario.
-     * @param {Object} DB - Instancia de Firestore.
-     */
-    const cargarDiagnosticos = async (uid, DB) => {
-        let fechaActual = dayjs().subtract(4, "month");
-
-        fechaActual = fechaActual.set("date", 1);
-        fechaActual = fechaActual.set("hour", 0);
-        fechaActual = fechaActual.set("minute", 0);
-        fechaActual = fechaActual.set("second", 0);
-        fechaActual = fechaActual.set("millisecond", 0);
-
-        const res = await verDiagnosticosPorMedico(uid, DB, Timestamp.fromDate(fechaActual.toDate()));
-        if (res.success) {
-            setDiagnosticos(res.data);
-        } else {
-            setModal({
-                mostrar: true, titulo: t("titErrCargarDiagnosticos"),
-                mensaje: t("errCargarDiagnosticos")
-            });
-            setDiagnosticos([]);
-        }
-    };
-
-    /**
-     * Manejador para el botón del modal.
-     */
-    const manejadorBtnModal = () => {
-        setModal({ ...modal, mostrar: false });
-    };
-
-    /**
-     * Componente necesario para actualizar el gráfico cuando cambia el idioma. Sino se deja así
-     * las etiquetas se actualizan de forma retrasada, no en el momento que se cambia el idioma.
-     */
-    const GraficoMeses = useCallback(() => {
-        return <GraficoBarras titulo={t("titGraficoBarrasMenu")} datos={datos} />;
-    }, [datos]);
+    }, [errorDiagnosticos, errorPacientes]);
 
     return (
         <>
-            {cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" height="85vh">
-                    <CircularProgress />
-                </Box>
-            ) : (
-                <Grid columns={numCols} container spacing={2}>
-                    <Grid size={2}>
-                        <Typography variant="h4" align="left">
-                            {t("txtBienvenida", { nombre: auth.authInfo.user.displayName })}
-                        </Typography>
-                        <Divider sx={{ padding: "1vh 0vw" }} />
+            {mostrarPantallaCarga ? <PantallaCarga />
+                : (
+                    <Grid columns={{ xs: 1, sm: 2 }} container spacing={2}>
+                        <Grid size={2}>
+                            <Typography variant="h4" align="left">
+                                {t("txtBienvenida", { nombre: usuario?.nombre })}
+                            </Typography>
+                            <Divider sx={{ padding: "1vh 0vw" }} />
+                        </Grid>
+                        <Grid
+                            size={1}
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            padding={paddingTarjetas}>
+                            <TarjetaMenuPrincipal
+                                titulo={t("txtDiagnosticosMes")}
+                                valor={diagnosticosMesActual}
+                                icono={<DiagnosticoIcono sx={{ fontSize: "4.5vh" }} />}
+                                altura="100%" />
+                        </Grid>
+                        <Grid
+                            size={1}
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            padding={paddingTarjetas}>
+                            <TarjetaMenuPrincipal
+                                titulo={t("txtPacientesMes")}
+                                valor={pacientesMesActual}
+                                icono={<PersonIcon sx={{ fontSize: "4.5vh" }} />}
+                                altura="100%" />
+                        </Grid>
+                        <Grid
+                            size={1}
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            padding={paddingGraficos}>
+                            <GraficoBarras titulo={t("titGraficoBarrasMenu")} datos={datosGraficoBarras} />
+                        </Grid>
+                        <Grid
+                            size={1}
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            padding={paddingGraficos}>
+                            <GraficoPastel titulo={t("titGraficoPastelMenuUsuario")} datos={datosGraficoPastel} />
+                        </Grid>
                     </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
-                        <TarjetaMenuPrincipal
-                            titulo={t("txtDiagnosticosMes")}
-                            altura="100%"
-                            valor={diagnosticosMesActual}
-                            icono={<DiagnosticoIcono sx={{ fontSize: "4.5vh" }} />} />
-                    </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="2vh 0vh 0vw 0vw">
-                        <TarjetaMenuPrincipal
-                            titulo={t("txtPacientesMes")}
-                            altura="100%"
-                            valor={pacientesMesActual}
-                            icono={<PersonIcon sx={{ fontSize: "4.5vh" }} />} />
-                    </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vw">
-                        <GraficoMeses />
-                    </Grid>
-                    <Grid size={1} display="flex" justifyContent="center" alignItems="center" padding="0vh 1.5vw">
-                        <GraficoPastel titulo={t("titGraficoPastelMenuUsuario")} datos={propSexoPacientes} />
-                    </Grid>
-                </Grid>
-            )}
+                )}
             <ModalSimple
-                abrir={modal.mostrar}
-                mensaje={modal.mensaje}
-                titulo={modal.titulo}
+                mostrar={modal.mostrar}
+                titulo={t("tituloErr")}
+                texto={t(modal.texto)}
                 txtBtn={t("txtBtnCerrar")}
-                iconoBtn={<CloseIcon />}
-                manejadorBtnModal={manejadorBtnModal} />
+                manejadorBtn={() => setModal((x) => ({ ...x, mostrar: false }))}
+                iconoBtn={<CloseIcon />} />
         </>
     );
 };

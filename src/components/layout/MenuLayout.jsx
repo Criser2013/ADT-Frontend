@@ -1,72 +1,45 @@
-import { Box, CircularProgress, Toolbar } from "@mui/material";
 import NavBar from "./NavBar";
 import Sidebar from "./Sidebar";
-import { useAuth } from "../../contexts/AuthContext";
-import { useNavigate } from "react-router";
-import { useNavegacion } from "../../contexts/NavegacionContext";
-import { useEffect, useMemo } from "react";
+import { Box, CircularProgress, Toolbar } from "@mui/material";
+import { useAuth } from "../../hooks";
+import { useState } from "react";
+
 
 /**
  * Layout que contiene la sidebar y la barra de navegación superior.
- * @param {children} Children - Contenido a renderizar dentro del layout del menú
+ * @param {children} Children Contenido a renderizar dentro del layout del menú
  * @returns {JSX.Element}
  */
 export default function MenuLayout({ children }) {
-    const auth = useAuth();
-    const navigate = useNavigate();
-    const navegacion = useNavegacion();
-    const height = useMemo(() => {
-        return navegacion.dispositivoMovil ? "96vh" : "97.5vh";
-    }, [navegacion.dispositivoMovil]);
-    const margin = useMemo(() => {
-        const { dispositivoMovil, orientacion } = navegacion;
-
-        if (dispositivoMovil && orientacion == "vertical") {
-            return "4vw";
-        } else {
-            return "1.9vw";
-        }
-    }, [navegacion]);
-    const marginMenu = useMemo(() => {
-        const { dispositivoMovil, orientacion, mostrarMenu } = navegacion;
-        if (dispositivoMovil && orientacion == "vertical") {
-            return "0px";
-        } else if (orientacion == "horizontal" && mostrarMenu) {
-            return "240px";
-        }
-    }, [navegacion]);
-    const width = useMemo(() => {
-        const { dispositivoMovil, orientacion, mostrarMenu } = navegacion;
-        if ((!dispositivoMovil && !mostrarMenu)|| (dispositivoMovil && orientacion == "vertical")) {
-            return "99vw";
-        } else if (orientacion == "horizontal" && mostrarMenu) {
-            return "calc(100vw - 240px - 1.9vw)";
-        }
-    }, [navegacion]);
-
-    /**
-     * Si hay algún error de autenticación, muestra un modal con el mensaje de error y al cerrarlo
-     * redirige a la página de inicio.
-     */
-    useEffect(() => {
-        navegacion.setCallbackError({
-            fn: () => {
-                navigate("/", { replace: true });
-            }
-        });
-    }, []);
+    const { cargando } = useAuth();
+    const [mostrarMenu, setMostrarMenu] = useState(false);
 
     return (
         <>
-            {auth.cargando ? (
-                <Box display="flex" justifyContent="center" alignItems="center" height={height}>
+            {cargando ? (
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    height={{ xs: "96vh", md: "97.5vh" }}>
                     <CircularProgress />
                 </Box>
             ) : (
-                <Box width={width} marginLeft={marginMenu}>
-                    <NavBar />
-                    <Sidebar />
-                    <Box component="main" sx={{ padding: `2vh ${margin}`}}>
+                <Box
+                    width={{
+                        xs: "99vw", md: mostrarMenu ? `calc(99vw - 240px)` : "99vw"
+                    }}
+                    marginLeft={{
+                        xs: "0px", md: mostrarMenu ? "240px" : "0px"
+                    }}>
+                    <NavBar mostrarMenu={mostrarMenu} setMostrarMenu={setMostrarMenu} />
+                    <Sidebar mostrarMenu={mostrarMenu} setMostrarMenu={setMostrarMenu} />
+                    <Box component="main"
+                        sx={{
+                            paddingTop: "2vh",
+                            paddingLeft: { xs: "4vw", md: "1.9vw" },
+                            paddingRight: { xs: "4vw", md: "1.9vw" }
+                        }}>
                         <Toolbar />
                         {children}
                     </Box>

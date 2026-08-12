@@ -1,204 +1,102 @@
-import { AppBar, Avatar, IconButton, Popover, Tooltip, Typography, Toolbar, Box, MenuItem, Divider, Stack } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
-import MenuIcon from "@mui/icons-material/Menu";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { useAuth } from "../../contexts/AuthContext";
-import { useNavigate } from "react-router";
-import { useNavegacion } from "../../contexts/NavegacionContext";
-import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import BtnTema from "../layout/BtnTema";
-import LogoutIcon from '@mui/icons-material/Logout';
-import { URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../../constants";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArticleIcon from '@mui/icons-material/Article';
-import SwitchLabel from "../tabs/SwitchLabel";
+import MenuIcon from "@mui/icons-material/Menu";
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import {
+    AppBar, Avatar, IconButton, Tooltip, Typography, Toolbar, Box,
+    Stack
+} from "@mui/material";
+import { BtnTema, PopOverAuth } from "../layout";
+import { SelectIdioma } from "../selects";
+import { useAuth } from "../../hooks";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import SelectIdioma from "../tabs/SelectIdioma";
+import { URL_MANUAL_ADMIN, URL_MANUAL_USUARIO } from "../../constants";
+
 
 /**
- * Barra de navegación superior.
+ * Barra de navegación que se muestra en las pewstañas que requieren autenticación.
+ * @param {Boolean} mostrarMenu Indica si el menú lateral se muestra o no.
+ * @param {import("react").SetStateAction<Boolean>} setMostrarMenu Función que cambia el estado de mostrarMenu.
  * @returns {JSX.Element}
  */
-export default function Navbar() {
-    const auth = useAuth();
+export default function Navbar({ mostrarMenu, setMostrarMenu }) {
+    const { autenticado, usuario } = useAuth();
     const { t } = useTranslation();
-    const navegacion = useNavegacion();
-    const navigate = useNavigate();
+    const [urlImg, setUrlImg] = useState("");
     const [popOver, setPopOver] = useState(null);
-    const [img, setImg] = useState("");
-    const open = Boolean(popOver);
-    const idPopOver = open ? "simple-popover" : undefined;
-    const rol = useMemo(() => auth.authInfo.rol, [auth.authInfo.rol]);
-    const txtRol = useMemo(() => {
-        const { rol } = auth.authInfo;
-        return rol ? t("txtAdministrador") : t("txtMedico");
-    }, [auth.authInfo, navegacion.idioma]);
-    const txtToolBtnMenu = useMemo(() => {
-        return navegacion.mostrarMenu ? t("txtCerrarMenu") : t("txtAbrirMenu");
-    }, [navegacion.mostrarMenu, navegacion.idioma]);
-    const txtSwitch = useMemo(() => {
-        const { modoUsuario } = auth.authInfo;
-        if (modoUsuario === false) {
-            return t("txtActivarModoUsuario");
-        } else {
-            return t("txtDesactivarModoUsuario");
-        }
-    }, [auth.authInfo, navegacion.idioma]);
+    const mostrarPopOver = Boolean(popOver);
+    const idPopOver = mostrarPopOver ? "simple-popover" : undefined;
 
-    /**
-     * Carga de la imagen del usuario a iniciar.
-     */
     useEffect(() => {
-        const { autenticado, authInfo } = auth;
-        const { user } = authInfo;
-
-        if (autenticado && user != null) {
-            setImg(user.photoURL);
-        } else if (autenticado != null && autenticado == false) {
-            navigate("/", { replace: true });
+        if (autenticado) {
+            setUrlImg(usuario.fotoUrl);
         }
-    }, [auth.authInfo, auth.autenticado]);
+    }, [usuario, autenticado]);
 
-    /**
-     * Manejador de evento de clic para mostrar el PopOver de usuario.
-     * @param {Event} event 
-     */
-    const manejadorMousePopOver = (event) => {
-        setPopOver(event.currentTarget);
+    function manejadorAbrirMenu() {
+        setMostrarMenu((mostrarMenu) => !mostrarMenu);
     };
 
-    /**
-     * Manejador de evento para abrir o cerrar el menú lateral.
-     */
-    const manejadorAbrirMenu = () => {
-        if (!navegacion.cerrandoMenu) {
-            navegacion.setMostrarMenu(!navegacion.mostrarMenu);
-        }
-    };
-
-    /**
-     * Manejador de evento para cambiar el tema de la aplicación.
-     */
-    const manejadorBtnTema = () => {
-        navegacion.cambiarTema();
-    };
-
-    /**
-     * Manejador de evento para cerrar el PopOver de usuario.
-     */
-    const cerrarPopOver = () => {
-        setPopOver(null);
-    };
-
-    /**
-     * Manejador de evento para cerrar sesión.
-     */
-    const cerrarSesion = () => {
-        navegacion.setPaginaAnterior(window.location.pathname);
-        navigate("/cerrar-sesion", { replace: true });
-    };
-
-    /**
-     * Abre una nueva pestaña con el manual de instrucciones.
-     */
-    const manejadorBtnInstrucciones = () => {
-        const url = auth.authInfo.rolVisible ? URL_MANUAL_ADMIN : URL_MANUAL_USUARIO;
+    function manejadorBtnInstrucciones() {
+        const url = usuario?.rolVisible ? URL_MANUAL_ADMIN : URL_MANUAL_USUARIO;
         window.open(url, "_blank");
     };
 
     /**
-     * Manejador de evento para cambiar el modo de usuario.
      * @param {Event} e 
      */
-    const manejadorSwitchModoUsuario = (e) => {
-        const modoUsuario = auth.authInfo.modoUsuario;
-        if (e == null) {
-            e = { target: { checked: !modoUsuario } };
-        }
-        auth.cambiarModoUsuario(e.target.checked);
-        navegacion.setRecargarPagina(true);
+    function manejadorBtnAvatar(e) {
+        setPopOver(e.currentTarget);
     };
 
     return (
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
             <Toolbar>
-                <Box display="flex" justifyContent="space-between" alignItems="center" flexDirection="row" width="100vw" >
-                    <Tooltip title={txtToolBtnMenu}>
+                <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    flexDirection="row"
+                    width="100vw">
+                    <Tooltip title={mostrarMenu ? t("txtCerrarMenu") : t("txtAbrirMenu")}>
                         <IconButton edge="start" color="inherit" onClick={manejadorAbrirMenu}>
-                            {navegacion.mostrarMenu ? <MenuOpenIcon /> : <MenuIcon />}
+                            {mostrarMenu ? <MenuOpenIcon /> : <MenuIcon />}
                         </IconButton>
                     </Tooltip>
-                    <Typography variant="h6"><b>HADT</b></Typography>
+                    <Typography variant="h6" fontWeight="bold">
+                        HADT
+                    </Typography>
                     <Stack direction="row" spacing={1}>
                         <SelectIdioma />
-                        <IconButton color="inherit" onClick={manejadorBtnTema}>
-                            <BtnTema />
-                        </IconButton>
+                        <BtnTema color="inherit" />
                         <Tooltip title={t("txtAyudaBtnManual")}>
                             <IconButton color="inherit" onClick={manejadorBtnInstrucciones}>
                                 <ArticleIcon />
                             </IconButton>
                         </Tooltip>
                         <Tooltip title={t("txtAyudaAvatar")}>
-                            <IconButton onClick={manejadorMousePopOver} color="inherit" aria-describedby={idPopOver}>
-                                <Avatar alt={auth.authInfo.user != null ? auth.authInfo.user.displayName : t("txtUsuario")} src={img}>
-                                    {img === "" ? <AccountCircleIcon sx={{ height: 47, width: 47 }} /> : null}
+                            <IconButton
+                                color="inherit"
+                                onClick={manejadorBtnAvatar}
+                                aria-describedby={idPopOver}>
+                                <Avatar
+                                    alt={usuario ? usuario.nombre : t("txtUsuario")}
+                                    src={urlImg}>
+                                    {urlImg == "" ? <AccountCircleIcon sx={{ height: 47, width: 47 }} /> : null}
                                 </Avatar>
                                 <ArrowDropDownIcon color="inherit" />
                             </IconButton>
                         </Tooltip>
                     </Stack>
-                    <Popover
+                    <PopOverAuth
                         id={idPopOver}
-                        open={open}
-                        onClose={cerrarPopOver}
+                        mostrar={mostrarPopOver}
                         anchorEl={popOver}
-                        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                        transformOrigin={{ vertical: "top", horizontal: "right" }}
-                        PaperProps={{
-                            sx: {
-                                p: 0,
-                                mt: 1.5,
-                                ml: 0.75,
-                                "& .MuiMenuItem-root": {
-                                    typography: "body2",
-                                    borderRadius: 0.75,
-                                },
-                            },
-                        }}>
-                        <Box padding="1vh 15px" maxWidth="90vw">
-                            <Typography variant="h6">
-                                <b>{auth.authInfo.user != null ? auth.authInfo.user.displayName : t("txtUsuario")}</b>
-                            </Typography>
-                            <Typography variant="body2" maxWidth="100%">
-                                <b>{txtRol}</b>
-                            </Typography>
-                            <Typography variant="body2" color="textSecondary" maxWidth="100%">
-                                <span><b>{t("txtCorreo")}: </b> {auth.authInfo.user != null ? auth.authInfo.user.email : "Correo@correo.com"}</span>
-                            </Typography>
-                        </Box>
-                        <Divider />
-                        {rol ? (
-                            <>
-                                <MenuItem onClick={() => manejadorSwitchModoUsuario(null)}>
-                                    <SwitchLabel
-                                        activado={auth.authInfo.modoUsuario}
-                                        etiqueta={txtSwitch}
-                                        manejadorCambios={manejadorSwitchModoUsuario} />
-                                </MenuItem>
-                                <Divider />
-                            </>) : null}
-                        <MenuItem onClick={cerrarSesion}>
-                            <Stack direction="row" spacing={1} display="flex" alignItems="center">
-                                <LogoutIcon />
-                                <Typography variant="body1" sx={{ p: 0.5 }}>
-                                    {t("txtBtnCerrarSesion")}
-                                </Typography>
-                            </Stack>
-                        </MenuItem>
-                    </Popover>
+                        setPopOver={setPopOver}/>
                 </Box>
             </Toolbar>
-        </AppBar>
+        </AppBar> 
     );
 };

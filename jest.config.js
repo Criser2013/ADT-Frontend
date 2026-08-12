@@ -3,7 +3,7 @@ const fecha = new Date();
 export default {
     testEnvironment: "jest-environment-jsdom",
     testMatch: [
-        "**/tests/unitarias/scripts/**.test.js"
+        "**/tests/unitarias/scripts/**/**.test.js"
     ],
     moduleFileExtensions: ["js",],
     coverageDirectory: `tests/unitarias/cobertura/testrun-${fecha.toDateString()} - ${fecha.toLocaleTimeString().replaceAll(":", "-")}`,
@@ -24,4 +24,6 @@ export default {
     transform: {
         "^.+\\.[t|j]sx?$": "babel-jest",
     },
+    roots: ["<rootDir>/tests/unitarias/scripts/"],
+    modulePathIgnorePatterns: ["<rootDir>/articulo"]
 };

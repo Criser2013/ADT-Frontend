@@ -1,25 +1,29 @@
-import { FormGroup, Checkbox, FormControlLabel } from "@mui/material";
+import { Checkbox, FormControlLabel, FormGroup } from "@mui/material";
+
 
 /**
- * Componente de checkbox con etiqueta.
- * @param {Boolean} activado - Estado del checkbox
- * @param {function} manejadorCambios - Función para manejar cambios en el checkbox
- * @param {string} lbl - Etiqueta del checkbox
- * @param {string} nombre - Nombre del checkbox
- * @param {boolean} desactivado - Indica si el checkbox está desactivado
- * @param {string} tamano - Tamaño del checkbox (small, medium, large)
+ * Checkbox con etiqueta.
+ * @param {Boolean} marcado Estado del checkbox
+ * @param {Boolean} desactivar Indicador para desactivar el checkbox.
+ * @param {Function} manejadorCambios Función para manejar cambios en el checkbox.
+ * @param {String|JSX.Element} etiqueta Etiqueta del checkbox, puede ser un string o un elemento JSX.
+ * @param {String} nombre Nombre para la etiqueta "name" del checkbox
+ * @param {string} tamano Tamaño del componente (valores: "small", "medium", "large")
  * @returns {JSX.Element}
  */
-export default function Check({ activado, manejadorCambios, etiqueta, nombre = "", desactivado = false, tamano = "medium" }) {
+export default function Check({
+    marcado, desactivar = false, manejadorCambios, etiqueta,
+    nombre = "check", tamano = "medium"
+}) {
     return (
         <FormGroup>
             <FormControlLabel
                 control={
                     <Checkbox
-                        checked={!!activado}
+                        checked={marcado}
                         size={tamano}
                         name={nombre}
-                        disabled={desactivado}
+                        disabled={desactivar}
                         onChange={manejadorCambios} />
                 }
                 label={etiqueta} />

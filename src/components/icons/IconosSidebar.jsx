@@ -1,12 +1,13 @@
 import { SvgIcon } from "@mui/material";
 
+
 /* NOTA: No es posible importar importar los iconos como archivos SVG
    nisiquiera con el plugin "vite-plugin-svgr". No se puede personalizar
 */
 
 /**
  * Icono para el diagnóstico de pacientes.
- * @param {JSON} props - Props predeterminadas de MUI SvgIcon
+ * @param {Object} props Props predeterminadas de MUI SvgIcon
  * @returns {JSX.Element}
  */
 export function DiagnosticoIcono(props) {
@@ -21,7 +22,7 @@ export function DiagnosticoIcono(props) {
 
 /**
  * Icono para el diagnóstico ánonimo.
- * @param {JSON} props - Props predeterminadas de MUI SvgIcon
+ * @param {Object} props Props predeterminadas de MUI SvgIcon
  * @returns {JSX.Element}
  */
 export function DiagAnonimoIcono(props) {
@@ -36,7 +37,7 @@ export function DiagAnonimoIcono(props) {
 
 /**
  * Icono para el historial de pacientes.
- * @param {JSON} props - Props predeterminadas de MUI SvgIcon
+ * @param {Object} props Props predeterminadas de MUI SvgIcon
  * @returns {JSX.Element}
  */
 export function HistDiagnosticoIcono(props) {
@@ -51,7 +52,7 @@ export function HistDiagnosticoIcono(props) {
 
 /**
  * Icono para la lista de pacientes.
- * @param {JSON} props - Props predeterminadas de MUI SvgIcon
+ * @param {Object} props Props predeterminadas de MUI SvgIcon
  * @returns {JSX.Element}
  */
 export function ListPacienteIcono(props) {
@@ -66,7 +67,7 @@ export function ListPacienteIcono(props) {
 
 /**
  * Icono para los datos recolectados.
- * @param {JSON} props - Props predeterminadas de MUI SvgIcon
+ * @param {Object} props Props predeterminadas de MUI SvgIcon
  * @returns {JSX.Element}
  */
 export function DatosIcono(props) {

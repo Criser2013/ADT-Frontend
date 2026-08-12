@@ -1,0 +1,216 @@
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import dayjs from "dayjs";
+import ExplicacionLime from "./ExplicacionLime";
+import { CAMPOS_BIN, CAMPOS_DECIMALES, CAMPOS_ENTEROS, CAMPOS_NUM, COMORBILIDADES } from "../constants";
+import { decoderOtraEnfermedad } from "../utils/TratarDatos";
+import { procBool } from "../utils/TratarDatos";
+import { Timestamp } from "firebase/firestore";
+
+dayjs.extend(customParseFormat);
+
+/**
+ * Modelo que representa un diagnóstico con sus atributos y métodos relacionados.
+ */
+export default class Diagnostico {
+    #comorbilidades = {};
+
+    /**
+     * Instancia de diagnóstico de TEP realizada por un usuario.
+     * @param {String} id ID del diagnóstico.
+     * @param {String} usuario UID del usuario que realizó el diagnóstico.
+     * @param {String} paciente UID del paciente al que pertenece el diagnóstico.
+     * @param {Array<String>} comorbilidades Lista de comorbilidades del paciente.
+     * @param {Date} fecha Fecha del diagnóstico.
+     * @param {Number} sexo Indicador de género del paciente.
+     * @param {Boolean} otraEnfermedad Indicador de si el paciente tiene otra enfermedad.
+     * @param {Object} sintomasBinarios Objeto con los síntomas binarios del paciente.
+     * @param {Object} sintomasNumericos Objeto con los síntomas numéricos del paciente.
+     * @param {Boolean|null} diagnosticoModelo Diagnóstico de TEP dado por el modelo.
+     * @param {Boolean|null} diagnosticoMedico Diagnóstico de TEP dado por el médico. 
+     * @param {Number|null} probabilidad Probabilidad de TEP según el modelo.
+     * @param {ExplicacionLime|null} explicacion Explicación del modelo de diagnóstico.
+     * @param {String} nombreUsuario Nombre de la cuenta de usuario que realizó el diagnóstico.
+     * @param {String} nombrePaciente Nombre del paciente al que pertenece el diagnóstico.
+     * @param {String} cedula Número de cédula del paciente al que pertenece el diagnóstico.
+     */
+    constructor(
+        id, usuario, paciente, comorbilidades, fecha, sexo, otraEnfermedad, sintomasBinarios,
+        sintomasNumericos, diagnosticoModelo = null, diagnosticoMedico = null, probabilidad = null,
+        explicacion = null, nombreUsuario = "", nombrePaciente = "", cedula = ""
+    ) {
+        this.id = id;
+        this.usuario = usuario;
+        this.paciente = paciente;
+        this.fecha = fecha;
+        this.sexo = sexo;
+        this.otraEnfermedad = otraEnfermedad;
+        this.comorbilidades = comorbilidades;
+        this.sintomasBinarios = sintomasBinarios;
+        this.sintomasNumericos = sintomasNumericos;
+        this.diagnosticoModelo = diagnosticoModelo;
+        this.diagnosticoMedico = diagnosticoMedico;
+        this.probabilidad = probabilidad;
+        this.explicacion = explicacion;
+        this.validado = diagnosticoMedico !== null;
+        this.nombreUsuario = nombreUsuario;
+        this.nombrePaciente = nombrePaciente;
+        this.cedula = cedula;
+    }
+
+    /**
+     * @param {Array<String>} comorbilidades Lista de comorbilidades del paciente.
+     */
+    set comorbilidades(comorbilidades) {
+        const claves = {};
+
+        if ((comorbilidades instanceof Object) && (!Array.isArray(comorbilidades))) {
+            this.#comorbilidades = comorbilidades;
+            return;
+        }
+
+        for (const i of COMORBILIDADES) {
+            if (comorbilidades.includes(i)) {
+                claves[i] = 1;
+            } else {
+                claves[i] = 0;
+            }
+        }
+
+        this.#comorbilidades = claves;
+    }
+
+    get comorbilidades() {
+        return decoderOtraEnfermedad(this.#comorbilidades);
+    }
+
+    get comorbilidadesCodificadas() {
+        return this.#comorbilidades;
+    }
+
+    get edad() {
+        return this.sintomasNumericos?.edad;
+    }
+
+    get fechaFormateada() {
+        return dayjs(this.fecha).format("DD-MM-YYYY");
+    }
+
+    get idCompuesto() {
+        return `${this.id}-${this.usuario}`;
+    }
+
+    /**
+     * @param {Object} json JSON con los datos del paciente.
+     * @returns {Diagnostico} Una instancia de la clase Diagnostico creada a partir de un objeto JSON.
+     */
+    static fromJson(json) {
+        const {
+            id, usuario, paciente, otraEnfermedad, fecha, probabilidad, explicacion,
+            diagnosticoModelo, diagnosticoMedico, comorbilidades, sexo } = json;
+        const sintomasBinarios = {};
+        const sintomasNumericos = {};
+
+        for (const i of CAMPOS_BIN) {
+            sintomasBinarios[i] = json[i];
+        }
+
+        for (const i of CAMPOS_NUM) {
+            sintomasNumericos[i] = json[i];
+        }
+
+        return new Diagnostico(
+            id, usuario, paciente, comorbilidades, fecha.toDate(), sexo, otraEnfermedad,
+            sintomasBinarios, sintomasNumericos, diagnosticoModelo, diagnosticoMedico,
+            probabilidad, new ExplicacionLime(explicacion)
+        );
+    }
+
+    /**
+     * Cambia los datos del médico y del paciente asociados al diagnóstico.
+     * @param {String} nombreUsuario Nombre de la cuenta de usuario que realizó el diagnóstico.
+     * @param {String} nombrePaciente Nombre del paciente al que pertenece el diagnóstico.
+     * @param {String} cedula Número de cédula del paciente al que pertenece el diagnóstico.
+     */
+    cambiarDatosPersonas(nombreUsuario, nombrePaciente, cedula) {
+        this.nombreUsuario = nombreUsuario;
+        this.nombrePaciente = nombrePaciente;
+        this.cedula = cedula;
+    }
+
+    deepClone() {
+        return new Diagnostico(
+            this.id, this.usuario, this.paciente, this.comorbilidades, this.fecha,
+            this.sexo, this.otraEnfermedad, { ...this.sintomasBinarios }, { ...this.sintomasNumericos },
+            this.diagnosticoModelo, this.diagnosticoMedico, this.probabilidad,
+            new ExplicacionLime(this.explicacion.toJson()), this.nombreUsuario, this.nombrePaciente, this.cedula
+        );
+    }
+
+    /**
+     * @param {Boolean} esAdmin Indicador de si el usuario es administrador o n
+     * @returns {String} ID del diagnóstico, si el usuario es administrador se devuelve el 
+     * ID completo, si no se devuelve solo el ID del diagnóstico sin el UID del usuario.
+     */
+    mostrarId(esAdmin) {
+        return esAdmin ? this.idCompuesto : this.id;
+    }
+
+    toJson() {
+        return {
+            sexo: this.sexo,
+            otraEnfermedad: this.otraEnfermedad,
+            fecha: Timestamp.fromDate(this.fecha),
+            paciente: this.paciente,
+            diagnosticoModelo: this.diagnosticoModelo,
+            diagnosticoMedico: this.diagnosticoMedico,
+            probabilidad: this.probabilidad,
+            explicacion: this.explicacion?.toJson(),
+            comorbilidades: this.comorbilidades,
+            ...this.sintomasBinarios,
+            ...this.sintomasNumericos,
+        };
+    }
+
+    /**
+     * Transforma los datos del diagnóstico en un objeto JSON con el formato requerido por la API.
+     * @returns {Object} Objeto JSON con los datos del diagnóstico en el formato requerido por la 
+     * API.
+     */
+    toJsonApi() {
+        const json = { sexo: this.sexo, otra_enfermedad: procBool(this.otraEnfermedad) };
+        for (const i of CAMPOS_BIN) {
+            json[i] = procBool(this.sintomasBinarios[i]);
+        }
+        for (const i of CAMPOS_DECIMALES) {
+            json[i] = this.sintomasNumericos[i];
+        }
+        for (const i of CAMPOS_ENTEROS) {
+            json[i] = this.sintomasNumericos[i];
+        }
+        for (const i of COMORBILIDADES) {
+            let clave = "";
+
+            if (i == "Enfermedad coronaria") {
+                clave = "enfermedad_coronaria";
+            } else {
+                clave = i.replace("Enfermedad ", "").toLocaleLowerCase().normalize('NFD').
+                    replace(/[\u0300-\u036f]/g, "").replace(" ", "_");
+            }
+
+            json[clave] = this.#comorbilidades[i];
+        }
+        return json;
+    }
+
+    /**
+     * @param {Boolean} diagnosticoMedico Diagnóstico de TEP dado por el médico. 
+     */
+    validar(diagnosticoMedico) {
+        if (this.validado) {
+            throw new Error("El diagnóstico ya ha sido validado previamente.");
+        } else {
+            this.diagnosticoMedico = diagnosticoMedico;
+            this.validado = true;
+        }
+    }
+}

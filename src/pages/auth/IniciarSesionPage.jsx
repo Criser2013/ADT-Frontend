@@ -1,205 +1,108 @@
-import { Box, Button, Grid, IconButton, Typography, CircularProgress, Link, Tooltip, Paper } from "@mui/material";
-import GoogleIcon from '@mui/icons-material/Google';
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Trans } from "react-i18next";
-import { useTranslation } from "react-i18next";
-import { useAuth } from "../../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { useNavegacion } from "../../contexts/NavegacionContext";
-import { useCredenciales } from "../../contexts/CredencialesContext";
-import ReCAPTCHA from "react-google-recaptcha";
-import BtnTema from "../../components/layout/BtnTema";
-import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../../constants";
-import fondoClaro from "../../assets/fondos/fondo_claro.png";
-import fondoOscuro from "../../assets/fondos/fondo_oscuro.png";
-import icono from "../../assets/iconos/icono.png";
-import ModalSimple from "../../components/modals/ModalSimple";
 import CloseIcon from "@mui/icons-material/Close";
-import Check from "../../components/tabs/Check";
-import { peticionApi } from "../../services/Api";
-import SelectIdioma from "../../components/tabs/SelectIdioma";
+import FondoClaro from "/backgrounds/fondo_claro.png";
+import FondoOscuro from "/backgrounds/fondo_oscuro.png";
+import GoogleIcon from '@mui/icons-material/Google';
+import Logo from "/logo.png";
+import { Box, Button, Grid, IconButton, Typography, Link, Tooltip, Paper } from "@mui/material";
+import { BtnTema } from "../../components/layout";
+import { Captcha } from "../../components/captcha";
+import { Check } from "../../components/tabs";
+import { PantallaCarga } from "../../components/layout";
+import { SelectIdioma } from "../../components/selects";
+import { Trans } from "react-i18next";
+import { temaClaro } from "../../hooks/tema-hook";
+import { URL_CONDICIONES, URL_MANUAL_USUARIO } from "../../constants";
+import { useAuth } from "../../hooks";
+import { useEffect, useState } from "react";
+import { useIdioma, useTema } from "../../hooks";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
 
 /**
  * Página de inicio de sesión que permite a los usuarios acceder a la aplicación.
- * Si el usuario ya está autenticado, se redirige automáticamente al menú principal.
  * @returns {JSX.Element}
  */
 export default function IniciarSesionPage() {
-    const auth = useAuth();
     const navigate = useNavigate();
-    const navegacion = useNavegacion();
-    const { firebase, reCAPTCHA } = useCredenciales();
-    const CAPTCHA = useRef(null);
+    const { autenticado, iniciarSesion, cargando, usuario } = useAuth();
+    const { idioma } = useIdioma();
+    const { tema } = useTema();
     const { t } = useTranslation();
-    const [desactivarBtn, setDesactivarBtn] = useState(true);
-    const [cargandoBtn, setCargandoBtn] = useState(false);
-    const [cargando, setCargando] = useState(false);
+    const [btnCargando, setBtnCargando] = useState(false);
     const [captchaAceptado, setCaptchaAceptado] = useState(false);
+    const [desactivarBtn, setDesactivarBtn] = useState(true);
     const [terminosAceptados, setTerminosAceptados] = useState(false);
-    const [modal, setModal] = useState({
-        mensaje: "", mostrar: false
-    });
-    const cargandoAuth = useMemo(() => (auth.cargando || !firebase), [auth.cargando, firebase]);
-    const width = useMemo(() => {
-        const { dispositivoMovil, orientacion, ancho } = navegacion;
-        if (!dispositivoMovil && (ancho >= 1020)) {
-            return "35vw";
-        } else if (!dispositivoMovil && (ancho >= 550 && ancho < 1020)) {
-            return "57vw";
-        } else if ((!dispositivoMovil && (ancho < 550)) || (dispositivoMovil && (orientacion == "vertical"))) {
-            return "100vw";
-        } else {
-            return "40vw";
-        }
-    }, [navegacion]);
-    const centrar = useMemo(() => {
-        const { dispositivoMovil, orientacion, alto } = navegacion;
-        if ((!dispositivoMovil && (alto >= 800)) || (dispositivoMovil && (orientacion == "vertical"))) {
-            return "center";
-        } else {
-            return null;
-        }
-    }, [navegacion]);
-    const temaCaptcha = useMemo(() => navegacion.tema, [navegacion.tema]);
-    const fondoImg = useMemo(() => {
-        return temaCaptcha === "light" ? fondoClaro : fondoOscuro;
-    }, [temaCaptcha]);
-
-    /**
-     * Verifica la autenticación del usuario y redirige si ya está autenticado.
-     */
-    useEffect(() => {
-        navegacion.setPaginaAnterior("");
-    }, []);
 
     useEffect(() => {
         document.title = t("titInicioSesion");
-    }, [navegacion.idioma]);
+    }, [t]);
 
+    /**
+     * Habilita o deshabilita el botón de inicio de sesión basado en si el usuario ha 
+     * aceptado los términos (sino está autenticado) y ha completado el captcha.
+     */
     useEffect(() => {
-        if (auth.autenticado) {
+        if (autenticado) {
             setDesactivarBtn(!captchaAceptado);
         } else {
             setDesactivarBtn(!(captchaAceptado && terminosAceptados));
         }
-    }, [captchaAceptado, terminosAceptados, auth.autenticado]);
+    }, [captchaAceptado, terminosAceptados, autenticado]);
 
-    /**
-     * Ejecuta una función mientras se cambia el idioma o el tema.
-     * @param {Function} funcion - Función a ejecutar.
-     */
-    const reiniciarPagina = (funcion = null) => {
-        setCargando(true);
-        if (funcion != null) {
-            funcion();
-        }
-        setTimeout(() => {
-            setTerminosAceptados(false);
-            setDesactivarBtn(true);
-            setCargando(false);
-        }, 100);
-    };
+    useEffect(() => {
+        setCaptchaAceptado(false);
+    }, [tema, idioma]);
 
-    /**
-     * Manejador de eventos del botón para iniciar sesión.
-     */
-    const manejadorBtnIniciarSesion = () => {
-        const { user } = auth.authInfo;
-
-        if (user == null) {
-            auth.iniciarSesionGoogle().then((x) => manejadorRespuesta(x, 0));
-        } else {
-            auth.reautenticarUsuario(user).then((x) => manejadorRespuesta(x, 2));
-        }
-        setDesactivarBtn(true);
-    };
-
-    /**
-     * Manejador de la respuesta de la operación de inicio de sesión.
-     * @param {JSON} respuesta - Respuesta de la operación.
-     * @param {int} codigo - Código de operación esperada.
-     */
-    const manejadorRespuesta = (respuesta, codigo) => {
-        const res = (respuesta.res == false) && (respuesta.operacion == codigo);
+    async function manejadorBtnIniciarSesion() {
+        const res = await iniciarSesion(usuario);
         if (res) {
             navigate("/menu", { replace: true });
         } else {
+            setDesactivarBtn(true);
+            setTerminosAceptados(false);
             setCaptchaAceptado(false);
         }
-    };
-
-    /**
-     * Activa o desactiva el botón de inicio de sesión basado en la respuesta de reCAPTCHA.
-     * @param {String|null} token - Token de reCAPTCHA recibido al completar el desafío.
-     */
-    const manejadorReCAPTCHA = async (token) => {
-        const res = (typeof token == "string");
-        if (res) {
-            verificarRespuesta(token);
-        } else {
-            setCaptchaAceptado(false);
-        }
-    };
-
-    /**
-     * Comprueba que la respuesta de reCAPTCHA sea que un usuario es un humano.
-     * @param {string} token - Token de ReCAPTCHA
-     */
-    const verificarRespuesta = async (token) => {
-        setCargandoBtn(true);
-        const res = await peticionApi("", "recaptcha", "POST", { token: token }, t("errCaptchaApi"), navegacion.idioma);
-
-        if (res.success) {
-            if (res.data.success) {
-                setCaptchaAceptado(true);
-            } else {
-                setModal({
-                    mostrar: true, titulo: t("tituloErr"),
-                    mensaje: t("errCaptcha")
-                });
-                CAPTCHA.current.reset();
-                setCaptchaAceptado(false);
-            }
-        } else {
-            let txtError = res.error;
-            if (typeof res.error != "string") {
-                for (const i of res.error) {
-                    txtError += `${i} `;
-                }
-            }
-            CAPTCHA.current.reset();
-            setCaptchaAceptado(false);
-            setModal({ titulo: t("tituloErr"), mostrar: true, mensaje: txtError });
-        }
-        setCargandoBtn(false);
-    };
-
-    /**
-     * Manejador del botón para cerrar el modal.
-     */
-    const manejadorBtnModal = () => {
-        setModal((x) => ({ ...x, mostrar: false }));
     };
 
     return (
         <>
-            {(cargando || cargandoAuth) ? (
-                <Box alignItems="center" display="flex" justifyContent="center" height="100vh">
-                    <CircularProgress />
-                </Box>
+            {(cargando) ? (
+                <PantallaCarga altura="100vh" />
             ) : (
-                <Box display="flex" justifyContent="end" alignItems="center" height="100vh" sx={{ backgroundImage: `url(${fondoImg})`, backgroundSize: "cover" }}>
-                    <Paper sx={{ width: width, padding: "4vh", overflow: "auto", height: "100%", display: "flex", alignItems: centrar }}>
-                        <Grid columns={12} spacing={2} container>
-                            <Grid container columns={2} size={12} display="flex" justifyContent="space-between" alignItems="center">
+                <Box
+                    display="flex"
+                    justifyContent="end"
+                    alignItems="center"
+                    height="100vh"
+                    sx={{
+                        backgroundImage: `url(${tema == temaClaro ? FondoClaro : FondoOscuro})`,
+                        backgroundSize: "cover"
+                    }}>
+                    <Paper
+                        sx={{
+                            display: "flex",
+                            width: {
+                                xs: "100vw", sm: "57vw", md: "57vw", lg: "45vw", xl: "25vw"
+                            },
+                            height: "100%",
+                            padding: "4vh",
+                            overflow: "auto"
+                        }}>
+                        <Grid container columns={12} spacing={2}>
+                            <Grid
+                                container
+                                display="flex"
+                                columns={2}
+                                size={12}
+                                justifyContent="space-between"
+                                alignItems="center">
                                 <SelectIdioma />
-                                <IconButton aria-label="delete" onClick={() => reiniciarPagina(navegacion.cambiarTema)} size="large">
-                                    <BtnTema />
-                                </IconButton>
+                                <BtnTema tamano="large" />
                             </Grid>
-                            <Grid container columnSpacing="20px" columns={12} alignItems="center">
+                            <Grid container alignItems="center" columns={12} columnSpacing="20px">
                                 <Grid size={3}>
-                                    <img src={icono} height="90vh" width="90vh" alt="derp" />
+                                    <img src={Logo} height="90vh" width="90vh" alt="logo" />
                                 </Grid>
                                 <Grid size={9}>
                                     <Typography align="left" variant="h4" fontWeight="bold">
@@ -220,65 +123,62 @@ export default function IniciarSesionPage() {
                                 </Grid>
                             </Grid>
                             <Grid size={12} display="flex" justifyContent="center">
-                                <ReCAPTCHA
-                                    theme={temaCaptcha}
-                                    onChange={manejadorReCAPTCHA}
-                                    sitekey={reCAPTCHA}
-                                    hl={navegacion.idioma}
-                                    ref={CAPTCHA} />
+                                <Captcha
+                                    setCarga={setBtnCargando}
+                                    setCaptchaAceptado={setCaptchaAceptado}
+                                />
                             </Grid>
-                            {!auth.autenticado ? (
+                            {(!autenticado) ? (
                                 <Grid size={12} display="flex" justifyContent="left">
                                     <Check
-                                        activado={terminosAceptados}
+                                        marcado={terminosAceptados}
                                         manejadorCambios={(e) => setTerminosAceptados(e.target.checked)}
                                         etiqueta={
                                             <Trans i18nKey="txt4InicioSesion" t={t}>
                                                 He leído y acepto la&nbsp;
-                                                <Link target="_blank" href={URL_CONDICIONES}>política de privacidad</Link>
-                                                .
+                                                <Link
+                                                    target="_blank"
+                                                    href={URL_CONDICIONES}>
+                                                    política de privacidad
+                                                </Link>.
                                             </Trans>} />
                                 </Grid>) : null}
-                            <Grid size={12} justifyContent="center" display="flex">
+                            <Grid size={12} display="flex" justifyContent="center">
                                 <Tooltip title={t("txtAyudaBtnInicioSesion")}>
                                     <span style={{ width: "100%" }}>
                                         <Button
-                                            startIcon={<GoogleIcon fontSize="large" />}
                                             fullWidth
-                                            onClick={manejadorBtnIniciarSesion}
                                             variant="contained"
                                             disabled={desactivarBtn}
-                                            loading={cargandoBtn}
+                                            loading={btnCargando}
                                             loadingPosition="end"
+                                            onClick={manejadorBtnIniciarSesion}
+                                            startIcon={<GoogleIcon fontSize="large" />}
                                             sx={{ textTransform: "none" }}>
-                                            {auth.autenticado ? t("txt2BtnInicioSesion") : t("txt1BtnInicioSesion")}
+                                            {autenticado ? t("txt2BtnInicioSesion") : t("txt1BtnInicioSesion")}
                                         </Button>
                                     </span>
                                 </Tooltip>
                             </Grid>
                             <Grid size={12}>
-                                <Typography align="center" variant="body1" marginLeft="auto" marginRight="auto">
+                                <Typography align="center" variant="body1" margin="auto">
                                     <b>{t("txt3InicioSesion")}</b>
                                 </Typography>
                                 <br />
-                                <Typography align="center" variant="body1" marginLeft="auto" marginRight="auto">
+                                <Typography align="center" variant="body1" margin="auto">
                                     <Trans i18nKey="txt5InicioSesion" t={t}>
-                                        ¿Necesitas ayuda? ¡consulta nuestro <Link target="_blank" href={URL_MANUAL_USUARIO}>manual de instrucciones</Link>!
+                                        ¿Necesitas ayuda? ¡consulta nuestro
+                                        <Link
+                                            target="_blank"
+                                            href={URL_MANUAL_USUARIO}>
+                                            manual de instrucciones
+                                        </Link>!
                                     </Trans>
                                 </Typography>
                             </Grid>
                         </Grid>
                     </Paper>
-                    <ModalSimple
-                        abrir={modal.mostrar}
-                        titulo={t("tituloErr")}
-                        mensaje={modal.mensaje}
-                        txtBtn={t("txtBtnCerrar")}
-                        iconoBtn={<CloseIcon />}
-                        manejadorBtnModal={manejadorBtnModal}
-                    />
                 </Box>)}
-
         </>
     );
 };

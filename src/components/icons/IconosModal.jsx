@@ -1,5 +1,6 @@
 import { SvgIcon } from "@mui/material";
 
+
 /**
  * Icono que representa la acción de otorgar permisos.
  * @param {JSON} props - Props predeterminadas de MUI SvgIcon

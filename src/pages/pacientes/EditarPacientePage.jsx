@@ -1,67 +1,47 @@
-import { useDrive } from "../../contexts/DriveContext";
-import { useAuth } from "../../contexts/AuthContext";
+
+import { FormPaciente } from "../../components/forms";
+import { MenuLayout } from "../../components/layout";
+import { Paciente } from "../../models";;
 import { useEffect } from "react";
-import FormPaciente from "../../components/forms/FormPaciente";
-import MenuLayout from "../../components/layout/MenuLayout";
-import { useNavigate, useSearchParams } from "react-router";
-import { validarId } from "../../utils/Validadores";
+import { useNavigate, useParams } from "react-router-dom";
+import { usePaciente } from "../../hooks";
 import { useTranslation } from "react-i18next";
-import { useNavegacion } from "../../contexts/NavegacionContext";
-import { AES, enc } from "crypto-js";
-import { AES_KEY } from "../../../constants";
+
 
 /**
  * Página para editar los datos de un paciente.
  * @returns {JSX.Element}
  */
 export default function EditarPacientePage() {
-    const auth = useAuth();
-    const drive = useDrive();
-    const { t } = useTranslation();
-    const { idioma } = useNavegacion();
     const navigate = useNavigate();
-    const [params] = useSearchParams();
+    const { id } = useParams();
+    const { error, paciente } = usePaciente(id);
+    const { t } = useTranslation();
     const listadoPestanas = [
         { texto: t("titListaPacientes"), url: "/pacientes" },
-        { texto: t("titEditarPaciente"), url: `/pacientes/editar${location.search}` }
+        { texto: `${t("txtPaciente")} — ${paciente?.nombre}`, url: `/pacientes/${id}` },
+        { texto: t("titEditarPaciente"), url: `/pacientes/${id}/editar` }
     ];
-    const id = params.get("id");
 
-    /**
-     * Carga el token de sesión y comienza a descargar el archivo de pacientes.
-     */
     useEffect(() => {
-        const token = sessionStorage.getItem("session-tokens");
-        if (token != null) {
-            const tokens = JSON.parse(AES.decrypt(token, AES_KEY).toString(enc.Utf8));
-            drive.setToken(tokens.accessToken);
-        } else if (auth.tokenDrive != null) {
-            drive.setToken(auth.tokenDrive);
+        if (error) {
+            navigate("/pacientes");
         }
-    }, [auth.tokenDrive]);
-    
-    /**
-     * Coloca el título de la página.
-     */
-    useEffect(() => {
-        const res = (id != null && id != undefined) ? validarId(id) : false;
-
-        if (!res) {
-            navigate("/pacientes", { replace: true });
-        }
-    }, []);
+    }, [error, navigate]);
 
     useEffect(() => {
-        document.title = t("titEditarPaciente");
-    }, [idioma]);
+        document.title = paciente ? `${t("titEditarPaciente")} — ${paciente?.nombre}`
+            : t("titEditarPaciente");
+    }, [t, paciente]);
 
     return (
         <MenuLayout>
             <FormPaciente
-                listadoPestanas={listadoPestanas}
-                esAnadir={false}
-                titPestana={t("titEditarPaciente")}
-                id={id} />
+                titulo={t("titEditarPaciente")}
+                pestanas={listadoPestanas}
+                tooltip={t("txtVolverAtras")}
+                paciente={paciente}
+                esModificar />
         </MenuLayout>
     );
 };

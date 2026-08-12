@@ -1,160 +1,94 @@
-import Router from "../router";
-import { useAuth } from "./contexts/AuthContext";
-import { useCredenciales } from "./contexts/CredencialesContext";
-import { useEffect, useState } from "react";
-import { useNavegacion } from "./contexts/NavegacionContext";
-import { useTranslation } from "react-i18next";
-import ModalSimple from "./components/modals/ModalSimple";
-import ModalAccion from "./components/modals/ModalAccion";
 import CloseIcon from "@mui/icons-material/Close";
-import LogoutIcon from "@mui/icons-material/Logout";
 import dayjs from "dayjs";
-import { IconoPermisos } from "./components/icons/IconosModal";
+import i18next from "i18next";
+import LogoutIcon from "@mui/icons-material/Logout";
+import Router from "./router";
 import UpdateIcon from '@mui/icons-material/Update';
+import { IconoPermisos } from "./components/icons/IconosModal";
+import { ModalSimple, ModalDoble } from "./components/modals";
+import { useAuth } from "./hooks";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+
 
 /**
  * Componente principal que provee las credenciales de autenticación y muestra los 
- * errores relacionados con el servicio de autenticación.
+ * errores y novedades relacionados con el servicio de autenticación.
  * @returns {JSX.Element}
  */
 export default function App() {
-    const auth = useAuth();
+    const { cerrarSesion, error, iniciarSesion, requiereRefresco, usuario } = useAuth();
     const { t } = useTranslation();
-    const navegacion = useNavegacion();
-    const { firebaseAuth, scopesDrive } = useCredenciales();
-    const [modal, setModal] = useState({
-        mostrar: false, mensaje: ""
-    });
-    const [modal2Btn, setModal2Btn] = useState({
-        mostrar: false, mensaje: "", titulo: "", txtBtn: "", icono: null
+    const [modalSimple, setModalSimple] = useState({ mostrar: false, texto: "" });
+    const [modalDoble, setModalDoble] = useState({
+        mostrar: false, texto: "", titulo: "", txtBtn: "", icono: null
     });
 
-    /**
-     * Configura el formato en que se mostrarán las fechas de la aplicación según
-     * el idioma seleccionado por el usuario.
-     */
     useEffect(() => {
         import("dayjs/locale/es").then(() => {
-            const idioma = localStorage.getItem("i18nextLng");
-            dayjs.locale(idioma != null ? idioma : "es");
+            const idioma = i18next.language.split("-")[0];
+            dayjs.locale(idioma ? idioma : "es");
         });
-    });
-
-    /**
-     * Actualiza las instancia de Firebase y permisos de Drive
-     * cuando se cargan las credenciales.
-    */
-    useEffect(() => {
-        auth.setAuth(firebaseAuth);
-        auth.setScopes(scopesDrive);
-    }, [firebaseAuth, scopesDrive]);
+    }, []);
 
     useEffect(() => {
-        if (auth.autenticado != null && !auth.autenticado) {
-            setModal2Btn(((x) => ({ ...x, mostrar: false })));
-            return;
+        if (requiereRefresco) {
+            setModalDoble({
+                mostrar: true, titulo: t("titModalSesionCaducada"), texto: t("txtModalSesionCaducada"),
+                txtBtn: t("txtBtnExtenderSesion"), icono: <UpdateIcon />
+            });
         }
+    }, [requiereRefresco, setModalDoble, t]);
 
-        let compsModal = {
-            mostrar: !auth.permisos, mensaje: t("txtModalPermisos"),
-            titulo: t("titModalPermisos"), txtBtn: t("txtBtnPermisos"), icono: <IconoPermisos />
-        };
-        if (auth.requiereRefresco) {
-            compsModal = {
-                mostrar: true, titulo: t("titModalSesionCaducada"), txtBtn: t("txtBtnExtenderSesion"),
-                mensaje: t("txtModalSesionCaducada"),
-                icono: <UpdateIcon />
-            };
-        }
-        setModal2Btn(compsModal);
-    }, [auth.authInfo.user, auth.permisos, auth.requiereRefresco]);
-
-    /** 
-     * Escucha y muestra los errores de autenticación que se presenten.
-    */
     useEffect(() => {
-        if (!auth.cargando && auth.authError.res) {
-            setModal({ mostrar: true, mensaje: auth.authError.error });
-        } else {
-            setModal((x) => ({ ...x, mostrar: false }));
+        if (error && error != "errPermisos") {
+            const params = usuario ? { usuario: usuario.nombre, correo: usuario.correo } : {};
+            setModalSimple({ mostrar: true, texto: t(error, params) });
+        } else if (error == "errPermisos") {
+            setModalDoble({ 
+                mostrar: true, texto: t("txtModalPermisos"), titulo: t("titModalPermisos"),
+                txtBtn: t("txtBtnPermisos"), icono: <IconoPermisos />
+            });
         }
-    }, [auth.cargando, auth.authError.res, auth.authError.error]);
+    }, [error, usuario, t]);
 
-    /**
-     * Manejador de eventos del botón de cerrar el modal de error.
-     */
-    const manejadorBtnModal = () => {
-        setModal((x) => ({ ...x, mostrar: false }));
-
-        if ((navegacion.callbackError.fn != null) && (typeof (navegacion.callbackError.fn) == "function")) {
-            navegacion.callbackError.fn();
-        }
-
-        navegacion.setCallbackError({ fn: null });
-    };
-
-    /**
-     * Manejador de eventos del botón de reintentar.
-     */
-    const manejadorBtnPermisos = async () => {
-        setModal2Btn((x) => ({ ...x, mostrar: false }));
-
-        const { user } = auth.authInfo;
-
-        if (user != null) {
-            await auth.reautenticarUsuario(user);
-        } else {
-            await auth.iniciarSesionGoogle();
+    async function manejadorBtnAutenticar() {
+        setModalDoble((x) => ({ ...x, mostrar: false }));
+        const res = await iniciarSesion(usuario);
+        if (res && (location.pathname == "/")) {
+            location.replace("/menu");
         }
     };
 
-    /**
-     * Manejador de eventos del botón de cerrar sesión.
-     * Solo está presente cuando el usuario no ha otorgado los permisos.
-     */
-    const manejadorBtnCerrarSesion = () => {
-        setModal2Btn((x) => ({ ...x, mostrar: false }));
-        navegacion.setPaginaAnterior(window.location.pathname);
-
-        location.replace("/cerrar-sesion");
-    };
-
-    /**
-     * Manejador del botón para extender la sesión.
-     */
-    const manejadorBtnReautenticar = async () => {
-        const { user } = auth.authInfo;
-        setModal2Btn((x) => ({ ...x, mostrar: false }));
-
-        if (user != null) {
-            await auth.reautenticarUsuario(user);
-        } else {
-            await auth.iniciarSesionGoogle();
+    async function manejadorBtnCerrarSesion() {
+        setModalDoble((x) => ({ ...x, mostrar: false }));
+        const res = await cerrarSesion();
+        if (res) {
+            location.replace("/");
         }
     };
 
     return (
         <span style={{ height: "100vh", width: "100vw" }}>
             <Router />
-            <ModalAccion
-                abrir={modal2Btn.mostrar}
-                mensaje={modal2Btn.mensaje}
-                titulo={modal2Btn.titulo}
-                manejadorBtnPrimario={auth.requiereRefresco ? manejadorBtnReautenticar : manejadorBtnPermisos}
-                manejadorBtnSecundario={manejadorBtnCerrarSesion}
-                mostrarBtnSecundario={true}
-                txtBtnSimple={modal2Btn.txtBtn}
+            <ModalDoble
+                mostrar={modalDoble.mostrar}
+                titulo={modalDoble.titulo}
+                texto={modalDoble.texto}
+                txtBtnPrincipal={modalDoble.txtBtn}
                 txtBtnSecundario={t("txtBtnCerrarSesion")}
+                manejadorBtnPrincipal={manejadorBtnAutenticar}
+                manejadorBtnSecundario={manejadorBtnCerrarSesion}
                 iconoBtnSecundario={<LogoutIcon />}
-                iconoBtnPrincipal={modal2Btn.icono}
-                txtBtnSimpleAlt={modal2Btn.txtBtn}
+                iconoBtnPrincipal={modalDoble.icono}
+                txtBtnSimpleAlt={modalDoble.txtBtn}
             />
             <ModalSimple
-                abrir={modal.mostrar}
+                mostrar={modalSimple.mostrar}
                 titulo={t("tituloErr")}
-                mensaje={modal.mensaje}
-                manejadorBtnModal={manejadorBtnModal}
+                texto={modalSimple.texto}
                 txtBtn={t("txtBtnCerrar")}
+                manejadorBtn={() => setModalSimple((x) => ({ ...x, mostrar: false }))}
                 iconoBtn={<CloseIcon />}
             />
         </span>

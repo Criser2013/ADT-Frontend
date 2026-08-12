@@ -10,12 +10,12 @@ jobs:
     name: Run Javascript tests
     runs-on: ubuntu-latest
     container:
-      image: node:24-alpine3.21
+      image: node:23.7-alpine3.20
       volumes:
         - ${{ github.workspace  }}:/app
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Installing dependencies
         run: npm ci
@@ -28,7 +28,7 @@ jobs:
         continue-on-error: true
 
       - name: Save tests results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Resultado de la pruebas
           path: |

@@ -1,99 +1,76 @@
-import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar } from "@mui/material";
-import { useNavegacion } from "../../contexts/NavegacionContext";
-import { useNavigate } from "react-router-dom";
 import HomeIcon from "@mui/icons-material/Home";
-import { DiagnosticoIcono, DiagAnonimoIcono, HistDiagnosticoIcono, ListPacienteIcono, DatosIcono } from "../icons/IconosSidebar";
-import { detAbrirMenu } from "../../utils/Responsividad";
-import { useAuth } from "../../contexts/AuthContext";
 import PeopleIcon from '@mui/icons-material/People';
-import { useMemo } from "react";
+import {
+    Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
+    Toolbar, useMediaQuery
+} from "@mui/material";
+import {
+    DiagnosticoIcono, DiagAnonimoIcono, HistDiagnosticoIcono, ListPacienteIcono,
+    DatosIcono
+} from "../icons/IconosSidebar";
+import { useAuth } from "../../hooks";
+import { useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "@mui/material/styles";
+
 
 /**
- * Menú de navegación lateral de la aplicación.
+ * Menú de navegación lateral de las pestañas de autenticación.
+ * @param {Boolean} mostrarMenu Indica si el menú lateral se muestra o no.
+ * @param {import("react").SetStateAction<Boolean>} setMostrarMenu Función que cambia el estado de mostrarMenu.
  * @returns {JSX.Element}
  */
-export default function Sidebar() {
-    const navegacion = useNavegacion();
+export default function Sidebar({ mostrarMenu, setMostrarMenu }) {
     const navigate = useNavigate();
-    const auth = useAuth();
+    const theme = useTheme();
+    const { usuario } = useAuth();
     const { t } = useTranslation();
-    const filas = useMemo(() => {
-        const { rolVisible, modoUsuario } = auth.authInfo;
-        const usuario = [
-            { txt: t("titMenu"), icono: <HomeIcon />, ruta: "/menu" },
-            { txt: t("txtPacientes"), icono: <ListPacienteIcono />, ruta: "/pacientes" },
-            { txt: t("titDiagnosticoPaciente"), icono: <DiagnosticoIcono />, ruta: "/diagnostico-paciente" },
-            { txt: t("titDiagnosticoAnonimo"), icono: <DiagAnonimoIcono />, ruta: "/diagnostico-anonimo" },
-            { txt: t("txtHistorialDiagnosticos"), icono: <HistDiagnosticoIcono />, ruta: "/diagnosticos" },
-        ];
-        const admin = [
-            { txt: t("titMenu"), icono: <HomeIcon />, ruta: "/menu" },
-            { txt: t("txtDatosRecolectados"), icono: <DatosIcono />, ruta: "/diagnosticos" },
-            { txt: t("txtUsuarios"), icono: <PeopleIcon />, ruta: "/usuarios" },
-        ];
-
-        if (rolVisible != null && (!rolVisible || modoUsuario)) {
-            return usuario;
-        } else if (rolVisible != null && rolVisible && !modoUsuario) {
-            return admin;
-        } else {
-            return usuario;
-        }
-    }, [auth.authInfo, navegacion.idioma]);
-    const mostrarMenu = useMemo(() => {
-        return detAbrirMenu(navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion) ? "none" : "block";
-    }, [navegacion.mostrarMenu, navegacion.dispositivoMovil, navegacion.orientacion]);
-
+    const urlUsuarios = [
+        { txt: t("titMenu"), icono: <HomeIcon />, ruta: "/menu" },
+        { txt: t("txtPacientes"), icono: <ListPacienteIcono />, ruta: "/pacientes" },
+        { txt: t("titDiagnosticoPaciente"), icono: <DiagnosticoIcono />, ruta: "/diagnosticos/paciente" },
+        { txt: t("titDiagnosticoAnonimo"), icono: <DiagAnonimoIcono />, ruta: "/diagnosticos/anonimo" },
+        { txt: t("txtHistorialDiagnosticos"), icono: <HistDiagnosticoIcono />, ruta: "/diagnosticos" },
+    ];
+    const urlAdmin = [
+        { txt: t("titMenu"), icono: <HomeIcon />, ruta: "/menu" },
+        { txt: t("txtDatosRecolectados"), icono: <DatosIcono />, ruta: "/diagnosticos" },
+        { txt: t("txtUsuarios"), icono: <PeopleIcon />, ruta: "/usuarios" },
+    ];
+    const filas = usuario?.rolVisible ? urlAdmin : urlUsuarios;
+    const escritorio = useMediaQuery(theme.breakpoints.up("md"));
 
     /**
-     * Manejador de cierre del menú lateral. Se utiliza en
-     * dispositivos móviles.
+     * @param {String} url Ruta a la que se redirige al usuario.
      */
-    const manejadorCerrarMenu = () => {
-        navegacion.setCerrandoMenu(true);
-        navegacion.setMostrarMenu(false);
-    };
-
-    /**
-     * Manejador de transición de cierre del menú lateral. Se utiliza
-     * en dispositivos móviles.
-     */
-    const manejadorTranscionCerrar = () => {
-        navegacion.setCerrandoMenu(false);
-    };
-
-    /**
-     * Manejador de clic en los elementos del menú lateral.
-     * Redirecciona al usuario a la ruta correspondiente.
-     * @param {String} url - Ruta a la que se redirige al usuario.
-     */
-    const manejadorClicMenu = (url) => {
-        navegacion.setPaginaAnterior(window.location.pathname);
+    const manejadorClicMenu = useCallback((url) => {
         navigate(url);
+    }, [navigate]);
 
-        if (navegacion.variantSidebar == "temporary") {
-            navegacion.setMostrarMenu(false);
-        }
+    function manejadorCierreMenu() {
+        setMostrarMenu(false);
     };
+
+    useEffect(() => {
+        setMostrarMenu(escritorio);
+    }, [escritorio, setMostrarMenu]);
 
     return (
-        <Drawer
-            variant={navegacion.variantSidebar}
-            open={navegacion.mostrarMenu}
-            onClose={manejadorCerrarMenu}
-            onTransitionEnd={manejadorTranscionCerrar}
-            sx={{
-                // Se encarga de cerrar el menú en tablets o computadores. No se usa en móviles.
-                display: mostrarMenu, width: 240, flexShrink: 0,
-                [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
-            }}
-            anchor="left">
-            <Toolbar />
-            <Box sx={{ overflow: "auto" }}>
-                <List>
-                    {filas.map((x) => {
-                        return (
+        mostrarMenu ? (
+            <Drawer
+                open
+                variant={escritorio ? "persistent" : "temporary"}
+                onClose={manejadorCierreMenu}
+                sx={{
+                    width: 240, flexShrink: 0,
+                    [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
+                }}
+                anchor="left">
+                <Toolbar />
+                <Box sx={{ overflow: "auto" }}>
+                    <List>
+                        {filas.map((x) => (
                             <ListItem key={x.txt} disablePadding>
                                 <ListItemButton onClick={() => manejadorClicMenu(x.ruta)}>
                                     <ListItemIcon>
@@ -102,10 +79,9 @@ export default function Sidebar() {
                                     <ListItemText primary={x.txt} />
                                 </ListItemButton>
                             </ListItem>
-                        );
-                    })}
-                </List>
-            </Box>
-        </Drawer>
+                        ))}
+                    </List>
+                </Box>
+            </Drawer>) : null
     );
 };

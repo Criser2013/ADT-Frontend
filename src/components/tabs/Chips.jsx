@@ -1,75 +1,115 @@
 import { Chip } from "@mui/material";
 import { useMemo } from "react";
-import { useNavegacion } from "../../contexts/NavegacionContext";
+import { useTema } from "../../hooks";
 import { useTranslation } from "react-i18next";
+
 
 /**
  * Chip para mostrar el rol del usuario.
- * @param {string} rol - Rol del usuario.
+ * @param {String} valor Rol del usuario.
  * @returns {JSX.Element}
  */
-export function ChipRol ({ rol }) {
+export function ChipRol({ valor }) {
     const { t } = useTranslation();
-    return <Chips valor={rol} fnColor={(valor) => (valor === t("txtAdministrador") ? "error" : "success")} />;
-}
+    return (
+        <Chips
+            etiqueta={valor ? t("txtAdministrador") : t("txtUsuario")}
+            valor={valor}
+            fnColor={(valor) => (valor ? "error" : "success")} />
+    );
+};
 
 /**
  * Chip para mostrar el sexo del paciente.
- * @param {string} sexo - Sexo del paciente. 
+ * @param {Number} valor Sexo del paciente. 
  * @returns {JSX.Element}
  */
-export function ChipSexo({ sexo }) {
+export function ChipSexo({ valor }) {
     const { t } = useTranslation();
-    return <Chips valor={sexo} fnColor={(valor) => (valor === t("txtMasculino") ? "info" : "secondary")} />;
-}
+    return (
+        <Chips
+            etiqueta={valor == 0 ? t("txtMasculino") : t("txtFemenino")}
+            valor={valor}
+            fnColor={(valor) => (valor == 0 ? "info" : "secondary")} />
+    );
+};
 
 /**
  * Chip para mostrar el diagnóstico del paciente.
- * @param {string} diagnostico - Diagnóstico del paciente.
+ * @param {Boolean} valor Diagnóstico del paciente según el modelo.
  * @returns {JSX.Element}
  */
-export function ChipDiagnostico({ diagnostico }) {
+export function ChipDiagnostico({ valor }) {
     const { t } = useTranslation();
-    return <Chips valor={diagnostico} fnColor={(valor) => (valor === t("txtPositivo") ? "warning" : "success")} />;
-}
+    return (
+        <Chips
+            etiqueta={valor ? t("txtPositivo") : t("txtNegativo")}
+            valor={valor}
+            fnColor={(valor) => (valor ? "warning" : "success")} />
+    );
+};
 
 /**
  * Chip para mostrar el estado de validación del diagnóstico.
- * @param {string} validado - Estado de validación del diagnóstico.
+ * @param {Boolean} valor Estado de validación del diagnóstico.
  * @returns {JSX.Element}
  */
-export function ChipValidado({ validado }) {
+export function ChipValidado({ valor }) {
     const { t } = useTranslation();
-    let color = "error";
-    if (validado === t("txtNegativo")) {
-        color = "success";
-    } else if (validado === t("txtPositivo")) {
-        color = "warning";
+    const fnColor = (valor) => {
+        let color = "error";
+        if (valor == false) {
+            color = "success";
+        } else if (valor) {
+            color = "warning";
+        }
+        return color;
+    };
+    let etiqueta = t("txtNoValidado");
+
+    if (valor) {
+        etiqueta = t("txtPositivo");
+    } else if (valor == false) {
+        etiqueta = t("txtNegativo");
     }
-    return <Chips valor={validado} fnColor={() => color} />;
-}
+    return (
+        <Chips etiqueta={etiqueta} valor={valor} fnColor={fnColor} />
+    );
+};
 
 /**
  * Chip para mostrar el estado de un usuario.
- * @param {string} estado - Estado del usuario.
+ * @param {String} valor Estado del usuario.
  * @returns {JSX.Element}
  */
-export function ChipEstado({ estado }) {
+export function ChipEstado({ valor }) {
     const { t } = useTranslation();
-    return <Chips valor={estado} fnColor={(valor) => (valor === t("txtActivo") ? "success" : "error")} />;
-}
+    return (<Chips
+        etiqueta={valor ? t("txtActivo") : t("txtInactivo")}
+        valor={valor}
+        fnColor={(valor) => (valor ? "success" : "error")} />
+    );
+};
 
 /**
  * Componente para mostrar un dato dentro de un chip. Se recomienda usarlo en las tablas.
- * @param {string} valor - Valor del campo.
- * @param {function} fnColor - Función que determina el color del chip dependiendo del dato.
+ * @param {String} etiqueta Etiqueta a mostrar en el chip.
+ * @param {String|Number} valor Valor del campo.
+ * @param {Function} fnColor Función que determina el color del chip dependiendo del valor del dato.
  * @returns {JSX.Element}
  */
-export default function Chips({ valor, fnColor = () => "primary" }) {
-    const { tema } = useNavegacion();
+export default function Chips({ etiqueta, valor, fnColor = () => "primary" }) {
+    const { tema } = useTema();
     const variante = useMemo(() => {
         return (tema == "light") ? "filled" : "outlined";
     }, [tema]);
 
-    return <Chip clickable={false} variant={variante} size="small" label={valor} color={fnColor(valor)} />;
+    return (
+        <Chip
+            clickable={false}
+            variant={variante}
+            size="small"
+            label={etiqueta}
+            color={fnColor(valor)} />
+    );
 };

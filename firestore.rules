@@ -2,56 +2,64 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+  	// Verifica que un administrador pueda ver todos los archivos
+    function verArchivosAdmin() {
+      return (request.auth != null) && (request.auth.token.admin);
+    }
+  
   	// Verifica que esté autenticado y solo pueda manipular su propio archivo.
   	function verArchivosPropios(userId) {
-      return request.auth != null && request.auth.uid == userId;
-    }
-    
-    // Verifica que un administrador pueda ver todos los archivos
-    function verArchivosAdmin() {
-      return request.auth != null && request.auth.admin;
-    }
-    
-    // Obtiene los datos de un diagnostico
-    function verDiagnostico(database, usuario, id) {
-    	return get(/databases/$(database)/documents/usuarios/$(usuario)/diagnosticos/$(id)).data;
+      return (request.auth != null) && (request.auth.uid == userId);
     }
     
     // Validar que solo pueda actualizar el campo "validacion" del diagnostico
-    function validarDatosDiagnostico(database, userId, diagnosticoId, datos) {
-    	let datosGuard = verDiagnostico(database,userId, diagnosticoId);
-     	let diferencia = datosGuard.diff(datos).affectedKeys().hasOnly(["validado"]);
-      
-    	return (datos.validado == 1 || datos.validado == 0) && diferencia;
+    function validarDatosDiagnostico(diagnosticoId) {
+      let datosAlmacenados = get(/databases/$(database)/documents/usuarios/$(request.auth.uid)/diagnosticos/$(diagnosticoId)).data;
+     	return datosAlmacenados.diff(request.resource.data).affectedKeys().hasOnly(["diagnosticoMedico"]);
     }
     
     // Verifica que un usuario solo pueda crear y cambiar el contenido de sus propuios diagnósticos
     function crearDiagnosticoPropio(userId) {
-    	return ((request.auth != null) && (request.auth.uid == userId) && (request.resource.data.validado == 2));
+    	return (request.auth != null) && (request.auth.uid == userId);
+    }
+    
+    function verificarEstrucDocumento() {
+    	let clavesEsperadas = ['TEP_TVP_previo', 'bebedor', 'comorbilidades', 'crepitaciones', 'derrame',
+        'diagnosticoMedico', 'diagnosticoModelo', 'disnea', 'dolor_toracico', 'edad', 'edema_de_m_inferiores',
+        'explicacion', 'fecha', 'fiebre', 'frecuencia_cardiaca', 'frecuencia_respiratoria', 'fumador', 'hb',
+        'hemoptisis', 'inmovilidad_de_m_inferiores', 'malignidad', 'otraEnfermedad', 'paciente', 'plt',
+        'presion_diastolica', 'presion_sistolica', 'probabilidad', 'proc_quirurgico_traumatismo',
+        'saturacion_de_la_sangre', 'sexo', 'sibilancias', 'sintomas_disautonomicos', 'soplos', 'tos',
+        'viaje_prolongado', 'wbc'
+      ];
+      let clavesDocumentos = request.resource.data;
+      return clavesDocumentos.keys().hasAll(clavesEsperadas);
+    }
+    
+    match /{path=**}/diagnosticos/{diagnosticoId} {
+    // Solo los admins pueden ver los diagnosticos de todos los usuarios
+      allow read: if verArchivosAdmin();
     }
   
-    match /usuarios/{userId} {
-    	// Un usuario solo puede crear/modificar su archivo y debe tener unos campos especificos
-    	allow write, create: if (verArchivosAdmin() || verArchivosPropios(userId));
+    match /usuarios/{idUsuario} {
+    	// Un usuario solo puede crear/modificar su archivo
+    	allow write, create: if (verArchivosAdmin() || verArchivosPropios(idUsuario));
       
-      // Un usuario solo puede ver su propio archivo. Un administrador puede verlos todos
-      allow read: if verArchivosPropios(userId) || verArchivosAdmin();
-      
-      // Solo los admins pueden borrar archivos
+      // Solo los admins pueden borrar usuarios
       allow delete: if verArchivosAdmin();
     }
     
-    match /usuarios/{userId}/diagnosticos/{diagnosticoId} {
+    match /usuarios/{idUsuario}/diagnosticos/{idDiagnostico} {
     	// Un usuario solo puede ver sus propios archivos. Un administrador puede verlos todos
-      allow read: if verArchivosAdmin() || verArchivosPropios(userId);
+      allow read: if verArchivosAdmin() || verArchivosPropios(idUsuario);
       
-      // Un usuario solo puede actualizar el estado de validación
-      allow update: if (verArchivosPropios(userId) && 
-      validarDatosDiagnostico(database, request.auth.uid, diagnosticoId, request.resource.data));
+      // Un usuario solo puede actualizar el estado de validación y nadie salvo el dueño del diagnostico puede actualizar el documento
+      allow update: if (verArchivosPropios(idUsuario) && validarDatosDiagnostico(idDiagnostico));
     
     	// Un usuario solo puede crear/modificar sus propios diagnósticos
-    	allow create, write: if crearDiagnosticoPropio(userId);
+    	allow create, write: if crearDiagnosticoPropio(idUsuario) && verificarEstrucDocumento();
       
+      // Solo los admins puede borrar diagnosticos
       allow delete: if verArchivosAdmin();
     }
   }
