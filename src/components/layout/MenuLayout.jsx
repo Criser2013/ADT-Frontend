@@ -1,4 +1,4 @@
-import NavBar from "./NavBar";
+import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import { Box, CircularProgress, Toolbar } from "@mui/material";
 import { useAuth } from "../../hooks";
@@ -32,7 +32,7 @@ export default function MenuLayout({ children }) {
                     marginLeft={{
                         xs: "0px", md: mostrarMenu ? "240px" : "0px"
                     }}>
-                    <NavBar mostrarMenu={mostrarMenu} setMostrarMenu={setMostrarMenu} />
+                    <Navbar mostrarMenu={mostrarMenu} setMostrarMenu={setMostrarMenu} />
                     <Sidebar mostrarMenu={mostrarMenu} setMostrarMenu={setMostrarMenu} />
                     <Box component="main"
                         sx={{
