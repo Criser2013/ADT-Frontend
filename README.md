@@ -16,6 +16,31 @@ La aplicación recolecta los datos de los diagnósticos realizados con el fin de
 
 Además, la aplicación utiliza los servicios de **Google Drive**, **reCAPTCHA** y **Firebase**.
 
+## Capturas de pantalla
+- **Página principal:**  
+<img width="1599" height="724" alt="Página principal" src="https://github.com/user-attachments/assets/54bc921b-a270-4942-802e-28468602cb27" />
+
+- **Dashboard (administradores):**  
+<img width="1599" height="729" alt="Admin dashboard" src="https://github.com/user-attachments/assets/50ca3cc1-6599-4f26-864f-32573873cc69" />
+
+- **Página para ver los datos de un diagnóstico:**  
+<img width="1599" height="731" alt="Página para ver los datos de un diagnóstico" src="https://github.com/user-attachments/assets/26878e77-4298-42dc-8a4b-ef0fc9c768f7" />
+
+- **Página para ver los datos de un diagnóstico (administradores):**  
+<img width="1599" height="735" alt="Página para ver los datos de un diagnóstico (administrador)" src="https://github.com/user-attachments/assets/fe2a4062-0b71-44a7-ace8-2a6ed26793c5" />
+
+- **Formulario para diagnosticar un paciente:**  
+<img width="1598" height="730" alt="Formulario para diagnosticar un paciente" src="https://github.com/user-attachments/assets/659f485c-20c3-4f8a-9bb0-f3b877f23660" />
+
+- **Página para ver los datos de un paciente:**  
+<img width="1597" height="733" alt="Página para ver los datos de un paciente" src="https://github.com/user-attachments/assets/b713e08f-cde3-42bb-a77a-2fe090f7c15a" />
+
+- **Página del historial de diagnósticos:**  
+<img width="1598" height="734" alt="Página del historial de diagnósticos" src="https://github.com/user-attachments/assets/3c24370f-9081-487f-bfe7-848f841afe78" />
+
+- **Página del historial de diagnósticos (administradores):**  
+<img width="1599" height="733" alt="Página del historial de diagnósticos (administradores)" src="https://github.com/user-attachments/assets/12ca2d14-6ca6-4b17-832d-4390e5c7a59c" />
+
 ## Esquemas de datos
 
 La aplicación utiliza dos servicios para almacenar los datos de los pacientes y los diagnósticos. Ambos funcionan de forma independiente y permiten aislar la información. El objetivo de esta arquitectura es permitir el funcionamiento de la aplicación utilizando la capa gratuita de **Firebase**.

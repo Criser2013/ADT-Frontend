@@ -24,8 +24,8 @@ export default function FormValidacion({ mostrar = false, manejadorBtn, manejado
     const { control, handleSubmit, reset, formState: { errors } } = useForm({ defaultValues: valorPredet });
     const { t } = useTranslation();
 
-    function manejadorClic(datos) {
-        manejadorBtn(datos);
+    async function manejadorClic(datos) {
+        await manejadorBtn(datos);
         reset(valorPredet);
     };
 
