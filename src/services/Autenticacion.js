@@ -70,7 +70,7 @@ export async function registrarUsuario(usuario, idioma = i18n.language) {
         return { success: true };
     } else {
         const res = await peticionApi(
-            "registrar", "POST", { uid: usuario.uid }, null, null, idioma, "errRegistrarUsuario"
+            "registrar", "POST", { uid: usuario.uid }, null, usuario.accessToken, idioma, "errRegistrarUsuario"
         );
         return { success: res.success };
     }
